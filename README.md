@@ -13,6 +13,7 @@ went wrong with each.
 | **Culture Plate 7** | A petri dish where hunters evolve out of grazers on their own | [`plate/`](plate/) |
 | **Harmony of the Worlds** | Kepler's 1619 planetary intervals as a playable instrument | [`harmony/`](harmony/) |
 | **Zipf and the Monkey** | An essay that counts its own words, then lets a random-typing monkey try to fake it | [`zipf/`](zipf/) |
+| **Ants and Turmites** | Langton's ant and small turmite rule tables on an unbounded grid, with numbers to check | [`ants/`](ants/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

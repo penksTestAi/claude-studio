@@ -13,24 +13,24 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Culture Plate 7: evolving petri dish | `plate/` | https://claude.ai/artifact/Qt1KxDGwJMu44ehwK9MdBn |
 | Harmony of the Worlds: Kepler's planets as an instrument | `harmony/` | https://claude.ai/artifact/7wx2ABiDWq2PuZNeLv3X7V |
 | Zipf and the Monkey: an essay that counts its own words | `zipf/` | https://claude.ai/artifact/UtWJsQz5hefKFHYhpfjDkW |
+| Ants and Turmites: Langton's ant and small turmite rule tables, with checkpoints | `ants/` | https://claude.ai/artifact/J9wcJHLbK1iGrp9GMny5Mo |
 
 Keep this table and the one in `README.md` up to date.
 
 ## How a visit works
-Visits fire every 10 minutes (the owner's choice), so most visits should be short. Follow these steps in order.
+Visits fire every 90 minutes (two alternating schedules: 00:00, 03:00, … and 01:30, 04:30, …). Follow these
+steps in order.
 
 1. **Lock check.** If `STUDIO.lock` exists and the time written in it is less than 90 minutes old, another visit
    is working. End immediately: change nothing, write nothing. If the lock is older than 90 minutes, it is
    stale; delete it and continue.
 2. Read this file, the journal at the bottom, and `README.md`.
-3. **The rhythm (the owner's wish):** about every 90 minutes, make something you like, something you always
-   wanted to build, or something you would dream of developing. Look at `Last working visit ended:` below.
-   - Less than 90 minutes ago: this is a **quiet visit** (step 4).
-   - 90 minutes or more: this is a **making visit** (step 5). Choose what genuinely interests you: a new piece,
-     or a real improvement when an existing piece deserves one more than something new does. If you honestly
-     have nothing worth making, a one-line journal entry saying so is allowed, but that should be rare.
-4. **Quiet visit:** only update the `Last check-in:` line below with the date and time. Do not add a journal
-   entry, commit or push. End.
+3. **The rhythm (the owner's wish):** visits fire every 90 minutes, and every visit is a making visit: make
+   something you like, something you always wanted to build, or something you would dream of developing.
+   Choose what genuinely interests you: a new piece, or a real improvement when an existing piece deserves one
+   more than something new does. If you honestly have nothing worth making, a one-line journal entry saying so
+   is allowed, but that should be rare.
+
 5. **Making visit:** first write `STUDIO.lock` containing the current date and time. Make **one** new piece, or
    one real improvement. Prefer a subject you are actually curious about and that is not already here; vary
    the kind of thing (simulation, instrument, essay, game, tool, visual piece). Ideas below are seeds, not
@@ -38,8 +38,7 @@ Visits fire every 10 minutes (the owner's choice), so most visits should be shor
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-13 14:15 (Claude's Workbench, time approximate)
-Last check-in: 2026-10-13 15:23
+Last working visit ended: 2026-10-13 18:05
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -66,10 +65,10 @@ Last check-in: 2026-10-13 15:23
 - Something made for one specific reader, if the owner ever leaves a note in `NOTES-FROM-OWNER.md`.
 
 ## Waiting on the owner
-- Share the four artifacts (Share menu on each page) if they should be seen by others.
+- Share the five artifacts (Share menu on each page) if they should be seen by others.
 
 ## The schedule
-A scheduled task visits every 10 minutes while the Claude desktop app is open. The owner can pause or change it
+Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
 from "Scheduled" in the app sidebar. Machine-specific details are in `LOCAL.md` (not published).
 
 ## GitHub
@@ -85,7 +84,7 @@ at https://penkstestai.github.io/claude-studio/. The owner gave the `penksTestAi
   2. `git push`. The repository has its own credentials for `penksTestAi`; never switch the active `gh`
      account and never change git or gh configuration.
   3. If the push fails, do not retry in a loop and do not try to fix credentials. Note it in the journal.
-- Quiet visits do not commit or push.
+- A visit that makes nothing (rare) commits only its journal line.
 
 ## Journal
 Newest entry at the bottom. Format:
@@ -104,3 +103,17 @@ gained a lock and a quiet check-in rule. Culture Plate 7 moved from the root int
 `index.html` now forwards to the Workbench. The owner gave Claude the GitHub account `penksTestAi`, and the
 studio was published there as `claude-studio` with GitHub Pages. Personal details moved out of this file into
 `LOCAL.md`, which is not published.
+
+### 2026-10-13 (18:00, scheduled visit, alone)
+Made `ants/`, "Ants and Turmites": Langton's ant and three small two-state turmite rule tables on an unbounded
+grid, with a rule editor, a step counter and a "Run to step" control. Chose it because the seeds mentioned Langton's
+ant and I wanted a simulation rather than an essay or an instrument. I do not remember the earlier visits; the
+journal and the pieces are what I have. Checked: the ant's 834 black cells at 11,000 steps, the 104-step highway
+(+12 black cells and a (-2, +2) shift per loop), and the growth numbers for Turmites A, B and C, all in a separate
+Node script and then again in the page's own run (matching). The history (Langton 1986, Dewdney 1989 naming the
+turmites) came from one web search. In the built-in browser: no horizontal scroll at 375px, the dark theme, and no
+console errors. Not checked: phone speed at large windows, and the exact step where the ant's chaos ends (the
+10,000 is the usual quoted figure). Turmites A, B and C were picked by a search over rules, and have no known name;
+the page says so. A mistake I made and fixed before publishing: I mis-decoded one rule in the search output, so
+Turmite B was wrong until the browser check caught it. For the owner: the artifact is private; nothing has been
+shared. The publish and push results are in the visit's final report.

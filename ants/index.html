@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ants and Turmites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a table of rules beside a grid of cells. Light = graph paper, dark = a lab notebook at night. */
+:root{
+  --bg:#EEEADF; --panel:#F8F6EF; --ink:#1D1B18; --muted:#6A6356; --line:#D6CFBE;
+  --paper:#F8F5EC; --cell:#1D1B18; --accent:#C2410C; --good:#2F6B4F;
+  --f-display:"Fraunces",Georgia,serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1113; --panel:#161A1D; --ink:#E8E4DA; --muted:#9A9488; --line:#2A3035;
+    --paper:#111417; --cell:#E8E4DA; --accent:#FF8A4C; --good:#7FC29E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1113; --panel:#161A1D; --ink:#E8E4DA; --muted:#9A9488; --line:#2A3035;
+  --paper:#111417; --cell:#E8E4DA; --accent:#FF8A4C; --good:#7FC29E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body{padding:0 16px 48px}
+main{max-width:1080px;margin:0 auto}
+header{padding:28px 0 12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,44px);margin:0 0 6px;letter-spacing:-.01em}
+.lede{color:var(--muted);max-width:68ch;margin:0}
+.bench{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) 360px;align-items:start;margin-top:18px}
+@media (max-width:860px){.bench{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.plate{padding:12px}
+#view{width:100%;height:auto;max-width:600px;display:block;margin:0 auto;image-rendering:pixelated;background:var(--paper);border-radius:6px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 12px;cursor:pointer;min-height:36px}
+button:hover{border-color:var(--muted)}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;min-height:34px}
+label{color:var(--muted);font-size:14px}
+input[type=range]{accent-color:var(--accent);width:150px}
+h2{font-family:var(--f-display);font-size:20px;margin:0 0 8px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 0 6px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.stats{font-family:var(--f-mono);font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0;text-align:right}
+.note{color:var(--muted);font-size:14px}
+.checks{font-family:var(--f-mono);font-size:13px}
+.checks td:last-child{text-align:right;color:var(--good)}
+p{max-width:68ch}
+code{font-family:var(--f-mono);font-size:.92em}
+footer{margin-top:28px;color:var(--muted);font-size:14px;max-width:68ch}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Ants and Turmites</h1>
+  <p class="lede">A grid of cells, a walker, and a table of rules. The table is the whole program. Nothing here is
+  random after the start: the same table always draws the same picture.</p>
+</header>
+
+<div class="bench">
+  <section class="card plate" aria-label="Simulation">
+    <canvas id="view" width="600" height="600" role="img" aria-label="Grid of cells with the walker marked in orange"></canvas>
+    <div class="row">
+      <button id="run" class="primary" type="button">Run</button>
+      <button id="step" type="button">Step</button>
+      <button id="reset" type="button">Restart</button>
+      <label>Speed <input id="speed" type="range" min="1" max="500" value="60" aria-label="Steps per frame"></label>
+    </div>
+    <div class="row">
+      <label><input id="follow" type="checkbox" checked> Follow the walker</label>
+      <label>Window <select id="size" aria-label="Window size in cells">
+        <option value="64">64 cells</option>
+        <option value="128">128 cells</option>
+        <option value="256" selected>256 cells</option>
+        <option value="512">512 cells</option>
+      </select></label>
+    </div>
+    <p class="note">The grid is unbounded: nothing wraps at an edge. Large windows are slow on phones; 128 or 256 is plenty.</p>
+  </section>
+
+  <aside>
+    <section class="card" aria-label="Presets">
+      <h2>Rules</h2>
+      <div class="row" id="presets" style="margin-top:0">
+        <button type="button" data-preset="ant" aria-pressed="true">Langton's ant</button>
+        <button type="button" data-preset="A" aria-pressed="false">Turmite A</button>
+        <button type="button" data-preset="B" aria-pressed="false">Turmite B</button>
+        <button type="button" data-preset="C" aria-pressed="false">Turmite C</button>
+      </div>
+      <div class="row">
+        <label>States <select id="states" aria-label="Number of states">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        </select></label>
+      </div>
+      <table aria-label="Rule table">
+        <thead><tr><th>State / sees</th><th>Write</th><th>Turn</th><th>Next</th></tr></thead>
+        <tbody id="editor"></tbody>
+      </table>
+      <p class="note">White is 0, black is 1. Turn R/L is a right or left quarter turn, U is a U-turn, N goes straight on.
+      Changing any cell restarts the run.</p>
+    </section>
+
+    <section class="card" style="margin-top:18px" aria-label="Measurements">
+      <h2>Counts</h2>
+      <dl class="stats">
+        <dt>Steps</dt><dd id="s-steps">0</dd>
+        <dt>Black cells</dt><dd id="s-black">0</dd>
+        <dt>Box of the path</dt><dd id="s-box">1 × 1</dd>
+        <dt>Walker at</dt><dd id="s-pos">0, 0</dd>
+        <dt>State</dt><dd id="s-state">A</dd>
+      </dl>
+      <div class="row">
+        <label for="to">Run to step</label>
+        <input id="to" type="number" min="0" max="2000000" step="1" value="11000" style="width:110px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)">
+        <button id="goto" type="button">Go</button>
+      </div>
+      <p class="note">Restarts the run from step 0 and runs to the step given, at up to 2,000,000 steps.</p>
+    </section>
+  </aside>
+</div>
+
+<section class="card" style="margin-top:18px" aria-label="Checkpoints">
+  <h2>Numbers to check the page against</h2>
+  <p class="note">Measured with a separate script before this page was written. Choose a preset, type the step count
+  under Counts and press Go; the page should show these values.</p>
+  <table class="checks">
+    <thead><tr><th>Preset and steps</th><th>Expected black cells</th><th>Expected box</th></tr></thead>
+    <tbody>
+      <tr><td>Langton's ant, 11,000</td><td>834</td><td>67 × 45</td></tr>
+      <tr><td>Langton's ant, 11,104 and 11,208</td><td>846 and 858 (+12 per 104 steps)</td><td>the highway</td></tr>
+      <tr><td>Turmite A, 8,000</td><td>4,000</td><td>4,001 × 4,001</td></tr>
+      <tr><td>Turmite B, 8,000</td><td>2,287</td><td>2 × 1,144</td></tr>
+      <tr><td>Turmite C, 8,000</td><td>1,334</td><td>1,335 × 1,335</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section style="margin-top:22px;max-width:68ch">
+  <h2>What the ant does</h2>
+  <p>Chris Langton devised the ant in 1986. It turns right on a white cell and left on a black one, flips the cell, and
+  steps forward. From an empty grid it wanders in a pattern that looks random for about 10,000 steps. Then it settles
+  into a 104-step loop and builds a highway: every time through the loop it moves two cells diagonally and adds
+  twelve black cells. The highway goes on for as long as you let it run.</p>
+  <p>The loop is not a guess. The 104 steps, the two-cell shift and the twelve cells per loop were checked by running
+  the rule and comparing the walker's moves from one loop to the next. The point where the chaos stops is only
+  approximate here; the 10,000 is the commonly quoted figure.</p>
+  <p>Dewdney's 1989 <em>Scientific American</em> column gave the more general machines the name <em>turmites</em>. Some
+  people reserve <em>vant</em> for a walker with one state, which would make Langton's ant a vant. The name matters
+  less than the table.</p>
+  <p>Turmites A, B and C are not known by name. I took them from a search over all two-state, two-colour rules, keeping
+  the ones that left more than 200 black cells in their first 1,500 steps. I chose them for how they grow, not for any
+  claim about them. They grow in a straight strip, a square, and a square again; the checkpoint numbers above are what
+  they do.</p>
+</section>
+
+<footer>
+  Everything runs in your browser. Nothing is sent or stored. The page follows your system light or dark setting.
+  Only the rule table and the step count are shown; the picture is exactly what the table produces.
+</footer>
+</main>
+
+<script>
+(function(){
+  const TURN = {R:1, L:3, U:2, N:0};          // quarter turns clockwise / counter-clockwise, U-turn, straight
+  const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0]; // up, right, down, left
+  const NAMES = ['A','B','C','D'];
+  const PRESETS = {
+    ant: {states:1, table:[[1,'R',0],[0,'L',0]]},
+    A:   {states:2, table:[[0,'L',1],[0,'L',0],[1,'R',0],[0,'L',0]]},
+    B:   {states:2, table:[[0,'L',1],[0,'L',0],[1,'L',1],[0,'U',0]]},
+    C:   {states:2, table:[[0,'L',1],[0,'L',0],[1,'L',0],[0,'R',0]]}
+  };
+  const KOFF = 1048576, KMUL = 2097152;
+  const key = (X, Y) => (X + KOFF) * KMUL + (Y + KOFF);
+
+  const $ = id => document.getElementById(id);
+  const view = $('view'), vctx = view.getContext('2d');
+  const buf = document.createElement('canvas'), bctx = buf.getContext('2d');
+
+  let rules, nStates, preset = 'ant';
+  let grid, st, ux, uy, dir, steps, black, minX, maxX, minY, maxY;
+  let running = false, rafId = 0;
+
+  function reset(){
+    grid = new Map(); st = 0; ux = 0; uy = 0; dir = 0; steps = 0; black = 0;
+    minX = maxX = minY = maxY = 0;
+  }
+
+  function step(){
+    const k = key(ux, uy);
+    const c = grid.get(k) || 0;
+    const r = rules[st * 2 + c];
+    if (r[0] !== c){
+      black += r[0] ? 1 : -1;
+      if (r[0]) grid.set(k, 1); else grid.delete(k);
+    }
+    dir = (dir + TURN[r[1]]) & 3;
+    ux += DX[dir]; uy += DY[dir];
+    st = r[2]; steps++;
+    if (ux < minX) minX = ux; if (ux > maxX) maxX = ux;
+    if (uy < minY) minY = uy; if (uy > maxY) maxY = uy;
+  }
+
+  function hex(h){
+    h = h.trim().replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+
+  function render(){
+    const W = Number($('size').value);
+    const follow = $('follow').checked;
+    const cx = follow ? ux : 0, cy = follow ? uy : 0;
+    const x0 = cx - Math.floor(W / 2), y0 = cy - Math.floor(W / 2);
+    const cs = getComputedStyle(document.documentElement);
+    const paper = hex(cs.getPropertyValue('--paper'));
+    const ink = hex(cs.getPropertyValue('--cell'));
+    const accent = hex(cs.getPropertyValue('--accent'));
+    const scale = Math.max(1, Math.floor(600 / W));
+    buf.width = W; buf.height = W;
+    const img = bctx.createImageData(W, W), d = img.data;
+    for (let j = 0; j < W; j++){
+      const Y = y0 + j;
+      for (let i = 0; i < W; i++){
+        const X = x0 + i, p = (j * W + i) * 4;
+        const col = (X === ux && Y === uy) ? accent : (grid.has(key(X, Y)) ? ink : paper);
+        d[p] = col[0]; d[p+1] = col[1]; d[p+2] = col[2]; d[p+3] = 255;
+      }
+    }
+    bctx.putImageData(img, 0, 0);
+    view.width = W * scale; view.height = W * scale;
+    vctx.imageSmoothingEnabled = false;
+    vctx.drawImage(buf, 0, 0, view.width, view.height);
+  }
+
+  function updateStats(){
+    $('s-steps').textContent = steps.toLocaleString('en-GB');
+    $('s-black').textContent = black.toLocaleString('en-GB');
+    $('s-box').textContent = (maxX - minX + 1).toLocaleString('en-GB') + ' × ' + (maxY - minY + 1).toLocaleString('en-GB');
+    $('s-pos').textContent = ux + ', ' + uy;
+    $('s-state').textContent = NAMES[st];
+  }
+
+  function redraw(){ render(); updateStats(); }
+
+  function frame(){
+    const n = Number($('speed').value);
+    for (let i = 0; i < n; i++) step();
+    redraw();
+    if (running) rafId = requestAnimationFrame(frame);
+  }
+
+  function setRunning(v){
+    running = v;
+    $('run').textContent = v ? 'Pause' : 'Run';
+    cancelAnimationFrame(rafId);
+    if (v) rafId = requestAnimationFrame(frame);
+  }
+
+  function buildEditor(){
+    const body = $('editor');
+    body.innerHTML = '';
+    for (let s = 0; s < nStates; s++){
+      for (let c = 0; c < 2; c++){
+        const r = rules[s * 2 + c];
+        const tr = document.createElement('tr');
+        const who = document.createElement('td');
+        who.textContent = NAMES[s] + ' · ' + (c ? 'black' : 'white');
+        tr.appendChild(who);
+        tr.appendChild(selectCell(['0','1'], String(r[0]), v => setRule(s, c, 0, Number(v)), 'Write, state ' + NAMES[s] + ' sees ' + (c ? 'black' : 'white')));
+        tr.appendChild(selectCell(['R','L','U','N'], r[1], v => setRule(s, c, 1, v), 'Turn, state ' + NAMES[s] + ' sees ' + (c ? 'black' : 'white')));
+        const nextOpts = []; for (let k = 0; k < nStates; k++) nextOpts.push(NAMES[k]);
+        tr.appendChild(selectCell(nextOpts, NAMES[r[2]], v => setRule(s, c, 2, nextOpts.indexOf(v)), 'Next state after ' + NAMES[s] + ' sees ' + (c ? 'black' : 'white')));
+        body.appendChild(tr);
+      }
+    }
+  }
+
+  function selectCell(options, value, onChange, label){
+    const td = document.createElement('td');
+    const sel = document.createElement('select');
+    sel.setAttribute('aria-label', label);
+    options.forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; sel.appendChild(op); });
+    sel.value = value;
+    sel.addEventListener('change', () => { onChange(sel.value); });
+    td.appendChild(sel);
+    return td;
+  }
+
+  function setRule(s, c, field, value){
+    rules[s * 2 + c][field] = value;
+    markCustom();
+    setRunning(false);
+    reset(); redraw();
+  }
+
+  function markCustom(){
+    preset = 'custom';
+    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  }
+
+  function applyPreset(name){
+    const p = PRESETS[name];
+    preset = name;
+    nStates = p.states;
+    rules = JSON.parse(JSON.stringify(p.table));
+    $('states').value = String(nStates);
+    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.preset === name)));
+    setRunning(false);
+    buildEditor(); reset(); redraw();
+  }
+
+  document.querySelectorAll('#presets button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+
+  $('states').addEventListener('change', e => {
+    const n = Number(e.target.value);
+    const old = rules;
+    rules = [];
+    for (let s = 0; s < n; s++){
+      for (let c = 0; c < 2; c++){
+        const r = s * 2 + c < old.length ? old[s * 2 + c].slice() : [c ? 0 : 1, c ? 'L' : 'R', 0];
+        r[2] = Math.min(r[2], n - 1);
+        rules.push(r);
+      }
+    }
+    nStates = n;
+    markCustom();
+    setRunning(false);
+    buildEditor(); reset(); redraw();
+  });
+
+  $('goto').addEventListener('click', () => {
+    setRunning(false);
+    const target = Math.min(2000000, Math.max(0, Math.floor(Number($('to').value) || 0)));
+    reset();
+    while (steps < target) step();
+    redraw();
+  });
+  $('run').addEventListener('click', () => setRunning(!running));
+  $('step').addEventListener('click', () => { setRunning(false); step(); redraw(); });
+  $('reset').addEventListener('click', () => { setRunning(false); reset(); redraw(); });
+  $('follow').addEventListener('change', redraw);
+  $('size').addEventListener('change', redraw);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+
+  applyPreset('ant');
+})();
+</script>
+</body>
+</html>

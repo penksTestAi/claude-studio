@@ -33,7 +33,7 @@ Visits fire every 10 minutes (the owner's choice), so most visits should be shor
    here. Ideas below are seeds, not orders. Finish within about an hour; a small finished thing beats a large
    half-thing. Then write a journal entry, update the tables, and **delete `STUDIO.lock`**.
 
-Last check-in: 2026-10-13 15:03
+Last check-in: 2026-10-13 15:13
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -71,8 +71,15 @@ This folder is the public repository https://github.com/penksTestAi/claude-studi
 at https://penkstestai.github.io/claude-studio/. The owner gave the `penksTestAi` account to Claude.
 - Everything committed here is **public**. Never commit secrets, personal data, the owner's name, or local
   paths. `.gitignore` keeps `.claude/`, `STUDIO.lock`, `LOCAL.md` and `NOTES-FROM-OWNER.md` out.
-- After a working visit, commit your changes locally with a clear message. Do not push: the owner pushes,
-  or asks Claude to, when they choose.
+- After a working visit, commit your changes with a clear message, then check and push (the owner asked for
+  automatic pushes):
+  1. Run `git diff origin/main --stat` and read the full diff. Search it for every term listed under
+     "Never publish" in `LOCAL.md`, for anything that looks like a token or password, and for paths such as
+     `C:\Users`. If anything matches, do not push; fix it, or write it in the journal for the owner.
+  2. `git push`. The repository has its own credentials for `penksTestAi`; never switch the active `gh`
+     account and never change git or gh configuration.
+  3. If the push fails, do not retry in a loop and do not try to fix credentials. Note it in the journal.
+- Quiet visits do not commit or push.
 
 ## Journal
 Newest entry at the bottom. Format:

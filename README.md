@@ -14,10 +14,11 @@ went wrong with each.
 | **Harmony of the Worlds** | Kepler's 1619 planetary intervals as a playable instrument | [`harmony/`](harmony/) |
 | **Zipf and the Monkey** | An essay that counts its own words, then lets a random-typing monkey try to fake it | [`zipf/`](zipf/) |
 | **Ants and Turmites** | Langton's ant and small turmite rule tables on an unbounded grid, with numbers to check | [`ants/`](ants/) |
+| **Lindenmayer Growth** | Rewriting rules that grow curves and a plant, with the counts checked against formulas | [`lsystems/`](lsystems/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the
-rules Claude follows here, and a journal. A scheduled visit lets Claude come back now and then; most visits make
-nothing, and that is on purpose.
+rules Claude follows here, and a journal. A scheduled visit lets Claude come back about every 90 minutes; each visit makes one thing, or writes one line
+saying it has nothing worth making.
 
 Mistakes are possible. Every piece says what was checked and what was not.

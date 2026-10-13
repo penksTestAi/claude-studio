@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lindenmayer Growth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a drawing beside its rules. Light = herbarium paper, dark = a greenhouse at night. */
+:root{
+  --bg:#EFEBDD; --panel:#F8F6EC; --ink:#1E2622; --muted:#5E6A62; --line:#D3CCB8;
+  --paper:#FDFBF3; --stroke:#2D5E48; --accent:#B4532A; --ok:#2D6B43; --bad:#9B2C2C;
+  --f-display:"Fraunces",Georgia,serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1411; --panel:#151D19; --ink:#E3EBE5; --muted:#97A59C; --line:#2A3630;
+    --paper:#111915; --stroke:#8ED2AE; --accent:#F0A06C; --ok:#8ED2AE; --bad:#F09090;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1411; --panel:#151D19; --ink:#E3EBE5; --muted:#97A59C; --line:#2A3630;
+  --paper:#111915; --stroke:#8ED2AE; --accent:#F0A06C; --ok:#8ED2AE; --bad:#F09090; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body{padding:0 16px 48px}
+main{max-width:1080px;margin:0 auto}
+header{padding:28px 0 12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,44px);margin:0 0 6px;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:22px;margin:28px 0 8px}
+.lede{color:var(--muted);max-width:68ch;margin:0}
+.bench{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) 340px;align-items:start;margin-top:18px}
+@media (max-width:860px){.bench{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+#view{width:100%;height:auto;display:block;background:var(--paper);border-radius:6px}
+label,.label{display:block;font-size:14px;color:var(--muted);margin:12px 0 4px}
+select,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;min-height:36px}
+select{width:100%}
+button{cursor:pointer;padding:7px 14px}
+button:hover{border-color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+input[type=range]{width:100%;accent-color:var(--stroke)}
+.rules{font-family:var(--f-mono);font-size:14px;margin:6px 0 0;padding-left:0;list-style:none}
+.rules li{padding:2px 0}
+.stats{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:15px;margin:8px 0 0}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0;font-family:var(--f-mono);font-size:14px;overflow-wrap:anywhere}
+.ok{color:var(--ok)} .bad{color:var(--bad)}
+.about{color:var(--muted);margin:10px 0 0;font-size:15px}
+pre{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;color:var(--ink)}
+.note{color:var(--muted);max-width:72ch;font-size:15px}
+.levels{font-family:var(--f-mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere;margin:8px 0 0}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Lindenmayer Growth</h1>
+  <p class="lede">Plants and curves grown from a string of symbols. Each level rewrites every symbol by a rule; a turtle then draws the string. Pick a rule set, then move the level.</p>
+</header>
+
+<div class="bench">
+  <section class="card">
+    <canvas id="view" width="800" height="560" role="img" aria-label="Drawing of the current L-system level"></canvas>
+    <div class="row">
+      <button id="play" type="button">Play growth</button>
+      <button id="reset" type="button">Level 0</button>
+    </div>
+    <pre id="string"></pre>
+  </section>
+
+  <section class="card">
+    <label for="preset">Rule set</label>
+    <select id="preset"></select>
+    <p class="about" id="about"></p>
+
+    <label for="level">Level <span id="levelOut"></span></label>
+    <input id="level" type="range" min="0" max="0" value="0">
+
+    <div class="label">Rules</div>
+    <ul class="rules" id="rules"></ul>
+
+    <div class="label">Counts</div>
+    <dl class="stats">
+      <dt>Symbols in string</dt><dd id="sLen"></dd>
+      <dt>Segments drawn</dt><dd id="sDraw"></dd>
+      <dt>Formula</dt><dd id="sFormula"></dd>
+      <dt>Lengths so far</dt><dd class="levels" id="sLevels"></dd>
+    </dl>
+  </section>
+</div>
+
+<section>
+  <h2>Notes</h2>
+  <p class="note">The string is built in full, not by drawing. The page stops rewriting at 300,000 symbols so a level
+  never freezes the tab; the level slider ends where that limit does. Drawings with no turtle meaning (Lindenmayer's
+  algae) are shown as a row of tiles: A and B are the two colours.</p>
+  <p class="note">The formula rows are exact: the Koch segment count is 5<sup>n</sup>, the dragon's is 2<sup>n</sup>, the
+  arrowhead's is 3<sup>n</sup>, and the algae string length is the Fibonacci number F(n+2). The plant has no simple
+  formula, so the page shows none.</p>
+</section>
+</main>
+
+<script>
+const LIMIT = 300000;
+
+const PRESETS = [
+  { id:'koch', name:'Koch curve (quadratic)', axiom:'F', rules:{F:'F+F-F-F+F'}, angle:90, cap:9, draws:'F',
+    about:'Each segment becomes five shorter ones, with 90° turns. Level n has 5ⁿ segments.',
+    formula:n => `5ⁿ = ${5**n}`, expect:n => 5**n },
+  { id:'dragon', name:'Dragon curve', axiom:'FX', rules:{X:'X+YF+', Y:'-FX-Y'}, angle:90, cap:20, draws:'F',
+    about:'Two symbols that only steer, and F, which draws. Each level doubles the segments.',
+    formula:n => `2ⁿ = ${2**n}`, expect:n => 2**n },
+  { id:'arrowhead', name:'Sierpiński arrowhead', axiom:'A', rules:{A:'B-A-B', B:'A+B+A'}, angle:60, cap:12, draws:'AB',
+    about:'Both A and B draw, on a 60° grid. The drawing fills a triangle in the limit; each level triples the segments.',
+    formula:n => `3ⁿ = ${3**n}`, expect:n => 3**n },
+  { id:'plant', name:'Fractal plant', axiom:'X', rules:{X:'F+[[X]-X]-F[-FX]+X', F:'FF'}, angle:25, cap:7, draws:'F',
+    about:'Brackets [ and ] push and pop the turtle’s position and heading, so branches grow from branches.',
+    formula:null, expect:null },
+  { id:'algae', name:'Lindenmayer’s algae', axiom:'A', rules:{A:'AB', B:'A'}, angle:0, cap:24, draws:'',
+    about:'Lindenmayer’s 1968 model of algal growth. No turtle: the string is the whole picture.',
+    formula:n => `F(${n+2}) = ${fib(n+2)}`, expect:n => fib(n+2) },
+];
+
+const sel = document.getElementById('preset');
+const slider = document.getElementById('level');
+const canvas = document.getElementById('view');
+const ctx = canvas.getContext('2d');
+const playBtn = document.getElementById('play');
+let current = PRESETS[0], levels = [], n = 0, timer = null;
+
+PRESETS.forEach((p, i) => { const o = document.createElement('option'); o.value = i; o.textContent = p.name; sel.appendChild(o); });
+
+function fib(k) { let a = 0, b = 1; for (let i = 0; i < k; i++) { [a, b] = [b, a + b]; } return a; }
+
+function buildLevels(p) {
+  const out = [p.axiom];
+  while (out.length - 1 < p.cap) {
+    const prev = out[out.length - 1];
+    let next = '';
+    for (const c of prev) { next += p.rules[c] ?? c; if (next.length > LIMIT) break; }
+    if (next.length > LIMIT) break;
+    out.push(next);
+  }
+  return out;
+}
+
+// Turtle walk: returns a flat list of [x1,y1,x2,y2] segments, unit length.
+function segments(str, p) {
+  const segs = []; const stack = []; const rad = p.angle * Math.PI / 180;
+  let x = 0, y = 0, a = 0;
+  for (const c of str) {
+    if (c === '+') a += rad;
+    else if (c === '-') a -= rad;
+    else if (c === '[') stack.push([x, y, a]);
+    else if (c === ']') { const s = stack.pop(); if (s) { x = s[0]; y = s[1]; a = s[2]; } }
+    else if (c === 'F' || p.draws.includes(c)) {
+      const nx = x + Math.cos(a), ny = y + Math.sin(a);
+      segs.push(x, y, nx, ny); x = nx; y = ny;
+    }
+  }
+  return segs;
+}
+
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function draw() {
+  const p = current, str = levels[n], W = canvas.width, H = canvas.height, pad = 28;
+  ctx.fillStyle = css('--paper'); ctx.fillRect(0, 0, W, H);
+  if (!p.draws) {
+    // Tiles: one square per symbol, A in ink, B in accent.
+    // Square side chosen so the whole string fills the drawing area (capped for short strings).
+    const size = Math.min(40, Math.sqrt((W - 2 * pad) * (H - 2 * pad) / str.length));
+    const cols = Math.floor((W - 2 * pad) / size), gap = size > 4 ? 1 : 0;
+    const colA = css('--stroke'), colB = css('--accent');
+    let i = 0;
+    for (const c of str) {
+      const col = i % cols, row = Math.floor(i / cols);
+      if (pad + (row + 1) * size > H - pad) break;
+      ctx.fillStyle = c === 'B' ? colB : colA;
+      ctx.fillRect(pad + col * size, pad + row * size, size - gap, size - gap);
+      i++;
+    }
+    return;
+  }
+  const s = segments(str, p);
+  if (s.length === 0) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < s.length; i += 2) {
+    minX = Math.min(minX, s[i]); maxX = Math.max(maxX, s[i]);
+    minY = Math.min(minY, s[i + 1]); maxY = Math.max(maxY, s[i + 1]);
+  }
+  const w = maxX - minX || 1, h = maxY - minY || 1;
+  const k = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h);
+  const ox = (W - w * k) / 2 - minX * k, oy = (H + h * k) / 2 + minY * k;
+  ctx.strokeStyle = css('--stroke');
+  ctx.lineWidth = s.length > 40000 ? 0.6 : 1.4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < s.length; i += 4) {
+    ctx.moveTo(s[i] * k + ox, oy - s[i + 1] * k);
+    ctx.lineTo(s[i + 2] * k + ox, oy - s[i + 3] * k);
+  }
+  ctx.stroke();
+}
+
+function countDrawn(str, p) {
+  if (!p.draws) return 0;
+  let c = 0; for (const ch of str) if (ch === 'F' || p.draws.includes(ch)) c++; return c;
+}
+
+function update() {
+  const p = current, str = levels[n];
+  document.getElementById('levelOut').textContent = `${n} of ${levels.length - 1}`;
+  document.getElementById('string').textContent = str.length <= 240 ? str : `(${str.length.toLocaleString('en')} symbols; too long to show here)`;
+  document.getElementById('sLen').textContent = str.length.toLocaleString('en');
+  const drawn = countDrawn(str, p);
+  document.getElementById('sDraw').textContent = p.draws ? drawn.toLocaleString('en') : 'none (tiles)';
+  const fEl = document.getElementById('sFormula');
+  if (p.formula) {
+    const want = p.expect(n);
+    const ok = (p.id === 'algae') ? str.length === want : drawn === want;
+    fEl.innerHTML = `${p.formula(n)} <span class="${ok ? 'ok' : 'bad'}">${ok ? '(matches)' : '(MISMATCH)'}</span>`;
+  } else {
+    fEl.textContent = 'none for this rule set';
+  }
+  document.getElementById('sLevels').textContent = levels.map(s => s.length).join(', ');
+  document.getElementById('about').textContent = p.about;
+  document.getElementById('rules').innerHTML = `<li>axiom: ${p.axiom}</li>` +
+    Object.entries(p.rules).map(([k, v]) => `<li>${k} → ${v}</li>`).join('') +
+    (p.draws ? `<li>turn: ${p.angle}°</li>` : '<li>no turns: tiles</li>');
+  slider.max = levels.length - 1; slider.value = n;
+  draw();
+}
+
+function setPreset(i) {
+  stopPlay();
+  current = PRESETS[i]; levels = buildLevels(current); n = 0;
+  slider.max = levels.length - 1; slider.value = 0;
+  update();
+}
+
+function stopPlay() {
+  if (timer) { clearInterval(timer); timer = null; }
+  playBtn.textContent = 'Play growth';
+}
+
+playBtn.addEventListener('click', () => {
+  if (timer) { stopPlay(); return; }
+  if (n >= levels.length - 1) n = 0;
+  playBtn.textContent = 'Pause';
+  timer = setInterval(() => {
+    n++;
+    if (n >= levels.length - 1) { n = levels.length - 1; stopPlay(); }
+    update();
+  }, 700);
+  update();
+});
+
+document.getElementById('reset').addEventListener('click', () => { stopPlay(); n = 0; update(); });
+slider.addEventListener('input', () => { stopPlay(); n = Number(slider.value); update(); });
+sel.addEventListener('change', () => setPreset(Number(sel.value)));
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+
+setPreset(0);
+</script>
+</body>
+</html>

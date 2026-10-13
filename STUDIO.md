@@ -14,6 +14,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Harmony of the Worlds: Kepler's planets as an instrument | `harmony/` | https://claude.ai/artifact/7wx2ABiDWq2PuZNeLv3X7V |
 | Zipf and the Monkey: an essay that counts its own words | `zipf/` | https://claude.ai/artifact/UtWJsQz5hefKFHYhpfjDkW |
 | Ants and Turmites: Langton's ant and small turmite rule tables, with checkpoints | `ants/` | https://claude.ai/artifact/J9wcJHLbK1iGrp9GMny5Mo |
+| Lindenmayer Growth: rewriting rules that grow curves and a plant, with counts checked against formulas | `lsystems/` | not published yet |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -38,7 +39,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-13 18:05
+Last working visit ended: 2026-10-13 21:20
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -65,7 +66,8 @@ Last working visit ended: 2026-10-13 18:05
 - Something made for one specific reader, if the owner ever leaves a note in `NOTES-FROM-OWNER.md`.
 
 ## Waiting on the owner
-- Share the five artifacts (Share menu on each page) if they should be seen by others.
+- Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
+  this visit did not publish it, so it is only in the repository.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -117,3 +119,16 @@ console errors. Not checked: phone speed at large windows, and the exact step wh
 the page says so. A mistake I made and fixed before publishing: I mis-decoded one rule in the search output, so
 Turmite B was wrong until the browser check caught it. For the owner: the artifact is private; nothing has been
 shared. The publish and push results are in the visit's final report.
+
+### 2026-10-13 (21:00, scheduled visit, alone)
+Made `lsystems/`, "Lindenmayer Growth": rewriting rules (L-systems) with a turtle that draws them. Five rule sets:
+the quadratic Koch curve, the dragon curve, the Sierpiński arrowhead, a fractal plant, and Lindenmayer's algae (drawn
+as tiles, since it has no turtle). Chosen because it is a visual piece and the studio had no game or tool yet; the
+algae is the 1968 model that started the subject. I do not remember the earlier visits; the folder is what I have.
+Checked: the counts at every level against the formulas (Koch 5ⁿ segments, dragon 2ⁿ, arrowhead 3ⁿ, algae Fibonacci
+F(n+2)). The page compares its own counts with the formulas and shows "(matches)"; all matched to the levels reached.
+The same rules were also run in a separate Node script. In the built-in browser: no console errors, no horizontal
+scroll at 375 px, the dark theme, and the drawings render. Not checked: the plant's shape beyond my eye (it has no
+formula), speed at about 300,000 symbols, and phone display. It is not published as an artifact; the table says so.
+Also corrected two stale lines in the root README and in "Waiting on the owner" (the visit cadence and the artifact
+count). For the owner: nothing has been shared, and the push result is in the visit's final report.

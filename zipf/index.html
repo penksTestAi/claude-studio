@@ -1,0 +1,351 @@
+<title>Zipf and the Monkey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an explorable essay. Reading column on the left, a sticky counting instrument on the right; stacks on phones. */
+:root{
+  --bg:#F3F4F1; --paper:#FBFBF9; --ink:#17191D; --muted:#5E636B; --line:#D5D8D2;
+  --word:#2846C4; --monkey:#C2512B; --fit:#17191D; --focus:#2846C4;
+  --f-display:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --f-body:"Newsreader", "Iowan Old Style", Georgia, serif;
+  --f-type:"Courier Prime", "Courier New", monospace;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417; --paper:#191C20; --ink:#E7E6E1; --muted:#9A9FA6; --line:#2C3036;
+    --word:#8EA6FF; --monkey:#FF8A5E; --fit:#E7E6E1; --focus:#8EA6FF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417; --paper:#191C20; --ink:#E7E6E1; --muted:#9A9FA6; --line:#2C3036;
+  --word:#8EA6FF; --monkey:#FF8A5E; --fit:#E7E6E1; --focus:#8EA6FF; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.6}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:clamp(16px,3.5vw,40px);padding-block:28px 64px}
+header{max-width:900px;margin-bottom:28px}
+.kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(48px,8vw,104px);line-height:.92;margin:10px 0 14px;letter-spacing:-.01em}
+h1 em{color:var(--monkey)}
+.dek{font-size:clamp(19px,2.2vw,23px);color:var(--muted);max-width:44ch;margin:0}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:48px;align-items:start}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}.instrument{position:static!important;order:-1}}
+.essay{max-width:64ch;min-width:0}
+.essay h2{font-family:var(--f-display);font-weight:400;font-size:34px;line-height:1.1;margin:40px 0 10px;text-wrap:balance}
+.essay h2:first-child{margin-top:0}
+.essay p{margin:0 0 16px}
+.live{font-family:var(--f-mono);font-size:.82em;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
+.live.m{color:var(--monkey)} .live.w{color:var(--word)}
+cite{font-style:italic}
+.refs{font-size:15px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:32px}
+.refs p{margin:0 0 6px}
+.instrument{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.panel h3{margin:0 0 6px;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.legend{display:flex;gap:14px;font-family:var(--f-mono);font-size:12px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:currentColor;vertical-align:0}
+.legend .w{color:var(--word)} .legend .m{color:var(--monkey)}
+canvas{display:block;width:100%}
+#rank{height:300px} #heaps{height:150px}
+.tip{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-height:1.5em;margin-top:4px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:0;margin:0;padding:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label,button{font-family:var(--f-mono);font-size:12.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:7px 11px;cursor:pointer;line-height:1.2}
+button{border-radius:6px}
+.seg label{margin-left:-1px} .seg label:first-of-type{border-radius:6px 0 0 6px;margin-left:0} .seg label:last-of-type{border-radius:0 6px 6px 0}
+.seg input:checked+label{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:hover,.seg label:hover{border-color:var(--ink)}
+button:focus-visible,.seg input:focus-visible+label,textarea:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12.5px;cursor:pointer}
+.toggle input{accent-color:var(--monkey);width:16px;height:16px}
+.typed{font-family:var(--f-type);font-size:14px;color:var(--monkey);background:var(--bg);border-radius:6px;padding:8px 10px;margin:8px 0 0;max-height:4.6em;overflow:hidden;word-break:break-word;line-height:1.5}
+textarea{width:100%;min-height:110px;font-family:var(--f-body);font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;resize:vertical}
+.paste{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.stats span{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+th{font-weight:500;color:var(--muted);text-align:right;padding:3px 6px;border-bottom:1px solid var(--line)}
+td{text-align:right;padding:3px 6px;border-bottom:1px solid var(--line)}
+th:nth-child(2),td:nth-child(2),th:nth-child(5),td:nth-child(5){text-align:left}
+td.m{color:var(--monkey)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">An essay that counts its own words</div>
+    <h1>Zipf and the <em>Monkey</em></h1>
+    <p class="dek">Nearly every text ever measured follows the same strange curve. So does random typing. What, then, is the curve telling us?</p>
+  </header>
+
+  <div class="grid">
+    <article class="essay" id="essay">
+      <h2>A law nobody wrote on purpose</h2>
+      <p>Take any long text, count how often each word appears, and sort the words from most to least common. The most frequent word turns up about twice as often as the second, three times as often as the third, ten times as often as the tenth. Multiply a word's rank by its frequency and you get roughly the same number all the way down the list.</p>
+      <p>A French stenographer, Jean-Baptiste Estoup, noticed this in 1916 while designing shorthand. The American linguist George Kingsley Zipf made it famous in the 1930s and 1940s, and found the same shape in the populations of cities and the sizes of firms. Plotted with both axes on a logarithmic scale, the pattern becomes a straight line falling at a slope close to minus one. That slope is the exponent people mean when they talk about Zipf's law.</p>
+
+      <h2>This page is the sample</h2>
+      <p>The chart beside this column is not an illustration. It counts the words of the essay you are reading right now. These paragraphs hold <span class="live w" data-k="n">…</span> words, of which <span class="live w" data-k="v">…</span> are different. The most common is <span class="live w" data-k="w1">…</span>, used <span class="live w" data-k="f1">…</span> times; second comes <span class="live w" data-k="w2">…</span> with <span class="live w" data-k="f2">…</span>. The fitted slope is <span class="live w" data-k="a">…</span>, flatter than the textbook 1, which is normal for a sample this small: the few most common words have not yet pulled ahead of the rest.</p>
+      <p>A short essay is a small and noisy sample. The top of the curve wobbles because a handful of words decide it, and the bottom flattens into a long shelf of words used only once. Those words have a name, <em>hapax legomena</em>, Greek for "said once". Here they make up <span class="live w" data-k="hap">…</span> of the vocabulary. In large collections of text the share is often close to half. Most of the words any writer uses, they use only once.</p>
+
+      <h2>Enter the monkey</h2>
+      <p>In 1957 the psychologist George A. Miller pointed out something awkward. Imagine a monkey at a typewriter, striking letters at random and now and then the space bar. Every run of letters between two spaces counts as a word. Short words are more likely than long ones, simply because each extra letter is another chance for the space bar to come down first. Count the monkey's words, sort them, plot them, and the line falls in very nearly the same way.</p>
+      <p>Tick the box above the chart to let a monkey type exactly as many words as this essay contains. Its line appears in the second colour. With all keys equally likely, it falls in a staircase: every two-letter word is as probable as every other two-letter word, so they share a step. Switch the keys to English letter frequencies and the steps blur into a slope that is hard to tell from real prose.</p>
+
+      <h2>Where the monkey gives itself away</h2>
+      <p>Rank and frequency alone are a weak test. The second chart is a stronger one. It tracks how many distinct words have appeared after each new word is read. Real writing keeps coming back to words it already used, so its vocabulary grows slowly; that growth curve is called Heaps' law. The monkey almost never repeats itself beyond its shortest words, so its vocabulary runs away. In the table the difference shows again: the monkey's favourite words are fragments like single letters, and its list of words used once is far longer than any writer's.</p>
+      <p>Meaning leaves fingerprints the frequency curve cannot see. A writer repeats a word because the subject requires it. In this essay the word <span class="live w" data-k="topic">…</span> sits high on the list for no reason except that it is what the essay is about. No random process would put it there.</p>
+
+      <h2>So what does the law mean?</h2>
+      <p>Nobody fully agrees. Zipf himself argued for a balance of effort: speakers would like a few words that do everything, listeners would like a separate word for every thing, and the curve is the compromise. Herbert Simon showed in 1955 that a rich-get-richer process, where words already in use are more likely to be used again, produces the same shape. Benoît Mandelbrot derived it from the efficient coding of information. Miller's monkey says that some of the shape comes almost for free.</p>
+      <p>In 2014 the cognitive scientist Steven Piantadosi reviewed the evidence and drew a careful conclusion. The near-straight line is so easy to produce that matching it proves little about any one explanation. What carries information is where real language departs from the simple law, and how those departures differ between languages, topics and speakers.</p>
+
+      <h2>Count your own</h2>
+      <p>Paste anything into the box on the right: a chapter, an email thread, the lyrics you know by heart, a page of code. The counting happens in your browser and nothing is sent anywhere. A few thousand words already show the line. A whole novel shows it so cleanly that it is hard to remember the curve was ever a surprise.</p>
+
+      <div class="refs">
+        <p>Estoup, J.-B. (1916). <cite>Gammes sténographiques</cite>. Paris.</p>
+        <p>Zipf, G. K. (1935). <cite>The Psycho-Biology of Language</cite>; (1949) <cite>Human Behavior and the Principle of Least Effort</cite>.</p>
+        <p>Simon, H. A. (1955). On a class of skew distribution functions. <cite>Biometrika</cite> 42.</p>
+        <p>Miller, G. A. (1957). Some effects of intermittent silence. <cite>American Journal of Psychology</cite> 70.</p>
+        <p>Heaps, H. S. (1978). <cite>Information Retrieval: Computational and Theoretical Aspects</cite>.</p>
+        <p>Li, W. (1992). Random texts exhibit Zipf's-law-like word frequency distribution. <cite>IEEE Transactions on Information Theory</cite> 38.</p>
+        <p>Piantadosi, S. T. (2014). Zipf's word frequency law in natural language: a critical review and future directions. <cite>Psychonomic Bulletin &amp; Review</cite> 21.</p>
+      </div>
+    </article>
+
+    <aside class="instrument" aria-label="Word counter">
+      <div class="panel">
+        <h3><span>Rank × frequency, log–log</span><span class="legend"><span class="w" id="lgW">This essay</span><span class="m" id="lgM" hidden>Monkey</span></span></h3>
+        <canvas id="rank" aria-label="Rank-frequency plot"></canvas>
+        <div class="tip" id="tip">Hover the dots to read the words.</div>
+        <div class="stats">
+          <div><b id="sN">0</b><span>words</span></div>
+          <div><b id="sV">0</b><span>distinct</span></div>
+          <div><b id="sA">0</b><span>slope</span></div>
+          <div><b id="sH">0</b><span>said once</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3><span>The monkey</span></h3>
+        <div class="ctrl">
+          <label class="toggle" for="monkeyOn"><input type="checkbox" id="monkeyOn"> Let the monkey type</label>
+          <fieldset class="seg" aria-label="Keyboard">
+            <input type="radio" name="keys" id="kEq" value="eq"><label for="kEq">Equal keys</label>
+            <input type="radio" name="keys" id="kEn" value="en" checked><label for="kEn">English keys</label>
+          </fieldset>
+          <button id="retype" type="button">Type again</button>
+        </div>
+        <p class="typed" id="typed" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h3><span>Vocabulary growth (Heaps)</span><span id="hB"></span></h3>
+        <canvas id="heaps" aria-label="Vocabulary growth"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3><span>Top of the list</span><span>r × f stays near constant</span></h3>
+        <div class="table-wrap"><table id="top"></table></div>
+      </div>
+
+      <div class="panel">
+        <h3><span>Source</span></h3>
+        <fieldset class="seg" aria-label="Text source">
+          <input type="radio" name="src" id="srcEssay" value="essay" checked><label for="srcEssay">This essay</label>
+          <input type="radio" name="src" id="srcOwn" value="own"><label for="srcOwn">Your text</label>
+        </fieldset>
+        <div class="paste" id="paste" hidden>
+          <textarea id="own" placeholder="Paste any text here: a chapter, an email thread, a page of code."></textarea>
+          <div class="ctrl"><button id="count" type="button">Count these words</button><label class="toggle" for="file">or open a .txt file <input type="file" id="file" accept=".txt,text/plain" style="max-width:190px"></label></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const TOKEN = /[a-zà-öø-ÿ]+(?:['’][a-zà-öø-ÿ]+)*/g;
+
+// ---------- counting ----------
+function tokenize(text) { return (text.toLowerCase().match(TOKEN) || []).map(w => w.replace(/’/g, "'")); }
+function analyse(tokens) {
+  const counts = new Map(), heaps = [];
+  const step = Math.max(1, Math.floor(tokens.length / 300));
+  tokens.forEach((w, i) => { counts.set(w, (counts.get(w) || 0) + 1); if (i % step === 0 || i === tokens.length - 1) heaps.push([i + 1, counts.size]); });
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  let hap = 0; for (const [, c] of ranked) if (c === 1) hap++;
+  return { n: tokens.length, v: ranked.length, ranked, heaps, hap, alpha: fitAlpha(ranked), beta: fitBeta(heaps) };
+}
+function lsq(pts) {
+  let n = pts.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const [x, y] of pts) { sx += x; sy += y; sxx += x * x; sxy += x * y; }
+  const b = (n * sxy - sx * sy) / (n * sxx - sx * sx); return { b, a: (sy - b * sx) / n };
+}
+// Fit log f against log r over the ranks of words seen at least twice, which keeps the hapax shelf from flattening the slope.
+function fitAlpha(ranked) {
+  let m = ranked.findIndex(r => r[1] < 2); if (m < 0) m = ranked.length; m = Math.max(m, Math.min(10, ranked.length));
+  if (m < 3) return null;
+  const pts = []; for (let i = 0; i < m; i++) pts.push([Math.log10(i + 1), Math.log10(ranked[i][1])]);
+  const f = lsq(pts); return { slope: f.b, icpt: f.a, upto: m };
+}
+function fitBeta(h) { if (h.length < 5) return null; const f = lsq(h.filter(p => p[0] >= 10).map(([n, v]) => [Math.log10(n), Math.log10(v)])); return f; }
+
+// ---------- monkey ----------
+const EN = { a: 8.2, b: 1.5, c: 2.8, d: 4.3, e: 12.7, f: 2.2, g: 2.0, h: 6.1, i: 7.0, j: 0.15, k: 0.77, l: 4.0, m: 2.4, n: 6.7, o: 7.5, p: 1.9, q: 0.095, r: 6.0, s: 6.3, t: 9.1, u: 2.8, v: 0.98, w: 2.4, x: 0.15, y: 2.0, z: 0.074 };
+let mseed = 1957;
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function monkeyType(nWords, english) {
+  const rng = mulberry(mseed), letters = Object.keys(EN);
+  const w = english ? letters.map(l => EN[l]) : letters.map(() => 1);
+  const tot = w.reduce((a, b) => a + b, 0), cum = []; let c = 0; for (const x of w) { c += x / tot; cum.push(c); }
+  const SPACE = 0.18, out = []; let cur = "";
+  while (out.length < nWords) {
+    if (rng() < SPACE) { if (cur) { out.push(cur); cur = ""; } continue; }
+    const r = rng(); let i = 0; while (cum[i] < r && i < 25) i++; cur += letters[i];
+  }
+  return out;
+}
+
+// ---------- state ----------
+let source = "essay", ownTokens = [], essayTokens = [], W = null, M = null, monkeyOn = false, english = true;
+function essayText() {
+  const clone = $("essay").cloneNode(true);
+  for (const el of clone.querySelectorAll(".live, .refs, h2")) el.remove();
+  return clone.textContent;
+}
+const STOP = new Set("the of a to and in is that it as its by for are on with be at was from this or an not which any so one but has had have they their there them more than about into what when where who will would can could some no every each other most only words word".split(" "));
+function recompute() {
+  const toks = source === "essay" ? essayTokens : ownTokens;
+  W = analyse(toks);
+  M = monkeyOn ? analyse(monkeyType(Math.max(50, toks.length), english)) : null;
+  if (monkeyOn) { const sample = monkeyType(60, english); $("typed").textContent = sample.join(" ") + " …"; }
+  $("typed").hidden = !monkeyOn; $("lgM").hidden = !monkeyOn;
+  $("lgW").textContent = source === "essay" ? "This essay" : "Your text";
+  fillStats(); fillTable(); fillLive(); draw();
+}
+const fmt = n => n.toLocaleString("en-US");
+const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "–";
+function fillStats() {
+  $("sN").textContent = fmt(W.n); $("sV").textContent = fmt(W.v);
+  $("sA").textContent = W.alpha ? (-W.alpha.slope).toFixed(2) : "–";
+  $("sH").textContent = pct(W.hap, W.v);
+  $("hB").textContent = (W.beta ? `β ${W.beta.b.toFixed(2)}` : "") + (M && M.beta ? ` · monkey ${M.beta.b.toFixed(2)}` : "");
+}
+function fillTable() {
+  const rows = Math.min(12, W.ranked.length);
+  let h = `<tr><th>r</th><th>word</th><th>f</th><th>r×f</th>${M ? "<th>monkey</th><th>f</th>" : ""}</tr>`;
+  for (let i = 0; i < rows; i++) {
+    const [w, f] = W.ranked[i], m = M && M.ranked[i];
+    h += `<tr><td>${i + 1}</td><td>${esc(w)}</td><td>${f}</td><td>${(i + 1) * f}</td>${M ? `<td class="m" style="text-align:left">${m ? esc(m[0]) : ""}</td><td class="m">${m ? m[1] : ""}</td>` : ""}</tr>`;
+  }
+  $("top").innerHTML = h;
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function fillLive() {
+  // The live figures always describe the essay itself, whatever source the charts show.
+  const E = analyse(essayTokens);
+  const topic = E.ranked.find(([w]) => !STOP.has(w) && w.length > 3);
+  const val = { n: fmt(E.n), v: fmt(E.v), w1: `“${E.ranked[0][0]}”`, f1: E.ranked[0][1], w2: `“${E.ranked[1][0]}”`, f2: E.ranked[1][1],
+    a: E.alpha ? (-E.alpha.slope).toFixed(2) : "–", hap: pct(E.hap, E.v), topic: topic ? `“${topic[0]}” (${topic[1]} times)` : "" };
+  for (const el of document.querySelectorAll(".live")) el.textContent = val[el.dataset.k];
+}
+
+// ---------- drawing ----------
+const T = {};
+function readTheme() { const cs = getComputedStyle(document.documentElement); for (const k of ["paper", "ink", "muted", "line", "word", "monkey", "fit"]) T[k] = cs.getPropertyValue("--" + k).trim(); T.mono = cs.getPropertyValue("--f-mono"); }
+let dpr = 1, rankGeom = null;
+function size(cv) { dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.round(cv.clientWidth * dpr); cv.height = Math.round(cv.clientHeight * dpr); }
+function logAxes(c, w, h, pad, xmax, ymax, xlab, ylab) {
+  const X = v => pad.l + Math.log10(v) / Math.log10(xmax) * (w - pad.l - pad.r);
+  const Y = v => h - pad.b - Math.log10(v) / Math.log10(ymax) * (h - pad.t - pad.b);
+  c.strokeStyle = T.line; c.fillStyle = T.muted; c.lineWidth = 1; c.font = `${10.5 * dpr}px ${T.mono}`;
+  for (let d = 1; d <= xmax * 1.0001; d *= 10) { const x = Math.round(X(d)) + .5; c.beginPath(); c.moveTo(x, pad.t); c.lineTo(x, h - pad.b); c.stroke(); c.textAlign = d * 10 > xmax * 1.0001 ? "right" : d === 1 ? "left" : "center"; c.textBaseline = "top"; c.fillText(fmt(d), d * 10 > xmax * 1.0001 ? x : x, h - pad.b + 4 * dpr); }
+  for (let d = 1; d <= ymax * 1.0001; d *= 10) { const y = Math.round(Y(d)) + .5; c.beginPath(); c.moveTo(pad.l, y); c.lineTo(w - pad.r, y); c.stroke(); c.textAlign = "right"; c.textBaseline = "middle"; c.fillText(fmt(d), pad.l - 5 * dpr, y); }
+  c.textAlign = "right"; c.textBaseline = "bottom"; c.fillText(xlab + " →", w - pad.r - 4 * dpr, h - pad.b - 4 * dpr);
+  c.textBaseline = "top"; c.fillText("↑ " + ylab, w - pad.r - 4 * dpr, pad.t + 4 * dpr);
+  return { X, Y };
+}
+const up10 = v => Math.pow(10, Math.ceil(Math.log10(Math.max(10, v))));
+function drawRank() {
+  const cv = $("rank"); size(cv); const c = cv.getContext("2d"), w = cv.width, h = cv.height;
+  c.clearRect(0, 0, w, h);
+  const xmax = up10(Math.max(W.v, M ? M.v : 0)), ymax = up10(Math.max(W.ranked[0] ? W.ranked[0][1] : 1, M && M.ranked[0] ? M.ranked[0][1] : 1));
+  const pad = { l: 44 * dpr, r: 8 * dpr, t: 8 * dpr, b: 22 * dpr };
+  const { X, Y } = logAxes(c, w, h, pad, xmax, ymax, "rank", "times used");
+  const series = M ? [[M, T.monkey], [W, T.word]] : [[W, T.word]];
+  for (const [S, col] of series) {
+    c.fillStyle = col; c.globalAlpha = 0.75;
+    const r = Math.max(1.4, 2.2 * dpr * (S.v > 3000 ? 0.6 : 1));
+    // thin out the long tail so large texts stay fast
+    const stride = Math.max(1, Math.floor(S.v / 4000));
+    for (let i = 0; i < S.ranked.length; i += i < 2000 ? 1 : stride) { c.beginPath(); c.arc(X(i + 1), Y(S.ranked[i][1]), r, 0, Math.PI * 2); c.fill(); }
+    c.globalAlpha = 1;
+    if (S.alpha) {
+      const f = S.alpha, x1 = 1, x2 = Math.max(2, S.v);
+      c.strokeStyle = col; c.setLineDash([5 * dpr, 4 * dpr]); c.lineWidth = 1.4 * dpr;
+      c.beginPath(); c.moveTo(X(x1), Y(Math.pow(10, f.icpt))); c.lineTo(X(x2), Y(Math.max(0.5, Math.pow(10, f.icpt + f.slope * Math.log10(x2))))); c.stroke(); c.setLineDash([]);
+    }
+  }
+  rankGeom = { X, Y, pad, w, h, xmax };
+}
+function drawHeaps() {
+  const cv = $("heaps"); size(cv); const c = cv.getContext("2d"), w = cv.width, h = cv.height;
+  c.clearRect(0, 0, w, h);
+  const nmax = up10(Math.max(W.n, M ? M.n : 0));
+  const pad = { l: 44 * dpr, r: 8 * dpr, t: 8 * dpr, b: 22 * dpr };
+  const { X, Y } = logAxes(c, w, h, pad, nmax, nmax, "words read", "distinct");
+  c.strokeStyle = T.line; c.setLineDash([2 * dpr, 3 * dpr]); c.beginPath(); c.moveTo(X(1), Y(1)); c.lineTo(X(nmax), Y(nmax)); c.stroke(); c.setLineDash([]);
+  for (const [S, col] of M ? [[M, T.monkey], [W, T.word]] : [[W, T.word]]) {
+    c.strokeStyle = col; c.lineWidth = 2 * dpr; c.beginPath();
+    S.heaps.forEach(([n, v], i) => i ? c.lineTo(X(n), Y(v)) : c.moveTo(X(n), Y(v))); c.stroke();
+  }
+  c.fillStyle = T.muted; c.textAlign = "left"; c.textBaseline = "top"; c.font = `${10 * dpr}px ${T.mono}`;
+  c.fillText("dotted: every word new", pad.l + 18 * dpr, pad.t);
+}
+function draw() { drawRank(); drawHeaps(); }
+
+$("rank").addEventListener("mousemove", e => {
+  if (!rankGeom || !W) return;
+  const r = $("rank").getBoundingClientRect(), x = (e.clientX - r.left) * dpr, y = (e.clientY - r.top) * dpr;
+  let best = null, bd = 12 * dpr;
+  for (const [S, who] of M ? [[W, "essay"], [M, "monkey"]] : [[W, "essay"]]) {
+    const lim = Math.min(S.ranked.length, 3000);
+    for (let i = 0; i < lim; i++) { const d = Math.hypot(rankGeom.X(i + 1) - x, rankGeom.Y(S.ranked[i][1]) - y); if (d < bd) { bd = d; best = { who, i, w: S.ranked[i][0], f: S.ranked[i][1] }; } }
+  }
+  $("tip").textContent = best ? `${best.who === "monkey" ? "Monkey" : (source === "essay" ? "Essay" : "Your text")} · rank ${best.i + 1}: “${best.w}”, used ${best.f}×` : "Hover the dots to read the words.";
+});
+
+// ---------- controls ----------
+$("monkeyOn").addEventListener("change", e => { monkeyOn = e.target.checked; recompute(); });
+for (const r of document.querySelectorAll('input[name="keys"]')) r.addEventListener("change", () => { english = $("kEn").checked; if (monkeyOn) recompute(); });
+$("retype").addEventListener("click", () => { mseed = (Math.random() * 2 ** 31) | 0; if (!monkeyOn) { monkeyOn = true; $("monkeyOn").checked = true; } recompute(); });
+for (const r of document.querySelectorAll('input[name="src"]')) r.addEventListener("change", () => {
+  source = $("srcOwn").checked ? "own" : "essay"; $("paste").hidden = source !== "own";
+  if (source === "own" && !ownTokens.length) { $("own").focus(); return; }
+  recompute();
+});
+$("count").addEventListener("click", () => { ownTokens = tokenize($("own").value); if (ownTokens.length < 2) { $("tip").textContent = "Paste at least a few sentences first."; return; } recompute(); });
+$("file").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader(); rd.onload = () => { $("own").value = String(rd.result).slice(0, 200000); ownTokens = tokenize(String(rd.result)); recompute(); }; rd.readAsText(f);
+});
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(draw, 120); });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readTheme(); draw(); });
+new MutationObserver(() => { readTheme(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+essayTokens = tokenize(essayText());
+readTheme(); recompute();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { readTheme(); draw(); });
+})();
+</script>

@@ -1,0 +1,664 @@
+<title>Culture Plate 7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: a lab bench. The plate dominates the left; the incubation log runs down the right; stacks on phones.
+   Light theme = brightfield microscopy, dark theme = darkfield. */
+:root{
+  --bg:#E4EAEC; --panel:#F4F7F8; --ink:#16202A; --muted:#55646E; --line:#C7D1D6;
+  --agar:#EEE8C9; --agar-edge:#DCD09E; --glass:#97AAB4;
+  --stain:#673C9C; --hunter:#BE3560; --food:#8F6514; --focus:#2C68AF;
+  --cell-l:48; --cell-a:0.55;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A0F13; --panel:#11181E; --ink:#DCE4E9; --muted:#8798A3; --line:#23313A;
+    --agar:#0F181D; --agar-edge:#0B1216; --glass:#3C5260;
+    --stain:#AD90FF; --hunter:#FF6E95; --food:#E2B04C; --focus:#6FA8F0;
+    --cell-l:70; --cell-a:0.72; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A0F13; --panel:#11181E; --ink:#DCE4E9; --muted:#8798A3; --line:#23313A;
+  --agar:#0F181D; --agar-edge:#0B1216; --glass:#3C5260;
+  --stain:#AD90FF; --hunter:#FF6E95; --food:#E2B04C; --focus:#6FA8F0;
+  --cell-l:70; --cell-a:0.72; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:20px 48px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px;margin-bottom:18px}
+.eyebrow,.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,4.4vw,48px);line-height:1.02;margin:4px 0 6px;letter-spacing:-.02em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+.clock{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.clock b{display:block;font-family:var(--f-display);font-weight:500;font-size:28px;color:var(--ink);letter-spacing:-.01em}
+.bench{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+@media (max-width:900px){.bench{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.clock{text-align:left}}
+@media (max-width:760px){.rules{grid-template-columns:minmax(0,1fr)}}
+.plate{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+#dish{display:block;max-width:100%;cursor:crosshair;touch-action:manipulation;border-radius:50%}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+button,.seg label{font-family:var(--f-mono);font-size:13px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;line-height:1.2}
+button:hover,.seg label:hover{border-color:var(--ink)}
+button:focus-visible,.seg input:focus-visible+label,input[type=range]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button.warn{color:var(--hunter)}
+.seg{display:inline-flex;border:0;padding:0;margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{border-radius:0;margin-left:-1px}
+.seg label:first-of-type{border-radius:6px 0 0 6px;margin-left:0}
+.seg label:last-of-type{border-radius:0 6px 6px 0}
+.seg input:checked+label{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.flow{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.flow input{width:120px;accent-color:var(--food)}
+.flow output{min-width:7ch;font-variant-numeric:tabular-nums;color:var(--ink)}
+aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{margin:0;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.census{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.census div{display:flex;flex-direction:column}
+.census b{font-family:var(--f-display);font-weight:500;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
+.census .g b{color:var(--stain)} .census .h b{color:var(--hunter)} .census .f b{color:var(--food)}
+.census span{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+canvas.chart{width:100%;height:110px;display:block}
+.traits{display:flex;flex-direction:column;gap:10px}
+.trait{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:baseline}
+.trait .name{font-size:13px}
+.trait .val{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.trait canvas{grid-column:1/-1;width:100%;height:26px;display:block}
+.spec-empty{margin:0;color:var(--muted);font-size:13px}
+.spec-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.spec-head b{font-family:var(--f-mono);font-weight:500;font-size:15px}
+.pill{font-family:var(--f-mono);font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid currentColor}
+.pill.graze{color:var(--stain)} .pill.hunt{color:var(--hunter)} .pill.dead{color:var(--muted)}
+.genome{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:13px}
+.genome .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.genome .bar i{display:block;height:100%;background:var(--stain)}
+.genome .bar.e i{background:var(--food)}
+.genome .bar.d i{background:var(--hunter)}
+.genome span:last-child,.genome .num{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+.spec-meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin:0}
+#log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto;font-size:13px}
+#log li{display:grid;grid-template-columns:5.5ch 1fr;gap:8px}
+#log time{font-family:var(--f-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.rules{margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 32px;border-top:1px solid var(--line);padding-top:20px}
+.rules h3{font-family:var(--f-display);font-weight:500;font-size:18px;margin:0 0 4px}
+.rules p{margin:0;color:var(--muted);font-size:14px;max-width:65ch}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Incubation log · 37 °C · open plate</div>
+      <h1>Culture Plate 7</h1>
+      <p class="lede">A dish of single cells that eat, divide and mutate. Nobody designs them. Whatever survives on this plate is whatever the plate rewards.</p>
+    </div>
+    <div class="clock"><span class="label">Incubated</span><b id="clock">0 h 00 min</b><span class="label" id="seedlabel"></span></div>
+  </header>
+
+  <div class="bench">
+    <section class="plate" aria-label="Culture plate">
+      <canvas id="dish" width="600" height="600" aria-label="Petri dish simulation. Tap a cell to inspect it; tap empty agar to add nutrients."></canvas>
+      <p class="hint">Tap a cell to read its genome. Tap bare agar to drop nutrients.</p>
+      <div class="controls">
+        <button id="run" type="button">Pause</button>
+        <fieldset class="seg" aria-label="Simulation speed">
+          <input type="radio" name="spd" id="spd1" value="1" checked><label for="spd1">1×</label>
+          <input type="radio" name="spd" id="spd4" value="4"><label for="spd4">4×</label>
+          <input type="radio" name="spd" id="spd16" value="16"><label for="spd16">16×</label>
+        </fieldset>
+        <label class="flow" for="flow">Nutrients <input id="flow" type="range" min="0.4" max="4" step="0.1" value="1.6"><output id="flowv">1.6/min</output></label>
+        <button id="shock" type="button" class="warn">Heat shock</button>
+        <button id="reseed" type="button">New plate</button>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h2>Census</h2>
+        <div class="census">
+          <div class="g"><b id="nG">0</b><span>grazers</span></div>
+          <div class="h"><b id="nH">0</b><span>hunters</span></div>
+          <div class="f"><b id="nGen">0</b><span>top generation</span></div>
+        </div>
+        <canvas class="chart" id="chart" aria-label="Population over time"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>Founder lines</h2>
+        <p class="spec-meta" id="linSummary"></p>
+        <canvas class="chart" id="muller" aria-label="Share of the plate held by each founder line over time"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>Gene pool</h2>
+        <div class="traits">
+          <div class="trait"><span class="name">Swim speed</span><span class="val" id="mSpeed"></span><canvas id="hSpeed"></canvas></div>
+          <div class="trait"><span class="name">Cell diameter</span><span class="val" id="mSize"></span><canvas id="hSize"></canvas></div>
+          <div class="trait"><span class="name">Sensing range</span><span class="val" id="mSense"></span><canvas id="hSense"></canvas></div>
+          <div class="trait"><span class="name">Carnivory</span><span class="val" id="mDiet"></span><canvas id="hDiet"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card" id="spec">
+        <h2>Specimen</h2>
+        <p class="spec-empty" id="specEmpty">No cell selected. Tap one on the plate to follow it.</p>
+        <div id="specBody" hidden>
+          <div class="spec-head"><b id="sId"></b><span class="pill" id="sPill"></span></div>
+          <p class="spec-meta" id="sMeta"></p>
+          <div class="genome" id="sGenome"></div>
+          <button id="release" type="button" style="align-self:flex-start;margin-top:10px">Release</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Field notes</h2>
+        <ul id="log" aria-live="polite"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <section class="rules">
+    <div><h3>Energy is everything</h3><p>Each cell burns energy every minute. Bigger bodies, faster swimming and wider sensing all cost more. A nutrient pellet is worth the same to every cell, so large cells need more meals before they can divide.</p></div>
+    <div><h3>Division copies, imperfectly</h3><p>A cell that fills three quarters of its energy store splits in two. The daughter inherits speed, size, sensing, carnivory and stain colour, each nudged by a small random mutation. Each founder line starts with its own stain, so you can watch one family take over the plate.</p></div>
+    <div><h3>Hunters are not built in</h3><p>Every founder is a grazer. Carnivory is one more gene, and once in a while a division flips it hard. Cells above 50% carnivory that are a fifth larger than a neighbour can lunge at it and eat it. Prey swim away from anything that could.</p></div>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+// ---------- world constants ----------
+const W = 2000, CX = 1000, CY = 1000, R = 960, CELL = 170, GN = Math.ceil(W / CELL);
+const RANGE = { speed: [0.6, 4.5], size: [3, 15], sense: [25, 170], diet: [0, 1] };
+const MAX_POP = 450, MAX_FOOD = 900, FOOD_V = 25;
+const TAU = Math.PI * 2;
+
+let rng, spare = null, seed = 0;
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss() {
+  if (spare !== null) { const s = spare; spare = null; return s; }
+  let u = 0; while (u === 0) u = rng();
+  const v = rng(), m = Math.sqrt(-2 * Math.log(u));
+  spare = m * Math.sin(TAU * v); return m * Math.cos(TAU * v);
+}
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const hex = n => (n >>> 0).toString(16).toUpperCase().padStart(8, "0");
+const pad = (n, w) => String(n).padStart(w, "0");
+const fmtTime = t => `${Math.floor(t / 60)} h ${pad(t % 60, 2)} min`;
+
+// ---------- state ----------
+let S;
+const cg = Array.from({ length: GN * GN }, () => []);
+const fg = Array.from({ length: GN * GN }, () => []);
+
+function randInDish(rad) { const a = rng() * TAU, r = rad * Math.sqrt(rng()); return { x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r }; }
+function inDish(x, y, m) { const dx = x - CX, dy = y - CY; return dx * dx + dy * dy < (R - m) * (R - m); }
+
+function spawnFood(x, y, v) {
+  if (S.food.length >= MAX_FOOD) return;
+  if (x === undefined) {
+    if (rng() < 0.45) {
+      const p = S.patches[(rng() * S.patches.length) | 0];
+      x = CX + Math.cos(p.a) * p.r + gauss() * 70; y = CY + Math.sin(p.a) * p.r + gauss() * 70;
+      if (!inDish(x, y, 12)) return;
+    } else { const p = randInDish(R - 12); x = p.x; y = p.y; }
+  }
+  S.food.push({ x, y, v: v || FOOD_V, dead: false });
+}
+
+function makeCell(x, y, g, gen, lin, e) {
+  g.speed = clamp(g.speed, ...RANGE.speed); g.size = clamp(g.size, ...RANGE.size);
+  g.sense = clamp(g.sense, ...RANGE.sense); g.diet = clamp(g.diet, ...RANGE.diet);
+  g.hue = ((g.hue % 360) + 360) % 360;
+  return { id: S.nextId++, x, y, h: rng() * TAU, e, age: 0, maxAge: 2600 + rng() * 1400, gen, lin, g, kills: 0, kids: 0, dead: false, cause: "" };
+}
+
+function inoculate(n) {
+  for (let i = 0; i < n; i++) {
+    const p = randInDish(R * 0.7);
+    const lin = S.nextLineage++, hue = (S.hue0 + lin * 137.508) % 360;
+    S.linHue[lin] = hue;
+    S.cells.push(makeCell(p.x, p.y, { speed: 1.8 + gauss() * 0.2, size: 6 + gauss() * 0.6, sense: 70 + gauss() * 8, diet: Math.abs(gauss() * 0.03), hue }, 0, lin, 70 + rng() * 40));
+  }
+}
+
+function newPlate(sd) {
+  seed = sd >>> 0; rng = mulberry(seed); spare = null;
+  S = { tick: 0, cells: [], food: [], nextId: 1, nextLineage: 1, hist: [], log: [], foodAcc: 0, patches: [], extinctAt: -1,
+        flags: { hunter: false, hunterGone: false, mono: false, waves: 1 }, genMilestone: 0, maxGen: 0, sel: null, ripples: [],
+        linHue: {}, hue0: 0, muller: [] };
+  S.hue0 = rng() * 360;
+  for (let i = 0; i < 3; i++) S.patches.push({ a: rng() * TAU, r: 300 + rng() * 450, w: (rng() < .5 ? -1 : 1) * (0.0004 + rng() * 0.0006) });
+  for (let i = 0; i < 260; i++) spawnFood();
+  inoculate(40);
+  note(`Plate inoculated with 40 grazing cells from 40 founder lines, each line stained its own colour.`);
+  document.getElementById("seedlabel").textContent = "Seed " + hex(seed);
+  sample(); renderPanels(); renderLog();
+}
+
+function note(msg) { S.log.unshift({ t: S.tick, msg }); if (S.log.length > 40) S.log.length = 40; logDirty = true; }
+
+// ---------- simulation ----------
+function buildGrids() {
+  for (let i = 0; i < cg.length; i++) { cg[i].length = 0; fg[i].length = 0; }
+  for (const c of S.cells) cg[clamp((c.y / CELL) | 0, 0, GN - 1) * GN + clamp((c.x / CELL) | 0, 0, GN - 1)].push(c);
+  for (const f of S.food) fg[clamp((f.y / CELL) | 0, 0, GN - 1) * GN + clamp((f.x / CELL) | 0, 0, GN - 1)].push(f);
+}
+
+// Energy store: a fixed cost of building a daughter plus room that grows with body area.
+const capOf = g => 80 + 4 * g.size * g.size;
+const P = { base: 0.05, area: 0.003, move: 0.006, sense: 0.0012, jump: 0.012, preyMass: 5, preyE: 0.8, lunge: 2, lungeR: 5 };
+const canEat = (a, b) => a.g.diet > 0.5 && a.g.size > b.g.size * 1.2;
+
+function stepCell(c, births) {
+  const g = c.g, sr = g.sense, sr2 = sr * sr;
+  let best = null, bestS = 0, bestFood = false, thr = null, thrD2 = Infinity;
+  const x0 = Math.max(0, ((c.x - sr) / CELL) | 0), x1 = Math.min(GN - 1, ((c.x + sr) / CELL) | 0);
+  const y0 = Math.max(0, ((c.y - sr) / CELL) | 0), y1 = Math.min(GN - 1, ((c.y + sr) / CELL) | 0);
+  for (let gy = y0; gy <= y1; gy++) for (let gx = x0; gx <= x1; gx++) {
+    const i = gy * GN + gx;
+    if (g.diet < 0.92) for (const f of fg[i]) {
+      if (f.dead) continue;
+      const dx = f.x - c.x, dy = f.y - c.y, d2 = dx * dx + dy * dy;
+      if (d2 < sr2) { const s = (1 - g.diet) * f.v / (Math.sqrt(d2) + 15); if (s > bestS) { bestS = s; best = f; bestFood = true; } }
+    }
+    for (const o of cg[i]) {
+      if (o === c || o.dead) continue;
+      const dx = o.x - c.x, dy = o.y - c.y, d2 = dx * dx + dy * dy;
+      if (d2 >= sr2) continue;
+      if (canEat(c, o)) { const s = g.diet * (o.e * 0.6 + o.g.size * o.g.size * 1.5) * 0.5 / (Math.sqrt(d2) + 15); if (s > bestS) { bestS = s; best = o; bestFood = false; } }
+      if (canEat(o, c) && d2 < thrD2) { thr = o; thrD2 = d2; }
+    }
+  }
+  let want = null;
+  if (thr && (!best || thrD2 < sr2 * 0.36)) want = Math.atan2(c.y - thr.y, c.x - thr.x);
+  else if (best) want = Math.atan2(best.y - c.y, best.x - c.x);
+  if (want !== null) { const d = Math.atan2(Math.sin(want - c.h), Math.cos(want - c.h)); c.h += clamp(d, -0.18, 0.18); }
+  else c.h += gauss() * 0.12;
+  // Small cells feel the medium as thicker (low Reynolds number), so they swim slower for the same effort.
+  let sp = g.speed * (want === null ? 0.6 : 1) * Math.min(1, Math.sqrt(g.size / 7));
+  // Hunters lunge at prey within striking distance.
+  if (best && !bestFood && !thr && Math.hypot(best.x - c.x, best.y - c.y) < g.size * P.lungeR) sp *= P.lunge;
+  c.x += Math.cos(c.h) * sp; c.y += Math.sin(c.h) * sp;
+  const dx = c.x - CX, dy = c.y - CY, dist = Math.hypot(dx, dy), lim = R - g.size;
+  if (dist > lim) { c.x = CX + dx / dist * lim; c.y = CY + dy / dist * lim; c.h = Math.atan2(-dy, -dx) + gauss() * 0.6; }
+
+  if (best && !best.dead) {
+    const d = Math.hypot(best.x - c.x, best.y - c.y);
+    if (bestFood) { if (d < g.size + 4) { best.dead = true; c.e += best.v * (1 - g.diet); } }
+    else if (d < g.size + best.g.size) {
+      best.dead = true; best.cause = `eaten by C-${pad(c.id, 5)}`; best.diedAt = S.tick;
+      c.e += g.diet * (best.e * P.preyE + best.g.size * best.g.size * P.preyMass); c.kills++;
+    }
+  }
+
+  const z2 = g.size * g.size;
+  c.e -= P.base + P.area * z2 + P.move * g.size * sp * sp + P.sense * sr;
+  c.age++;
+  if (c.e <= 0 || c.age > c.maxAge) {
+    c.dead = true; c.cause = c.e <= 0 ? "starved" : "died of old age"; c.diedAt = S.tick;
+    spawnFood(c.x, c.y, FOOD_V * 0.6);
+    return;
+  }
+  const cap = capOf(g);
+  if (c.e > cap * 0.75 && S.cells.length + births.length < MAX_POP) {
+    const m = (k) => g[k] + gauss() * (RANGE[k][1] - RANGE[k][0]) * 0.06;
+    // Rarely, a division goes badly wrong and shifts diet a long way at once.
+    const jump = rng() < P.jump ? (g.diet < 0.5 ? 1 : -1) * (0.3 + rng() * 0.3) : 0;
+    const ng = { speed: m("speed"), size: m("size") + (jump > 0 ? 2 : 0), sense: m("sense"), diet: g.diet + gauss() * 0.05 + jump, hue: g.hue + gauss() * 4 };
+    const e = c.e * 0.45; c.e *= 0.45; c.kids++;
+    const a = rng() * TAU;
+    const child = makeCell(c.x + Math.cos(a) * g.size, c.y + Math.sin(a) * g.size, ng, c.gen + 1, c.lin, e);
+    child.h = a;
+    births.push(child);
+    if (child.gen > S.maxGen) S.maxGen = child.gen;
+  }
+}
+
+let flowRate = 1.6;
+function tick() {
+  S.tick++;
+  for (const p of S.patches) p.a += p.w;
+  S.foodAcc += flowRate;
+  while (S.foodAcc >= 1) { S.foodAcc--; spawnFood(); }
+  buildGrids();
+  const births = [];
+  for (const c of S.cells) if (!c.dead) stepCell(c, births);
+  S.cells = S.cells.filter(c => !c.dead);
+  for (const b of births) S.cells.push(b);
+  S.food = S.food.filter(f => !f.dead);
+
+  if (S.cells.length === 0) {
+    if (S.extinctAt < 0) { S.extinctAt = S.tick; note("The culture died out. Re-inoculating the plate with fresh founders."); }
+    else if (S.tick - S.extinctAt > 180) { S.extinctAt = -1; S.flags.mono = false; inoculate(30); note("30 new founder cells added."); }
+  }
+  if (S.tick % 20 === 0) { sample(); events(); histDirty = true; }
+}
+
+function sample() {
+  let h = 0; for (const c of S.cells) if (c.g.diet > 0.5) h++;
+  S.hist.push({ t: S.tick, g: S.cells.length - h, h, f: S.food.length });
+  if (S.hist.length > 360) S.hist.shift();
+  const lc = {}; for (const c of S.cells) lc[c.lin] = (lc[c.lin] || 0) + 1;
+  S.muller.push(lc);
+  if (S.muller.length > 360) S.muller.shift();
+}
+
+function events() {
+  const last = S.hist[S.hist.length - 1];
+  if (!S.flags.hunter && last.h > 0) {
+    const c = S.cells.find(c => c.g.diet > 0.5);
+    S.flags.hunter = true;
+    note(`First hunter: C-${pad(c.id, 5)} of line L-${pad(c.lin, 3)}, generation ${c.gen}. It can eat cells a fifth smaller than itself.`);
+  } else if (S.flags.hunter && !S.flags.hunterGone && last.h === 0) {
+    S.flags.hunterGone = true; note("Hunters have died out. Grazers have the plate to themselves.");
+  } else if (S.flags.hunterGone && last.h >= 3) {
+    S.flags.hunterGone = false; S.flags.waves++;
+    note(`Hunters have evolved again from a grazing line. This is wave ${S.flags.waves}.`);
+  }
+  const ms = [10, 25, 50, 100, 200, 400, 800];
+  while (S.genMilestone < ms.length && S.maxGen >= ms[S.genMilestone]) { note(`Generation ${ms[S.genMilestone]} reached.`); S.genMilestone++; }
+  if (!S.flags.mono && S.cells.length > 5) {
+    const l = S.cells[0].lin;
+    if (S.cells.every(c => c.lin === l)) { S.flags.mono = true; note(`Every cell on the plate now descends from founder line L-${pad(l, 3)}. The other lines are gone.`); }
+  }
+}
+
+function heatShock() {
+  const before = S.cells.length; let killed = 0;
+  for (const c of S.cells) if (rng() < 0.8) { c.dead = true; c.cause = "killed by heat shock"; c.diedAt = S.tick; killed++; spawnFood(c.x, c.y, FOOD_V * 0.6); }
+  S.cells = S.cells.filter(c => !c.dead);
+  note(`Heat shock at 52 °C: ${killed} of ${before} cells killed.`);
+  sample(); histDirty = true;
+}
+
+// ---------- theme ----------
+const T = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ["bg", "panel", "ink", "muted", "line", "agar", "agar-edge", "glass", "stain", "hunter", "food", "focus"]) T[k] = cs.getPropertyValue("--" + k).trim();
+  T.cellL = parseFloat(cs.getPropertyValue("--cell-l")) || 56;
+  T.cellA = parseFloat(cs.getPropertyValue("--cell-a")) || 0.5;
+  buildDish(); histDirty = true;
+}
+
+// ---------- rendering ----------
+const dish = document.getElementById("dish"), ctx = dish.getContext("2d");
+const plateEl = dish.parentElement;
+let dpr = 1, px = 600, k = 0.3, dishBg = null;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const avail = plateEl.clientWidth;
+  const vh = window.innerHeight;
+  const size = Math.max(260, Math.min(avail, 820, window.innerWidth > 900 ? vh - 140 : avail));
+  dish.style.width = size + "px"; dish.style.height = size + "px";
+  px = Math.round(size * dpr); dish.width = px; dish.height = px; k = px / W;
+  buildDish();
+  for (const el of document.querySelectorAll("canvas.chart, .trait canvas")) { el.width = Math.round(el.clientWidth * dpr); el.height = Math.round(el.clientHeight * dpr); }
+  histDirty = true;
+}
+
+function buildDish() {
+  if (!px || !T.agar) return;
+  dishBg = document.createElement("canvas"); dishBg.width = px; dishBg.height = px;
+  const b = dishBg.getContext("2d");
+  const cx = CX * k, cy = CY * k;
+  b.fillStyle = T.bg; b.fillRect(0, 0, px, px);
+  b.beginPath(); b.arc(cx, cy, 995 * k, 0, TAU); b.fillStyle = T.panel; b.fill();
+  b.lineWidth = Math.max(1, 3 * k); b.strokeStyle = T.glass; b.stroke();
+  const gr = b.createRadialGradient(cx, cy, R * k * 0.2, cx, cy, R * k);
+  gr.addColorStop(0, T.agar); gr.addColorStop(1, T["agar-edge"]);
+  b.beginPath(); b.arc(cx, cy, R * k, 0, TAU); b.fillStyle = gr; b.fill();
+  b.lineWidth = Math.max(1, 1.5 * k); b.strokeStyle = T.glass; b.stroke();
+  // rim label, lettered along the arc like a marker on the lid
+  const txt = "PLATE 7 · LB AGAR · 37 °C · SEED " + hex(seed) + " · DO NOT OPEN";
+  const fs = Math.max(8, 15 * k * 1.6);
+  b.font = `500 ${fs}px ${getComputedStyle(document.body).getPropertyValue("--f-mono") || "monospace"}`;
+  b.fillStyle = T.muted; b.textAlign = "center"; b.textBaseline = "middle";
+  const rr = 978 * k; let ang = -Math.PI * 0.86;
+  for (const ch of txt) {
+    const w = b.measureText(ch).width;
+    ang += (w / 2) / rr;
+    b.save(); b.translate(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr); b.rotate(ang + Math.PI / 2); b.fillText(ch, 0, 0); b.restore();
+    ang += (w / 2 + fs * 0.08) / rr;
+  }
+  // graticule etched in the agar base
+  b.strokeStyle = T.line; b.globalAlpha = 0.35; b.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { b.beginPath(); b.arc(cx, cy, R * k * i / 4, 0, TAU); b.stroke(); }
+  b.beginPath(); b.moveTo(cx - R * k, cy); b.lineTo(cx + R * k, cy); b.moveTo(cx, cy - R * k); b.lineTo(cx, cy + R * k); b.stroke();
+  b.globalAlpha = 1;
+}
+
+let frame = 0;
+function draw() {
+  if (!dishBg) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(dishBg, 0, 0);
+  // food
+  ctx.fillStyle = T.food;
+  const fr = Math.max(1.2, 3.2 * k);
+  ctx.beginPath();
+  for (const f of S.food) { const x = f.x * k, y = f.y * k; ctx.moveTo(x + fr, y); ctx.arc(x, y, fr, 0, TAU); }
+  ctx.fill();
+  // cells
+  const L = T.cellL, A = T.cellA, t = frame * 0.25, lw = Math.max(1, dpr) / k;
+  for (const c of S.cells) {
+    const z = c.g.size * 1.5, cs = Math.cos(c.h), sn = Math.sin(c.h), hunter = c.g.diet > 0.5;
+    ctx.setTransform(k * cs, k * sn, -k * sn, k * cs, c.x * k, c.y * k);
+    ctx.lineWidth = lw;
+    if (!hunter) {
+      ctx.beginPath(); ctx.moveTo(-z * 1.2, 0);
+      ctx.quadraticCurveTo(-z * 1.7, Math.sin(t + c.id) * z * 0.6, -z * 2.3, Math.sin(t + c.id + 1.5) * z * 0.3);
+      ctx.strokeStyle = `hsla(${c.g.hue},40%,${L - 20}%,0.6)`; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.ellipse(0, 0, z * 1.25, z * 0.85, 0, 0, TAU);
+    ctx.fillStyle = `hsla(${c.g.hue},50%,${L}%,${A})`; ctx.fill();
+    ctx.strokeStyle = hunter ? T.hunter : `hsla(${c.g.hue},55%,${L - 22}%,0.9)`; ctx.stroke();
+    if (hunter) {
+      ctx.beginPath();
+      for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, ca = Math.cos(a), sa = Math.sin(a); ctx.moveTo(ca * z * 1.25, sa * z * 0.85); ctx.lineTo(ca * z * 1.65, sa * z * 1.2); }
+      ctx.strokeStyle = T.hunter; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(-z * 0.25, 0, z * 0.3, 0, TAU);
+    ctx.fillStyle = `hsla(${c.g.hue},60%,${L - 28}%,0.9)`; ctx.fill();
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // ripples where nutrients were dropped
+  for (const r of S.ripples) {
+    const p = r.age / 40;
+    ctx.beginPath(); ctx.arc(r.x * k, r.y * k, (20 + p * 70) * k, 0, TAU);
+    ctx.strokeStyle = T.food; ctx.globalAlpha = 1 - p; ctx.lineWidth = Math.max(1, dpr); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  // selection reticle
+  const s = S.sel;
+  if (s && !s.dead) {
+    const x = s.x * k, y = s.y * k, r = (s.g.size * 2 + 14) * k;
+    ctx.strokeStyle = T.focus; ctx.lineWidth = Math.max(1.5, 1.5 * dpr);
+    ctx.setLineDash([4 * dpr, 4 * dpr]); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x - r - 8 * dpr, y); ctx.lineTo(x - r, y); ctx.moveTo(x + r, y); ctx.lineTo(x + r + 8 * dpr, y);
+    ctx.moveTo(x, y - r - 8 * dpr); ctx.lineTo(x, y - r); ctx.moveTo(x, y + r); ctx.lineTo(x, y + r + 8 * dpr); ctx.stroke();
+  }
+}
+
+// ---------- panels ----------
+const $ = id => document.getElementById(id);
+let histDirty = true, logDirty = true;
+
+function drawChart() {
+  const cv = $("chart"), c = cv.getContext("2d"), w = cv.width, h = cv.height;
+  if (!w || !h) return;
+  c.clearRect(0, 0, w, h);
+  const H = S.hist; if (H.length < 2) return;
+  let max = 10; for (const p of H) max = Math.max(max, p.g + p.h, p.f / 4);
+  max = Math.ceil(max / 50) * 50;
+  const pt = 14 * dpr, pb = 14 * dpr, ph = h - pt - pb;
+  const X = i => i / (H.length - 1) * w, Y = v => pt + ph - v / max * ph;
+  c.strokeStyle = T.line; c.lineWidth = 1;
+  for (const v of [0, max / 2, max]) { c.beginPath(); c.moveTo(0, Math.round(Y(v)) + .5); c.lineTo(w, Math.round(Y(v)) + .5); c.stroke(); }
+  // nutrients as faint area (pellets / 4 so it shares the axis)
+  c.beginPath(); c.moveTo(0, Y(0)); H.forEach((p, i) => c.lineTo(X(i), Y(p.f / 4))); c.lineTo(w, Y(0)); c.closePath();
+  c.fillStyle = T.food; c.globalAlpha = 0.15; c.fill(); c.globalAlpha = 1;
+  const line = (key, col) => { c.beginPath(); H.forEach((p, i) => i ? c.lineTo(X(i), Y(p[key])) : c.moveTo(X(i), Y(p[key]))); c.strokeStyle = col; c.lineWidth = 1.6 * dpr; c.stroke();
+    const lp = H[H.length - 1]; c.beginPath(); c.arc(w - 3 * dpr, Y(lp[key]), 2.5 * dpr, 0, TAU); c.fillStyle = col; c.fill(); };
+  line("g", T.stain); line("h", T.hunter);
+  c.font = `${10 * dpr}px ${getComputedStyle(document.body).getPropertyValue("--f-mono")}`; c.fillStyle = T.muted;
+  c.textBaseline = "top"; c.textAlign = "left"; c.fillText(max + " cells", 0, 0);
+  c.textBaseline = "bottom"; c.fillText(fmtTime(H[0].t), 0, h);
+  c.textAlign = "right"; c.fillText("now", w, h);
+}
+
+const TRAITS = [
+  { key: "speed", el: "Speed", fmt: v => (v * 10).toFixed(0) + " µm/min" },
+  { key: "size", el: "Size", fmt: v => (v * 2).toFixed(1) + " µm" },
+  { key: "sense", el: "Sense", fmt: v => v.toFixed(0) + " µm" },
+  { key: "diet", el: "Diet", fmt: v => (v * 100).toFixed(0) + "%" },
+];
+function drawTraits() {
+  const n = S.cells.length;
+  for (const tr of TRAITS) {
+    const [lo, hi] = RANGE[tr.key], B = 28, gb = new Array(B).fill(0), hb = new Array(B).fill(0);
+    let sum = 0;
+    for (const c of S.cells) { const v = c.g[tr.key]; sum += v; const bi = clamp(((v - lo) / (hi - lo) * B) | 0, 0, B - 1); (c.g.diet > 0.5 ? hb : gb)[bi]++; }
+    $("m" + tr.el).textContent = n ? "mean " + tr.fmt(sum / n) : "—";
+    const cv = $("h" + tr.el), c = cv.getContext("2d"), w = cv.width, h = cv.height;
+    if (!w) continue;
+    c.clearRect(0, 0, w, h);
+    let mx = 1; for (let i = 0; i < B; i++) mx = Math.max(mx, gb[i] + hb[i]);
+    const bw = w / B;
+    c.fillStyle = T.line; c.fillRect(0, h - 1, w, 1);
+    for (let i = 0; i < B; i++) {
+      const gh = gb[i] / mx * (h - 2), hh = hb[i] / mx * (h - 2);
+      c.fillStyle = T.stain; c.fillRect(i * bw + 1, h - 1 - gh, bw - 2, gh);
+      c.fillStyle = T.hunter; c.fillRect(i * bw + 1, h - 1 - gh - hh, bw - 2, hh);
+    }
+  }
+}
+
+function drawMuller() {
+  const cv = $("muller"), c = cv.getContext("2d"), w = cv.width, h = cv.height;
+  const M = S.muller;
+  const now = M[M.length - 1] || {};
+  const alive = Object.keys(now).map(Number);
+  let lead = null, ln = 0, tot = 0;
+  for (const l of alive) { tot += now[l]; if (now[l] > ln) { ln = now[l]; lead = l; } }
+  $("linSummary").textContent = alive.length
+    ? `${alive.length} of ${S.nextLineage - 1} lines alive · L-${pad(lead, 3)} holds ${Math.round(ln / tot * 100)}%`
+    : "No living lines.";
+  if (!w || !h) return;
+  c.clearRect(0, 0, w, h);
+  if (M.length < 2) return;
+  const lins = new Set(); for (const s of M) for (const l in s) lins.add(+l);
+  const order = [...lins].sort((a, b) => a - b);
+  const pb = 14 * dpr, ph = h - pb;
+  const X = i => i / (M.length - 1) * w;
+  const totals = M.map(s => { let t = 0; for (const l in s) t += s[l]; return t || 1; });
+  const base = new Array(M.length).fill(0);
+  for (const l of order) {
+    const top = M.map((s, i) => base[i] + (s[l] || 0) / totals[i]);
+    c.beginPath();
+    for (let i = 0; i < M.length; i++) i ? c.lineTo(X(i), top[i] * ph) : c.moveTo(0, top[i] * ph);
+    for (let i = M.length - 1; i >= 0; i--) c.lineTo(X(i), base[i] * ph);
+    c.closePath();
+    c.fillStyle = `hsl(${(S.linHue[l] || 0).toFixed(0)},50%,${T.cellL}%)`; c.fill();
+    if (l === lead) { c.strokeStyle = T.ink; c.lineWidth = 1; c.stroke(); }
+    for (let i = 0; i < M.length; i++) base[i] = top[i];
+  }
+  c.font = `${10 * dpr}px ${getComputedStyle(document.body).getPropertyValue("--f-mono")}`; c.fillStyle = T.muted;
+  c.textBaseline = "bottom"; c.textAlign = "left"; c.fillText(fmtTime(S.hist[0].t), 0, h);
+  c.textAlign = "right"; c.fillText("now", w, h);
+}
+
+function renderSpec() {
+  const s = S.sel;
+  $("specEmpty").hidden = !!s; $("specBody").hidden = !s;
+  if (!s) return;
+  const hunter = s.g.diet > 0.5;
+  $("sId").textContent = `C-${pad(s.id, 5)} · line L-${pad(s.lin, 3)}`;
+  const pill = $("sPill");
+  pill.className = "pill " + (s.dead ? "dead" : hunter ? "hunt" : "graze");
+  pill.textContent = s.dead ? "dead" : hunter ? "hunter" : "grazer";
+  $("sMeta").textContent = s.dead
+    ? `Generation ${s.gen}. ${s.cause[0].toUpperCase() + s.cause.slice(1)} at ${fmtTime(s.diedAt)} after ${fmtTime(s.age)}. ${s.kids} daughters, ${s.kills} kills.`
+    : `Generation ${s.gen}. Age ${fmtTime(s.age)}. ${s.kids} daughters, ${s.kills} kills.`;
+  const cap = capOf(s.g);
+  const row = (name, frac, val, cls) => `<span>${name}</span><span class="bar ${cls || ""}"><i style="width:${(clamp(frac, 0, 1) * 100).toFixed(1)}%"></i></span><span class="num">${val}</span>`;
+  const f = (key) => (s.g[key] - RANGE[key][0]) / (RANGE[key][1] - RANGE[key][0]);
+  $("sGenome").innerHTML =
+    row("Energy", s.dead ? 0 : s.e / (cap * 0.75), s.dead ? "0%" : Math.min(100, s.e / (cap * 0.75) * 100).toFixed(0) + "% to split", "e") +
+    row("Speed", f("speed"), TRAITS[0].fmt(s.g.speed)) +
+    row("Diameter", f("size"), TRAITS[1].fmt(s.g.size)) +
+    row("Sensing", f("sense"), TRAITS[2].fmt(s.g.sense)) +
+    row("Carnivory", s.g.diet, TRAITS[3].fmt(s.g.diet), "d") +
+    `<span>Stain</span><span class="bar"><i style="width:100%;background:hsl(${s.g.hue.toFixed(0)},50%,${T.cellL}%)"></i></span><span class="num">${s.g.hue.toFixed(0)}°</span>`;
+}
+
+function renderLog() {
+  $("log").innerHTML = S.log.map(l => `<li><time>${Math.floor(l.t / 60)} h</time><span>${l.msg.replace(/[<>&]/g, m => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[m]))}</span></li>`).join("");
+  logDirty = false;
+}
+
+function renderPanels() {
+  let h = 0; for (const c of S.cells) if (c.g.diet > 0.5) h++;
+  $("nG").textContent = S.cells.length - h; $("nH").textContent = h; $("nGen").textContent = S.maxGen;
+  $("clock").textContent = fmtTime(S.tick);
+  renderSpec();
+  if (histDirty) { drawChart(); drawMuller(); drawTraits(); histDirty = false; }
+  if (logDirty) renderLog();
+}
+
+// ---------- loop & input ----------
+let running = true, perFrame = 1;
+function loop() {
+  frame++;
+  if (running) for (let i = 0; i < perFrame; i++) tick();
+  for (const r of S.ripples) r.age++;
+  S.ripples = S.ripples.filter(r => r.age < 40);
+  draw();
+  if (frame % 8 === 0 || !running) renderPanels();
+  requestAnimationFrame(loop);
+}
+
+dish.addEventListener("click", ev => {
+  const rect = dish.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) / rect.width * W, y = (ev.clientY - rect.top) / rect.height * W;
+  // Hit area of about 14 screen pixels, so small cells are still tappable on a phone.
+  const slop = 14 / rect.width * W;
+  let best = null, bd = Infinity;
+  for (const c of S.cells) { const d = Math.hypot(c.x - x, c.y - y); if (d < c.g.size * 1.6 + slop && d < bd) { bd = d; best = c; } }
+  if (best) { S.sel = best; renderSpec(); return; }
+  if (!inDish(x, y, 15)) return;
+  for (let i = 0; i < 14; i++) { const a = Math.random() * TAU, r = Math.random() * 45; const fx = x + Math.cos(a) * r, fy = y + Math.sin(a) * r; if (inDish(fx, fy, 10)) S.food.push({ x: fx, y: fy, v: FOOD_V, dead: false }); }
+  S.ripples.push({ x, y, age: 0 });
+});
+
+$("run").addEventListener("click", () => { running = !running; $("run").textContent = running ? "Pause" : "Resume"; });
+document.addEventListener("keydown", e => { if (e.code === "Space" && e.target === document.body) { e.preventDefault(); $("run").click(); } });
+for (const r of document.querySelectorAll('input[name="spd"]')) r.addEventListener("change", () => { perFrame = +r.value; });
+$("flow").addEventListener("input", e => { flowRate = +e.target.value; $("flowv").textContent = flowRate.toFixed(1) + "/min"; });
+$("shock").addEventListener("click", heatShock);
+$("reseed").addEventListener("click", () => { newPlate((Math.random() * 2 ** 32) >>> 0); buildDish(); });
+$("release").addEventListener("click", () => { S.sel = null; renderSpec(); });
+
+window.addEventListener("resize", resize);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readTheme);
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+
+const hashSeed = /^#([0-9A-Fa-f]{8})$/.exec(location.hash);
+newPlate(hashSeed ? parseInt(hashSeed[1], 16) : 0x7C0FFEE7);
+readTheme(); resize();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildDish(); histDirty = true; });
+// Warm the culture up so the first frame already shows a living plate.
+for (let i = 0; i < 1500; i++) tick();
+renderPanels();
+requestAnimationFrame(loop);
+})();
+</script>

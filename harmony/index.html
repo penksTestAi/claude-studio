@@ -1,0 +1,482 @@
+<title>Harmony of the Worlds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a brass orrery on a night-blue plate (left), its score (right). One deliberate dark look, like an engraved instrument. */
+:root{
+  --bg:#0F1329; --panel:#151A36; --ink:#ECE4CF; --muted:#9C99AE; --line:#2A3157;
+  --brass:#C9A55A; --brass-dim:#6F5E36; --glow:#F2D58C; --focus:#8FB7FF;
+  --f-display:"IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --f-italic:"IM Fell English", "Iowan Old Style", Georgia, serif;
+  --f-body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"DM Mono", ui-monospace, Consolas, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1260px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:22px 56px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px 28px;margin-bottom:18px}
+.eyebrow{font-family:var(--f-italic);font-style:italic;color:var(--brass);font-size:16px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,5vw,58px);line-height:1;margin:4px 0 8px;letter-spacing:.01em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.tabs{display:inline-flex;border:1px solid var(--brass-dim);border-radius:999px;padding:3px;gap:2px}
+.tabs button{border:0;background:none;color:var(--muted);font-family:var(--f-body);font-size:15px;padding:7px 16px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--brass);color:var(--bg)}
+.bench{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start}
+@media (max-width:940px){.bench{grid-template-columns:minmax(0,1fr)}}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+#sky{display:block;max-width:100%;cursor:pointer;touch-action:manipulation}
+.bar{display:flex;flex-wrap:wrap;gap:10px 14px;justify-content:center;align-items:center}
+button.btn,select{font-family:var(--f-body);font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+button.btn:hover,select:hover{border-color:var(--brass)}
+button.primary{background:var(--brass);border-color:var(--brass);color:var(--bg);font-weight:500}
+button.primary[aria-pressed="true"]{background:none;color:var(--brass)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.speed{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.speed input{width:130px;accent-color:var(--brass)}
+.speed output{min-width:11ch;color:var(--ink);font-variant-numeric:tabular-nums}
+.readout{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:center;margin:0}
+.readout b{color:var(--ink);font-weight:400}
+aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.card h2{font-family:var(--f-display);font-weight:400;font-size:21px;margin:0 0 4px;letter-spacing:.02em}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.rows{display:flex;flex-direction:column;margin-top:10px}
+.row{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:9px 6px;border-top:1px solid var(--line);cursor:pointer;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;width:100%;border-left:0;border-right:0;border-bottom:0}
+.row:hover{background:rgba(201,165,90,.06)}
+.row[aria-pressed="true"]{background:rgba(201,165,90,.12)}
+.dot{width:10px;height:10px;border-radius:50%}
+.row .nm{font-size:16px}
+.row .note{font-family:var(--f-mono);font-size:13px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;min-width:9ch}
+.row .sub{grid-column:2/4;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.row .rng{grid-column:2/4;height:4px;background:var(--line);border-radius:2px;position:relative;margin:3px 0 2px}
+.row .rng i{position:absolute;top:-3px;width:2px;height:10px;background:var(--glow);border-radius:1px}
+.row.muted .nm,.row.muted .note{opacity:.4}
+.mute{font-family:var(--f-mono);font-size:11px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:6px;padding:2px 6px;cursor:pointer}
+.ratios{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;margin-top:10px;font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.ratios span:nth-child(3n+2){color:var(--muted)}
+.ratios .hit{color:var(--glow)}
+.essay{margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 36px;border-top:1px solid var(--line);padding-top:22px}
+@media (max-width:820px){.essay{grid-template-columns:minmax(0,1fr)}}
+.essay h3{font-family:var(--f-display);font-weight:400;font-size:21px;margin:0 0 6px}
+.essay p{margin:0;color:var(--muted);font-size:15px;max-width:62ch}
+.essay em{font-family:var(--f-italic);color:var(--ink)}
+.foot{margin-top:28px;font-size:13px;color:var(--muted)}
+.foot a{color:var(--brass)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">after Johannes Kepler, Harmonices Mundi, Linz 1619</div>
+      <h1>Harmony of the Worlds</h1>
+      <p class="lede">Kepler thought each planet sings one interval: the ratio between its slowest and fastest motion around the Sun. Four centuries later the orbits still bear most of him out. Press play and listen.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Instrument">
+      <button role="tab" id="tabK" aria-selected="true">Kepler's six planets</button>
+      <button role="tab" id="tabR" aria-selected="false">Resonant chains</button>
+    </div>
+  </header>
+
+  <div class="bench">
+    <section class="stage">
+      <canvas id="sky" width="700" height="700" aria-label="Orrery"></canvas>
+      <p class="readout" id="readout"></p>
+      <div class="bar">
+        <button class="btn primary" id="play" aria-pressed="false">Play sound</button>
+        <label class="speed" for="speed">Speed <input id="speed" type="range" min="0" max="1000" value="500"><output id="speedv"></output></label>
+        <button class="btn" id="pause">Pause</button>
+        <span id="kControls"><button class="btn" id="zoom">Show outer planets</button></span>
+        <span id="rControls" hidden>
+          <select id="preset" aria-label="System">
+            <option value="trappist">TRAPPIST-1 · seven planets</option>
+            <option value="galilean">Io, Europa, Ganymede, Callisto</option>
+            <option value="k223">Kepler-223 · four planets</option>
+            <option value="pluto">Neptune and Pluto</option>
+          </select>
+        </span>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card" id="kCard">
+        <h2>The six voices</h2>
+        <p>Pitch follows each planet's angular speed seen from the Sun. Tap a row to draw its equal-area wedges; mute any voice.</p>
+        <div class="rows" id="kRows"></div>
+      </div>
+      <div class="card" id="rCard" hidden>
+        <h2 id="rTitle"></h2>
+        <p id="rDesc"></p>
+        <div class="rows" id="rRows"></div>
+        <div class="ratios" id="rRatios"></div>
+        <p style="margin-top:8px;font-size:12.5px">Intervals in gold sit within 0.5% of a low-order resonance. 1200¢ is an octave, 702¢ a pure fifth.</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="essay">
+    <div><h3>What Kepler heard</h3><p>A planet moves fastest at perihelion and slowest at aphelion. Seen from the Sun, the ratio of those two speeds is <em>((1+e)/(1−e))²</em>, where e is the orbit's eccentricity. Kepler had no such formula yet; he got his intervals from Tycho Brahe's observations and named them in music.</p></div>
+    <div><h3>Equal areas, equal times</h3><p>Each shaded wedge is swept in one twelfth of the selected planet's year. Near the Sun they are short and wide, far out long and thin, yet every wedge has the same area. That is Kepler's second law, and it is why the pitch slides.</p></div>
+    <div><h3>Chains that ring</h3><p>Some systems lock their orbits into small whole-number ratios. Pitch here is proportional to orbital frequency, so a 3:2 resonance sounds as a perfect fifth and 2:1 as an octave. Each body plucks once per orbit as it crosses the top of the dial.</p></div>
+  </section>
+  <p class="foot">Orbital elements are J2000 mean values; planet positions start at the real date in the readout. Resonant chains start lined up, which real systems are not. Pitches are transposed into hearing range, as Kepler also did.</p>
+</div>
+
+<script>
+(() => {
+"use strict";
+const TAU = Math.PI * 2, DEG = Math.PI / 180;
+const $ = id => document.getElementById(id);
+
+// ---------- data ----------
+// a [AU], e, P [yr], w = longitude of perihelion [deg], L = mean longitude at J2000 [deg]
+const PLANETS = [
+  { name: "Mercury", a: 0.3871, e: 0.2056, P: 0.24085, w: 77.46, L: 252.25, base: 261.63, col: "#BDB4A6", k: [12, 5], kName: "octave and minor third", r: 3 },
+  { name: "Venus",   a: 0.7233, e: 0.0068, P: 0.61520, w: 131.53, L: 181.98, base: 329.63, col: "#EAD49C", k: [25, 24], kName: "diesis", r: 4.5 },
+  { name: "Earth",   a: 1.0000, e: 0.0167, P: 1.00000, w: 102.94, L: 100.46, base: 392.00, col: "#7FB7DB", k: [16, 15], kName: "semitone, mi–fa", r: 4.5 },
+  { name: "Mars",    a: 1.5237, e: 0.0934, P: 1.88082, w: 336.04, L: 355.45, base: 174.61, col: "#DD7C5C", k: [3, 2], kName: "fifth", r: 3.5 },
+  { name: "Jupiter", a: 5.2034, e: 0.0484, P: 11.8620, w: 14.73, L: 34.40, base: 196.00, col: "#D8B78F", k: [6, 5], kName: "minor third", r: 8 },
+  { name: "Saturn",  a: 9.5371, e: 0.0539, P: 29.4571, w: 92.60, L: 49.95, base: 98.00, col: "#D1C391", k: [5, 4], kName: "major third", r: 7 },
+];
+const CHAINS = {
+  trappist: { title: "TRAPPIST-1", unit: "days", speed: 1.2, desc: "Seven Earth-sized planets 40 light years away, every neighbouring pair in or near a whole-number resonance. Found 2016–2017.",
+    bodies: [["b", 1.51088], ["c", 2.42180], ["d", 4.04961], ["e", 6.09962], ["f", 9.20669], ["g", 12.35294], ["h", 18.7673]] },
+  galilean: { title: "Jupiter's great moons", unit: "days", speed: 1, desc: "Io, Europa and Ganymede are locked 1:2:4 in the Laplace resonance. Callisto, outside it, keeps its own time.",
+    bodies: [["Io", 1.769138], ["Europa", 3.551181], ["Ganymede", 7.154553], ["Callisto", 16.68902]] },
+  k223: { title: "Kepler-223", unit: "days", speed: 2, desc: "Four sub-Neptunes whose periods stand almost exactly 3:4:6:8. Played as pitches that is a fourth, a fifth and a fourth: C, F, C, F.",
+    bodies: [["b", 7.38449], ["c", 9.84564], ["d", 14.78869], ["e", 19.72567]] },
+  pluto: { title: "Neptune and Pluto", unit: "years", speed: 12, desc: "Pluto crosses Neptune's orbit yet never meets it: for every two Pluto orbits, Neptune makes three. A perfect fifth.",
+    bodies: [["Neptune", 164.79], ["Pluto", 247.94]] },
+};
+
+// ---------- Kepler mechanics ----------
+function solveE(M, e) { let E = M + e * Math.sin(M); for (let i = 0; i < 6; i++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E)); return E; }
+function pos(p, t) {
+  let M = (p.L - p.w) * DEG + TAU * t / p.P; M = ((M % TAU) + TAU) % TAU;
+  const E = solveE(M, p.e);
+  const nu = 2 * Math.atan2(Math.sqrt(1 + p.e) * Math.sin(E / 2), Math.sqrt(1 - p.e) * Math.cos(E / 2));
+  const r = p.a * (1 - p.e * Math.cos(E)), ang = nu + p.w * DEG;
+  return { x: r * Math.cos(ang), y: r * Math.sin(ang), nu, r };
+}
+// angular speed relative to aphelion: ((1 + e cos nu) / (1 - e))^2
+const speedRatio = (p, nu) => Math.pow((1 + p.e * Math.cos(nu)) / (1 - p.e), 2);
+const maxRatio = p => Math.pow((1 + p.e) / (1 - p.e), 2);
+
+const NOTES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+function noteName(f) {
+  const m = 69 + 12 * Math.log2(f / 440), n = Math.round(m), c = Math.round((m - n) * 100);
+  return `${NOTES[((n % 12) + 12) % 12]}${Math.floor(n / 12) - 1}${c ? (c > 0 ? " +" : " −") + Math.abs(c) + "¢" : ""}`;
+}
+function nearestFrac(x) {
+  let best = null;
+  for (let q = 1; q <= 9; q++) { const p = Math.round(x * q); const err = Math.abs(p / q - x) / x; if (!best || err < best.err - 1e-4) best = { p, q, err }; }
+  return best;
+}
+
+// ---------- state ----------
+const J2000 = Date.UTC(2000, 0, 1, 12), YEAR = 365.25 * 864e5;
+const today = new Date();
+let mode = "kepler", running = true, outer = false, sel = 3, muted = new Set();
+let tK = (Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) - J2000) / YEAR;
+let tR = 0, chain = CHAINS.trappist, lastRev = [], flash = [];
+
+// speed slider: log scale; Kepler in years/s, chains in units/s
+function sliderToMult(v) { return Math.pow(10, (v - 500) / 500); }   // 0.1x .. 10x
+function kSpeed() { return 0.25 * sliderToMult(+$("speed").value); }
+function rSpeed() { return chain.speed * sliderToMult(+$("speed").value); }
+function showSpeed() {
+  const s = mode === "kepler" ? kSpeed() : rSpeed(), u = mode === "kepler" ? "yr" : (chain.unit === "days" ? "d" : "yr");
+  $("speedv").textContent = (s < 1 ? s.toFixed(2) : s < 10 ? s.toFixed(1) : s.toFixed(0)) + ` ${u}/s`;
+}
+
+// ---------- audio ----------
+let AC = null, master = null, send = null, soundOn = false, voices = [];
+function initAudio() {
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value = 0;
+  const comp = AC.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
+  master.connect(comp); comp.connect(AC.destination);
+  // a little room: filtered feedback delay
+  const d = AC.createDelay(1); d.delayTime.value = 0.29;
+  const fb = AC.createGain(); fb.gain.value = 0.35;
+  const lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+  send = AC.createGain(); send.gain.value = 0.5;
+  send.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(master);
+}
+function startDrones() {
+  stopDrones();
+  if (!AC) return;
+  voices = PLANETS.map((p, i) => {
+    const g = AC.createGain(); g.gain.value = 0;
+    const o1 = AC.createOscillator(); o1.type = "triangle";
+    const o2 = AC.createOscillator(); o2.type = "sine";
+    const g2 = AC.createGain(); g2.gain.value = 0.35;
+    const lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400;
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master); g.connect(send);
+    o1.frequency.value = p.base; o2.frequency.value = p.base * 2;
+    o1.start(); o2.start();
+    // quieter for high voices so the bass planets are not buried
+    const level = 0.11 * Math.sqrt(200 / p.base);
+    g.gain.setTargetAtTime(muted.has(i) ? 0 : level, AC.currentTime, 0.4);
+    return { o1, o2, g, level };
+  });
+}
+function stopDrones() {
+  for (const v of voices) { const t = AC.currentTime; v.g.gain.setTargetAtTime(0, t, 0.08); v.o1.stop(t + 0.5); v.o2.stop(t + 0.5); }
+  voices = [];
+}
+function pluck(f, pan, vel) {
+  if (!soundOn || !AC) return;
+  const t = AC.currentTime;
+  const g = AC.createGain(); g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.22 * vel, t + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+  const o1 = AC.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
+  const o2 = AC.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 3.01;
+  const g2 = AC.createGain(); g2.gain.setValueAtTime(0.25, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  const pn = AC.createStereoPanner ? AC.createStereoPanner() : null;
+  o1.connect(g); o2.connect(g2); g2.connect(g);
+  if (pn) { pn.pan.value = pan; g.connect(pn); pn.connect(master); pn.connect(send); } else { g.connect(master); g.connect(send); }
+  o1.start(t); o2.start(t); o1.stop(t + 1.9); o2.stop(t + 1.9);
+}
+async function toggleSound() {
+  initAudio();
+  soundOn = !soundOn;
+  if (soundOn) {
+    try { await AC.resume(); } catch (e) {}
+    master.gain.setTargetAtTime(0.8, AC.currentTime, 0.1);
+    if (mode === "kepler") startDrones();
+  } else {
+    master.gain.setTargetAtTime(0, AC.currentTime, 0.08);
+    stopDrones();
+  }
+  $("play").setAttribute("aria-pressed", soundOn); $("play").textContent = soundOn ? "Stop sound" : "Play sound";
+}
+
+// ---------- canvas ----------
+const cv = $("sky"), ctx = cv.getContext("2d");
+let dpr = 1, S = 700;
+const C = {};
+function readColors() { const cs = getComputedStyle(document.documentElement); for (const k of ["bg", "panel", "ink", "muted", "line", "brass", "brass-dim", "glow"]) C[k] = cs.getPropertyValue("--" + k).trim(); C.mono = cs.getPropertyValue("--f-mono"); C.italic = cs.getPropertyValue("--f-italic"); }
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const avail = cv.parentElement.clientWidth;
+  const size = Math.max(280, Math.min(avail, 760, window.innerWidth > 940 ? window.innerHeight - 170 : avail));
+  cv.style.width = cv.style.height = size + "px";
+  cv.width = cv.height = Math.round(size * dpr); S = cv.width;
+}
+
+function dial(cx, cy, R) {
+  // brass degree ring, engraved like an astrolabe limb
+  ctx.strokeStyle = C["brass-dim"]; ctx.lineWidth = 1 * dpr;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R + 10 * dpr, 0, TAU); ctx.stroke();
+  for (let d = 0; d < 360; d += 5) {
+    const a = -d * DEG, l = d % 30 === 0 ? 10 : 4;
+    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l * dpr), cy + Math.sin(a) * (R + l * dpr)); ctx.stroke();
+  }
+  ctx.fillStyle = C.muted; ctx.font = `${10 * dpr}px ${C.mono}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const d of [0, 90, 180, 270]) { const a = -d * DEG; ctx.fillText(d + "°", cx + Math.cos(a) * (R + 22 * dpr), cy + Math.sin(a) * (R + 22 * dpr)); }
+}
+function sun(cx, cy, r) {
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 4);
+  g.addColorStop(0, C.glow); g.addColorStop(0.25, "rgba(242,213,140,.35)"); g.addColorStop(1, "rgba(242,213,140,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 4, 0, TAU); ctx.fill();
+  ctx.fillStyle = C.glow; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
+}
+
+function drawKepler() {
+  const cx = S / 2, cy = S / 2, R = S / 2 - 40 * dpr;
+  const span = outer ? 10.9 : 1.95, k = R / span;
+  const X = x => cx + x * k, Y = y => cy - y * k;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, S, S);
+  dial(cx, cy, R);
+  // AU rings
+  ctx.setLineDash([2 * dpr, 5 * dpr]); ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+  ctx.fillStyle = C.muted; ctx.font = `${9.5 * dpr}px ${C.mono}`; ctx.textAlign = "left";
+  for (const au of outer ? [5, 10] : [0.5, 1, 1.5]) { ctx.beginPath(); ctx.arc(cx, cy, au * k, 0, TAU); ctx.stroke(); ctx.fillText(au + " AU", cx + au * k * 0.707 + 3 * dpr, cy + au * k * 0.707); }
+  ctx.setLineDash([]);
+  // equal-area wedges for the selected planet
+  const sp = PLANETS[sel], dT = sp.P / 12, n0 = Math.floor(tK / dT);
+  if (outer || sel < 4) {
+    for (let j = 0; j < 6; j++) {
+      const t1 = (n0 - j) * dT, t2 = j === 0 ? tK : t1 + dT;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      for (let s = 0; s <= 24; s++) { const p = pos(sp, t1 + (t2 - t1) * s / 24); ctx.lineTo(X(p.x), Y(p.y)); }
+      ctx.closePath();
+      ctx.fillStyle = (n0 - j) % 2 ? "rgba(201,165,90,.16)" : "rgba(201,165,90,.08)"; ctx.fill();
+      ctx.strokeStyle = "rgba(201,165,90,.35)"; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+  // orbits
+  for (let i = 0; i < PLANETS.length; i++) {
+    const p = PLANETS[i];
+    ctx.beginPath();
+    for (let s = 0; s <= 240; s++) {
+      const E = s / 240 * TAU, x0 = p.a * (Math.cos(E) - p.e), y0 = p.a * Math.sqrt(1 - p.e * p.e) * Math.sin(E), w = p.w * DEG;
+      const x = x0 * Math.cos(w) - y0 * Math.sin(w), y = x0 * Math.sin(w) + y0 * Math.cos(w);
+      s ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+    }
+    ctx.strokeStyle = i === sel ? C.brass : C.line; ctx.lineWidth = (i === sel ? 1.3 : 1) * dpr; ctx.stroke();
+    if (i === sel && (outer || i < 4)) {
+      // perihelion and aphelion marks
+      const w = p.w * DEG;
+      for (const [rr, lab] of [[p.a * (1 - p.e), "perihelion"], [-p.a * (1 + p.e), "aphelion"]]) {
+        const x = X(rr * Math.cos(w)), y = Y(rr * Math.sin(w));
+        ctx.fillStyle = C.brass; ctx.beginPath(); ctx.arc(x, y, 2.5 * dpr, 0, TAU); ctx.fill();
+        ctx.font = `italic ${12 * dpr}px ${C.italic}`; ctx.textAlign = "center";
+        ctx.fillText(lab, x, y + (rr > 0 ? -1 : 1) * Math.sign(Math.sin(w) || 1) * 12 * dpr);
+      }
+    }
+  }
+  sun(cx, cy, 6 * dpr);
+  // planets
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  PLANETS.forEach((p, i) => {
+    const q = pos(p, tK), x = X(q.x), y = Y(q.y);
+    if (!outer && i >= 4) return;
+    if (outer && i < 4 && i !== 2) return;
+    const r = p.r * dpr * (outer ? 0.8 : 1);
+    if (soundOn && !muted.has(i) && mode === "kepler") { ctx.strokeStyle = p.col; ctx.globalAlpha = 0.35; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r + 5 * dpr + 2 * dpr * Math.sin(performance.now() / 120 + i), 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    if (p.name === "Saturn") { ctx.strokeStyle = p.col; ctx.lineWidth = 1.2 * dpr; ctx.beginPath(); ctx.ellipse(x, y, r * 2, r * 0.6, -0.4, 0, TAU); ctx.stroke(); }
+    // On a phone-sized dial only the selected planet is named, so the inner labels don't pile up.
+    if (cv.clientWidth >= 450 || i === sel) {
+      ctx.fillStyle = i === sel ? C.ink : C.muted; ctx.font = `${13 * dpr}px ${C.italic}`;
+      ctx.fillText(p.name, x + r + 6 * dpr, y - r - 4 * dpr);
+    }
+  });
+  if (!outer && sel >= 4) { ctx.fillStyle = C.muted; ctx.font = `italic ${13 * dpr}px ${C.italic}`; ctx.textAlign = "center"; ctx.fillText(`${PLANETS[sel].name} lies outside this view. Show outer planets.`, cx, S - 14 * dpr); }
+}
+
+function drawChain() {
+  const cx = S / 2, cy = S / 2, R = S / 2 - 40 * dpr;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, S, S);
+  dial(cx, cy, R);
+  const B = chain.bodies, Pmax = B[B.length - 1][1];
+  const rad = P => R * (0.22 + 0.76 * Math.pow(P / Pmax, 2 / 3));   // Kepler's third law: a ∝ P^(2/3)
+  // the strike line at the top of the dial
+  ctx.strokeStyle = C["brass-dim"]; ctx.lineWidth = 1 * dpr; ctx.setLineDash([3 * dpr, 4 * dpr]);
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - R); ctx.stroke(); ctx.setLineDash([]);
+  const pts = B.map(([name, P], i) => {
+    const a = TAU * tR / P - Math.PI / 2, r = rad(P);
+    return { name, P, i, r, a, x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r };
+  });
+  for (const p of pts) { ctx.strokeStyle = flash[p.i] > 0 ? C.brass : C.line; ctx.lineWidth = 1 * dpr; ctx.beginPath(); ctx.arc(cx, cy, p.r, 0, TAU); ctx.stroke(); }
+  // conjunction lines between neighbours
+  for (let i = 0; i < pts.length - 1; i++) {
+    let d = Math.abs(((pts[i].a - pts[i + 1].a) % TAU + TAU) % TAU); d = Math.min(d, TAU - d);
+    if (d < 6 * DEG) { ctx.strokeStyle = C.glow; ctx.globalAlpha = 1 - d / (6 * DEG); ctx.lineWidth = 1.2 * dpr; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(pts[i + 1].x, pts[i + 1].y); ctx.stroke(); ctx.globalAlpha = 1; }
+  }
+  sun(cx, cy, 5 * dpr);
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  for (const p of pts) {
+    const f = flash[p.i] || 0, r = (4 + 5 * f) * dpr;
+    if (f > 0) { ctx.fillStyle = `rgba(242,213,140,${0.3 * f})`; ctx.beginPath(); ctx.arc(p.x, p.y, r * 3, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = f > 0.05 ? C.glow : C.ink; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = C.muted; ctx.font = `${13 * dpr}px ${C.italic}`; ctx.fillText(p.name, p.x + 9 * dpr, p.y - 8 * dpr);
+  }
+}
+
+// ---------- panels ----------
+function buildKRows() {
+  $("kRows").innerHTML = PLANETS.map((p, i) => {
+    const mr = maxRatio(p), kr = p.k[0] / p.k[1];
+    return `<div class="row" role="button" tabindex="0" data-i="${i}" aria-pressed="${i === sel}">
+      <span class="dot" style="background:${p.col}"></span>
+      <span class="nm">${p.name} <button class="mute" data-m="${i}" aria-label="Mute ${p.name}">${muted.has(i) ? "muted" : "mute"}</button></span>
+      <span class="note" id="kn${i}"></span>
+      <span class="rng"><i id="km${i}"></i></span>
+      <span class="sub">Kepler: ${p.k[0]}:${p.k[1]} ${p.kName} (${kr.toFixed(3)}) · orbit: ${mr.toFixed(3)}</span>
+    </div>`;
+  }).join("");
+  for (const el of $("kRows").querySelectorAll(".row")) {
+    const i = +el.dataset.i;
+    el.classList.toggle("muted", muted.has(i));
+    const pick = () => { sel = i; if (i >= 4 && !outer) setOuter(true); if (i < 4 && i !== 2 && outer) setOuter(false); buildKRows(); };
+    el.addEventListener("click", e => { if (e.target.closest(".mute")) return; pick(); });
+    el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  }
+  for (const b of $("kRows").querySelectorAll(".mute")) b.addEventListener("click", e => {
+    e.stopPropagation(); const i = +b.dataset.m;
+    muted.has(i) ? muted.delete(i) : muted.add(i);
+    if (voices[i]) voices[i].g.gain.setTargetAtTime(muted.has(i) ? 0 : voices[i].level, AC.currentTime, 0.1);
+    buildKRows();
+  });
+}
+function updateK() {
+  PLANETS.forEach((p, i) => {
+    const q = pos(p, tK), ratio = speedRatio(p, q.nu), f = p.base * ratio;
+    $("kn" + i).textContent = noteName(f);
+    $("km" + i).style.left = `calc(${(Math.log(ratio) / Math.log(maxRatio(p)) * 100).toFixed(1)}% - 1px)`;
+    if (voices[i]) { voices[i].o1.frequency.setTargetAtTime(f, AC.currentTime, 0.03); voices[i].o2.frequency.setTargetAtTime(f * 2, AC.currentTime, 0.03); }
+  });
+  const d = new Date(J2000 + tK * YEAR);
+  $("readout").innerHTML = `<b>${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}</b> · ${PLANETS[sel].name} sweeps each wedge in ${(PLANETS[sel].P / 12 * 365.25).toFixed(PLANETS[sel].P < 2 ? 1 : 0)} days`;
+}
+function freqOf(P) { const B = chain.bodies, Pmax = B[B.length - 1][1]; return 110 * Pmax / P * (B.length === 2 ? 2 : 1); }
+function buildR() {
+  $("rTitle").textContent = chain.title; $("rDesc").textContent = chain.desc;
+  const B = chain.bodies;
+  $("rRows").innerHTML = B.map(([n, P], i) => `<div class="row" style="cursor:default"><span class="dot" id="rd${i}" style="background:var(--ink)"></span><span class="nm">${n}</span><span class="note">${noteName(freqOf(P))}</span><span class="sub">period ${P < 100 ? P.toFixed(3) : P.toFixed(1)} ${chain.unit}</span></div>`).join("");
+  let html = `<span>pair</span><span>period ratio</span><span>interval</span>`; // gold = low-order resonance (p − q ≤ 3) within 0.5%
+  for (let i = 0; i < B.length - 1; i++) {
+    const x = B[i + 1][1] / B[i][1], fr = nearestFrac(x), cents = 1200 * Math.log2(x);
+    html += `<span>${B[i][0]} · ${B[i + 1][0]}</span><span>${x.toFixed(3)} ≈ ${fr.p}:${fr.q}${fr.err < 0.005 ? "" : " (off " + (fr.err * 100).toFixed(1) + "%)"}</span><span class="${fr.err < 0.005 && fr.p - fr.q <= 3 ? "hit" : ""}">${Math.round(cents)}¢</span>`;
+  }
+  $("rRatios").innerHTML = html;
+  tR = 0; lastRev = B.map(() => 0); flash = B.map(() => 0);
+}
+
+// ---------- controls ----------
+function setOuter(v) { outer = v; $("zoom").textContent = outer ? "Show inner planets" : "Show outer planets"; }
+function setMode(m) {
+  mode = m;
+  $("tabK").setAttribute("aria-selected", m === "kepler"); $("tabR").setAttribute("aria-selected", m !== "kepler");
+  $("kCard").hidden = $("kControls").hidden = m !== "kepler";
+  $("rCard").hidden = $("rControls").hidden = m === "kepler";
+  if (m === "kepler") { if (soundOn) startDrones(); buildKRows(); }
+  else { if (AC) stopDrones(); buildR(); }
+  showSpeed();
+}
+$("tabK").addEventListener("click", () => setMode("kepler"));
+$("tabR").addEventListener("click", () => setMode("chains"));
+$("play").addEventListener("click", toggleSound);
+$("pause").addEventListener("click", () => { running = !running; $("pause").textContent = running ? "Pause" : "Resume"; });
+$("zoom").addEventListener("click", () => { setOuter(!outer); if (outer && sel < 4) sel = 4; if (!outer && sel >= 4) sel = 3; buildKRows(); });
+$("speed").addEventListener("input", showSpeed);
+$("preset").addEventListener("change", e => { chain = CHAINS[e.target.value]; buildR(); showSpeed(); });
+cv.addEventListener("click", () => { if (!soundOn) toggleSound(); });
+window.addEventListener("resize", resize);
+
+// ---------- loop ----------
+let last = performance.now(), frame = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now; frame++;
+  if (mode === "kepler") {
+    if (running) tK += dt * kSpeed();
+    drawKepler();
+    if (frame % 3 === 0) updateK();
+  } else {
+    if (running) tR += dt * rSpeed();
+    const B = chain.bodies;
+    B.forEach(([n, P], i) => {
+      const rev = Math.floor(tR / P);
+      if (rev > lastRev[i]) { lastRev[i] = rev; flash[i] = 1; pluck(freqOf(P), (i / Math.max(1, B.length - 1)) * 1.2 - 0.6, 1 - i * 0.05); }
+      flash[i] = Math.max(0, flash[i] - dt * 2.2);
+      const dot = $("rd" + i); if (dot) dot.style.background = flash[i] > 0.05 ? "var(--glow)" : "var(--ink)";
+    });
+    drawChain();
+    $("readout").innerHTML = `<b>${tR.toFixed(chain.unit === "days" ? 1 : 0)} ${chain.unit}</b> since all bodies stood in line`;
+  }
+  requestAnimationFrame(loop);
+}
+
+readColors(); resize(); setMode("kepler"); showSpeed();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(readColors);
+requestAnimationFrame(loop);
+})();
+</script>

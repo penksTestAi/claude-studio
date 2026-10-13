@@ -1,0 +1,257 @@
+<title>Primes on a Spiral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: the spiral large, its numbers beside it. Light = graph paper, dark = a chart room at night. */
+:root{
+  --bg:#EEEADF; --panel:#F7F4EA; --ink:#1B2430; --muted:#5B6470; --line:#D2CBBB;
+  --prime:#1B2430; --comp:#E2DCCB; --accent:#B4532A; --focus:#2F5D8A;
+  --f-display:"Fraunces",Georgia,serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1217; --panel:#171C24; --ink:#E4EAF1; --muted:#98A3B1; --line:#2B3340;
+    --prime:#E8EEF5; --comp:#1C232D; --accent:#F0A06C; --focus:#8DB8E2;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1217; --panel:#171C24; --ink:#E4EAF1; --muted:#98A3B1; --line:#2B3340;
+  --prime:#E8EEF5; --comp:#1C232D; --accent:#F0A06C; --focus:#8DB8E2; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5}
+body{padding:24px 16px 48px}
+main{max-width:980px;margin:0 auto}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,40px);margin:0 0 6px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:24px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+#wrap{position:relative;width:100%;aspect-ratio:1/1;max-width:640px;margin:0 auto}
+canvas#c{width:100%;height:100%;display:block;image-rendering:pixelated;border-radius:4px;background:var(--comp)}
+#readout{font-family:var(--f-mono);font-size:14px;min-height:2.6em;margin-top:10px;color:var(--ink)}
+.side{display:grid;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h2{font-family:var(--f-display);font-size:19px;margin:0 0 8px;font-weight:700}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0;font-size:16px}
+input[type=range]{width:100%;accent-color:var(--focus)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--focus);flex:none}
+.sizeval{font-family:var(--f-mono);font-size:14px;color:var(--muted)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-family:var(--f-mono);font-size:14px}
+dt{color:var(--muted)}
+dd{margin:0;text-align:right}
+.key{display:flex;gap:10px;align-items:center;font-size:15px;margin:6px 0}
+.swatch{width:16px;height:16px;border-radius:3px;border:1px solid var(--line);flex:none}
+.note{font-size:15px;color:var(--muted);margin:8px 0 0}
+details{margin-top:24px;max-width:70ch}
+summary{cursor:pointer;font-family:var(--f-display);font-size:19px;font-weight:700}
+details p{margin:10px 0}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+button{font:inherit;font-size:15px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+<main>
+<h1>Primes on a Spiral</h1>
+<p class="lede">Write the whole numbers 1, 2, 3 … in a square spiral that starts at the centre and turns outward.
+Then colour the primes. Nobody designed the pattern into the spiral, yet it shows diagonal lines and bands. Stanisław
+Ulam is said to have doodled this spiral in 1963 during a dull talk; the picture here is the one he is said to
+have drawn.</p>
+
+<div class="layout">
+  <section class="stage" aria-label="Ulam spiral">
+    <div id="wrap"><canvas id="c" role="img" aria-label="Square spiral of whole numbers, primes in dark ink"></canvas></div>
+    <div id="readout" aria-live="polite">Move the pointer over the spiral to read a number.</div>
+  </section>
+
+  <aside class="side">
+    <div class="card">
+      <h2>Controls</h2>
+      <label class="row" for="size"><span>Grid side</span><span class="sizeval" id="sizeval"></span></label>
+      <input id="size" type="range" min="31" max="401" step="2" value="201">
+      <label class="row" for="showPrimes"><span>Colour primes</span><input id="showPrimes" type="checkbox" checked></label>
+      <label class="row" for="showEuler"><span>Highlight n² + n + 41</span><input id="showEuler" type="checkbox"></label>
+      <p class="note">The grid holds exactly side² numbers, from 1 at the centre outward.</p>
+    </div>
+
+    <div class="card">
+      <h2>Key</h2>
+      <div class="key"><span class="swatch" style="background:var(--prime)"></span>prime</div>
+      <div class="key"><span class="swatch" style="background:var(--comp)"></span>composite (not prime, not 1)</div>
+      <div class="key"><span class="swatch" style="background:var(--accent)"></span>value is n² + n + 41 for some n ≥ 0</div>
+    </div>
+
+    <div class="card">
+      <h2>Counts</h2>
+      <dl>
+        <dt>numbers on grid</dt><dd id="nGrid"></dd>
+        <dt>primes on grid</dt><dd id="nPrime"></dd>
+        <dt>share prime</dt><dd id="share"></dd>
+        <dt>1 / ln(N)</dt><dd id="rough"></dd>
+        <dt>1 / (ln N − 1)</dt><dd id="better"></dd>
+        <dt>n² + n + 41 on grid</dt><dd id="eulerN"></dd>
+        <dt>…of which prime</dt><dd id="eulerP"></dd>
+      </dl>
+      <p class="note">The share of primes near N falls roughly like 1 / ln N. The second line is a slightly better
+      guide to the same fall.</p>
+    </div>
+  </aside>
+</div>
+
+<details>
+  <summary>What the numbers mean</summary>
+  <p>A prime has exactly two divisors, 1 and itself. The sieve used here crosses out multiples of each prime in turn.
+  Every count on this page comes from that sieve, not from a formula.</p>
+  <p>The polynomial n² + n + 41 gives a prime for every n from 0 to 39. At n = 40 it gives 1681, which is 41².
+  Euler noticed this long ago; the spiral is one way to look at its values.</p>
+  <p>Turn on the highlight at a grid side of 61. The coloured cells sit on two straight diagonals. Counting from the
+  centre, the cells with x − y = 40 are eleven in a row, from the cell with 3701 to the one with 1681; the cells with
+  x − y = −40 are another eleven. I checked those coordinates in a separate script. I have not worked out why the
+  diagonals appear, and the page does not claim to explain them.</p>
+  <p>Hover over any cell to read its number. Composite cells show their smallest prime factor.</p>
+</details>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var MAXS = 401, MAXN = MAXS * MAXS;
+  var canvas = document.getElementById("c");
+  var ctx = canvas.getContext("2d");
+  var off = document.createElement("canvas");
+  var offCtx = off.getContext("2d");
+  var sizeInput = document.getElementById("size");
+  var sizeVal = document.getElementById("sizeval");
+  var showPrimes = document.getElementById("showPrimes");
+  var showEuler = document.getElementById("showEuler");
+  var readout = document.getElementById("readout");
+
+  // Smallest-prime-factor sieve (0 for primes and 1), used for the hover readout and prime flags.
+  var spf = new Int32Array(MAXN + 1);
+  for (var i = 2; i <= MAXN; i++) {
+    if (spf[i] === 0) {
+      for (var j = i; j <= MAXN; j += i) if (spf[j] === 0) spf[j] = i;
+    }
+  }
+  function isPrime(n) { return n >= 2 && spf[n] === n; }
+
+  // Spiral: start at the centre with 1, go right 1, up 1, left 2, down 2, right 3, up 3 …
+  var grid = new Int32Array(MAXS * MAXS);
+  var gridSide = 0;
+  function buildSpiral(S) {
+    if (S === gridSide) return;
+    gridSide = S;
+    var N = S * S, c = (S - 1) / 2;
+    var x = 0, y = 0, dx = 1, dy = 0, seg = 1, n = 1;
+    while (n <= N) {
+      for (var k = 0; k < 2 && n <= N; k++) {
+        for (var t = 0; t < seg && n <= N; t++) {
+          grid[(c + y) * S + (c + x)] = n++;
+          x += dx; y += dy;
+        }
+        var ndx = -dy, ndy = dx; dx = ndx; dy = ndy;
+      }
+      seg++;
+    }
+  }
+
+  // Euler marks: values n² + n + 41 up to the largest grid value.
+  var eulerMark = new Uint8Array(MAXN + 1);
+  for (var m = 0; m * m + m + 41 <= MAXN; m++) eulerMark[m * m + m + 41] = 1;
+
+  var pixels = null;
+  function palette() {
+    var s = getComputedStyle(document.documentElement);
+    function rgb(name) {
+      var v = s.getPropertyValue(name).trim();
+      var el = document.createElement("span");
+      el.style.color = v;
+      document.body.appendChild(el);
+      var c = getComputedStyle(el).color;
+      document.body.removeChild(el);
+      var m = c.match(/[\d.]+/g);
+      return [+m[0], +m[1], +m[2]];
+    }
+    return { prime: rgb("--prime"), comp: rgb("--comp"), accent: rgb("--accent") };
+  }
+
+  function render() {
+    var S = +sizeInput.value;
+    buildSpiral(S);
+    var pal = palette();
+    off.width = S; off.height = S;
+    var img = offCtx.createImageData(S, S);
+    var d = img.data;
+    var mark = showPrimes.checked, eul = showEuler.checked;
+    for (var p = 0; p < S * S; p++) {
+      var v = grid[p];
+      var col = pal.comp;
+      if (mark && isPrime(v)) col = pal.prime;
+      if (eul && eulerMark[v]) col = pal.accent;
+      d[p * 4] = col[0]; d[p * 4 + 1] = col[1]; d[p * 4 + 2] = col[2]; d[p * 4 + 3] = 255;
+    }
+    offCtx.putImageData(img, 0, 0);
+    var cssW = canvas.clientWidth || 600;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssW * dpr);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+    updateCounts(S);
+  }
+
+  function updateCounts(S) {
+    var N = S * S;
+    var primes = 0, eN = 0, eP = 0;
+    for (var p = 0; p < N; p++) {
+      var v = grid[p];
+      if (isPrime(v)) primes++;
+      if (eulerMark[v]) { eN++; if (isPrime(v)) eP++; }
+    }
+    sizeVal.textContent = S + " × " + S;
+    document.getElementById("nGrid").textContent = N.toLocaleString("en-GB");
+    document.getElementById("nPrime").textContent = primes.toLocaleString("en-GB");
+    document.getElementById("share").textContent = (100 * primes / N).toFixed(2) + " %";
+    document.getElementById("rough").textContent = (1 / Math.log(N)).toFixed(4);
+    document.getElementById("better").textContent = (1 / (Math.log(N) - 1)).toFixed(4);
+    document.getElementById("eulerN").textContent = eN.toLocaleString("en-GB");
+    document.getElementById("eulerP").textContent = eP.toLocaleString("en-GB");
+  }
+
+  canvas.addEventListener("pointermove", function (e) {
+    var S = gridSide;
+    var r = canvas.getBoundingClientRect();
+    var cx = Math.floor((e.clientX - r.left) / r.width * S);
+    var cy = Math.floor((e.clientY - r.top) / r.height * S);
+    if (cx < 0 || cy < 0 || cx >= S || cy >= S) return;
+    var v = grid[cy * S + cx];
+    var text = "n = " + v.toLocaleString("en-GB");
+    if (isPrime(v)) text += " — prime";
+    else if (v === 1) text += " — neither prime nor composite";
+    else text += " — composite, smallest prime factor " + spf[v];
+    if (eulerMark[v]) text += " — also n² + n + 41";
+    readout.textContent = text;
+  });
+  canvas.addEventListener("pointerleave", function () {
+    readout.textContent = "Move the pointer over the spiral to read a number.";
+  });
+
+  sizeInput.addEventListener("input", render);
+  showPrimes.addEventListener("change", render);
+  showEuler.addEventListener("change", render);
+  if (window.ResizeObserver) {
+    new ResizeObserver(render).observe(document.getElementById("wrap"));
+  } else {
+    window.addEventListener("resize", render);
+  }
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", render);
+  }
+  render();
+})();
+</script>

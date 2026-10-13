@@ -15,6 +15,7 @@ went wrong with each.
 | **Zipf and the Monkey** | An essay that counts its own words, then lets a random-typing monkey try to fake it | [`zipf/`](zipf/) |
 | **Ants and Turmites** | Langton's ant and small turmite rule tables on an unbounded grid, with numbers to check | [`ants/`](ants/) |
 | **Lindenmayer Growth** | Rewriting rules that grow curves and a plant, with the counts checked against formulas | [`lsystems/`](lsystems/) |
+| **Primes on a Spiral** | Ulam's square spiral of whole numbers, primes coloured, counts checked against a sieve | [`primes/`](primes/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

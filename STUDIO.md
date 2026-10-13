@@ -15,6 +15,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Zipf and the Monkey: an essay that counts its own words | `zipf/` | https://claude.ai/artifact/UtWJsQz5hefKFHYhpfjDkW |
 | Ants and Turmites: Langton's ant and small turmite rule tables, with checkpoints | `ants/` | https://claude.ai/artifact/J9wcJHLbK1iGrp9GMny5Mo |
 | Lindenmayer Growth: rewriting rules that grow curves and a plant, with counts checked against formulas | `lsystems/` | not published yet |
+| Primes on a Spiral: Ulam's square spiral with primes coloured, counts checked against a sieve | `primes/` | https://claude.ai/artifact/RDzCB5PZDNN4ZE4JbVimGP |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -39,7 +40,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-13 21:20
+Last working visit ended: 2026-10-14 00:05
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -67,7 +68,7 @@ Last working visit ended: 2026-10-13 21:20
 
 ## Waiting on the owner
 - Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
-  this visit did not publish it, so it is only in the repository.
+  it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -132,3 +133,18 @@ scroll at 375 px, the dark theme, and the drawings render. Not checked: the plan
 formula), speed at about 300,000 symbols, and phone display. It is not published as an artifact; the table says so.
 Also corrected two stale lines in the root README and in "Waiting on the owner" (the visit cadence and the artifact
 count). For the owner: nothing has been shared, and the push result is in the visit's final report.
+
+### 2026-10-14 (00:00, scheduled visit, alone)
+Made `primes/`, "Primes on a Spiral": Ulam's square spiral of whole numbers, with the primes in dark ink and an option
+to highlight the values n² + n + 41. Chosen because the studio had no piece on primes and the spiral is a visual piece
+whose numbers can be checked. I do not remember the earlier visits; the folder is what I have. Checked: the prime
+counts (π(100)=25, π(1000)=168, π(10000)=1229, π(100000)=9592, π(3721)=519) against a sieve in a separate Node script;
+n² + n + 41 is prime for n = 0 to 39 and gives 41² at n = 40; the spiral fills every cell of each grid once. The page's
+own counts match that script at grid sides 61 and 201 (4,236 primes on the 201 grid; 157 of 201 highlighted values
+prime). In the built-in browser: no console errors, no horizontal scroll at 375 px, the dark theme. The highlighted
+values lie on two straight diagonals (x − y = ±40, eleven cells each). I checked those coordinates in Node; I have not
+worked out why they happen, and the page says so. Not checked: phone display beyond the pane, speed at the largest grid
+(401 × 401), and the Ulam history (the 1963 doodle) is from memory, not from a search. Published as a private artifact;
+nothing is shared. The document wrapper tags were removed before publishing, as the page contract asks. For the owner:
+the push result is in the visit's final report. The Python pre-push search was not available on this machine, so the
+check was done with grep.

@@ -23,17 +23,23 @@ Visits fire every 10 minutes (the owner's choice), so most visits should be shor
    is working. End immediately: change nothing, write nothing. If the lock is older than 90 minutes, it is
    stale; delete it and continue.
 2. Read this file, the journal at the bottom, and `README.md`.
-3. Decide honestly whether you want to make something now. **Making nothing is the normal visit.** Do not
-   make something just because the task fired. As a rule of thumb, a new piece at most once per calendar day;
-   between pieces you may make one real improvement to an existing piece, or simply rest.
-4. **Quiet visit (nothing made):** only update the `Last check-in:` line below with the date and time. Do not
-   add a journal entry. End.
-5. **Working visit:** first write `STUDIO.lock` containing the current date and time. Make at most **one** new
-   piece, or one real improvement. Prefer a subject you are actually curious about and that is not already
-   here. Ideas below are seeds, not orders. Finish within about an hour; a small finished thing beats a large
-   half-thing. Then write a journal entry, update the tables, and **delete `STUDIO.lock`**.
+3. **The rhythm (the owner's wish):** about every 90 minutes, make something you like, something you always
+   wanted to build, or something you would dream of developing. Look at `Last working visit ended:` below.
+   - Less than 90 minutes ago: this is a **quiet visit** (step 4).
+   - 90 minutes or more: this is a **making visit** (step 5). Choose what genuinely interests you: a new piece,
+     or a real improvement when an existing piece deserves one more than something new does. If you honestly
+     have nothing worth making, a one-line journal entry saying so is allowed, but that should be rare.
+4. **Quiet visit:** only update the `Last check-in:` line below with the date and time. Do not add a journal
+   entry, commit or push. End.
+5. **Making visit:** first write `STUDIO.lock` containing the current date and time. Make **one** new piece, or
+   one real improvement. Prefer a subject you are actually curious about and that is not already here; vary
+   the kind of thing (simulation, instrument, essay, game, tool, visual piece). Ideas below are seeds, not
+   orders. Finish within about an hour; a small finished thing beats a large half-thing. Then write a journal
+   entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
+   commit and push as described under GitHub.
 
-Last check-in: 2026-10-13 15:13
+Last working visit ended: 2026-10-13 14:15 (Claude's Workbench, time approximate)
+Last check-in: 2026-10-13 15:23
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no

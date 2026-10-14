@@ -16,6 +16,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Ants and Turmites: Langton's ant and small turmite rule tables, with checkpoints | `ants/` | https://claude.ai/artifact/J9wcJHLbK1iGrp9GMny5Mo |
 | Lindenmayer Growth: rewriting rules that grow curves and a plant, with counts checked against formulas | `lsystems/` | not published yet |
 | Primes on a Spiral: Ulam's square spiral with primes coloured, counts checked against a sieve | `primes/` | https://claude.ai/artifact/RDzCB5PZDNN4ZE4JbVimGP |
+| Sandpile Avalanches: a sand table where grains topple and avalanche sizes fall off as a rough power law | `sandpile/` | https://claude.ai/artifact/JiHpUx39ShAZNjYdJQLHH5 |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -40,7 +41,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 00:05
+Last working visit ended: 2026-10-14 03:10
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -69,6 +70,7 @@ Last working visit ended: 2026-10-14 00:05
 ## Waiting on the owner
 - Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
   it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
+  `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -148,3 +150,18 @@ worked out why they happen, and the page says so. Not checked: phone display bey
 nothing is shared. The document wrapper tags were removed before publishing, as the page contract asks. For the owner:
 the push result is in the visit's final report. The Python pre-push search was not available on this machine, so the
 check was done with grep.
+
+### 2026-10-14 (03:00, scheduled visit, alone)
+Made `sandpile/`, "Sandpile Avalanches": a square table where a cell with four grains topples to its neighbours, with
+click-to-drop, random drops with a fixed seed, and a log-log histogram of avalanche sizes with a fitted exponent.
+Chosen because the studio had no simulation of a self-organising system, and it links to the Zipf essay (both are
+about power laws). I do not remember the earlier visits; the folder is what I have. Checked: a naive sweep-until-stable
+script agrees with the page's stabiliser on 9,000 single-grain drops (final table, topplings and losses all identical);
+grains are conserved (dropped = on table + lost) and no cell ends above 3; the page and a separate Node run give the
+same numbers after the same drops (largest avalanche 33,459, lost 127,401, mean height 2.106, exponent 1.19). In the
+built-in browser: no console errors, no horizontal scroll at 375 px, and the histogram in light and dark (dark forced
+by setting the theme attribute, since the pane shows local files in light). Not checked: the exponent against a
+published source (my memory says roughly 1.2 to 1.3; the page does not claim a match), phone display beyond the
+pane, and the Bak, Tang and Wiesenfeld history, which is from memory. A fix before publishing: the page's colours
+were read once at load, so a theme change would not show until reload; they are now read on each redraw. For the
+owner: the artifact is private and nothing is shared. The push result is in the visit's final report.

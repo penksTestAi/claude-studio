@@ -1,0 +1,387 @@
+<title>Sandpile Avalanches</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: the table large, its counts beside it. Light = a sand tray in daylight, dark = the same tray at night. */
+:root{
+  --bg:#EEEADF; --panel:#F7F4EA; --ink:#1B2430; --muted:#5B6470; --line:#D2CBBB;
+  --focus:#2F5D8A; --accent:#B4532A;
+  --h0:#F7F4EA; --h1:#E9C46A; --h2:#E76F51; --h3:#264653;
+  --f-display:"Fraunces",Georgia,serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1217; --panel:#171C24; --ink:#E4EAF1; --muted:#98A3B1; --line:#2B3340;
+    --focus:#8DB8E2; --accent:#F0A06C;
+    --h0:#1C232D; --h1:#5C7C99; --h2:#F0A06C; --h3:#F4E285;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1217; --panel:#171C24; --ink:#E4EAF1; --muted:#98A3B1; --line:#2B3340;
+  --focus:#8DB8E2; --accent:#F0A06C;
+  --h0:#1C232D; --h1:#5C7C99; --h2:#F0A06C; --h3:#F4E285; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5}
+body{padding:24px 16px 48px}
+main{max-width:980px;margin:0 auto}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,40px);margin:0 0 6px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:24px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.stage,.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+#wrap{position:relative;width:100%;aspect-ratio:1/1;max-width:640px;margin:0 auto}
+canvas#c{width:100%;height:100%;display:block;image-rendering:pixelated;border-radius:4px;cursor:crosshair;touch-action:manipulation}
+#readout{font-family:var(--f-mono);font-size:14px;min-height:2.6em;margin-top:10px}
+.side{display:grid;gap:14px}
+.card h2{font-family:var(--f-display);font-size:19px;margin:0 0 8px;font-weight:700}
+label.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0;font-size:16px}
+input[type=range]{width:100%;accent-color:var(--focus)}
+.sizeval{font-family:var(--f-mono);font-size:14px;color:var(--muted)}
+.btns{display:grid;gap:8px;margin-top:10px}
+button{font:inherit;font-size:15px;padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;text-align:left}
+button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-family:var(--f-mono);font-size:14px}
+dt{color:var(--muted)}
+dd{margin:0;text-align:right}
+.key{display:flex;gap:10px;align-items:center;font-size:15px;margin:6px 0}
+.swatch{width:16px;height:16px;border-radius:3px;border:1px solid var(--line);flex:none}
+.note{font-size:15px;color:var(--muted);margin:8px 0 0}
+.hist{margin-top:24px}
+#hc{width:100%;height:auto;display:block}
+details{margin-top:24px;max-width:70ch}
+summary{cursor:pointer;font-family:var(--f-display);font-size:19px;font-weight:700}
+details p{margin:10px 0}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+</style>
+<main>
+<h1>Sandpile</h1>
+<p class="lede">Drop grains of sand one at a time onto a square table. A cell that holds four grains topples: it sends
+one grain to each neighbour. Most drops cause nothing; some set off a chain of topplings, an avalanche. Over many
+random drops the avalanche sizes fall off as a rough power law. Nobody sets that law by hand. The model is Bak,
+Tang and Wiesenfeld's from 1987.</p>
+
+<div class="layout">
+  <section class="stage" aria-label="Sand table">
+    <div id="wrap"><canvas id="c" tabindex="0" role="img" aria-label="Sand table; each cell shows its grain count from 0 to 3"></canvas></div>
+    <div id="readout" aria-live="polite">Click a cell to drop a grain there. Move over the table to read a cell.</div>
+  </section>
+
+  <aside class="side">
+    <div class="card">
+      <h2>Table</h2>
+      <label class="row" for="side"><span>Side (cells)</span><span class="sizeval" id="sizeval"></span></label>
+      <input id="side" type="range" min="21" max="151" step="2" value="81">
+      <div class="btns">
+        <button id="bCentre" type="button">Drop 1 grain at the centre</button>
+        <button id="bOne" type="button">Drop 1 grain at a random cell</button>
+        <button id="bThousand" type="button">Drop 1,000 at random cells</button>
+        <button id="bTenK" type="button">Drop 10,000 at random cells</button>
+        <button id="bWarm" type="button">Warm up: drop until settled (not recorded)</button>
+        <button id="bReset" type="button">Empty the table</button>
+      </div>
+      <p class="note">The table's edge is open: a grain that topples off it is lost. The random drops use a fixed seed,
+      so every number here can be reproduced.</p>
+    </div>
+
+    <div class="card">
+      <h2>Key</h2>
+      <div class="key"><span class="swatch" style="background:var(--h0)"></span>0 grains</div>
+      <div class="key"><span class="swatch" style="background:var(--h1)"></span>1 grain</div>
+      <div class="key"><span class="swatch" style="background:var(--h2)"></span>2 grains</div>
+      <div class="key"><span class="swatch" style="background:var(--h3)"></span>3 grains (stable)</div>
+    </div>
+
+    <div class="card">
+      <h2>Counts</h2>
+      <dl>
+        <dt>grains dropped</dt><dd id="nDrop"></dd>
+        <dt>on the table</dt><dd id="nTable"></dd>
+        <dt>lost at edge</dt><dd id="nLost"></dd>
+        <dt>dropped = table + lost</dt><dd id="nCheck"></dd>
+        <dt>mean grains per cell</dt><dd id="mean"></dd>
+        <dt>last avalanche</dt><dd id="last"></dd>
+        <dt>largest so far</dt><dd id="largest"></dd>
+        <dt>recorded avalanches</dt><dd id="nRec"></dd>
+        <dt>power-law exponent</dt><dd id="tau"></dd>
+      </dl>
+      <p class="note" id="warm"></p>
+    </div>
+  </aside>
+</div>
+
+<section class="card hist" aria-label="Histogram of avalanche sizes">
+  <h2>Avalanche sizes</h2>
+  <canvas id="hc" role="img" aria-label="Log-log plot of how often each avalanche size occurred in random drops"></canvas>
+  <p class="note" id="histNote">Each point is a range of sizes (powers of two), height = drops per size. The dashed line is a
+  least-squares fit on the log-log points that hold at least five avalanches.</p>
+</section>
+
+<details>
+  <summary>What the numbers mean</summary>
+  <p>A cell topples when it holds four or more grains. In this model one toppling takes four grains away from the cell
+  and gives one to each of its four neighbours. Grains pushed off the edge are gone. The <em>size</em> of an avalanche
+  is the number of topplings it needed before every cell held three or fewer.</p>
+  <p>The final pile does not depend on the order in which the unstable cells topple. That is the abelian property,
+  which is why a fixed seed gives one definite answer. The number of topplings does not depend on the order either.</p>
+  <p>The exponent is the slope, with the sign flipped, of a straight line fitted to the log-log histogram. Sizes are
+  binned by powers of two, and bins holding fewer than five avalanches are left out. Only drops made after the warm-up
+  (20 × side² grains) are recorded, because a table that is still filling does not show the settled behaviour.</p>
+  <p>The fitted value is a rough estimate from a few decades of sizes, not a precise constant. Published estimates for
+  this two-dimensional model are usually quoted near 1.2 to 1.3; that figure is from memory and was not checked against
+  a source here.</p>
+</details>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+// CORE-START
+// The model. Pure functions, no DOM, so the same code can be run in a separate script to check it.
+var SEED = 20261014;   // fixed seed: the same drops every time
+var WARM = 20;         // histogram records only after WARM × side² grains have been dropped
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function newPile(N){
+  return { N: N, H: new Int32Array(N*N), S: new Int32Array(N*N), dropped: 0, lost: 0, last: 0,
+           largest: 0, rng: mulberry32(SEED), hist: new Array(40).fill(0), recorded: 0 };
+}
+
+// Drop one grain on cell index i, then topple until stable. Returns the number of topplings.
+function drop(p, i){
+  var N = p.N, H = p.H, S = p.S, top = 0, topples = 0, lost = 0;
+  p.dropped++;
+  if (++H[i] === 4) S[top++] = i;
+  while (top > 0){
+    var c = S[--top];
+    while (H[c] >= 4){
+      H[c] -= 4; topples++;
+      var x = c % N, y = (c - x) / N;
+      if (x > 0)     { if (++H[c-1] === 4) S[top++] = c-1; } else lost++;
+      if (x < N-1)   { if (++H[c+1] === 4) S[top++] = c+1; } else lost++;
+      if (y > 0)     { if (++H[c-N] === 4) S[top++] = c-N; } else lost++;
+      if (y < N-1)   { if (++H[c+N] === 4) S[top++] = c+N; } else lost++;
+    }
+  }
+  p.lost += lost; p.last = topples;
+  if (topples > p.largest) p.largest = topples;
+  return topples;
+}
+
+// Drop on a random cell. Recorded in the histogram only after the warm-up.
+function randomDrop(p){
+  var s = drop(p, Math.floor(p.rng() * p.N * p.N));
+  if (p.dropped > WARM * p.N * p.N && s >= 1){
+    var k = 0;
+    while ((2 << k) <= s) k++;          // bin k holds sizes in [2^k, 2^(k+1))
+    p.hist[k]++; p.recorded++;
+  }
+  return s;
+}
+
+// Least-squares slope of log10(density) against log10(bin centre); exponent = -slope.
+function fit(p){
+  var xs = [], ys = [], ks = [];
+  for (var k = 0; k < p.hist.length; k++){
+    var c = p.hist[k];
+    if (c >= 5){
+      xs.push(Math.log10(Math.pow(2, k + 0.5)));
+      ys.push(Math.log10(c / Math.pow(2, k)));
+      ks.push(k);
+    }
+  }
+  if (xs.length < 3) return null;
+  var n = xs.length, mx = 0, my = 0, i;
+  for (i = 0; i < n; i++){ mx += xs[i]; my += ys[i]; }
+  mx /= n; my /= n;
+  var num = 0, den = 0;
+  for (i = 0; i < n; i++){ num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) * (xs[i] - mx); }
+  var b = num / den;
+  return { tau: -b, intercept: my - b * mx, kLo: ks[0], kHi: ks[n-1], bins: n };
+}
+// CORE-END
+
+// ---- the page ----
+var $ = function(id){ return document.getElementById(id); };
+var cvs = $("c"), ctx = cvs.getContext("2d");
+var hcv = $("hc"), hctx = hcv.getContext("2d");
+var off = document.createElement("canvas"), octx = off.getContext("2d");
+var N = 81, pile = newPile(N);
+var PAL = [], COL = {};
+
+function hexToRgb(h){ var n = parseInt(h.trim().slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function readColours(){
+  var cs = getComputedStyle(document.documentElement), v = function(name){ return cs.getPropertyValue(name).trim(); };
+  PAL = [0,1,2,3].map(function(k){ return hexToRgb(v("--h" + k)); });
+  COL = { focus: v("--focus"), accent: v("--accent"), muted: v("--muted"), line: v("--line"), ink: v("--ink"), panel: v("--panel") };
+}
+
+function drawGrid(){
+  off.width = N; off.height = N;
+  var img = octx.createImageData(N, N), d = img.data;
+  for (var i = 0; i < N*N; i++){
+    var c = PAL[pile.H[i]] || PAL[3];
+    d[4*i] = c[0]; d[4*i+1] = c[1]; d[4*i+2] = c[2]; d[4*i+3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, 0, 0, cvs.width, cvs.height);
+}
+
+function fmtPow(e){
+  var v = Math.pow(10, e);
+  return e < 0 ? v.toFixed(-e) : v.toLocaleString("en-US");
+}
+
+function drawHist(){
+  var W = hcv.width, H = hcv.height, L = 116, R = 56, T = 20, B = 62;
+  hctx.clearRect(0, 0, W, H);
+  var pts = [], maxX = 1, minY = Infinity, maxY = 0, k;
+  for (k = 0; k < pile.hist.length; k++){
+    var c = pile.hist[k];
+    if (c > 0){
+      var x = Math.pow(2, k + 0.5), y = c / Math.pow(2, k);
+      pts.push({ x: x, y: y, ok: c >= 5 });
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
+  var x0 = 0, x1 = Math.max(1, Math.ceil(Math.log10(maxX * 1.2)));
+  var y0 = pts.length ? Math.floor(Math.log10(minY)) : -1, y1 = pts.length ? Math.ceil(Math.log10(maxY)) : 0;
+  if (y1 <= y0) y1 = y0 + 1;
+  var px = function(lx){ return L + (lx - x0) / (x1 - x0) * (W - L - R); };
+  var py = function(ly){ return T + (1 - (ly - y0) / (y1 - y0)) * (H - T - B); };
+
+  hctx.font = "24px IBM Plex Mono, monospace";
+  hctx.lineWidth = 1;
+  var e;
+  hctx.fillStyle = COL.muted; hctx.strokeStyle = COL.line;
+  for (e = x0; e <= x1; e++){
+    hctx.beginPath(); hctx.moveTo(px(e), T); hctx.lineTo(px(e), H - B); hctx.stroke();
+    hctx.textAlign = "center"; hctx.fillText(fmtPow(e), px(e), H - B + 18);
+  }
+  hctx.textAlign = "right";
+  for (e = y0; e <= y1; e++){
+    hctx.beginPath(); hctx.moveTo(L, py(e)); hctx.lineTo(W - R, py(e)); hctx.stroke();
+    hctx.fillText(fmtPow(e), L - 8, py(e) + 5);
+  }
+  hctx.textAlign = "center";
+  hctx.fillText("avalanche size (topplings), log scale", (L + W - R) / 2, H - 12);
+
+  if (!pts.length){
+    hctx.textAlign = "center"; hctx.fillStyle = COL.muted;
+    hctx.fillText("No recorded avalanches yet", W / 2, H / 2);
+    return;
+  }
+  pts.forEach(function(p){
+    hctx.fillStyle = p.ok ? COL.focus : COL.muted;
+    hctx.fillRect(px(Math.log10(p.x)) - 4, py(Math.log10(p.y)) - 4, 8, 8);
+  });
+  var f = fit(pile);
+  if (f){
+    hctx.setLineDash([6, 5]); hctx.strokeStyle = COL.accent; hctx.lineWidth = 2;
+    hctx.beginPath();
+    var xa = Math.pow(2, f.kLo + 0.5), xb = Math.pow(2, f.kHi + 0.5);
+    var ya = Math.pow(10, f.intercept - f.tau * Math.log10(xa)), yb = Math.pow(10, f.intercept - f.tau * Math.log10(xb));
+    hctx.moveTo(px(Math.log10(xa)), py(Math.log10(ya)));
+    hctx.lineTo(px(Math.log10(xb)), py(Math.log10(yb)));
+    hctx.stroke(); hctx.setLineDash([]); hctx.lineWidth = 1;
+  }
+}
+
+function update(){
+  var sum = 0, i;
+  for (i = 0; i < N*N; i++) sum += pile.H[i];
+  var warm = WARM * N * N;
+  $("sizeval").textContent = N + " × " + N;
+  $("nDrop").textContent = pile.dropped.toLocaleString("en-US");
+  $("nTable").textContent = sum.toLocaleString("en-US");
+  $("nLost").textContent = pile.lost.toLocaleString("en-US");
+  $("nCheck").textContent = (sum + pile.lost === pile.dropped) ? "yes" : "NO";
+  $("mean").textContent = (sum / (N*N)).toFixed(3);
+  $("last").textContent = pile.last + " topplings";
+  $("largest").textContent = pile.largest + " topplings";
+  $("nRec").textContent = pile.recorded.toLocaleString("en-US");
+  var f = fit(pile);
+  $("tau").textContent = f ? f.tau.toFixed(2) : "not yet";
+  $("warm").textContent = pile.dropped <= warm
+    ? "Warming up: " + pile.dropped.toLocaleString("en-US") + " of " + warm.toLocaleString("en-US") + " grains. Histogram not recorded yet."
+    : "Settled: recording random drops. Fit uses bins with at least five avalanches" + (f ? " (sizes " + Math.pow(2, f.kLo).toLocaleString("en-US") + " to " + (Math.pow(2, f.kHi + 1) - 1).toLocaleString("en-US") + ")." : ".");
+}
+
+function redraw(){ readColours(); drawGrid(); drawHist(); update(); }
+
+function cellAt(evt){
+  var r = cvs.getBoundingClientRect();
+  var cx = Math.floor((evt.clientX - r.left) / r.width * N), cy = Math.floor((evt.clientY - r.top) / r.height * N);
+  if (cx < 0 || cy < 0 || cx >= N || cy >= N) return null;
+  return { i: cy * N + cx, x: cx, y: cy };
+}
+
+cvs.addEventListener("click", function(evt){
+  var c = cellAt(evt); if (!c) return;
+  var t = drop(pile, c.i);
+  $("readout").textContent = "Dropped at (" + c.x + ", " + c.y + "): " + t + " topplings.";
+  redraw();
+});
+cvs.addEventListener("pointermove", function(evt){
+  var c = cellAt(evt); if (!c) return;
+  $("readout").textContent = "Cell (" + c.x + ", " + c.y + "): " + pile.H[c.i] + " grain" + (pile.H[c.i] === 1 ? "" : "s") + ".";
+});
+
+function dropMany(n){
+  var t0 = performance.now();
+  for (var j = 0; j < n; j++) randomDrop(pile);
+  $("readout").textContent = n.toLocaleString("en-US") + " random drops made in " + Math.round(performance.now() - t0) + " ms.";
+  redraw();
+}
+
+$("bCentre").addEventListener("click", function(){
+  var m = Math.floor(N / 2), t = drop(pile, m * N + m);
+  $("readout").textContent = "Dropped at the centre: " + t + " topplings.";
+  redraw();
+});
+$("bOne").addEventListener("click", function(){ dropMany(1); });
+$("bThousand").addEventListener("click", function(){ dropMany(1000); });
+$("bTenK").addEventListener("click", function(){ dropMany(10000); });
+$("bWarm").addEventListener("click", function(){
+  var t0 = performance.now();
+  while (pile.dropped <= WARM * N * N) randomDrop(pile);
+  $("readout").textContent = "Warm-up finished in " + Math.round(performance.now() - t0) + " ms.";
+  redraw();
+});
+$("bReset").addEventListener("click", function(){
+  pile = newPile(N);
+  $("readout").textContent = "Table emptied. The seed is the same, so the drops repeat.";
+  redraw();
+});
+$("side").addEventListener("input", function(evt){
+  N = parseInt(evt.target.value, 10);
+  pile = newPile(N);
+  $("readout").textContent = "New table: " + N + " × " + N + ". Empty again.";
+  redraw();
+});
+
+// Colours are read from the CSS on every redraw, so a theme change shows on the next click.
+var mq = window.matchMedia("(prefers-color-scheme: dark)");
+if (mq.addEventListener) mq.addEventListener("change", redraw);
+
+cvs.width = 640; cvs.height = 640;
+hcv.width = 720; hcv.height = 320;
+redraw();
+})();
+</script>

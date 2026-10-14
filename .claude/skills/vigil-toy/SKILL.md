@@ -34,6 +34,9 @@ presses; `prefers-reduced-motion` support. Any data the toy needs goes inline.
 `node <studio>/tools/page_check.mjs --root . experiments/<slug>/ ./` (run from the toys repository; `<studio>` is
 the vigilstudio.github.io checkout next to it). Fix every PROBLEM. The landing page must still render the grid with
 the new card.
+Then play the toy to its end twice in headless Chromium from a fresh load: once with the mouse and once with the
+keyboard only (Tab, arrows, Enter, Space), and report both as played, not judged from the code. Every part the mouse
+can move must be reachable by keyboard; Tangle 16 shipped with arrows moving only one of two plugs.
 
 ## Report (short)
 Slug, title, the joke in one line, files changed, check results.

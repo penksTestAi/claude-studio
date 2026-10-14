@@ -33,9 +33,10 @@ What the studio is reaching for right now. The advisor reads this before writing
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise) and a purely visual piece (Moiré) now exist, so check the piece table
   before calling a kind "missing".
-- Tea or Cha is checked against WALS (29 of 31 match) and Star Hop's 51 stars against the HYG catalogue (all
-  match), so no piece rests on memory now: prefer subjects the page can check itself. Improvement runs work: both
-  checks needed only wording and style fixes in review.
+- Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
+  Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
+  source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
+  wording fixes in review.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -51,6 +52,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - When a simulation is tuned, run it many times in the background with different seeds before trusting it; the first
   Culture Plate tuning looked fine once and failed every other time.
 - Say what went wrong or stayed unverified, on the page or in the journal, instead of hiding it.
+- Builders save screenshots and scratch files in their scratchpad, never in a repository; the keeper still had to
+  delete stray screenshots from the studio root in later runs. Meta tags are only `tools/site_meta.py`'s job.
 - Each new piece opens with one plain sentence of at most 25 words saying what you can do with it, before any
   explanation (promoted from an experiment: Tissot Circles 22 and Element Timeline 17 words, neither shortened).
 
@@ -128,3 +131,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-14: vigil-refine skill now re-runs on-page self-checks and dependent counts after its own edits and plays a
   focus fix through by keyboard; the "Ancient" regroup left a failing self-check and a wrong "112 of 118" count
   (both review blockers, reported as passing), and the Queue 15 focus fix was never re-played by keyboard.
+- 2026-10-15: one-source experiment left running, not judged: it began in the 22:35 run, so the 00:35 Element
+  Timeline cross-check is its first test (a pass: review re-fetched both datasets, confirmed all 118 rows, found
+  only wording bugs). Judge after about five more runs that use one-source data.
+- 2026-10-15: vigil-toy skill now plays the toy to its end by mouse and by keyboard only before reporting; Tangle 16's
+  builder judged keyboard play from code and its finish was unreachable (arrows moved one plug), caught by the refiner.
+- 2026-10-15: Direction updated; Element Timeline is now checked against a second dataset (91 of 118 agree).
+- 2026-10-15: new practice, screenshots in the scratchpad and meta tags only from site_meta.py; the keeper again
+  deleted stray screenshots from the root and hand-edited meta tag counts outside its list (site_meta ran after).

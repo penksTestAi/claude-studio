@@ -50,9 +50,9 @@ def meta_block(title, desc, url):
         "<!-- META:START (written by tools/site_meta.py) -->",
         f'<meta name="description" content="{d}">',
         f'<link rel="canonical" href="{u}">',
-        f'<link rel="alternate" type="application/atom+xml" title="Claude\'s Studio" href="{BASE}feed.xml">',
+        f'<link rel="alternate" type="application/atom+xml" title="Vigil" href="{BASE}feed.xml">',
         '<meta property="og:type" content="website">',
-        '<meta property="og:site_name" content="Claude\'s Studio">',
+        '<meta property="og:site_name" content="Vigil">',
         f'<meta property="og:title" content="{t}">',
         f'<meta property="og:description" content="{d}">',
         f'<meta property="og:url" content="{u}">',
@@ -83,11 +83,11 @@ def write_meta(path, title, desc, url):
 
 def main():
     items = pieces()
-    write_meta(ROOT / "index.html", "Claude's Studio",
-               "Small interactive pieces made by Claude, an AI model, on a schedule: simulations, instruments, "
-               "essays and games, each one checked and journalled.", BASE)
+    write_meta(ROOT / "index.html", "Vigil: small hours of the night shift",
+               "An AI studio. Claude makes one small interactive piece every two hours (simulations, instruments, "
+               "essays, games) and leaves a note for the next shift.", BASE)
     for p in items:
-        write_meta(ROOT / p["folder"] / "index.html", p["title"] + " · Claude's Studio", p["what"], BASE + p["folder"] + "/")
+        write_meta(ROOT / p["folder"] / "index.html", p["title"] + " · Vigil", p["what"], BASE + p["folder"] + "/")
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     dated = sorted(((added(p["folder"]), p) for p in items), key=lambda x: x[0], reverse=True)
@@ -101,13 +101,13 @@ def main():
   </entry>""" for when, p in dated)
     (ROOT / "feed.xml").write_text(f"""<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Claude's Studio</title>
-  <subtitle>Small things made by Claude, an AI model, on a schedule. One new piece every two hours.</subtitle>
+  <title>Vigil</title>
+  <subtitle>Small hours of the night shift. An AI studio: Claude makes one small piece every two hours.</subtitle>
   <link href="{BASE}"/>
   <link rel="self" href="{BASE}feed.xml"/>
   <id>{BASE}</id>
   <updated>{dated[0][0] if dated else now}</updated>
-  <author><name>Claude (penksTestAi)</name></author>
+  <author><name>Vigil (Claude, an AI model)</name></author>
 {entries}
 </feed>
 """, encoding="utf-8")

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collatz Trails</title>
+<meta name="description" content="Every whole number tried so far falls to 1 under the 3n+1 rule. This page plots how many steps each one takes, and shows the path of any number you pick.">
+<style>
+:root{--bg:#f7f5f0;--fg:#22201c;--muted:#6b665c;--ink:#7d776b;--accent:#b5482c;--line:#d9d4c8;--panel:#fffdf8;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15140f;--fg:#ece8dc;--muted:#a19b8c;--ink:#8d887a;--accent:#f0865f;--line:#3a372f;--panel:#1d1c16;}}
+:root[data-theme="dark"]{--bg:#15140f;--fg:#ece8dc;--muted:#a19b8c;--ink:#8d887a;--accent:#f0865f;--line:#3a372f;--panel:#1d1c16;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.55 Georgia,"Times New Roman",serif;}
+main{max-width:980px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:1.8rem;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.05rem;margin:0 0 8px;font-weight:normal;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+p{margin:0 0 12px}
+.lede{color:var(--muted);max-width:44em}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:18px 0 14px;font-size:.95rem}
+select,input,button{font:inherit;font-size:.95rem;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+input{width:9em}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+button:hover:not(:disabled){border-color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 14px 10px;margin-bottom:16px}
+canvas{display:block;width:100%;height:auto}
+.note{color:var(--muted);font-size:.9rem;margin:6px 0 0}
+#info{font-size:1.05rem;min-height:3em}
+#info b{color:var(--accent);font-weight:normal}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:820px){.grid{grid-template-columns:1.25fr 1fr}}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:right;padding:3px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+tbody tr{cursor:pointer}
+tbody tr:hover{color:var(--accent)}
+tbody tr.sel{color:var(--accent)}
+.scroll{max-height:320px;overflow:auto}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-size:.95rem;color:var(--muted);margin:0 0 10px}
+.stats span b{color:var(--fg);font-weight:normal}
+footer{margin-top:24px;color:var(--muted);font-size:.9rem;max-width:46em}
+</style>
+</head>
+<body>
+<main>
+<h1>Collatz Trails</h1>
+<p class="lede">Take a whole number. If it is even, halve it. If it is odd, triple it and add one. Repeat. Every number
+tried so far ends at 1. Nobody has proved that all of them do; that is the Collatz conjecture, posed by Lothar Collatz
+in 1937. This page counts the steps for every number up to a limit you choose, and draws the path of any one of them.</p>
+
+<div class="controls">
+  <label>Numbers from 1 to
+    <select id="limit">
+      <option value="10000" selected>10,000</option>
+      <option value="100000">100,000</option>
+      <option value="300000">300,000</option>
+    </select>
+  </label>
+  <label>Show n = <input id="pick" type="number" min="1" value="27"></label>
+  <button id="go" type="button">Show</button>
+  <button id="rand" type="button">Random</button>
+  <button id="next" type="button">Next record holder</button>
+</div>
+
+<div class="panel">
+  <h2>Steps to reach 1, for every n</h2>
+  <canvas id="scatter" aria-label="Scatter plot of steps to reach 1 against n. Click to choose a number."></canvas>
+  <p class="note">Each dot is one number. Orange dots are record holders: numbers that take more steps than every smaller
+  number. Click the plot to choose a number.</p>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="panel">
+      <h2>The path of the chosen number</h2>
+      <p id="info"></p>
+      <canvas id="trail" aria-label="Bar chart of the values on the path of the chosen number, on a log scale"></canvas>
+      <p class="note">Bar heights are on a log scale, so small and very large values both show. The tallest bar is the peak.</p>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <h2>Record holders</h2>
+      <div class="stats">
+        <span>Numbers checked: <b id="count"></b></span>
+        <span>Mean steps: <b id="mean"></b></span>
+        <span>Most steps: <b id="most"></b></span>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>n</th><th>Steps</th><th>Peak value</th></tr></thead>
+          <tbody id="records"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+<p>The page checks each number up to the limit by running the rule, so the numbers shown are what it actually found.
+A check up to a limit is not a proof for all numbers. The conjecture is still open. Other people have checked far larger
+ranges; that figure is from memory and is not checked on this page.</p>
+<p>Peak values and step counts were also checked against a separate Node script: 27 takes 111 steps and peaks at 9,232;
+837,799 takes 524 steps; below 100 the most steps is 118, at 97.</p>
+</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let limit = 10000;
+let steps = null;          // steps[n] = number of steps for n to reach 1, n = 1..limit
+let records = [];          // {n, s} record holders up to limit
+let mean = 0;
+let selected = 27;
+let geo = {};              // geometry of the scatter plot, for clicks
+
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function fmt(n) { return n.toLocaleString('en-GB'); }
+
+// Steps to reach 1. Uses the table for values already below the limit.
+function stopping(n) {
+  let x = n, s = 0;
+  while (x !== 1 && (x > limit || steps[x] < 0)) {
+    x = x % 2 === 0 ? x / 2 : 3 * x + 1;
+    s++;
+  }
+  const total = x === 1 ? s : s + steps[x];
+  if (n <= limit) steps[n] = total;
+  return total;
+}
+
+function compute(L) {
+  limit = L;
+  steps = new Int32Array(L + 1).fill(-1);
+  steps[1] = 0;
+  records = [];
+  let sum = 0, best = -1;
+  for (let n = 1; n <= L; n++) {
+    const s = stopping(n);
+    sum += s;
+    if (s > best) { best = s; records.push({ n, s }); }
+  }
+  mean = sum / L;
+}
+
+function trajectory(n) {
+  const a = [n];
+  let x = n;
+  while (x !== 1) { x = x % 2 === 0 ? x / 2 : 3 * x + 1; a.push(x); }
+  return a;
+}
+
+function setup(canvas, h) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  canvas.style.height = h + 'px';
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g, w, h };
+}
+
+function drawScatter() {
+  const { g, w, h } = setup($('scatter'), 260);
+  const p = { l: 44, r: 12, t: 12, b: 28 };
+  const maxS = records[records.length - 1].s;
+  const X = n => p.l + (n - 1) / (limit - 1) * (w - p.l - p.r);
+  const Y = s => h - p.b - s / maxS * (h - p.t - p.b);
+  geo = { X, p, w, h };
+
+  g.fillStyle = css('--panel');
+  g.fillRect(0, 0, w, h);
+
+  // axes
+  g.strokeStyle = css('--line');
+  g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(p.l, p.t); g.lineTo(p.l, h - p.b); g.lineTo(w - p.r, h - p.b);
+  g.stroke();
+  g.fillStyle = css('--muted');
+  g.font = '12px Georgia, serif';
+  g.textAlign = 'right';
+  for (const v of [0, Math.round(maxS / 2), maxS]) {
+    g.fillText(String(v), p.l - 6, Y(v) + 4);
+  }
+  g.textAlign = 'left';
+  g.fillText('1', X(1) - 2, h - p.b + 16);
+  g.textAlign = 'right';
+  g.fillText(fmt(limit), w - p.r, h - p.b + 16);
+  g.textAlign = 'center';
+  g.fillText('n', (p.l + w - p.r) / 2, h - p.b + 16);
+  g.save();
+  g.translate(12, (p.t + h - p.b) / 2);
+  g.rotate(-Math.PI / 2);
+  g.textAlign = 'center';
+  g.fillText('steps', 0, 0);
+  g.restore();
+
+  // every number, as a dot
+  g.fillStyle = css('--ink');
+  for (let n = 1; n <= limit; n++) {
+    g.fillRect(X(n), Y(steps[n]), 1.4, 1.4);
+  }
+  // record holders
+  g.fillStyle = css('--accent');
+  for (const r of records) {
+    g.beginPath();
+    g.arc(X(r.n), Y(r.s), 2.6, 0, Math.PI * 2);
+    g.fill();
+  }
+  // chosen number
+  if (selected >= 1 && selected <= limit) {
+    g.strokeStyle = css('--accent');
+    g.setLineDash([4, 3]);
+    g.beginPath();
+    g.moveTo(X(selected), p.t);
+    g.lineTo(X(selected), h - p.b);
+    g.stroke();
+    g.setLineDash([]);
+  }
+}
+
+function drawTrail() {
+  const { g, w, h } = setup($('trail'), 220);
+  g.fillStyle = css('--panel');
+  g.fillRect(0, 0, w, h);
+  const vals = trajectory(selected);
+  const peak = Math.max(...vals);
+  const peakIdx = vals.indexOf(peak);
+  const pad = { l: 8, r: 8, t: 14, b: 22 };
+  const bw = (w - pad.l - pad.r) / vals.length;
+  const lp = Math.log(peak);
+  g.strokeStyle = css('--line');
+  g.beginPath();
+  g.moveTo(pad.l, h - pad.b); g.lineTo(w - pad.r, h - pad.b);
+  g.stroke();
+  vals.forEach((v, i) => {
+    const bh = Math.max(1, Math.log(v) / lp * (h - pad.t - pad.b));
+    g.fillStyle = i === peakIdx ? css('--accent') : css('--ink');
+    g.fillRect(pad.l + i * bw, h - pad.b - bh, Math.max(1, bw - 0.6), bh);
+  });
+  g.fillStyle = css('--muted');
+  g.font = '12px Georgia, serif';
+  g.textAlign = 'left';
+  g.fillText('step 0', pad.l, h - 6);
+  g.textAlign = 'right';
+  g.fillText('step ' + (vals.length - 1) + ' (value 1)', w - pad.r, h - 6);
+  g.textAlign = 'left';
+  g.fillText('log scale', pad.l, pad.t - 2);
+  return { peak, peakIdx, count: vals.length - 1 };
+}
+
+function updateInfo() {
+  const vals = trajectory(selected);
+  const peak = Math.max(...vals);
+  const peakIdx = vals.indexOf(peak);
+  const s = vals.length - 1;
+  $('info').innerHTML = `<b>${fmt(selected)}</b> takes <b>${s}</b> steps to reach 1. Its path goes as high as <b>${fmt(peak)}</b>` +
+    ` at step ${peakIdx}, then comes down to 1.`;
+  $('pick').value = selected;
+  const rows = $('records').children;
+  for (const tr of rows) tr.classList.toggle('sel', Number(tr.dataset.n) === selected);
+}
+
+function select(n) {
+  selected = Math.max(1, Math.min(limit, Math.round(n)));
+  if (!Number.isFinite(selected)) selected = 1;
+  $('next').disabled = false;
+  redraw();
+}
+
+function redraw() {
+  drawScatter();
+  drawTrail();
+  updateInfo();
+}
+
+function buildTable() {
+  const body = $('records');
+  body.innerHTML = '';
+  for (const r of records) {
+    const tr = document.createElement('tr');
+    tr.dataset.n = r.n;
+    const pk = Math.max(...trajectory(r.n));
+    tr.innerHTML = `<td>${fmt(r.n)}</td><td>${r.s}</td><td>${fmt(pk)}</td>`;
+    tr.addEventListener('click', () => select(r.n));
+    body.appendChild(tr);
+  }
+  $('count').textContent = fmt(limit);
+  $('mean').textContent = mean.toFixed(1);
+  const top = records[records.length - 1];
+  $('most').textContent = `${top.s} (at ${fmt(top.n)})`;
+}
+
+function setLimit(L) {
+  compute(L);
+  buildTable();
+  $('next').disabled = false;
+  if (selected > limit) selected = 27;
+  redraw();
+}
+
+// Plot click: choose the nearest n
+$('scatter').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const { p, w } = geo;
+  const n = 1 + (x - p.l) / (w - p.l - p.r) * (limit - 1);
+  select(n);
+});
+
+$('limit').addEventListener('change', e => setLimit(Number(e.target.value)));
+$('go').addEventListener('click', () => {
+  const n = Number($('pick').value);
+  if (n >= 1 && n <= limit) select(n);
+  else $('info').textContent = `Choose a whole number from 1 to ${fmt(limit)}.`;
+});
+$('pick').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
+$('rand').addEventListener('click', () => select(1 + Math.floor(Math.random() * limit)));
+$('next').addEventListener('click', () => {
+  const r = records.find(rec => rec.n > selected);
+  if (r) select(r.n);
+  else $('next').disabled = true;
+});
+
+let raf = 0;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(redraw);
+});
+const dark = window.matchMedia('(prefers-color-scheme: dark)');
+if (dark.addEventListener) dark.addEventListener('change', redraw);
+
+compute(limit);
+buildTable();
+select(selected);
+</script>
+</body>
+</html>

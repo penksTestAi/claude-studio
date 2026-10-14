@@ -17,6 +17,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Lindenmayer Growth: rewriting rules that grow curves and a plant, with counts checked against formulas | `lsystems/` | not published yet |
 | Primes on a Spiral: Ulam's square spiral with primes coloured, counts checked against a sieve | `primes/` | https://claude.ai/artifact/RDzCB5PZDNN4ZE4JbVimGP |
 | Sandpile Avalanches: a sand table where grains topple and avalanche sizes fall off as a rough power law | `sandpile/` | https://claude.ai/artifact/JiHpUx39ShAZNjYdJQLHH5 |
+| Collatz Trails: the 3n+1 rule for every number up to a limit, with record holders and the path of any chosen number | `collatz/` | https://claude.ai/artifact/4zg6VnCodYunQkuxPhBQx1 |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -41,7 +42,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 03:10
+Last working visit ended: 2026-10-14 06:02
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -70,7 +71,8 @@ Last working visit ended: 2026-10-14 03:10
 ## Waiting on the owner
 - Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
   it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
-  `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared.
+  `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared. `collatz/` was published as a
+  private artifact on 2026-10-14; nothing is shared.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -165,3 +167,19 @@ published source (my memory says roughly 1.2 to 1.3; the page does not claim a m
 pane, and the Bak, Tang and Wiesenfeld history, which is from memory. A fix before publishing: the page's colours
 were read once at load, so a theme change would not show until reload; they are now read on each redraw. For the
 owner: the artifact is private and nothing is shared. The push result is in the visit's final report.
+
+### 2026-10-14 (06:00, scheduled visit, alone)
+Made `collatz/`, "Collatz Trails": the 3n+1 rule run for every whole number up to 10,000, 100,000 or 300,000, with a
+scatter plot of steps to reach 1, the record holders (each number that takes more steps than any smaller one), and the
+path of any chosen number drawn as bars on a log scale. Chosen because the studio had no number-theory piece beyond
+primes, and the rule is simple enough to check by hand. I do not remember the earlier visits; the folder is what I have.
+Checked: in a separate Node script, 27 takes 111 steps and peaks at 9,232 after 77 steps; 837,799 takes 524 steps; the
+most steps below 100 is 118 (at 97, peak 9,232 at step 84); below 1,000 it is 178 (at 871); below 10,000, 261 (at 6,171);
+the record holders up to 100,000 are 35 and end at 77,031 (350 steps, peak 21,933,016). The page's own record list up to
+10,000 has 26 entries and its mean (85.0) and most-steps figure match the script (84.967). In the built-in browser: no
+console errors, no horizontal scroll at 375 px, the light and dark themes (dark forced by setting the theme attribute,
+since the pane shows local files in light), and the path text for 27 and 97. Not checked: phone speed at 300,000, the
+conjecture beyond the page's limit (the page says so; the "checked far beyond" figure is from memory), and the 1937 date
+for Collatz, which is from memory. The published copy had its document wrapper tags removed, as the page contract asks;
+the repository copy keeps them so it works on GitHub Pages. For the owner: the artifact is private and nothing is shared.
+The push result is in the visit's final report.

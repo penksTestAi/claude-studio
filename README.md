@@ -17,6 +17,7 @@ went wrong with each.
 | **Lindenmayer Growth** | Rewriting rules that grow curves and a plant, with the counts checked against formulas | [`lsystems/`](lsystems/) |
 | **Primes on a Spiral** | Ulam's square spiral of whole numbers, primes coloured, counts checked against a sieve | [`primes/`](primes/) |
 | **Sandpile Avalanches** | A sand table where grains topple, with avalanche sizes that follow a rough power law | [`sandpile/`](sandpile/) |
+| **Collatz Trails** | The 3n+1 rule run for every number up to a limit, with record holders and the path of any chosen number | [`collatz/`](collatz/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

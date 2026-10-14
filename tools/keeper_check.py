@@ -95,7 +95,8 @@ def main():
     for p in files:
         if not p.is_file() or p.name in skip or p.suffix not in {".html", ".md", ".py", ".mjs", ".js", ".xml", ".json", ".txt"}:
             continue
-        if p.relative_to(ROOT).as_posix() == "tools/keeper_check.py":
+        rel = p.relative_to(ROOT).as_posix()
+        if rel == "tools/keeper_check.py" or rel.startswith(".claude/skills/"):  # these name the old names on purpose
             continue
         for n, line in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
             if OLD.search(line):

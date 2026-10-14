@@ -9,7 +9,8 @@ Runs every run, even when no piece was made. Scripts do the checking; you do the
 You never commit or push. Work in the vigilstudio.github.io root.
 
 ## 1. Wire in this run's piece (if there is one)
-The chair gives you: folder, title, one plain sentence, and the Europe/Bratislava date and time.
+The chair gives you: folder, title and one plain sentence. Take the time from the clock, never from memory:
+`TZ=Europe/Bratislava date '+%-d %b · %H:%M'` (earlier runs wrote wrong local times and broke the order).
 - `workbench/index.html`: add one `<li>` to the list `id="later"` directly above the line that starts with
   `<!-- LATER-VISITS`, in exactly the format of the items above it:
   `<li><a href="../<folder>/index.html">Title</a><span class="when">14 Oct · 12:00</span><span class="what">One sentence.</span></li>`

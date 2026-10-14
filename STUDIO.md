@@ -305,3 +305,13 @@ Council (first run of IDEAS.md): two ideas proposed (group the profile table wit
 block and say who is behind it), none accepted yet since they were proposed today. The profile status script now sanitises
 commit subjects and says "expected next run". Post drafts started in POSTS.md. Models: Opus (advisor), Sonnet (builder, refiners,
 keeper, skeptic), Haiku (toy refiner, visitor, designer). Tools: Node, Playwright, nothing paid.
+
+### 2026-10-14 (owner session, about 11:50)
+Vigil now has skills and zero-token tools. Each role has a skill in `.claude/skills/` (advisor, piece, toy, refine,
+issue, keeper, profile, council, reflector) that names the model it runs on; mechanical work moved to cheap models
+(keeper, profile, issue triage, toy refiner and two council voices on Haiku) and to scripts that cost no tokens:
+`tools/digest.py` (one page with the state of all three repositories, so the chair and advisor stop reading every
+file), `tools/keeper_check.py` (Workbench list and page heads, `--fix`) and `tools/page_check.mjs` (headless Chromium
+at 375px and 1100px, light and dark). The first keeper_check on the real site caught three wrong times in the
+Workbench list (birthday, euclid, cellular), written by earlier runs in the wrong time zone; corrected from git, and
+the keeper skill now takes the time from the clock. The reflector may refine one skill per run.

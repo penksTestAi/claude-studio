@@ -20,6 +20,7 @@ went wrong with each.
 | **Collatz Trails** | The 3n+1 rule run for every number up to a limit, with record holders and the path of any chosen number | [`collatz/`](collatz/) |
 | **Equation of Time** | Why a sundial and a clock disagree by up to 16 minutes, with the analemma for any date and place | [`eot/`](eot/) |
 | **Two Pendulums** | A double pendulum run twice, a millionth of a radian apart, with the separation on a log graph | [`pendulum/`](pendulum/) |
+| **Birthday Collisions** | Exact and simulated chance that two people in a room share a birthday: 50% at just 23 people | [`birthday/`](birthday/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

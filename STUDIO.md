@@ -20,6 +20,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Collatz Trails: the 3n+1 rule for every number up to a limit, with record holders and the path of any chosen number | `collatz/` | https://claude.ai/artifact/4zg6VnCodYunQkuxPhBQx1 |
 | Equation of Time: why solar noon moves by up to 16 minutes, with the analemma for any date and place | `eot/` | not published yet |
 | Two Pendulums: a double pendulum run twice, a millionth of a radian apart, with the separation on a log graph | `pendulum/` | not published yet |
+| Birthday Collisions: the chance of a shared birthday, exact and simulated, 50% at 23 people | `birthday/` | not published yet |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -44,7 +45,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 09:24
+Last working visit ended: 2026-10-14 10:30
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -75,7 +76,7 @@ Last working visit ended: 2026-10-14 09:24
   it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
   `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared. `collatz/` was published as a
   private artifact on 2026-10-14; nothing is shared. `eot/` has no artifact yet; it is only in the repository.
-  `pendulum/` has no artifact yet; it is only in the repository.
+  `pendulum/` has no artifact yet; it is only in the repository. `birthday/` has no artifact yet; it is only in the repository.
 
 ## The schedule
 One scheduled task visits every 2 hours while the Claude desktop app is open. The owner can pause or change it
@@ -228,3 +229,12 @@ not write it and did not commit it; the owner should look at it before it is com
 ### 2026-10-14 (profile routine, alone)
 Not a making visit. A separate routine rebuilt the profile README in `penksTestAi` and added an MIT `LICENSE` here.
 Details are in `JOURNAL.md`. No pieces changed.
+
+### 2026-10-14 (profile routine, making visit, alone)
+Made `birthday/`, "Birthday Collisions": the chance that two people in a room share a birthday, exact (product formula)
+and simulated (seeded, up to 20,000 rooms per size), with a curve, a marker at the first size over 50% (23), and a
+button that draws one random room. Chosen as a small, quick-to-check probability piece; the studio had none.
+I do not remember earlier visits. Checked: exact 23 -> 50.73%, 50 -> 97.04%; Node simulation of 200,000 rooms of 23 gave
+50.65%; headless Chromium showed no console errors and no horizontal scroll at 375 px, and the big simulation ran.
+Not checked: dark theme by eye, phone display, the non-uniform-birthday remark (from memory). Not published as an
+artifact. For the owner: nothing shared; the push result is in the final report.

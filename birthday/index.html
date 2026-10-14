@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birthday Collisions</title>
+<style>
+:root{--bg:#F3EFE6;--panel:#FBF9F3;--ink:#1D2530;--muted:#5C6570;--line:#D6CFBF;--focus:#2F5D8A;--exact:#1D2530;--sim:#B4532A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F1217;--panel:#171C24;--ink:#E4EAF1;--muted:#98A3B1;--line:#2B3340;--focus:#8DB8E2;--exact:#E4EAF1;--sim:#F0A06C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1217;--panel:#171C24;--ink:#E4EAF1;--muted:#98A3B1;--line:#2B3340;--focus:#8DB8E2;--exact:#E4EAF1;--sim:#F0A06C;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Segoe UI",system-ui,sans-serif}
+body{padding:24px 16px 48px}
+main{max-width:860px;margin:0 auto}
+h1{font-family:Georgia,serif;font-size:clamp(28px,5vw,40px);margin:0 0 6px}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+label{display:block;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--focus)}
+.big{font-family:ui-monospace,Consolas,monospace;font-size:15px}
+.big b{font-size:26px}
+button{font:inherit;font-size:15px;padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;margin:4px 6px 0 0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+canvas{width:100%;height:320px;display:block}
+.key{font-size:14px;color:var(--muted)}
+.dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.dot{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);font:11px/24px ui-monospace,monospace;text-align:center}
+.dot.hit{background:var(--sim);color:var(--bg);border-color:var(--sim)}
+details{max-width:68ch}summary{cursor:pointer;font-weight:600}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.92em}
+</style>
+</head>
+<body>
+<main>
+<h1>Birthday Collisions</h1>
+<p class="lede">How many people must be in a room before two of them probably share a birthday? Far fewer than you think. The page computes the exact answer, then checks it by simulating thousands of rooms with a seeded random generator.</p>
+
+<div class="card">
+  <label for="n">People in the room: <b id="nv">23</b></label>
+  <input id="n" type="range" min="2" max="100" value="23">
+  <p class="big">Exact chance of a shared birthday: <b id="ex"></b><br>Simulated (<span id="tr">0</span> rooms): <b id="si" style="color:var(--sim)">–</b></p>
+  <button id="run1000">Simulate 1,000 rooms</button>
+  <button id="run20000">Simulate 20,000 rooms</button>
+  <button id="reset">Reset counts</button>
+</div>
+
+<div class="card">
+  <canvas id="c" role="img" aria-label="Chance of a shared birthday against group size, exact curve and simulated points"></canvas>
+  <p class="key">Line: exact. Dots: simulated, 20,000 rooms per size once you run the big simulation. The dashed lines mark 50% and the first group size that passes it.</p>
+</div>
+
+<div class="card">
+  <b>One random room</b> (a day number 1–365 for each person; matches in orange)
+  <div><button id="draw">Draw a room</button></div>
+  <div class="dots" id="dots" aria-live="polite"></div>
+  <p class="big" id="drawmsg"></p>
+</div>
+
+<details><summary>How the exact number is found</summary>
+<p>The chance that nobody shares a birthday is <code>365/365 × 364/365 × … × (365−n+1)/365</code>: each new person must avoid every day already taken. The chance of a shared birthday is one minus that. It passes one half at <code>n = 23</code>. The surprise comes from pairs: 23 people make 253 pairs, and each pair is a chance for a match.</p>
+<p>Assumptions, stated plainly: 365 equally likely days, no 29 February, no twins, birthdays independent. Real birthdays are not quite uniform, which pushes the true chance slightly <em>up</em>, not down.</p>
+</details>
+</main>
+<script>
+(function(){
+var D=365,cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var nEl=document.getElementById('n');
+function exact(n){var p=1;for(var i=0;i<n;i++)p*=(D-i)/D;return 1-p;}
+var firstOver=(function(){for(var n=1;n<=D;n++)if(exact(n)>0.5)return n;})();
+// seeded generator (mulberry32) so the numbers repeat
+var seed=20261014;function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+var hits={},trials={},sweep=null;
+function room(n){var seen=new Uint8Array(D),i,d;for(i=0;i<n;i++){d=Math.floor(rnd()*D);if(seen[d])return true;seen[d]=1;}return false;}
+function run(n,k){var h=0;for(var i=0;i<k;i++)if(room(n))h++;hits[n]=(hits[n]||0)+h;trials[n]=(trials[n]||0)+k;}
+function pct(x){return (100*x).toFixed(2)+'%';}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function update(){
+  var n=+nEl.value;
+  document.getElementById('nv').textContent=n;
+  document.getElementById('ex').textContent=pct(exact(n));
+  document.getElementById('tr').textContent=(trials[n]||0).toLocaleString();
+  document.getElementById('si').textContent=trials[n]?pct(hits[n]/trials[n]):'–';
+  draw();
+}
+function draw(){
+  var r=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*r;cv.height=h*r;ctx.setTransform(r,0,0,r,0,0);
+  var L=44,R=10,T=10,B=30,pw=w-L-R,ph=h-T-B,N=100;
+  function X(n){return L+pw*n/N;}function Y(p){return T+ph*(1-p);}
+  ctx.font='12px ui-monospace,monospace';ctx.fillStyle=css('--muted');ctx.strokeStyle=css('--line');ctx.lineWidth=1;
+  for(var g=0;g<=4;g++){var p=g/4;ctx.beginPath();ctx.moveTo(L,Y(p));ctx.lineTo(L+pw,Y(p));ctx.stroke();ctx.textAlign='right';ctx.fillText((p*100)+'%',L-6,Y(p)+4);}
+  ctx.textAlign='center';for(var x=0;x<=N;x+=20)ctx.fillText(x,X(x),h-10);
+  ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(L,Y(.5));ctx.lineTo(X(firstOver),Y(.5));ctx.lineTo(X(firstOver),Y(0));ctx.strokeStyle=css('--muted');ctx.stroke();ctx.setLineDash([]);
+  ctx.fillText(firstOver,X(firstOver),Y(0)-6);
+  ctx.beginPath();for(var n=0;n<=N;n++){var px=X(n),py=Y(exact(n));n?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+  ctx.strokeStyle=css('--exact');ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle=css('--sim');
+  for(var m in trials){if(trials[m]>=1000){ctx.beginPath();ctx.arc(X(+m),Y(hits[m]/trials[m]),2.6,0,6.3);ctx.fill();}}
+  var cur=+nEl.value;ctx.strokeStyle=css('--focus');ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(cur),Y(exact(cur)),6,0,6.3);ctx.stroke();
+}
+function sweepAll(){ // 20,000 rooms at every size 2..100, in slices so the page stays responsive
+  if(sweep)return;var n=2;sweep=true;
+  (function step(){var t=Date.now();while(n<=100&&Date.now()-t<30){run(n,20000);n++;}
+    update();if(n<=100)setTimeout(step,0);else sweep=null;})();
+}
+document.getElementById('run1000').onclick=function(){run(+nEl.value,1000);update();};
+document.getElementById('run20000').onclick=sweepAll;
+document.getElementById('reset').onclick=function(){hits={};trials={};update();};
+nEl.addEventListener('input',update);window.addEventListener('resize',draw);
+if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+document.getElementById('draw').onclick=function(){
+  var n=+nEl.value,box=document.getElementById('dots'),days=[],cnt={},i;box.textContent='';
+  for(i=0;i<n;i++){var d=1+Math.floor(rnd()*D);days.push(d);cnt[d]=(cnt[d]||0)+1;}
+  var shared=0;days.forEach(function(d){var s=document.createElement('span');s.className='dot'+(cnt[d]>1?' hit':'');s.textContent=d;s.title='day '+d;box.appendChild(s);});
+  for(var k in cnt)if(cnt[k]>1)shared++;
+  document.getElementById('drawmsg').textContent=shared?shared+' shared day'+(shared>1?'s':'')+' in this room of '+n+'.':'No shared birthday in this room of '+n+'.';
+};
+update();
+window.__test={exact:exact,firstOver:firstOver,run:run,hits:hits,trials:trials};
+})();
+</script>
+</body>
+</html>

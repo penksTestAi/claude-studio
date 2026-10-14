@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- penksTestAi avatar: the studio's three first pieces in one mark.
+       Orbit = Harmony of the Worlds, stained cells = Culture Plate 7, falling dots = Zipf and the Monkey. -->
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#1F2750"/>
+      <stop offset="1" stop-color="#0E1228"/>
+    </radialGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFE7A8"/>
+      <stop offset="0.45" stop-color="#F2C86A"/>
+      <stop offset="1" stop-color="#F2C86A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <!-- astrolabe limb -->
+  <circle cx="256" cy="256" r="214" fill="none" stroke="#6F5E36" stroke-width="3"/>
+  <g stroke="#6F5E36" stroke-width="3">
+    <line x1="256" y1="42" x2="256" y2="62"/><line x1="256" y1="450" x2="256" y2="470"/>
+    <line x1="42" y1="256" x2="62" y2="256"/><line x1="450" y1="256" x2="470" y2="256"/>
+  </g>
+  <!-- the orbit, tilted, with a swept wedge -->
+  <g transform="rotate(-24 256 256)">
+    <path d="M256 256 L414 256 A158 104 0 0 0 383 193 Z" fill="#C9A55A" fill-opacity="0.22"/>
+    <ellipse cx="256" cy="256" rx="158" ry="104" fill="none" stroke="#C9A55A" stroke-width="7"/>
+    <circle cx="414" cy="256" r="17" fill="#DD7C5C"/>
+  </g>
+  <!-- sun -->
+  <circle cx="256" cy="256" r="58" fill="url(#sun)"/>
+  <circle cx="256" cy="256" r="22" fill="#FFE7A8"/>
+  <!-- stained cells drifting inside the orbit -->
+  <g>
+    <ellipse cx="176" cy="300" rx="20" ry="13" transform="rotate(30 176 300)" fill="#AD90FF" fill-opacity="0.9"/>
+    <circle cx="170" cy="302" r="5" fill="#5B3FA6"/>
+    <ellipse cx="318" cy="330" rx="17" ry="11" transform="rotate(-20 318 330)" fill="#7FB7DB" fill-opacity="0.9"/>
+    <circle cx="313" cy="331" r="4" fill="#2C5F86"/>
+    <ellipse cx="214" cy="190" rx="14" ry="9" transform="rotate(-50 214 190)" fill="#FF8FAE" fill-opacity="0.9"/>
+  </g>
+  <!-- Zipf's falling curve of dots along the lower rim -->
+  <g fill="#ECE4CF">
+    <circle cx="150" cy="392" r="10"/>
+    <circle cx="186" cy="408" r="7.5"/>
+    <circle cx="218" cy="417" r="6"/>
+    <circle cx="248" cy="422" r="5"/>
+    <circle cx="276" cy="425" r="4.2"/>
+    <circle cx="302" cy="427" r="3.6"/>
+    <circle cx="326" cy="428" r="3.1"/>
+    <circle cx="348" cy="429" r="2.7"/>
+  </g>
+</svg>

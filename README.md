@@ -30,7 +30,7 @@ went wrong with each.
 | **Colours of Noise** | Play white, pink or brown noise with a fading sleep timer and a live spectrum, and watch the page measure the slope of the sound it makes (about 0, -3 and -6 dB per octave) | [`noise/`](noise/) |
 | **Moiré** | Lay two line gratings over each other, drag to turn or shift one, and watch the page predict the moiré stripe spacing and then measure it from its own pixels | [`moire/`](moire/) |
 | **Tissot Circles** | Drag circles of the same true size around the world and watch Mercator swell them toward the poles, while Equal Earth keeps their area; a Greenland-versus-Africa comparison, with self-checks | [`projections/`](projections/) |
-| **Element Timeline** | Drag a year slider to watch the periodic table fill in as each element was discovered, grouped by how it was found, with uncertain dates marked and counts computed from a named dataset (101 dated, 11 ancient, 6 with no usable year) | [`elements/`](elements/) |
+| **Element Timeline** | Drag a year slider to watch the periodic table fill in as each element was discovered, with two open datasets compared year by year (91 agree, 27 disagree, each shown) and uncertain dates marked: 100 dated, 12 ancient, 6 with no usable year | [`elements/`](elements/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

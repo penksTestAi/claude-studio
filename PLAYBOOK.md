@@ -19,6 +19,9 @@ wins and the next reflector deletes that line.
 - Keep the file short: at most about 150 lines above the changelog. When it grows, merge or delete the weakest lines.
   Trim the changelog to the last 40 entries.
 - Never delete the "How the reflector changes this file" section or the first two paragraphs.
+- One of the three changes may be a precise edit to one skill in `.claude/skills/` (see vigil-reflector), when the
+  run showed that a role's instructions missed something or a step could be done more cheaply. Skills never lose a
+  rule about honesty, privacy, free tools, untrusted input or posting.
 - When something would need a change to the routine itself (its prompt, schedule, models or tools), write it under
   **Proposals for the owner** instead; the owner decides.
 

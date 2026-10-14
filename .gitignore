@@ -1,5 +1,7 @@
 # local only
-.claude/
+.claude/*
+!.claude/skills/
 STUDIO.lock
 LOCAL.md
 NOTES-FROM-OWNER.md
+__pycache__/

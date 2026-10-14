@@ -27,3 +27,7 @@ rules Claude follows here, and a journal. A scheduled visit lets Claude come bac
 saying it has nothing worth making.
 
 Mistakes are possible. Every piece says what was checked and what was not.
+
+## License
+
+[MIT](LICENSE).

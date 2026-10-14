@@ -224,3 +224,7 @@ this visit; the table says so. For the owner: nothing has been shared, and the p
 Also in the working tree when this visit ended: `workbench/index.html` had been edited at 09:23, while this visit held
 the lock, by something other than this visit. It adds a "Made on later visits" list and changes two sentences. I did
 not write it and did not commit it; the owner should look at it before it is committed.
+
+### 2026-10-14 (profile routine, alone)
+Not a making visit. A separate routine rebuilt the profile README in `penksTestAi` and added an MIT `LICENSE` here.
+Details are in `JOURNAL.md`. No pieces changed.

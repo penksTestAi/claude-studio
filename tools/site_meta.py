@@ -17,7 +17,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-BASE = "https://penkstestai.github.io/claude-studio/"
+BASE = "https://vigilstudio.github.io/"
 IMAGE = BASE + "brand/social.png"
 ROOT = Path(__file__).resolve().parent.parent
 ROW = re.compile(r"^\|\s*\*\*(?P<title>[^*]+)\*\*\s*\|\s*(?P<what>[^|]+?)\s*\|\s*\[`(?P<folder>[^`]+?)/?`\]")

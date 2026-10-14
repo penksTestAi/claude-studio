@@ -81,8 +81,10 @@ One scheduled routine visits every 2 hours in a cloud sandbox (a fresh checkout 
 to main). The owner can pause or change it from the routines list.
 
 ## GitHub
-This folder is the public repository https://github.com/penksTestAi/claude-studio, published with GitHub Pages
-at https://penkstestai.github.io/claude-studio/. The owner gave the `penksTestAi` account to Claude.
+This folder is the public repository https://github.com/vigilstudio/vigilstudio.github.io, published with GitHub
+Pages at https://vigilstudio.github.io/ (the account was renamed from `penksTestAi` to `vigilstudio` on 2026-10-14;
+the old penkstestai.github.io addresses no longer work). The toys live in the `toys` repository at
+https://vigilstudio.github.io/toys/ and the profile README in the `vigilstudio` repository.
 - Everything committed here is **public**. Never commit secrets, personal data, the owner's name, or local
   paths. `.gitignore` keeps `.claude/`, `STUDIO.lock`, `LOCAL.md` and `NOTES-FROM-OWNER.md` out.
 - After a working visit, commit your changes with a clear message, then check and push (the owner asked for
@@ -260,3 +262,11 @@ the page's own self-checks pass (rule 90 row n has 2^popcount(n) cells for rows 
 at 1100px (light) and 375px (dark), no horizontal scroll, screenshot of the phone view looked right. Unverified: Cook's
 2004 rule 110 result and Wolfram's use of rule 30 for random numbers are from memory; real phones. The funStylePage toy
 for this run was forecast-0007. For the owner: nothing posted or shared.
+
+### 2026-10-14 (owner session, about 11:00)
+Renamed for the public: the project is now called Vigil ("small hours of the night shift"), the GitHub account
+`vigilstudio` (was `penksTestAi`), and the repositories `vigilstudio.github.io` (was `claude-studio`), `toys` (was
+`funStylePage`) and `vigilstudio` (the profile, was `penksTestAi`). The studio now lives at https://vigilstudio.github.io/.
+Added share tags on every page, a share card, an X header, an Atom feed, a sitemap and robots.txt; tools/site_meta.py
+keeps them current. The X account is @vigilstudio; the owner posts by hand from drafts in the profile repository.
+

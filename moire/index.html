@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moiré · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Lay two line gratings over each other, drag to turn or shift one, and watch the page predict the moiré stripe spacing and then measure it from its own pixels">
+<link rel="canonical" href="https://vigilstudio.github.io/moire/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Moiré · Vigil">
+<meta property="og:description" content="Lay two line gratings over each other, drag to turn or shift one, and watch the page predict the moiré stripe spacing and then measure it from its own pixels">
+<meta property="og:url" content="https://vigilstudio.github.io/moire/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Moiré · Vigil">
+<meta name="twitter:description" content="Lay two line gratings over each other, drag to turn or shift one, and watch the page predict the moiré stripe spacing and then measure it from its own pixels">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--paper:#fbf8f0;--stroke:#1d1b18;--ok:#2f7d3a;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--paper:#0b0d12;--stroke:#e6e2d6;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--paper:#0b0d12;--stroke:#e6e2d6;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.15rem;margin:26px 0 8px;font-weight:normal}
+h2:focus{outline:none}
+h2:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.stage{display:flex;justify-content:center}
+.view{display:block;outline:none;border:1px solid var(--line);border-radius:6px;background:var(--paper);touch-action:none;cursor:grab;line-height:0}
+.view.drag{cursor:grabbing}
+.view:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+canvas{display:block}
+.cap{margin:8px 0 0;font-size:.9rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:16px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cell{border:1px solid var(--line);border-radius:6px;padding:10px 10px 8px;background:var(--bg);min-width:0}
+.cell h3{margin:0 0 2px;font-size:.8rem;font-weight:normal;color:var(--muted)}
+.big{font-size:1.7rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.big small{font-size:.9rem;color:var(--muted)}
+.sub{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.formula{margin:10px 0 0;font-size:.9rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.verdict{margin:8px 0 0;min-height:1.5em;font-size:.95rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.ctl{display:grid;grid-template-columns:1fr;gap:6px 18px}
+@media (min-width:600px){.ctl{grid-template-columns:1fr 1fr}}
+.ctl label,.lab{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-top:8px;gap:8px}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--ink)}
+input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}
+input[type=range]:focus-visible,input[type=radio]:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:4px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg label{position:relative;display:block;margin:0}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg .box{display:block;min-height:44px;padding:9px 6px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-size:.95rem}
+.seg input:checked + .box{border:3px solid var(--accent);padding:7px 4px;background:var(--panel)}
+.seg input:checked + .box::before{content:"\2713\00a0"}
+.seg input:focus-visible + .box{outline:3px solid var(--ink);outline-offset:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+button{min-height:44px;padding:8px 16px;font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+button.main{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:6px 5px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal;font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:.8rem}
+details{margin-top:22px}
+summary{cursor:pointer;min-height:32px}
+details p{font-size:.95rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="top" tabindex="-1">Moiré</h1>
+  <p class="lede" id="lede">Two sets of lines, A and B, make coarse stripes where they overlap. Turn B; the page predicts their spacing, then measures it.</p>
+
+  <div class="stage">
+    <div class="view" id="view" tabindex="0" role="group" aria-label="Picture of two line gratings. Arrow keys shift grating B, Q and E turn it, Home resets." aria-describedby="keys">
+      <canvas id="cv" aria-hidden="true"></canvas>
+    </div>
+  </div>
+  <p class="cap" id="keys">Drag the picture to turn B. A finger on the picture does not scroll the page, so scroll from the margins beside it. Keys: arrows shift B, Q and E turn it (Shift for bigger steps), Home resets.</p>
+
+  <section class="panel" aria-labelledby="h-read">
+    <h2 id="h-read" style="margin-top:0">Stripe spacing, two ways</h2>
+    <div class="cmp">
+      <div class="cell"><h3>Predicted from the settings</h3>
+        <div class="big" id="pSp">&nbsp;</div><div class="sub" id="pAng"></div></div>
+      <div class="cell"><h3>Measured from the pixels</h3>
+        <div class="big" id="mSp">&nbsp;</div><div class="sub" id="mAng"></div></div>
+    </div>
+    <p class="formula" id="formula"></p>
+    <p class="verdict" id="verdict"></p>
+    <p class="small" id="counts"></p>
+    <div class="sr" id="live" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ctl">
+    <h2 id="h-ctl" style="margin-top:0">Controls</h2>
+    <div class="seg">
+      <fieldset><legend>Dragging</legend>
+        <div class="seg">
+          <label><input type="radio" name="mode" value="rotate" autocomplete="off" checked><span class="box">Turns B</span></label>
+          <label><input type="radio" name="mode" value="shift" autocomplete="off"><span class="box">Shifts B</span></label>
+        </div></fieldset>
+      <fieldset><legend>Showing</legend>
+        <div class="seg">
+          <label><input type="radio" name="show" value="lines" autocomplete="off" checked><span class="box">The lines</span></label>
+          <label><input type="radio" name="show" value="blur" autocomplete="off"><span class="box">Stripes only</span></label>
+        </div></fieldset>
+    </div>
+    <div class="ctl">
+      <div><label for="sTheta">Angle of B <output id="oTheta"></output></label>
+        <input id="sTheta" type="range" min="-30" max="30" step="0.1" value="8"></div>
+      <div><label for="sShift">Shift of B, in pitches <output id="oShift"></output></label>
+        <input id="sShift" type="range" min="0" max="1" step="0.01" value="0"></div>
+      <div><label for="sD">Pitch of A <output id="oD"></output></label>
+        <input id="sD" type="range" min="6" max="16" step="0.5" value="10"></div>
+      <div><label for="sR">Pitch of B, relative to A <output id="oR"></output></label>
+        <input id="sR" type="range" min="0.9" max="1.1" step="0.005" value="1"></div>
+    </div>
+    <div class="btns">
+      <button type="button" id="bReset">Reset</button>
+      <button type="button" id="bSweep" class="main">Check angles</button>
+    </div>
+  </section>
+
+  <section class="panel" id="sweep" hidden aria-labelledby="h-sweep">
+    <h2 id="h-sweep" tabindex="-1" style="margin-top:0">Check results</h2>
+    <p id="sweepSum"></p>
+    <div class="tw"><table>
+      <thead><tr><th scope="col">Angle</th><th scope="col">Predicted</th><th scope="col">Measured</th><th scope="col">Off by</th></tr></thead>
+      <tbody id="sweepBody"></tbody>
+    </table></div>
+    <p class="small" id="sweepNote"></p>
+  </section>
+
+  <details>
+    <summary>How the prediction and the measuring work, and what is unverified</summary>
+    <p>Each grating is a set of straight dark lines, half line and half gap. Where the lines of A and B cross at a shallow
+    angle they sometimes cover each other's gaps and sometimes fill them, so a coarse stripe pattern appears. Treat each
+    grating as a wave: A has wavevector k<sub>A</sub> = 1/d<sub>A</sub> pointing along x, B has k<sub>B</sub> = 1/d<sub>B</sub>
+    turned by θ. The stripes are the beat k<sub>A</sub> &minus; k<sub>B</sub>, so their spacing is 1/|k<sub>A</sub> &minus; k<sub>B</sub>|
+    = d<sub>A</sub>d<sub>B</sub> / &radic;(d<sub>A</sub>&sup2; + d<sub>B</sub>&sup2; &minus; 2d<sub>A</sub>d<sub>B</sub>cos&thinsp;θ).
+    With equal pitch d this becomes d / (2 sin(θ/2)). Stripe angles on this page are measured clockwise from horizontal,
+    as seen on screen.</p>
+    <p id="how2"></p>
+    <p>Moving B sideways does not change the spacing, only where the stripes sit, and a shift of one pitch slides the
+    stripes by one whole stripe spacing, which is the magnifying trick moiré gauges use.</p>
+    <p class="small">Made by Claude, an AI model by Anthropic, for Vigil. Unverified: I could only run headless Chromium,
+    so no real phone, no high-density screen (the picture is drawn at one canvas pixel per CSS pixel and the browser
+    enlarges it there), no screen reader and no other browser. The prediction comes from the settings and the
+    measurement from the drawn pixels, but one program does both, so agreement shows that my drawing matches the formula
+    and not that I have found anything new. Circle gratings are not included. Stripes wider than about a third of the
+    picture (<span id="limTxt">about 170 px at the largest size</span>) cannot be measured here and are reported as such.</p>
+  </details>
+</main>
+
+<script>
+"use strict";
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var M = 512;                         // FFT size; the picture is never larger than this
+  var DEG = Math.PI/180;
+  var TOL = 0.03;                      // a check passes when measured and predicted differ by 3% or less
+  var SWEEP = [1,2,3,4,6,8,10,13,16,20,25,30];
+  var checkLabel = "Check " + SWEEP.length + " angles";
+  var DEFAULTS = {theta:8, shift:0, d:10, r:1};
+  var S = {theta:DEFAULTS.theta, shift:DEFAULTS.shift, d:DEFAULTS.d, r:DEFAULTS.r, mode:"rotate", show:"lines"};
+  var N = 360;                          // picture side in pixels, set by fit()
+  var cv = $("cv"), ctx = cv.getContext("2d", {willReadFrequently:true});
+  var work = document.createElement("canvas"), wctx = work.getContext("2d", {willReadFrequently:true});
+  var lastDraw = null, measureTimer = 0, liveTimer = 0;
+
+  // ---------- colours from the page's own tokens, read at every draw so a theme change shows at once ----------
+  function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function rgb(s){
+    var m = /^#([0-9a-f]{6})$/i.exec(s);
+    if (m){ var v = parseInt(m[1],16); return [v>>16, (v>>8)&255, v&255]; }
+    var n = s.match(/[\d.]+/g) || [0,0,0]; return [+n[0], +n[1], +n[2]];
+  }
+
+  // ---------- the picture ----------
+  // Grating A: lines with normal along x. Grating B: normal at angle theta (clockwise on screen), pitch d*r, shifted
+  // by shift*pitch along its normal. Both drawn about the picture centre. Returns the number of lines that cross
+  // the picture, computed from the same loop that draws them.
+  function drawGrating(c, normalAngle, pitch, offset, halfN, stroke){
+    var n = [Math.cos(normalAngle), Math.sin(normalAngle)], t = [-n[1], n[0]];
+    var reach = halfN*(Math.abs(n[0])+Math.abs(n[1]));      // a line crosses the square when |c| <= reach
+    var m0 = Math.ceil((-reach - offset)/pitch), m1 = Math.floor((reach - offset)/pitch), count = 0;
+    c.strokeStyle = stroke; c.lineWidth = pitch/2; c.lineCap = "butt"; c.beginPath();
+    for (var m = m0; m <= m1; m++){
+      var off = offset + m*pitch, qx = halfN + n[0]*off, qy = halfN + n[1]*off, L = halfN*1.5;
+      c.moveTo(qx - t[0]*L, qy - t[1]*L); c.lineTo(qx + t[0]*L, qy + t[1]*L); count++;
+    }
+    c.stroke();
+    return count;
+  }
+  function render(c, size, p, paper, stroke){
+    c.setTransform(1,0,0,1,0,0);
+    c.fillStyle = paper; c.fillRect(0,0,size,size);
+    var half = size/2, dB = p.d*p.r;
+    var nA = drawGrating(c, 0, p.d, 0, half, stroke);
+    var nB = drawGrating(c, p.theta*DEG, dB, p.shift*dB, half, stroke);
+    return {nA:nA, nB:nB};
+  }
+  function luminance(c, size){
+    var px = c.getImageData(0,0,size,size).data, out = new Float32Array(size*size);
+    for (var i=0, j=0; i<out.length; i++, j+=4) out[i] = 0.2126*px[j] + 0.7152*px[j+1] + 0.0722*px[j+2];
+    return out;
+  }
+
+  // ---------- prediction: the beat of the two gratings ----------
+  function predict(p){
+    var dB = p.d*p.r, th = p.theta*DEG;
+    var kx = 1/p.d - Math.cos(th)/dB, ky = -Math.sin(th)/dB;      // k_A - k_B, cycles per pixel
+    var k = Math.hypot(kx, ky);
+    if (k < 1e-9) return {spacing:Infinity, angle:null, k:0};
+    // stripes run perpendicular to the beat wavevector; angle in degrees, clockwise from horizontal, 0 to 180
+    var a = (Math.atan2(ky, kx)/DEG + 90) % 180; if (a < 0) a += 180;
+    return {spacing:1/k, angle:a, k:k};
+  }
+
+  // ---------- measurement: 2-D Fourier transform of the rendered pixels ----------
+  var rev = new Uint16Array(M), cosT = new Float64Array(M/2), sinT = new Float64Array(M/2), hann = {};
+  (function(){
+    var bits = Math.log2(M);
+    for (var i=0;i<M;i++){ var r=0, x=i; for (var b=0;b<bits;b++){ r=(r<<1)|(x&1); x>>=1; } rev[i]=r; }
+    for (var k=0;k<M/2;k++){ cosT[k]=Math.cos(2*Math.PI*k/M); sinT[k]=-Math.sin(2*Math.PI*k/M); }
+  })();
+  function fft(re, im){
+    var i, j, k, len, half, step, a, b, tr, ti, wr, wi;
+    for (i=0;i<M;i++){ j=rev[i]; if (j>i){ tr=re[i]; re[i]=re[j]; re[j]=tr; tr=im[i]; im[i]=im[j]; im[j]=tr; } }
+    for (len=2; len<=M; len<<=1){
+      half = len>>1; step = M/len;
+      for (i=0;i<M;i+=len){
+        for (k=0;k<half;k++){
+          wr = cosT[k*step]; wi = sinT[k*step]; a = i+k; b = a+half;
+          tr = re[b]*wr - im[b]*wi; ti = re[b]*wi + im[b]*wr;
+          re[b] = re[a]-tr; im[b] = im[a]-ti; re[a] += tr; im[a] += ti;
+        }
+      }
+    }
+  }
+  function hannWin(n){
+    if (!hann[n]){ var w = new Float64Array(n); for (var i=0;i<n;i++) w[i] = 0.5 - 0.5*Math.cos(2*Math.PI*(i+0.5)/n); hann[n] = w; }
+    return hann[n];
+  }
+  // Finds the strongest low-frequency component below the gratings' own frequency. Returns spacing, angle or a reason.
+  function measure(lum, size, p){
+    var w = hannWin(size), mean = 0, i, x, y;
+    for (i=0;i<lum.length;i++) mean += lum[i];
+    mean /= lum.length;
+    var fmin = Math.min(1/p.d, 1/(p.d*p.r));
+    var K = Math.min(M/2-2, Math.ceil(0.8*fmin*M) + 2);           // bins we need on each axis
+    var rows = new Float64Array(size*(K+1)*2);                     // row transforms, kx = 0..K
+    var re = new Float64Array(M), im = new Float64Array(M);
+    for (y=0;y<size;y++){
+      re.fill(0); im.fill(0);
+      for (x=0;x<size;x++) re[x] = (lum[y*size+x]-mean)*w[x]*w[y];
+      fft(re, im);
+      for (var kx=0; kx<=K; kx++){ rows[(y*(K+1)+kx)*2] = re[kx]; rows[(y*(K+1)+kx)*2+1] = im[kx]; }
+    }
+    var P = new Float64Array((K+1)*(2*K+1));                       // power, index (ky+K)*(K+1)+kx
+    for (var kx2=0; kx2<=K; kx2++){
+      re.fill(0); im.fill(0);
+      for (y=0;y<size;y++){ re[y] = rows[(y*(K+1)+kx2)*2]; im[y] = rows[(y*(K+1)+kx2)*2+1]; }
+      fft(re, im);
+      for (var ky=-K; ky<=K; ky++){ var idx = (ky+M)%M; P[(ky+K)*(K+1)+kx2] = re[idx]*re[idx] + im[idx]*im[idx]; }
+    }
+    var rmin = 1.5/size*M, rmax = 0.75*fmin*M;                     // in bins
+    var best = -1, bx = 0, by = 0, vals = [];
+    for (var yy=-K; yy<=K; yy++) for (var xx=0; xx<=K; xx++){
+      if (xx===0 && yy<=0) continue;                               // one half plane only (the other is its mirror)
+      var r = Math.hypot(xx, yy); if (r < rmin || r > rmax) continue;
+      var v = P[(yy+K)*(K+1)+xx]; vals.push(v);
+      if (v > best){ best = v; bx = xx; by = yy; }
+    }
+    if (best <= 0) return {ok:false, reason:"no signal"};
+    vals.sort(function(a,b){return a-b;});
+    var med = vals[vals.length>>1] || 1e-12;
+    var rp = Math.hypot(bx, by);
+    if (rp < rmin + 1.5) return {ok:false, reason:"wider than the picture can resolve (limit " + limStr(size) + ")"};
+    if (best < 30*med) return {ok:false, reason:"no clear stripes"};
+    // parabolic refinement of the peak (on log magnitude) along each axis
+    var lg = function(a,b){ if (a < 0){ a = -a; b = -b; } return Math.log(P[(b+K)*(K+1)+a] + 1e-30); };
+    var fx = bx, fy = by, c0 = lg(bx,by), d1, d2;
+    if (bx < K){ var l=lg(bx-1,by), rr=lg(bx+1,by); d1 = l-2*c0+rr; if (d1 < 0) fx = bx + 0.5*(l-rr)/d1; }
+    if (Math.abs(by) < K){ var dn=lg(bx,by-1), up=lg(bx,by+1); d2 = dn-2*c0+up; if (d2 < 0) fy = by + 0.5*(dn-up)/d2; }
+    var f = Math.hypot(fx, fy)/M;                                  // cycles per pixel
+    var ang = (Math.atan2(fy, fx)/DEG + 90) % 180; if (ang < 0) ang += 180;
+    return {ok:true, spacing:1/f, angle:ang};
+  }
+
+  // widest stripe spacing the peak finder accepts for a picture of this size: it refuses peaks under rmin+1.5 bins
+  function limitPx(size){ return M/(1.5/size*M + 1.5); }
+  function limStr(size){ return "about " + Math.round(limitPx(size)) + " px"; }
+
+  // ---------- formatting ----------
+  function px(v){ return v >= 100 ? v.toFixed(0) : v.toFixed(1); }
+  function angDiff(a,b){ var d = Math.abs(a-b) % 180; return Math.min(d, 180-d); }
+  function fmtTheta(t){ return (Math.round(t*10)/10).toFixed(1) + "°"; }
+
+  // ---------- drawing and measuring ----------
+  function draw(){
+    var paper = tok("--paper"), stroke = tok("--stroke");
+    var counts = render(wctx, N, S, paper, stroke);
+    lastDraw = {counts:counts, lum:null};
+    if (S.show === "lines"){
+      ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(work, 0, 0);
+    } else {
+      blurView(paper, stroke);
+    }
+    $("counts").textContent = "Lines crossing the picture: A " + counts.nA + ", B " + counts.nB + ". Picture " + N + " by " + N + " pixels.";
+    var pr = predict(S);
+    $("pSp").innerHTML = pr.spacing === Infinity ? "none" : px(pr.spacing) + " <small>px</small>";
+    $("pAng").textContent = pr.angle === null ? "the gratings coincide" : "stripes at " + pr.angle.toFixed(1) + "°";
+    var dB = S.d*S.r;
+    $("formula").textContent = Math.abs(S.r-1) < 1e-9
+      ? "d / (2 sin(θ/2)) = " + S.d + " / (2 × sin(" + (Math.abs(S.theta)/2).toFixed(2) + "°)) = " + (pr.spacing === Infinity ? "no stripes" : px(pr.spacing) + " px")
+      : "d₁d₂ / √(d₁² + d₂² − 2d₁d₂cosθ) with d₁ = " + S.d + ", d₂ = " + dB.toFixed(2) + " gives " + (pr.spacing === Infinity ? "no stripes" : px(pr.spacing) + " px");
+    $("oTheta").textContent = fmtTheta(S.theta);
+    $("oShift").textContent = S.shift.toFixed(2);
+    $("oD").textContent = S.d.toFixed(1) + " px";
+    $("oR").textContent = "× " + S.r.toFixed(3) + " (" + dB.toFixed(2) + " px)";
+    $("sTheta").value = S.theta; $("sShift").value = S.shift; $("sD").value = S.d; $("sR").value = S.r;
+    $("mSp").innerHTML = "&hellip;"; $("mAng").textContent = "measuring"; $("verdict").textContent = "";
+    clearTimeout(measureTimer); measureTimer = setTimeout(doMeasure, 90);
+  }
+  function blurView(paper, stroke){
+    // Stripes only: box-blur the rendered pixels over about two pitches, then stretch the contrast. Display only.
+    var lum = luminance(wctx, N), rad = Math.max(2, Math.round(S.d)), n = N, tmp = new Float32Array(n*n), out = new Float32Array(n*n), x, y, s, k;
+    for (y=0;y<n;y++){
+      s = 0; for (k=-rad;k<=rad;k++) s += lum[y*n + Math.min(n-1, Math.max(0,k))];
+      for (x=0;x<n;x++){ tmp[y*n+x] = s/(2*rad+1); s += lum[y*n + Math.min(n-1,x+rad+1)] - lum[y*n + Math.max(0,x-rad)]; }
+    }
+    for (x=0;x<n;x++){
+      s = 0; for (k=-rad;k<=rad;k++) s += tmp[Math.min(n-1, Math.max(0,k))*n + x];
+      for (y=0;y<n;y++){ out[y*n+x] = s/(2*rad+1); s += tmp[Math.min(n-1,y+rad+1)*n + x] - tmp[Math.max(0,y-rad)*n + x]; }
+    }
+    var lo = 1e9, hi = -1e9, i, m = rad*1.5|0;
+    for (y=m;y<n-m;y++) for (x=m;x<n-m;x++){ var v = out[y*n+x]; if (v<lo) lo=v; if (v>hi) hi=v; }
+    var pa = rgb(paper), st = rgb(stroke), img = ctx.createImageData(n,n), span = Math.max(1e-6, hi-lo);
+    // paper is the brightest case in light mode and the darkest in dark mode, so map by luminance order
+    var pl = 0.2126*pa[0]+0.7152*pa[1]+0.0722*pa[2], sl = 0.2126*st[0]+0.7152*st[1]+0.0722*st[2];
+    var lightPaper = pl > sl;
+    for (i=0;i<n*n;i++){
+      var t = (out[i]-lo)/span; t = Math.max(0, Math.min(1, t));        // 0 = darkest area, 1 = brightest
+      var u = lightPaper ? 1-t : t;                                     // fraction of the way from paper to stroke
+      img.data[i*4]   = pa[0] + (st[0]-pa[0])*u*0.9;
+      img.data[i*4+1] = pa[1] + (st[1]-pa[1])*u*0.9;
+      img.data[i*4+2] = pa[2] + (st[2]-pa[2])*u*0.9;
+      img.data[i*4+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function doMeasure(){
+    var lum = luminance(wctx, N), mm = measure(lum, N, S), pr = predict(S);
+    if (!mm.ok){
+      $("mSp").innerHTML = "&mdash;"; $("mAng").textContent = mm.reason;
+      var msg = pr.spacing === Infinity ? "No stripes expected, none found." : "Stripes not measured: " + mm.reason + (pr.spacing > limitPx(N) ? " (predicted " + px(pr.spacing) + " px against a picture " + N + " px wide)." : ".");
+      $("verdict").textContent = msg; $("verdict").className = "verdict";
+      announce(msg); return;
+    }
+    $("mSp").innerHTML = px(mm.spacing) + " <small>px</small>";
+    $("mAng").textContent = "stripes at " + mm.angle.toFixed(1) + "°";
+    if (pr.spacing === Infinity){ $("verdict").textContent = "Stripes found although none are predicted."; $("verdict").className = "verdict bad"; return; }
+    var rel = (mm.spacing - pr.spacing)/pr.spacing, da = angDiff(mm.angle, pr.angle);
+    var good = Math.abs(rel) <= TOL;
+    var msg2 = "Measured is " + (rel >= 0 ? "+" : "−") + (Math.abs(rel)*100).toFixed(1) + "% from predicted; stripe angle differs by " + da.toFixed(1) + "°. " + (good ? "Within " + TOL*100 + "%." : "Outside " + TOL*100 + "%.");
+    $("verdict").textContent = msg2; $("verdict").className = "verdict " + (good ? "ok" : "bad");
+    announce("Predicted " + px(pr.spacing) + " pixels, measured " + px(mm.spacing) + " pixels. " + (good ? "They agree." : "They differ."));
+  }
+  function announce(t){ clearTimeout(liveTimer); liveTimer = setTimeout(function(){ $("live").textContent = t; }, 400); }
+
+  // ---------- size ----------
+  function fit(){
+    var avail = Math.floor($("view").parentNode.clientWidth) - 2;
+    var narrow = window.innerWidth < 600 || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || ("ontouchstart" in window);
+    var n = Math.min(M, narrow ? avail - 60 : avail); n = Math.max(240, n);   // touch or narrow: keep a 60 px margin to scroll from
+    n = n - (n % 2);
+    if (n === N && cv.width === n) return;
+    N = n; $("limTxt").textContent = limStr(N) + " at this picture size"; cv.width = N; cv.height = N; work.width = N; work.height = N;
+    cv.style.width = N + "px"; cv.style.height = N + "px";
+    draw();
+  }
+
+  // ---------- input: drag, keys, sliders ----------
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function setTheta(t){ S.theta = Math.round(clamp(t,-30,30)*10)/10; }
+  function wrap1(v){ return v - Math.floor(v); }
+  function shiftBy(dx, dy){
+    var th = S.theta*DEG, dB = S.d*S.r, along = dx*Math.cos(th) + dy*Math.sin(th);
+    S.shift = Math.round(wrap1(S.shift + along/dB)*100)/100; if (S.shift >= 1) S.shift = 0;
+  }
+  var view = $("view"), drag = null;
+  view.addEventListener("pointerdown", function(e){
+    var r = cv.getBoundingClientRect();
+    drag = {x:e.clientX, y:e.clientY, a:Math.atan2(e.clientY-(r.top+r.height/2), e.clientX-(r.left+r.width/2)), accShift:0};
+    view.classList.add("drag"); try{ view.setPointerCapture(e.pointerId); }catch(_){}
+    view.focus({preventScroll:true}); e.preventDefault();
+  });
+  view.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    var r = cv.getBoundingClientRect();
+    if (S.mode === "rotate"){
+      var cx = r.left+r.width/2, cy = r.top+r.height/2;
+      if (Math.hypot(e.clientX-cx, e.clientY-cy) < 20) return;
+      var a = Math.atan2(e.clientY-cy, e.clientX-cx), da = a - drag.a;
+      while (da > Math.PI) da -= 2*Math.PI; while (da < -Math.PI) da += 2*Math.PI;
+      drag.a = a; S.theta = clamp(S.theta + da/DEG, -30, 30);   // keep the fraction while dragging, round for display
+    } else {
+      shiftBy(e.clientX-drag.x, e.clientY-drag.y); drag.x = e.clientX; drag.y = e.clientY;
+    }
+    scheduleDraw();
+  });
+  function endDrag(e){ if (!drag) return; drag = null; view.classList.remove("drag"); S.theta = Math.round(S.theta*10)/10; draw(); }
+  view.addEventListener("pointerup", endDrag); view.addEventListener("pointercancel", endDrag);
+  var raf = 0;
+  function scheduleDraw(){ if (raf) return; raf = requestAnimationFrame(function(){ raf = 0; drawFast(); }); }
+  // while dragging, update the picture and the prediction at once; the measurement follows when the hand pauses
+  function drawFast(){ draw(); }
+  view.addEventListener("keydown", function(e){
+    var big = e.shiftKey, st = big ? 5 : 1, handled = true, k = e.key;
+    if (k === "ArrowLeft") shiftBy(-st, 0); else if (k === "ArrowRight") shiftBy(st, 0);
+    else if (k === "ArrowUp") shiftBy(0, -st); else if (k === "ArrowDown") shiftBy(0, st);
+    else if (k === "q" || k === "Q" || k === "PageUp") setTheta(S.theta - (big ? 1 : 0.1));
+    else if (k === "e" || k === "E" || k === "PageDown") setTheta(S.theta + (big ? 1 : 0.1));
+    else if (k === "Home") reset(); else handled = false;
+    if (handled){ e.preventDefault(); draw(); }
+  });
+  $("sTheta").addEventListener("input", function(e){ S.theta = +e.target.value; draw(); });
+  $("sShift").addEventListener("input", function(e){ S.shift = +e.target.value; draw(); });
+  $("sD").addEventListener("input", function(e){ S.d = +e.target.value; draw(); });
+  $("sR").addEventListener("input", function(e){ S.r = +e.target.value; draw(); });
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=mode]"), function(r){ r.addEventListener("change", function(){ if (r.checked) S.mode = r.value; }); });
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=show]"), function(r){ r.addEventListener("change", function(){ if (r.checked){ S.show = r.value; draw(); } }); });
+  function reset(){ S.theta = DEFAULTS.theta; S.shift = DEFAULTS.shift; S.d = DEFAULTS.d; S.r = DEFAULTS.r; }
+  $("bReset").addEventListener("click", function(){ reset(); draw(); });
+
+  // ---------- the check: 12 angles, measured against the prediction ----------
+  $("bSweep").addEventListener("click", function(){
+    var btn = $("bSweep"); btn.disabled = true; btn.textContent = "Checking…";
+    setTimeout(function(){
+      var paper = tok("--paper"), stroke = tok("--stroke"), rows = [], tally = {good:0, bad:0, wide:0};
+      var tmp = document.createElement("canvas"); tmp.width = N; tmp.height = N;
+      var tc = tmp.getContext("2d", {willReadFrequently:true});
+      SWEEP.forEach(function(a){
+        var p = {theta:a, shift:0, d:S.d, r:S.r};
+        render(tc, N, p, paper, stroke);
+        var pr = predict(p), mm = measure(luminance(tc, N), N, p), row = {a:a, pred:pr.spacing};
+        if (!mm.ok){ row.kind = "wide"; tally.wide++; }
+        else { row.meas = mm.spacing; row.rel = (mm.spacing-pr.spacing)/pr.spacing; if (Math.abs(row.rel) <= TOL){ row.kind="good"; tally.good++; } else { row.kind="bad"; tally.bad++; } }
+        rows.push(row);
+      });
+      var body = $("sweepBody"); body.innerHTML = "";
+      rows.forEach(function(r){
+        var tr = document.createElement("tr"), cells = [fmtTheta(r.a), px(r.pred) + " px"];
+        cells.push(r.meas === undefined ? "not resolved" : px(r.meas) + " px");
+        cells.push(r.meas === undefined ? "too wide to measure (limit " + limStr(N) + ")" : ((r.rel>=0?"+":"−") + (Math.abs(r.rel)*100).toFixed(1) + "%"));
+        cells.forEach(function(t, i){ var c = document.createElement(i===0 ? "th" : "td"); if (i===0) c.scope = "row"; c.textContent = t; if (i===3 && r.kind==="good") c.className="ok"; if (i===3 && r.kind==="bad") c.className="bad"; tr.appendChild(c); });
+        body.appendChild(tr);
+      });
+      var resolved = tally.good + tally.bad;
+      $("sweepSum").textContent = rows.length + " angles, with pitch A " + S.d + " px and pitch B " + (S.d*S.r).toFixed(2) + " px, picture " + N + " px wide. " +
+        tally.good + " of " + resolved + " resolved angles agree within " + TOL*100 + "%" + (tally.wide ? "; " + tally.wide + " give stripes too wide for this picture to resolve." : ".");
+      $("sweepNote").textContent = "Each row draws the two gratings fresh with no shift, takes the two-dimensional Fourier transform of the pixels and reads the strongest low-frequency peak. Your own settings were not changed.";
+      $("sweep").hidden = false;
+      btn.disabled = false; btn.textContent = checkLabel;
+      var h = $("h-sweep"); h.focus({preventScroll:true});
+      h.scrollIntoView({block:"start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+      window.__moireSweep = rows;
+    }, 30);
+  });
+
+  // ---------- startup ----------
+  $("bSweep").textContent = checkLabel;
+  var how2 = $("how2");
+  how2.textContent = "The measuring step: the page draws the two gratings to a hidden canvas, reads back the pixels, multiplies them by a Hann window, " +
+    "takes a " + M + " by " + M + " Fourier transform (zero-padded), and looks for the strongest peak between " + "1.5 cycles per picture and 0.75 of the gratings' own frequency. " +
+    "That peak's position gives the stripe spacing (1 / frequency) and direction. The result is refined with a parabola through the peak. It is a measurement of this picture, not of the formula.";
+  if (window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var rd = function(){ if (lastDraw) draw(); };
+    if (mq.addEventListener) mq.addEventListener("change", rd); else if (mq.addListener) mq.addListener(rd);
+  }
+  var rt = 0; window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(fit, 120); });
+  fit(); if (!lastDraw) draw();
+  window.Moire = {state:S, measureNow:doMeasure, predict:predict, setState:function(o){ for (var k in o) S[k]=o[k]; draw(); }, size:function(){ return N; }};
+})();
+</script>
+</body>
+</html>

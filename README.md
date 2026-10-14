@@ -26,6 +26,7 @@ went wrong with each.
 | **Euclidean Rhythms** | Beats spread as evenly as possible over a circle of steps, which match many traditional rhythms; playable | [`euclid/`](euclid/) |
 | **256 Little Worlds** | All 256 elementary cellular automata: rule 30's chaos, rule 90's triangle, rule 110, rule 184's traffic, with self-checks | [`cellular/`](cellular/) |
 | **Tea or Cha** | How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged | [`tea/`](tea/) |
+| **Star Hop** | Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue | [`star-hop/`](star-hop/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

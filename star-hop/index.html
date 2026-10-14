@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Star Hop · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<link rel="canonical" href="https://vigilstudio.github.io/star-hop/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Star Hop · Vigil">
+<meta property="og:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<meta property="og:url" content="https://vigilstudio.github.io/star-hop/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Star Hop · Vigil">
+<meta name="twitter:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<meta name="description" content="A game: find named bright stars on a schematic sky map by hopping from ones you know, such as the Big Dipper's pointers to Polaris and Orion's belt to Sirius. Star positions are from memory, not checked against a catalogue.">
+<style>
+:root{--bg:#f4f2ec;--panel:#fffdf8;--ink:#201f1c;--muted:#5d5a52;--line:#cdc7b8;--acc:#1f5f9e;--accink:#fff;--good:#1d6b3a;--bad:#a8321e;
+  --sky:#101a33;--skyline:#2b3a63;--skytxt:#c9d3ee;--star:#e9eefc;--known:#ffd479;--guide:#7fd0ff;--ring:#7dffa6;--wrong:#ff8a75}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1015;--panel:#171a21;--ink:#e8e6df;--muted:#a9a69b;--line:#3b404b;--acc:#7db8f2;--accink:#0b1220;--good:#6fd596;--bad:#ff9d8a;
+  --sky:#070b17;--skyline:#26335a}}
+:root[data-theme="dark"]{--bg:#0e1015;--panel:#171a21;--ink:#e8e6df;--muted:#a9a69b;--line:#3b404b;--acc:#7db8f2;--accink:#0b1220;--good:#6fd596;--bad:#ff9d8a;
+  --sky:#070b17;--skyline:#26335a}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;overflow-x:hidden}
+.wrap{max-width:1020px;margin:0 auto;padding:18px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2rem;line-height:1.15;margin:6px 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:28px 0 8px;font-weight:normal}
+p{margin:0 0 12px}
+a{color:var(--acc)}
+.lede{max-width:40em;margin:0 0 14px}
+.small{font-size:.86rem;color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.game{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:860px){.game{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.hud{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.95rem;margin:0 0 8px}
+.hud b{font-variant-numeric:tabular-nums}
+.timerbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:0 0 10px}
+.timerbar i{display:block;height:100%;width:100%;background:var(--acc);transform-origin:left}
+.timerbar.low i{background:var(--bad)}
+.mapwrap{background:var(--sky);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+svg.sky{display:block;width:100%;height:auto;aspect-ratio:1/1;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:crosshair}
+.ringline{fill:none;stroke:var(--skyline);stroke-width:.6}
+.spoke{stroke:var(--skyline);stroke-width:.4}
+.rlabel{fill:var(--skytxt);opacity:.65}
+.fig{fill:none;stroke:var(--known);stroke-opacity:.45;stroke-width:1}
+.guideline{fill:none;stroke:var(--guide);stroke-width:1.4;stroke-dasharray:5 4}
+.st{fill:var(--star)}
+.st.known{fill:var(--known)}
+.st.wrong{fill:none;stroke:var(--wrong);stroke-width:2}
+.st.found{fill:var(--ring)}
+.st:focus{outline:none}
+.focusring{fill:none;stroke:var(--guide);stroke-width:1.6;display:none}
+.st:focus-visible + .focusring{display:inline}
+.nm{fill:var(--known);font-family:Georgia,serif;paint-order:stroke;stroke:var(--sky);stroke-width:3px;stroke-linejoin:round}
+.nm.good{fill:var(--ring)}
+.nm.bad{fill:var(--wrong)}
+.revealring{fill:none;stroke:var(--ring);stroke-width:1.8}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-height:44px;cursor:pointer}
+button.primary{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:bold}
+button:disabled{opacity:.5;cursor:default}
+.task{margin:0 0 8px}
+.task strong{font-weight:bold}
+.msg{min-height:3.2em;margin:8px 0 0}
+.msg.good{color:var(--good)}
+.msg.bad{color:var(--bad)}
+label.opt{display:inline-flex;gap:10px;align-items:center;min-height:44px}
+label.opt input{width:24px;height:24px;margin:0}
+@media (max-width:859px){.game.playing #side{order:-1}}
+.facts{margin:10px 0 0;padding:10px;border:1px dashed var(--line);border-radius:6px;font-size:.92rem}
+.big{font-size:2.2rem;line-height:1.1}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+thead th{position:sticky;top:0;background:var(--panel)}
+.warn{border-left:4px solid var(--bad);padding:6px 12px;background:var(--panel);margin:0 0 12px}
+@media (prefers-reduced-motion: no-preference){.timerbar i{transition:transform .2s linear}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Star Hop</h1>
+<p class="lede">Find a named star on a night-sky map by hopping from stars you already know, like the Big Dipper's pointers to Polaris. Five rounds, scored against a timer.</p>
+
+<div class="game" id="game">
+  <div>
+    <div class="panel">
+      <div class="hud" aria-live="off">
+        <span>Round <b id="hRound">–</b>/5</span>
+        <span>Score <b id="hScore">0</b></span>
+        <span>Best <b id="hBest">–</b></span>
+        <span id="hTimeWrap">Time <b id="hTime">–</b></span>
+      </div>
+      <div class="timerbar" id="tbar" aria-hidden="true"><i id="tfill"></i></div>
+      <div class="mapwrap"><svg class="sky" id="sky" viewBox="0 0 400 400" role="group" aria-label="Schematic sky map. Gold stars are named; tap the star you think is the target."></svg></div>
+      <div class="btns">
+        <button id="bGuide" type="button" disabled>Show guide line (&minus;25)</button>
+        <button id="bZoom" type="button" disabled>Whole sky</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="side">
+    <div id="intro">
+      <p><strong>How it plays.</strong> Each round shows a few named stars (gold) and asks for one more. Tap it. The other white dots are real bright stars too, so you have to hop, not guess.</p>
+      <p class="small">Five rounds, six stars. First try 100 points, second try 60, third 30; up to 60 more for speed. The guide line costs 25. Three misses or running out of time shows the answer for no points.</p>
+      <label class="opt"><input type="checkbox" id="relaxed"> Relaxed mode (no timer, no speed bonus)</label>
+      <div class="btns"><button class="primary" id="bStart" type="button">Start</button></div>
+    </div>
+    <div id="play" hidden>
+      <p class="small" id="roundName"></p>
+      <p class="task" id="task"></p>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      <div class="facts" id="facts" hidden></div>
+      <div class="btns"><button class="primary" id="bNext" type="button" hidden>Next</button></div>
+    </div>
+    <div id="end" hidden>
+      <p class="big" id="endScore"></p>
+      <p id="endText"></p>
+      <div class="btns"><button class="primary" id="bAgain" type="button">Play again</button></div>
+    </div>
+  </div>
+</div>
+
+<h2>How the map works</h2>
+<p>The map is a polar chart, not a photograph. The north celestial pole is in the middle (Polaris sits almost on it) and the distance from the middle is the star's declination, from +90&deg; at the centre to &minus;45&deg; at the edge. Each round zooms in on the part of the sky that matters; the "Whole sky" button zooms out. Directions bend a little in this projection, so a straight hop on the real sky is a slightly bent line here, and the guide line follows the stars, not a ruler.</p>
+
+<h2>The hops, measured</h2>
+<p>These figures are computed in your browser from the coordinates below (great-circle angles). "Off the line" is how far the target sits from the straight line through the first and last guide star before it. A small number means a straight hop works; a big one means the hop curves, like the Dipper's handle.</p>
+<div class="tablewrap"><table id="hopTable"><thead><tr><th>Target</th><th>Hop</th><th class="num">From last guide star</th><th class="num">Off the line</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="checks"></p>
+
+<h2>The star catalogue</h2>
+<p class="warn"><strong>From memory, not checked against a catalogue.</strong> These coordinates (right ascension in hours, declination in degrees, roughly epoch 2000) were written by Claude, an AI model, from memory. They are rounded and could be off by a little or, in a few cases, by more. Constellation names are from memory too. If you spot a wrong value, it is a bug.</p>
+<div class="tablewrap"><table id="catTable"><thead><tr><th>Star</th><th>Constellation</th><th class="num">RA (h)</th><th class="num">Dec (&deg;)</th></tr></thead><tbody></tbody></table></div>
+<p class="small">Made by Claude, an AI model, for Vigil. The map is schematic: use it to learn the hops, then try them under a real sky, away from city lights.</p>
+</div>
+<script>
+"use strict";
+/* Catalogue: name -> [constellation, RA hours, Dec degrees]. From memory, not checked against a catalogue. */
+var CAT = {
+ "Polaris":["Ursa Minor",2.53,89.26],"Kochab":["Ursa Minor",14.85,74.16],"Pherkad":["Ursa Minor",15.35,71.83],
+ "Dubhe":["Ursa Major",11.06,61.75],"Merak":["Ursa Major",11.03,56.38],"Phecda":["Ursa Major",11.90,53.69],
+ "Megrez":["Ursa Major",12.26,57.03],"Alioth":["Ursa Major",12.90,55.96],"Mizar":["Ursa Major",13.40,54.93],"Alkaid":["Ursa Major",13.79,49.31],
+ "Arcturus":["Bootes",14.26,19.18],"Spica":["Virgo",13.42,-11.16],"Regulus":["Leo",10.14,11.97],"Denebola":["Leo",11.82,14.57],"Algieba":["Leo",10.33,19.84],
+ "Alphecca":["Corona Borealis",15.58,26.71],"Antares":["Scorpius",16.49,-26.43],"Rasalhague":["Ophiuchus",17.58,12.56],
+ "Vega":["Lyra",18.62,38.78],"Eltanin":["Draco",17.94,51.49],"Altair":["Aquila",19.85,8.87],"Deneb":["Cygnus",20.69,45.28],"Sadr":["Cygnus",20.37,40.26],"Albireo":["Cygnus",19.51,27.96],
+ "Betelgeuse":["Orion",5.92,7.41],"Bellatrix":["Orion",5.42,6.35],"Rigel":["Orion",5.24,-8.20],"Saiph":["Orion",5.80,-9.67],
+ "Mintaka":["Orion",5.53,-0.30],"Alnilam":["Orion",5.60,-1.20],"Alnitak":["Orion",5.68,-1.94],
+ "Sirius":["Canis Major",6.75,-16.72],"Procyon":["Canis Minor",7.66,5.22],"Aldebaran":["Taurus",4.60,16.51],"Capella":["Auriga",5.28,46.00],
+ "Castor":["Gemini",7.58,31.89],"Pollux":["Gemini",7.76,28.03],"Alphard":["Hydra",9.46,-8.66],
+ "Alpheratz":["Andromeda",0.14,29.09],"Mirach":["Andromeda",1.16,35.62],"Algenib":["Pegasus",0.22,15.18],"Scheat":["Pegasus",23.06,28.08],"Markab":["Pegasus",23.08,15.20],"Enif":["Pegasus",21.74,9.88],
+ "Fomalhaut":["Piscis Austrinus",22.96,-29.62],"Diphda":["Cetus",0.73,-17.99],
+ "Schedar":["Cassiopeia",0.68,56.54],"Caph":["Cassiopeia",0.15,59.15],"Mirfak":["Perseus",3.41,49.86],"Algol":["Perseus",3.14,40.96],"Hamal":["Aries",2.12,23.46]
+};
+var NAMES = Object.keys(CAT);
+var DIP = ["Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid"];
+var ORION = ["Betelgeuse","Bellatrix","Rigel","Saiph","Mintaka","Alnilam","Alnitak"];
+var DIPFIG = [["Dubhe","Merak","Phecda","Megrez","Dubhe"],["Megrez","Alioth","Mizar","Alkaid"]];
+var ORIFIG = [["Mintaka","Alnilam","Alnitak"],["Bellatrix","Mintaka","Rigel"],["Betelgeuse","Alnitak","Saiph"]];
+
+/* Steps: five rounds, six stars. */
+var STEPS = [
+ {round:1,title:"The Pointers",target:"Polaris",known:DIP,fig:DIPFIG,guide:["Merak","Dubhe","Polaris"],
+  task:"Find <strong>Polaris</strong>, the North Star. Take the two bowl stars on the outer side of the Dipper, Merak and Dubhe, and follow them from Merak through Dubhe, about five times their gap.",
+  fact:function(){return "Merak to Dubhe is "+d("Merak","Dubhe")+"&deg;. Dubhe to Polaris is "+d("Dubhe","Polaris")+"&deg;, about "+(sep("Dubhe","Polaris")/sep("Merak","Dubhe")).toFixed(1)+" times as far. Polaris is only moderately bright; it is useful because it hardly moves."}},
+ {round:2,title:"Arc to Arcturus",target:"Arcturus",known:DIP,fig:DIPFIG,guide:["Alioth","Mizar","Alkaid","Arcturus"],
+  task:"Find <strong>Arcturus</strong>. Follow the curve of the Dipper's handle, Alioth, Mizar, Alkaid, and keep bending the same way: <em>arc to Arcturus</em>.",
+  fact:function(){return "Alkaid to Arcturus is "+d("Alkaid","Arcturus")+"&deg;. The handle bends, so a straight line from Alioth through Alkaid would miss Arcturus by about "+Math.abs(off("Alioth","Alkaid","Arcturus")).toFixed(0)+"&deg;."}},
+ {round:2,title:"Spike to Spica",target:"Spica",known:DIP.concat(["Arcturus"]),fig:DIPFIG,guide:["Alkaid","Arcturus","Spica"],
+  task:"Now find <strong>Spica</strong>. You have Arcturus. Keep curving the same way and drive a spike on down to Spica: <em>spike to Spica</em>.",
+  fact:function(){return "Arcturus to Spica is "+d("Arcturus","Spica")+"&deg;, about the same as the hop from Alkaid to Arcturus ("+d("Alkaid","Arcturus")+"&deg;). Equal steps along one curve."}},
+ {round:3,title:"Orion's belt to Sirius",target:"Sirius",known:ORION,fig:ORIFIG,guide:["Mintaka","Alnilam","Alnitak","Sirius"],
+  task:"Find <strong>Sirius</strong>, the brightest star in the night sky. Follow Orion's belt, from Mintaka through Alnilam and Alnitak, and keep going past the end. (The map is turned around compared with the sky, so use the gold stars, not up and down.)",
+  fact:function(){return "Alnitak to Sirius is "+d("Alnitak","Sirius")+"&deg;, about "+(sep("Alnitak","Sirius")/sep("Mintaka","Alnitak")).toFixed(0)+" belt lengths. The belt line passes within about "+Math.abs(off("Mintaka","Alnitak","Sirius")).toFixed(0)+"&deg; of it."}},
+ {round:4,title:"The other way",target:"Aldebaran",known:ORION,fig:ORIFIG,guide:["Alnitak","Mintaka","Aldebaran"],
+  task:"Find <strong>Aldebaran</strong>, the orange eye of Taurus. Run the belt the other way, from Alnitak through Mintaka and on past it.",
+  fact:function(){return "Mintaka to Aldebaran is "+d("Mintaka","Aldebaran")+"&deg;, and the belt line misses it by about "+Math.abs(off("Alnitak","Mintaka","Aldebaran")).toFixed(0)+"&deg;. The same belt points to both Sirius and Aldebaran."}},
+ {round:5,title:"The Great Square",target:"Fomalhaut",known:["Alpheratz","Algenib","Markab","Scheat"],fig:[["Alpheratz","Scheat","Markab","Algenib","Alpheratz"]],guide:["Scheat","Markab","Fomalhaut"],
+  task:"Find <strong>Fomalhaut</strong>, the lonely bright star low in the south for northern viewers. Follow the west side of the Great Square of Pegasus, from Scheat through Markab, a long way south.",
+  fact:function(){return "Markab to Fomalhaut is "+d("Markab","Fomalhaut")+"&deg;, about "+(sep("Markab","Fomalhaut")/sep("Scheat","Markab")).toFixed(1)+" times the square's side. Off the line by about "+Math.abs(off("Scheat","Markab","Fomalhaut")).toFixed(0)+"&deg;."}}
+];
+
+/* Sky maths. */
+function vec(n){var c=CAT[n],a=c[1]*15*Math.PI/180,b=c[2]*Math.PI/180;return [Math.cos(b)*Math.cos(a),Math.cos(b)*Math.sin(a),Math.sin(b)];}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function sep(a,b){return Math.acos(Math.max(-1,Math.min(1,dot(vec(a),vec(b)))))*180/Math.PI;}
+function off(a,b,t){var n=cross(vec(a),vec(b)),l=Math.sqrt(dot(n,n));return Math.asin(dot(n,vec(t))/l)*180/Math.PI;}
+function d(a,b){return sep(a,b).toFixed(1);}
+/* Projection: polar, centre = north pole, 135 degrees of declination span the radius. RA runs anticlockwise on screen. */
+var CX=200,CY=200,RR=190,SPAN=135;
+function proj(n){var c=CAT[n],r=(90-c[2])*RR/SPAN,t=c[1]*15*Math.PI/180;return [CX+r*Math.sin(t),CY+r*Math.cos(t)];}
+
+/* State. */
+var $=function(id){return document.getElementById(id);};
+var svg=$("sky"),NS="http://www.w3.org/2000/svg";
+var S={active:false,i:-1,score:0,tries:0,hint:false,done:true,view:null,full:false,t0:0,limit:30,timer:0,relaxed:false,wrong:{},stepPts:0,known:{}};
+var BESTKEY="vigil-star-hop-best";
+function getBest(){try{var v=localStorage.getItem(BESTKEY);return v?parseInt(v,10):null;}catch(e){return null;}}
+function setBest(v){try{localStorage.setItem(BESTKEY,String(v));}catch(e){}}
+function showBest(){var b=getBest();$("hBest").textContent=b===null||isNaN(b)?"–":b;}
+
+function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+
+function frameFor(step){
+  var pts=step.known.concat([step.target]).map(proj),x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  pts.forEach(function(p){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
+  var w=Math.max(x1-x0,y1-y0)*1.3+14; w=Math.max(w,60);w=Math.min(w,400);
+  var cx=(x0+x1)/2,cy=(y0+y1)/2,x=cx-w/2,y=cy-w/2;
+  x=Math.max(0,Math.min(400-w,x));y=Math.max(0,Math.min(400-w,y));
+  return {x:x,y:y,w:w};
+}
+
+function render(){
+  var step=STEPS[S.i],v=S.full?{x:0,y:0,w:400}:S.view;
+  svg.setAttribute("viewBox",v.x+" "+v.y+" "+v.w+" "+v.w);
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  var px=svg.getBoundingClientRect().width||340,u=v.w/px; /* viewBox units per screen pixel */
+  var g=el("g",{},svg);
+  [60,30,0,-30].forEach(function(dec){var r=(90-dec)*RR/SPAN;el("circle",{cx:CX,cy:CY,r:r,"class":"ringline"},g);
+    var t=el("text",{x:CX+3*u,y:CY-r+11*u,"font-size":10*u,"class":"rlabel"},g);t.textContent=(dec>0?"+":"")+dec+"°";});
+  for(var h=0;h<24;h+=3){var a=h*15*Math.PI/180;el("line",{x1:CX,y1:CY,x2:CX+RR*Math.sin(a),y2:CY+RR*Math.cos(a),"class":"spoke"},g);
+    var t2=el("text",{x:CX+(RR+1)*Math.sin(a)*0.93,y:CY+(RR+1)*Math.cos(a)*0.93+3*u,"font-size":10*u,"text-anchor":"middle","class":"rlabel"},g);t2.textContent=h+"h";}
+  step.fig.forEach(function(f){var p=f.map(proj);el("polyline",{points:p.map(function(q){return q.join(",");}).join(" "),"class":"fig","stroke-width":1*u*1.2},g);});
+  if(S.hint||S.done&&S.revealed){var gp=step.guide.map(proj);el("polyline",{points:gp.map(function(q){return q.join(",");}).join(" "),"class":"guideline","stroke-width":1.5*u,"stroke-dasharray":(5*u)+" "+(4*u)},g);}
+  var rad=5*u,labels=[];
+  NAMES.forEach(function(n){
+    var p=proj(n);
+    if(p[0]<v.x-10||p[0]>v.x+v.w+10||p[1]<v.y-10||p[1]>v.y+v.w+10)return;
+    var known=S.known[n],isT=n===step.target;
+    var c=el("circle",{cx:p[0],cy:p[1],r:known?rad*1.15:rad,"class":"st"+(known?" known":"")+(S.wrong[n]?" wrong":"")+(S.found&&isT?" found":""),"data-n":n},svg);
+    if(!known&&!S.done){c.setAttribute("tabindex","0");c.setAttribute("role","button");c.setAttribute("aria-label","Unlabelled star at "+clock(p)+" o'clock from the centre");
+      c.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(n);}});}
+    if(!known&&!S.done){el("circle",{cx:p[0],cy:p[1],r:rad*2.2,"class":"focusring"},svg);}
+    if(S.active&&(known||(S.done&&(isT||S.wrong[n]))))labels.push({n:n,p:p,cls:"nm"+(S.done&&isT?" good":"")+(S.wrong[n]?" bad":"")});
+    if(S.revealed&&isT){el("circle",{cx:p[0],cy:p[1],r:rad*3,"class":"revealring","stroke-width":1.8*u},svg);}
+  });
+  /* Labels: try four corners around each star, keep the first that does not cover an earlier label or a star. */
+  var placed=[],fs=13*u,dots=NAMES.map(proj);
+  function hits(b){for(var i=0;i<placed.length;i++){var q=placed[i];if(b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y)return true;}
+    for(var j=0;j<dots.length;j++){if(dots[j][0]>b.x-rad&&dots[j][0]<b.x+b.w+rad&&dots[j][1]>b.y-rad&&dots[j][1]<b.y+b.h+rad)return true;}return false;}
+  labels.forEach(function(L){
+    var w=L.n.length*fs*0.56,h=fs,gap=rad*1.6,p=L.p,best=null;
+    var opts=[[gap,-gap-h],[-gap-w,-gap-h],[gap,gap],[-gap-w,gap],[gap,-h/2],[-gap-w,-h/2]];
+    for(var i=0;i<opts.length&&!best;i++){var b={x:p[0]+opts[i][0],y:p[1]+opts[i][1],w:w,h:h};if(!hits(b))best=b;}
+    if(!best)best={x:p[0]+opts[0][0],y:p[1]+opts[0][1],w:w,h:h};
+    placed.push(best);
+    var t=el("text",{x:best.x,y:best.y+h*0.8,"font-size":fs,"class":L.cls},svg);t.textContent=L.n;
+  });
+}
+function clock(p){var a=Math.atan2(p[0]-CX,-(p[1]-CY));var h=Math.round(((a<0?a+2*Math.PI:a)/(2*Math.PI))*12);return h===0?12:h;}
+
+/* Tap handling: nearest star within 26 screen pixels. */
+svg.addEventListener("pointerdown",function(e){
+  if(S.done)return;
+  var r=svg.getBoundingClientRect(),v=S.full?{x:0,y:0,w:400}:S.view,k=r.width/v.w;
+  var tx=(e.clientX-r.left)/k+v.x,ty=(e.clientY-r.top)/k+v.y,best=null,bd=1e9;
+  NAMES.forEach(function(n){var p=proj(n),dd=Math.hypot(p[0]-tx,p[1]-ty)*k;if(dd<bd){bd=dd;best=n;}});
+  if(best&&bd<=26)pick(best);else say("Tap closer to a star.","");
+});
+
+function say(t,cls){var m=$("msg");m.innerHTML=t;m.className="msg "+(cls||"");}
+
+function pick(n){
+  if(S.done)return;
+  var step=STEPS[S.i];
+  if(S.known[n]){say(n+" is one of the gold stars you were given. Pick one of the white dots.","");return;}
+  if(S.wrong[n]){say("You already tried that one.","");return;}
+  if(n===step.target){
+    var base=[100,60,30][S.tries]||0,bonus=0;
+    if(!S.relaxed){var left=Math.max(0,S.limit-(performance.now()-S.t0)/1000);bonus=Math.floor(left*2);}
+    var pts=Math.max(0,base+bonus-(S.hint?25:0));
+    S.score+=pts;S.found=true;endStep();
+    say("Yes, that is <strong>"+n+"</strong> ("+CAT[n][0]+"). +"+pts+" points"+(bonus?" (including "+bonus+" for speed)":"")+(S.hint?" (guide line &minus;25)":"")+".","good");
+    finish(true);
+  }else{
+    S.tries++;S.wrong[n]=true;
+    if(S.tries>=3){S.revealed=true;endStep();say("That is "+n+" ("+CAT[n][0]+"), not it. Three misses: the answer is ringed. No points.","bad");finish(false);}
+    else{say("That is "+n+" ("+CAT[n][0]+"), not "+"the target. "+(3-S.tries)+" "+(3-S.tries===1?"try":"tries")+" left, and the next hit scores less.","bad");render();var f=svg.querySelector("[data-n=\""+n+"\"]");if(f&&f.focus)f.focus({preventScroll:true});}
+  }
+  $("hScore").textContent=S.score;
+}
+function endStep(){S.done=true;clearInterval(S.timer);$("bGuide").disabled=true;}
+function finish(ok){
+  var step=STEPS[S.i];
+  $("facts").hidden=false;$("facts").innerHTML=step.fact();
+  var last=S.i===STEPS.length-1;
+  $("bNext").textContent=last?"See the result":"Next";$("bNext").hidden=false;
+  render();$("bNext").focus({preventScroll:true});
+}
+
+function startStep(){
+  var step=STEPS[S.i];
+  S.tries=0;S.hint=false;S.done=false;S.revealed=false;S.found=false;S.wrong={};S.known={};
+  step.known.forEach(function(n){S.known[n]=true;});
+  S.view=frameFor(step);S.full=false;S.t0=performance.now();
+  $("hRound").textContent=step.round;
+  $("roundName").textContent="Round "+step.round+" of 5 · "+step.title;
+  $("task").innerHTML=step.task;
+  $("facts").hidden=true;$("bNext").hidden=true;
+  say("Tap the star you think it is.","");
+  $("bGuide").disabled=false;$("bZoom").disabled=false;$("bZoom").textContent="Whole sky";
+  $("tbar").style.display=S.relaxed?"none":"";$("hTimeWrap").style.display=S.relaxed?"none":"";
+  clearInterval(S.timer);
+  if(!S.relaxed){tick();S.timer=setInterval(tick,200);}
+  render();
+}
+function tick(){
+  if(S.done)return;
+  var left=Math.max(0,S.limit-(performance.now()-S.t0)/1000);
+  $("hTime").textContent=Math.ceil(left)+"s";
+  $("tfill").style.transform="scaleX("+(left/S.limit)+")";
+  $("tbar").className="timerbar"+(left<8?" low":"");
+  if(left<=0){S.revealed=true;endStep();say("Time is up. The answer is ringed. No points.","bad");finish(false);}
+}
+
+$("bGuide").addEventListener("click",function(){
+  if(S.done||S.hint)return;S.hint=true;this.disabled=true;
+  say("The dashed line runs along the hop. Finding the star on it is still your job (&minus;25 points on this star).","");render();
+});
+$("bZoom").addEventListener("click",function(){S.full=!S.full;this.textContent=S.full?"Zoom to the hop":"Whole sky";render();});
+$("bStart").addEventListener("click",startGame);
+$("bAgain").addEventListener("click",startGame);
+$("bNext").addEventListener("click",function(){
+  if(S.i===STEPS.length-1){endGame();return;}
+  S.i++;startStep();
+});
+function startGame(){
+  S.relaxed=$("relaxed").checked;S.score=0;S.i=0;S.active=true;
+  $("hScore").textContent=0;$("intro").hidden=true;$("end").hidden=true;$("play").hidden=false;$("game").classList.add("playing");
+  startStep();
+}
+function endGame(){
+  $("play").hidden=true;$("end").hidden=false;$("game").classList.remove("playing");S.done=true;S.active=false;
+  $("bGuide").disabled=true;$("bZoom").disabled=true;
+  var best=getBest(),isBest=!S.relaxed&&(best===null||isNaN(best)||S.score>best);
+  if(isBest){setBest(S.score);showBest();}
+  $("endScore").textContent=S.score+" points";
+  var mx=STEPS.length*160-(S.relaxed?STEPS.length*60:0);
+  $("endText").textContent="Out of at most "+mx+(S.relaxed?" in relaxed mode":"")+". "+(isBest?"A new best on this device. ":"")+(S.score>=mx*0.7?"You know your way around. ":S.score>=mx*0.4?"A decent start; the hops get easier to see each time. ":"The hops take practice. ")+"The Dipper, Orion and the Great Square are all up on some night of the year, so try them outside.";
+  S.i=0;S.found=false;S.revealed=false;S.hint=false;S.known={};S.wrong={};render();
+}
+
+/* Tables and checks. */
+(function(){
+  var cat=document.querySelector("#catTable tbody");
+  NAMES.slice().sort().forEach(function(n){var c=CAT[n],tr=document.createElement("tr");
+    tr.innerHTML="<td>"+n+"</td><td>"+c[0]+"</td><td class='num'>"+c[1].toFixed(2)+"</td><td class='num'>"+c[2].toFixed(2)+"</td>";cat.appendChild(tr);});
+  var hop=document.querySelector("#hopTable tbody");
+  STEPS.forEach(function(s){var g=s.guide,n=g.length,tr=document.createElement("tr");
+    var last=g[n-2];
+    tr.innerHTML="<td>"+s.target+"</td><td>"+g.join(" &rarr; ")+"</td><td class='num'>"+sep(last,s.target).toFixed(1)+"&deg;</td><td class='num'>"+Math.abs(off(g[0],last,s.target)).toFixed(1)+"&deg;</td>";hop.appendChild(tr);});
+  var problems=[];
+  STEPS.forEach(function(s){s.known.concat(s.guide,s.fig.reduce(function(a,b){return a.concat(b);},[])).forEach(function(n){if(!CAT[n])problems.push(n);});});
+  var ratio=sep("Dubhe","Polaris")/sep("Merak","Dubhe");
+  $("checks").textContent="Page self-check: "+NAMES.length+" stars in the catalogue; "+(problems.length?"MISSING: "+problems.join(", "):"every star used in a round is in the catalogue")+"; Dubhe-to-Polaris is "+ratio.toFixed(1)+" times Merak-to-Dubhe ("+(ratio>4.5&&ratio<6?"matches the usual \"about five times\"":"does NOT match the usual \"about five times\"")+").";
+  showBest();
+  svg.setAttribute("viewBox","0 0 400 400");
+  S.view={x:0,y:0,w:400};S.full=true;S.i=0;S.known={};S.wrong={};render();
+  var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){if(S.i>=0)render();},120);});
+})();
+</script>
+</body>
+</html>

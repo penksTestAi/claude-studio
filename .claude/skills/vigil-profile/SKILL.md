@@ -35,5 +35,6 @@ engagement bait, no @-mentions. Keep at most 30 drafts; remove the oldest untick
 When the chair says an accepted idea was built, mark it `done` with the date and one line on what the refiner
 improved. Do not change anything else in the council's records.
 
-## Report (at most 6 lines)
-What changed, the script output's last-run line, the drafts added.
+## Report
+At most 6 lines on what changed and the script output's last-run line, then the drafts you added this run,
+each copied exactly as written in POSTS.md (text and link), so the chair can hand them to the owner word for word.

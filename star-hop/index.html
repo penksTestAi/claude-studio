@@ -5,23 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Star Hop · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<meta name="description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; its 51 stars, positions and constellations checked against the HYG catalogue (all 51 match), with each result shown on the page">
 <link rel="canonical" href="https://vigilstudio.github.io/star-hop/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="Star Hop · Vigil">
-<meta property="og:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<meta property="og:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; its 51 stars, positions and constellations checked against the HYG catalogue (all 51 match), with each result shown on the page">
 <meta property="og:url" content="https://vigilstudio.github.io/star-hop/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Star Hop · Vigil">
-<meta name="twitter:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue">
+<meta name="twitter:description" content="Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; its 51 stars, positions and constellations checked against the HYG catalogue (all 51 match), with each result shown on the page">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
-<meta name="description" content="A game: find named bright stars on a schematic sky map by hopping from ones you know, such as the Big Dipper's pointers to Polaris and Orion's belt to Sirius. Star positions are from memory, not checked against a catalogue.">
 <style>
 :root{--bg:#f4f2ec;--panel:#fffdf8;--ink:#201f1c;--muted:#5d5a52;--line:#cdc7b8;--acc:#1f5f9e;--accink:#fff;--good:#1d6b3a;--bad:#a8321e;
   --sky:#101a33;--skyline:#2b3a63;--skytxt:#c9d3ee;--star:#e9eefc;--known:#ffd479;--guide:#7fd0ff;--ring:#7dffa6;--wrong:#ff8a75}
@@ -85,6 +84,8 @@ table{border-collapse:collapse;width:100%;font-size:.9rem}
 th,td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 thead th{position:sticky;top:0;background:var(--panel)}
+.verdict{border-left:4px solid var(--good);padding:6px 12px;background:var(--panel);margin:0 0 12px}
+.verdict.bad{border-left-color:var(--bad)}
 .warn{border-left:4px solid var(--bad);padding:6px 12px;background:var(--panel);margin:0 0 12px}
 @media (prefers-reduced-motion: no-preference){.timerbar i{transition:transform .2s linear}}
 </style>
@@ -142,13 +143,15 @@ thead th{position:sticky;top:0;background:var(--panel)}
 <p class="small" id="checks"></p>
 
 <h2>The star catalogue</h2>
-<p class="warn"><strong>From memory, not checked against a catalogue.</strong> These coordinates (right ascension in hours, declination in degrees, roughly epoch 2000) were written by Claude, an AI model, from memory. They are rounded and could be off by a little or, in a few cases, by more. Constellation names are from memory too. If you spot a wrong value, it is a bug.</p>
-<div class="tablewrap"><table id="catTable"><thead><tr><th>Star</th><th>Constellation</th><th class="num">RA (h)</th><th class="num">Dec (&deg;)</th></tr></thead><tbody></tbody></table></div>
+<p class="lede">These coordinates were first written by Claude, an AI model, from memory. They have since been checked in your browser against a published catalogue, star by star. The summary and the table below are computed from the two sets of numbers when the page loads.</p>
+<p class="small"><strong>Source:</strong> HYG Database v4.1 (<code>hygdata_v41.csv</code>), <a href="https://github.com/astronexus/HYG-Database">github.com/astronexus/HYG-Database</a>, licence CC BY-SA 4.0, fetched 14 October 2026. Catalogue values are epoch J2000 and are copied from the file into the page; they were not typed from memory. Tolerance: a star "matches" when its position here is within <span id="tolShow"></span>&deg; of the catalogue position (great-circle angle) and its constellation is the same. Magnitudes were not compared: the page stores none, so the catalogue's V magnitude is shown for reference only and plays no part in the result.</p>
+<p class="verdict" id="verdict" role="status"></p>
+<div class="tablewrap"><table id="catTable"><thead><tr><th>Star</th><th>Constellation</th><th class="num">RA (h)</th><th class="num">Dec (&deg;)</th><th class="num">Catalogue RA</th><th class="num">Catalogue Dec</th><th class="num">Off by (&deg;)</th><th class="num">Catalogue mag (not compared)</th><th>Catalogue constellation</th><th>Result</th></tr></thead><tbody></tbody></table></div>
 <p class="small">Made by Claude, an AI model, for Vigil. The map is schematic: use it to learn the hops, then try them under a real sky, away from city lights.</p>
 </div>
 <script>
 "use strict";
-/* Catalogue: name -> [constellation, RA hours, Dec degrees]. From memory, not checked against a catalogue. */
+/* Game catalogue: name -> [constellation, RA hours, Dec degrees]. Written from memory, then checked against REF below (the page reports the result). */
 var CAT = {
  "Polaris":["Ursa Minor",2.53,89.26],"Kochab":["Ursa Minor",14.85,74.16],"Pherkad":["Ursa Minor",15.35,71.83],
  "Dubhe":["Ursa Major",11.06,61.75],"Merak":["Ursa Major",11.03,56.38],"Phecda":["Ursa Major",11.90,53.69],
@@ -164,6 +167,28 @@ var CAT = {
  "Fomalhaut":["Piscis Austrinus",22.96,-29.62],"Diphda":["Cetus",0.73,-17.99],
  "Schedar":["Cassiopeia",0.68,56.54],"Caph":["Cassiopeia",0.15,59.15],"Mirfak":["Perseus",3.41,49.86],"Algol":["Perseus",3.14,40.96],"Hamal":["Aries",2.12,23.46]
 };
+/* Reference: HYG Database v4.1 (hygdata_v41.csv), fetched 2026-10-14. name -> [IAU constellation, RA hours, Dec degrees, V magnitude, HYG id]. Copied from the file, not typed from memory. */
+var REF = {
+ "Polaris":["UMi",2.5297,89.2641,1.97,11734],"Kochab":["UMi",14.8451,74.1555,2.07,72380],"Pherkad":["UMi",15.3455,71.8340,3.0,74868],
+ "Dubhe":["UMa",11.0622,61.7510,1.81,53905],"Merak":["UMa",11.0307,56.3824,2.34,53754],"Phecda":["UMa",11.8972,53.6948,2.41,57828],
+ "Megrez":["UMa",12.2571,57.0326,3.32,59592],"Alioth":["UMa",12.9005,55.9598,1.76,62757],"Mizar":["UMa",13.3987,54.9254,2.23,65173],
+ "Alkaid":["UMa",13.7924,49.3133,1.85,67088],"Arcturus":["Boo",14.2610,19.1824,-0.05,69451],"Spica":["Vir",13.4199,-11.1613,0.98,65269],
+ "Regulus":["Leo",10.1395,11.9672,1.36,49528],"Denebola":["Leo",11.8177,14.5721,2.14,57459],"Algieba":["Leo",10.3329,19.8415,2.01,50440],
+ "Alphecca":["CrB",15.5781,26.7147,2.22,76035],"Antares":["Sco",16.4901,-26.4320,1.06,80519],"Rasalhague":["Oph",17.5822,12.5600,2.08,85769],
+ "Vega":["Lyr",18.6156,38.7837,0.03,90979],"Eltanin":["Dra",17.9434,51.4889,2.24,87561],"Altair":["Aql",19.8464,8.8683,0.76,97338],
+ "Deneb":["Cyg",20.6905,45.2803,1.25,101767],"Sadr":["Cyg",20.3705,40.2567,2.23,100128],"Albireo":["Cyg",19.5120,27.9597,3.05,95648],
+ "Betelgeuse":["Ori",5.9195,7.4071,0.45,27919],"Bellatrix":["Ori",5.4189,6.3497,1.64,25273],"Rigel":["Ori",5.2423,-8.2016,0.18,24378],
+ "Saiph":["Ori",5.7959,-9.6696,2.07,27298],"Mintaka":["Ori",5.5334,-0.2991,2.25,25865],"Alnilam":["Ori",5.6036,-1.2019,1.69,26246],
+ "Alnitak":["Ori",5.6793,-1.9426,1.74,26662],"Sirius":["CMa",6.7525,-16.7161,-1.44,32263],"Procyon":["CMi",7.6550,5.2250,0.4,37173],
+ "Aldebaran":["Tau",4.5987,16.5093,0.87,21368],"Capella":["Aur",5.2782,45.9980,0.08,24549],"Castor":["Gem",7.5766,31.8883,1.58,36744],
+ "Pollux":["Gem",7.7553,28.0262,1.16,37718],"Alphard":["Hya",9.4598,-8.6586,1.99,46259],"Alpheratz":["And",0.1398,29.0904,2.07,676],
+ "Mirach":["And",1.1622,35.6206,2.07,5436],"Algenib":["Peg",0.2206,15.1836,2.83,1065],"Scheat":["Peg",23.0629,28.0828,2.44,113521],
+ "Markab":["Peg",23.0793,15.2053,2.49,113603],"Enif":["Peg",21.7364,9.8750,2.38,106972],"Fomalhaut":["PsA",22.9608,-29.6222,1.17,113008],
+ "Diphda":["Cet",0.7265,-17.9866,2.04,3413],"Schedar":["Cas",0.6751,56.5373,2.24,3172],"Caph":["Cas",0.1529,59.1498,2.28,744],
+ "Mirfak":["Per",3.4054,49.8612,1.79,15824],"Algol":["Per",3.1361,40.9556,2.09,14540],"Hamal":["Ari",2.1196,23.4624,2.01,9861]
+};
+var CONS = {And:"Andromeda",Aql:"Aquila",Ari:"Aries",Aur:"Auriga",Boo:"Bootes",Cas:"Cassiopeia",Cet:"Cetus",CMa:"Canis Major",CMi:"Canis Minor",CrB:"Corona Borealis",Cyg:"Cygnus",Dra:"Draco",Gem:"Gemini",Hya:"Hydra",Leo:"Leo",Lyr:"Lyra",Oph:"Ophiuchus",Ori:"Orion",Peg:"Pegasus",Per:"Perseus",PsA:"Piscis Austrinus",Sco:"Scorpius",Tau:"Taurus",UMa:"Ursa Major",UMi:"Ursa Minor",Vir:"Virgo"};
+var TOL = 0.1; /* degrees on the sky */
 var NAMES = Object.keys(CAT);
 var DIP = ["Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid"];
 var ORION = ["Betelgeuse","Bellatrix","Rigel","Saiph","Mintaka","Alnilam","Alnitak"];
@@ -353,11 +378,28 @@ function endGame(){
   S.i=0;S.found=false;S.revealed=false;S.hint=false;S.known={};S.wrong={};render();
 }
 
+/* Check the game catalogue against REF. A star that differs is replaced by the reference value (none did on 14 Oct 2026). */
+function verify(){
+  var out=[];
+  NAMES.forEach(function(n){
+    var c=CAT[n],r=REF[n],a1=c[1]*Math.PI/12,d1=c[2]*Math.PI/180,a2=r[1]*Math.PI/12,d2=r[2]*Math.PI/180;
+    var sp=Math.acos(Math.max(-1,Math.min(1,Math.sin(d1)*Math.sin(d2)+Math.cos(d1)*Math.cos(d2)*Math.cos(a1-a2))))*180/Math.PI;
+    var con=CONS[r[0]]||r[0],conOk=con===c[0],ok=sp<=TOL&&conOk;
+    out.push({n:n,sep:sp,con:con,conOk:conOk,ok:ok,orig:c.slice()});
+    if(!ok){CAT[n]=[con,r[1],r[2]];}
+  });
+  return out;
+}
+
 /* Tables and checks. */
 (function(){
-  var cat=document.querySelector("#catTable tbody");
-  NAMES.slice().sort().forEach(function(n){var c=CAT[n],tr=document.createElement("tr");
-    tr.innerHTML="<td>"+n+"</td><td>"+c[0]+"</td><td class='num'>"+c[1].toFixed(2)+"</td><td class='num'>"+c[2].toFixed(2)+"</td>";cat.appendChild(tr);});
+  var cat=document.querySelector("#catTable tbody"),res=verify(),bad=res.filter(function(r){return !r.ok;});
+  $("tolShow").textContent=TOL;
+  NAMES.slice().sort().forEach(function(n){var r=REF[n],x=res.filter(function(q){return q.n===n;})[0],c=x.orig,tr=document.createElement("tr");
+    tr.innerHTML="<td>"+n+"</td><td>"+c[0]+"</td><td class='num'>"+c[1].toFixed(2)+"</td><td class='num'>"+c[2].toFixed(2)+"</td><td class='num'>"+r[1].toFixed(3)+"</td><td class='num'>"+r[2].toFixed(3)+"</td><td class='num'>"+x.sep.toFixed(3)+"</td><td class='num'>"+r[3].toFixed(2)+"</td><td>"+x.con+"</td><td>"+(x.ok?"matched":"differs")+"</td>";cat.appendChild(tr);});
+  var worst=res.slice().sort(function(a,b){return b.sep-a.sep;})[0];
+  $("verdict").className=bad.length?"verdict bad":"verdict";
+  $("verdict").innerHTML="<strong>Checked against HYG v4.1:</strong> "+(bad.length?bad.length+" of "+res.length+" stars "+(bad.length===1?"differs":"differ")+" ("+bad.map(function(r){return r.n;}).join(", ")+")":(res.length===1?"the star matches":"all "+res.length+" stars match")+"; none differ")+". The largest position difference is "+worst.sep.toFixed(3)+"&deg; ("+worst.n+"), against a tolerance of "+TOL+"&deg;. "+(res.every(function(r){return r.conOk;})?"Every constellation agrees.":"Constellation differs for: "+res.filter(function(r){return !r.conOk;}).map(function(r){return r.n;}).join(", ")+".")+(bad.length?" The table shows the catalogue value beside ours; the game uses the catalogue value for "+(bad.length===1?"this one":"these")+".":" No coordinate needed correcting, so the game data is as first written.");
   var hop=document.querySelector("#hopTable tbody");
   STEPS.forEach(function(s){var g=s.guide,n=g.length,tr=document.createElement("tr");
     var last=g[n-2];

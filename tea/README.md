@@ -8,30 +8,25 @@ and shape both carry the route (circle te, triangle cha, diamond other). The cou
 from the same list. Single `index.html`, no external scripts, no build step.
 
 ## What was checked
-- `node --check` on the extracted script; headless Chromium: no console errors, no horizontal scroll at 375 px and 1100 px,
-  light and dark themes, map views (World, Europe, Asia), clicking a marker.
-- Counts shown by the page (11 te, 18 cha, 2 other of 31) agree with the list.
+- WALS 138A: each language's route compared with its WALS value, from `cldf/values.csv` and `languages.csv` of
+  github.com/cldf-datasets/wals (fetched 14 Oct 2026). The file has 230 languages, 110 cha / 84 te / 36 other, equal to the
+  wals.info totals. The page holds the WALS value (and WALS's example word) per language and computes the counts in code:
+  29 of 31 have a WALS entry, 29 matched, 0 differ, 2 not in WALS (Malay, Tamil).
+- `node --check` on the extracted script; headless browser at 375, 768 and 1100 px; `tools/page_check.mjs`.
+- Route counts shown by the page (11 te, 18 cha, 2 other of 31) agree with the list.
 
 ## Sources
-- Data basis and the three-way sorting: Östen Dahl, "Tea", chapter 138A in the World Atlas of Language Structures
-  (WALS), 2013. https://wals.info/feature/138A
-
-## Second pass (refiner)
-- wals.info, Wikipedia and Wiktionary could not be fetched from this environment (DNS blocked); only web-search snippets were
-  available. They confirm the WALS 138A totals (230 languages: 110 cha, 84 te, 36 other), a few unrelated datapoints
-  (Afrikaans te; Basque, Tagalog, Punjabi cha; Lao other), the Macau/Portuguese cha route (English cha from the 1590s), the
-  Dutch tea route (c. 1606, via Malay or Min), Persian chay by land and Arabic shay as a later Persian borrowing.
-- Changed: Mandarin no longer called "the source" of cha; Thai no longer framed as a "sea-trading country" surprise; Polish
-  marked as arguably te-type and a judgement call; Burmese gloss corrected (laphet-yay is milk tea); the Ceylon/Dutch link
-  is called unchecked; unverified entries carry an "Unverified" note (not every entry does: none of the 31 was checked against WALS); map labels were about 7 px at 375 px, so they now
-  scale to 11 px and show only for the selected language on narrow screens; larger markers and tap targets.
+- Östen Dahl, "Tea", chapter 138A in the World Atlas of Language Structures (WALS), 2013, CC BY 4.0.
+  https://wals.info/feature/138A ; data: https://github.com/cldf-datasets/wals
 
 ## Still not verified
-- None of the 31 languages was checked against its WALS value, and I cannot say they are all in the WALS sample.
-- Every word and spelling is from memory. Least sure: Sinhala, Tamil (tēnīr, colloquial ṭī/chai), Tibetan ཇ, Burmese,
-  Hebrew תה, Arabic شاي, Persian چای, Mongolian цай, Vietnamese trà (also chè), Greek τσάι, Czech čaj, Swahili chai.
-- Polish herbata and Burmese "other" are my own classification judgements.
+- Only the route (te / cha / other) is compared with WALS, not my spellings (WALS example words are shown beside them).
+- Matching is by name; some WALS rows are a variety: Min Nan = "Min (Southern)", Arabic = "Arabic (Egyptian)",
+  Mongolian = "Khalkha", Tibetan = "Tibetan (Standard Spoken)". Malay has no entry (Indonesian is te), Tamil has none.
+- WALS gives one form per language, so second forms (English chai, Tamil colloquial chai) are not captured.
+- Words and spellings are from memory. Least sure: Sinhala, Tamil (tēnīr), Tibetan ཇ, Burmese, Hebrew תה, Arabic شاي,
+  Persian چای, Mongolian цай, Vietnamese trà (also chè), Greek τσάι, Czech čaj, Swahili chai.
 - The history (Dutch East India Company, Macau, Min Nan around Xiamen, Dutch Ceylon, Swahili via the Indian Ocean) is the
-  commonly told account, hedged in the text.
+  commonly told account, hedged in the text; Wikipedia could not be opened.
 - Marker positions are approximate. The 31 languages are not a sample, so the percentages describe this list only.
 - Not tried on a real phone.

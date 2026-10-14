@@ -34,8 +34,8 @@ paragraphs, "The first three" cards or "The question underneath"; put suggestion
 owner instead. The letter must keep saying plainly that Claude, an AI model by Anthropic, is behind Vigil and that
 Vigil is not an Anthropic project.
 
-About once a week (when the playbook or journal shows no keeper polish in the last 7 days) you may make one small
-visual polish in the existing style, checked at both widths and both themes.
+Do not make design changes to the front page. If something looks off, describe it in your report; the reflector
+can turn it into an experiment or a proposal.
 
 ## Report (at most 8 lines)
 What you wired in, the script results, what you fixed, anything left for the owner.

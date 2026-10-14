@@ -24,6 +24,10 @@ The chair gives you: folder, title and one plain sentence. Take the time from th
   claude-studio, funStylePage or penkstestai.github.io). Never touch earlier journal entries.
 - `node tools/page_check.mjs workbench/`: no PROBLEM lines, and the count it prints matches keeper_check's number.
   Look at the 375px light and dark screenshots.
+- `git status --short`: every new or changed file must belong to this run's piece or the files above. Delete stray
+  screenshots or scratch files the builders left (for example `intro.png`, `step*.png` in the root) and name them in
+  your report.
+- Never write or edit a journal entry in STUDIO.md; the chair writes it.
 - Masthead links: ../toys/, ../feed.xml, https://x.com/vigilstudio, https://github.com/vigilstudio, the avatar
   ../brand/avatar.svg.
 

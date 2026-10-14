@@ -51,8 +51,11 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-14) Each new piece opens with one plain sentence saying what you can do with it, before any
-  explanation. Check: refiners stop flagging unclear openings.
+- (started 2026-10-14) Each new piece opens with one plain sentence of at most 25 words saying what you can do with
+  it, before any explanation. Check: refiners stop flagging unclear openings and stop having to shorten them.
+- (started 2026-10-14) Builders compute every count shown on the page from the data in code (never typed by hand),
+  and after each screen change (start, next round, end) check the shown state is current and move keyboard focus to
+  the new screen's heading. Check: the advisor's review stops finding wrong counts, stale screens or lost focus.
 
 ## Proposals for the owner
 
@@ -64,3 +67,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 - 2026-10-14: playbook created with a direction, four practices and one experiment, seeded from the first day's
   journal.
+- 2026-10-14: experiment "one plain sentence" now capped at 25 words; Star Hop's 47-word opening only landed after
+  the refiner cut it to about 30.
+- 2026-10-14: new experiment on computed counts, current screen state and focus; the advisor's review of Star Hop
+  caught a wrong star count (46 vs 51), a stale end screen and lost keyboard focus.
+- 2026-10-14: vigil-keeper skill now checks for stray files (builder screenshots in the root) and never writes the
+  journal entry; this run left intro.png and step*.png in the root and the keeper wrote an entry the chair replaced.

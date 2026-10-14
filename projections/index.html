@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tissot Circles · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag circles of the same true size around the world and watch Mercator swell them toward the poles, while Equal Earth keeps their area; a Greenland-versus-Africa comparison, with self-checks">
+<link rel="canonical" href="https://vigilstudio.github.io/projections/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Tissot Circles · Vigil">
+<meta property="og:description" content="Drag circles of the same true size around the world and watch Mercator swell them toward the poles, while Equal Earth keeps their area; a Greenland-versus-Africa comparison, with self-checks">
+<meta property="og:url" content="https://vigilstudio.github.io/projections/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tissot Circles · Vigil">
+<meta name="twitter:description" content="Drag circles of the same true size around the world and watch Mercator swell them toward the poles, while Equal Earth keeps their area; a Greenland-versus-Africa comparison, with self-checks">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--paper:#fbf8f0;--land:#e4dfd0;--landline:#8f8878;--grat:#d8d2c2;--circ:#c2501f;--circfill:rgba(194,80,31,.28);--hi:#b9cde8;--ok:#2f7d3a;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--paper:#0b0d12;--land:#232832;--landline:#6d7684;--grat:#262c36;--circ:#ff9a66;--circfill:rgba(255,154,102,.30);--hi:#2d4568;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--paper:#0b0d12;--land:#232832;--landline:#6d7684;--grat:#262c36;--circ:#ff9a66;--circfill:rgba(255,154,102,.30);--hi:#2d4568;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:1080px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.15rem;margin:0 0 8px;font-weight:normal}
+h2:focus{outline:none}
+h2:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 14px;max-width:46em}
+.small{font-size:.85rem;color:var(--muted)}
+.maps{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:900px){.maps{grid-template-columns:1fr 1fr}}
+figure{margin:0;min-width:0}
+figcaption{font-size:.9rem;color:var(--muted);margin:0 0 4px}
+figcaption b{color:var(--ink);font-weight:normal}
+.view{display:block;outline:none;border:1px solid var(--line);border-radius:6px;background:var(--paper);touch-action:none;cursor:grab;line-height:0;overflow:hidden}
+.view.drag{cursor:grabbing}
+.view:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+canvas{display:block;width:100%}
+.cap{margin:8px 0 0;font-size:.9rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:16px}
+.cols{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:900px){.cols{grid-template-columns:1fr 1fr}}
+.cols>*{min-width:0}
+.ctl{display:grid;grid-template-columns:1fr;gap:4px 18px}
+@media (min-width:600px){.ctl{grid-template-columns:1fr 1fr}}
+.ctl label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-top:8px;gap:8px}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--ink)}
+input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}
+input[type=range]:focus-visible,input[type=radio]:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:4px}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick label{position:relative;display:block}
+.pick input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.pick .box{display:block;min-width:44px;min-height:44px;padding:9px 12px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-size:.95rem}
+.pick input:checked + .box{border:3px solid var(--accent);padding:7px 10px;background:var(--panel)}
+.pick input:checked + .box::before{content:"\2713\00a0"}
+.pick input:focus-visible + .box{outline:3px solid var(--ink);outline-offset:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+button{min-height:44px;padding:8px 16px;font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+button.main{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:6px 6px 6px 0;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal;font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:.8rem}
+td.n,th.n{text-align:right;padding-right:10px}
+tr.sel td{background:var(--bg)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.verdict{margin:8px 0 0;font-size:.95rem}
+.detail p{font-size:.95rem}
+details{margin-top:22px}
+summary{cursor:pointer;min-height:32px}
+details p{font-size:.95rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="top" tabindex="-1">Tissot Circles</h1>
+  <p class="lede" id="lede">Drag circles of the same true size around the world: Mercator swells them toward the poles, an equal-area map keeps their area.</p>
+
+  <div class="maps">
+    <figure>
+      <figcaption id="capM"><b>Mercator</b></figcaption>
+      <div class="view" id="viewM" tabindex="0" role="group" aria-label="Mercator map with circles. Drag a circle, or use the arrow keys to move the selected one." aria-describedby="keys">
+        <canvas id="cvM" aria-hidden="true"></canvas>
+      </div>
+    </figure>
+    <figure>
+      <figcaption id="capE"><b>Equal Earth</b></figcaption>
+      <div class="view" id="viewE" tabindex="0" role="group" aria-label="Equal Earth map with the same circles. Drag a circle, or use the arrow keys to move the selected one." aria-describedby="keys">
+        <canvas id="cvE" aria-hidden="true"></canvas>
+      </div>
+    </figure>
+  </div>
+  <p class="cap" id="keys">Every circle has the same radius on the globe, so any change in size or shape is the map's doing. Drag on either map. A finger on a map does not scroll the page, so scroll from the text around the maps. Keys on a focused map: arrows move the selected circle (Shift for bigger steps).</p>
+  <div class="sr" id="live" role="status" aria-live="polite"></div>
+
+  <section class="panel" aria-labelledby="h-circ">
+    <h2 id="h-circ" tabindex="-1">Circles</h2>
+    <div class="cols">
+      <div>
+        <fieldset><legend>Selected circle</legend>
+          <div class="pick" id="pick"></div></fieldset>
+        <div class="ctl">
+          <div><label for="sLat">Latitude <output id="oLat"></output></label>
+            <input id="sLat" type="range" min="-85" max="85" step="0.5" value="0"></div>
+          <div><label for="sLon">Longitude <output id="oLon"></output></label>
+            <input id="sLon" type="range" min="-180" max="180" step="0.5" value="0"></div>
+          <div><label for="sR">Radius of every circle on the globe <output id="oR"></output></label>
+            <input id="sR" type="range" min="2" max="20" step="0.5" value="10"></div>
+        </div>
+        <div class="btns">
+          <button type="button" id="bAdd">Add a circle</button>
+          <button type="button" id="bDel">Remove selected</button>
+          <button type="button" id="bReset">Reset</button>
+        </div>
+      </div>
+      <div class="detail" id="detail"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-tab">
+    <h2 id="h-tab" tabindex="-1">All circles</h2>
+    <div class="tw"><table id="tab"><thead><tr><th>Circle</th><th>Over</th><th class="n">Mercator<br>area &times;</th><th class="n">Equal Earth<br>area &times;</th><th class="n">Equal Earth<br>long &divide; short axis</th></tr></thead><tbody></tbody></table></div>
+    <p class="small" id="tabNote"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ga">
+    <h2 id="h-ga" tabindex="-1">Greenland and Africa</h2>
+    <div id="ga"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-chk">
+    <h2 id="h-chk" tabindex="-1">The page checks itself</h2>
+    <p class="small">These compare the projection code with formulas worked out separately. They run on load and again with the button.</p>
+    <div class="tw"><table id="chk"><thead><tr><th>Check</th><th>Result</th><th>Largest difference</th></tr></thead><tbody></tbody></table></div>
+    <p class="verdict" id="chkV"></p>
+    <div class="btns"><button type="button" id="bChk" class="main">Run the checks again</button></div>
+  </section>
+
+  <details>
+    <summary>How it works, and what is not checked</summary>
+    <p id="how1"></p>
+    <p id="how2"></p>
+    <p id="how3"></p>
+    <p class="small" id="credit">Made by Claude, an AI model by Anthropic, for Vigil. Checked only against search excerpts: the Equal Earth coefficients A1 = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796 match the values quoted for the 2018 paper by equalearthlab.com and johndcook.com (found by web search on 14 October 2026; I could not open those pages or the paper itself). The whole-sphere area check above does confirm the factor M = √3/2, because the equal-area condition forces it. No check on this page tests A1 to A4: they only shape the map, and the area checks would not notice a small error in them. The map's width to height of 2.05 matches the figure I remember from the paper. Still untested: real phones, screen readers, browsers other than headless Chromium.</p>
+  </details>
+</main>
+<script src="data.js"></script>
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var D2R = Math.PI/180, R2D = 180/Math.PI, PI = Math.PI;
+var EARTH_R = 6371.0088;               // km, mean radius; the model is a sphere
+var MERC_LAT = 80;                     // Mercator is drawn between these latitudes
+function fmt(x, d){ return Number(x).toLocaleString("en", {minimumFractionDigits:d, maximumFractionDigits:d}); }
+function sci(x){ return x < 1e-3 ? x.toExponential(1) : fmt(x, 4); }
+
+// ---------- projections on the unit sphere (R = 1) ----------
+function psi(phi){ var p = Math.max(-89.99*D2R, Math.min(89.99*D2R, phi)); return Math.log(Math.tan(PI/4 + p/2)); }
+function merc(lam, phi){ return [lam, psi(phi)]; }
+var A1=1.340264, A2=-0.081106, A3=0.000893, A4=0.003796, EM=Math.sqrt(3)/2;
+function eeY(th){ var t2=th*th; return th*(A1 + A2*t2 + t2*t2*t2*(A3 + A4*t2)); }
+function eeDY(th){ var t2=th*th, t6=t2*t2*t2; return 9*A4*t6*t2 + 7*A3*t6 + 3*A2*t2 + A1; }   // dy/dtheta
+function ee(lam, phi){
+  var th = Math.asin(EM*Math.sin(phi));
+  return [2*Math.sqrt(3)*lam*Math.cos(th)/(3*eeDY(th)), eeY(th)];
+}
+function eeInv(x, y){                    // Newton on theta; returns null outside the map
+  var th = y/A1, i, f;
+  for (i=0;i<30;i++){ f = eeY(th) - y; th -= f/eeDY(th); if (Math.abs(f) < 1e-13) break; }
+  if (Math.abs(th) > PI/3 + 1e-9) return null;
+  var phi = Math.asin(Math.max(-1, Math.min(1, Math.sin(th)/EM)));
+  var lam = 3*x*eeDY(th)/(2*Math.sqrt(3)*Math.cos(th));
+  if (Math.abs(lam) > PI) return null;
+  return [lam, phi];
+}
+function mercInv(x, y){ if (Math.abs(y) > psi(MERC_LAT*D2R)) return null; if (Math.abs(x) > PI) return null; return [x, 2*Math.atan(Math.exp(y)) - PI/2]; }
+var EE_Y90 = eeY(PI/3);
+var EE_X0 = ee(PI, 0)[0];
+var MERC_Y80 = psi(MERC_LAT*D2R);
+
+// local scale: Jacobian by central differences, per unit of arc on the sphere
+function jac(proj, lam, phi){
+  var h = 1e-5, c = Math.cos(phi), dl = h/c;
+  var a = proj(lam, phi+h), b = proj(lam, phi-h), e = proj(lam+dl, phi), f = proj(lam-dl, phi);
+  var px = (a[0]-b[0])/(2*h), py = (a[1]-b[1])/(2*h);       // d/dphi (northward arc)
+  var qx = (e[0]-f[0])/(2*h), qy = (e[1]-f[1])/(2*h);       // d/dlambda per eastward arc
+  var P = qx*qx+qy*qy, Q = px*px+py*py, Rr = qx*px+qy*py;
+  var tr = P+Q, det = P*Q-Rr*Rr, disc = Math.sqrt(Math.max(0, tr*tr/4-det));
+  return {a:Math.sqrt(tr/2+disc), b:Math.sqrt(Math.max(0, tr/2-disc)), area:Math.abs(qx*py-qy*px), kE:Math.sqrt(P), kN:Math.sqrt(Q)};
+}
+
+// ---------- spherical geometry ----------
+function wrap(d){ while (d > PI) d -= 2*PI; while (d <= -PI) d += 2*PI; return d; }
+function capArea(r){ return 2*PI*(1-Math.cos(r)); }           // unit sphere
+function capPoints(lam0, phi0, r, n){
+  var pts = [], i, bt, sp, ph, dl, s0 = Math.sin(phi0), c0 = Math.cos(phi0), sr = Math.sin(r), cr = Math.cos(r);
+  for (i=0;i<n;i++){
+    bt = 2*PI*i/n;
+    sp = s0*cr + c0*sr*Math.cos(bt); ph = Math.asin(Math.max(-1, Math.min(1, sp)));
+    dl = Math.atan2(Math.sin(bt)*sr*c0, cr - s0*sp);
+    pts.push([lam0+dl, ph]);
+  }
+  return pts;
+}
+function shoelace(pts){ var s=0, i, p, q; for (i=0;i<pts.length;i++){ p=pts[i]; q=pts[(i+1)%pts.length]; s += p[0]*q[1]-q[0]*p[1]; } return Math.abs(s)/2; }
+function projRing(proj, pts){ return pts.map(function(p){ return proj(p[0], p[1]); }); }
+// area of a ring of [lon,lat] degrees on a unit sphere (Chamberlain and Duquette)
+function sphRingArea(ring){
+  var s = 0, i, a, b;
+  for (i=0;i<ring.length-1;i++){
+    a = ring[i]; b = ring[i+1];
+    s += wrap((b[0]-a[0])*D2R) * (2 + Math.sin(a[1]*D2R) + Math.sin(b[1]*D2R));
+  }
+  return Math.abs(s)/2;
+}
+function mapRingArea(proj, ring, cropY){      // cropY: clamp map y to +-cropY (the cropped Mercator map)
+  var pts = ring.map(function(p){ var q = proj(p[0]*D2R, p[1]*D2R); return cropY ? [q[0], Math.max(-cropY, Math.min(cropY, q[1]))] : q; });
+  var s = 0, i, p, q;
+  for (i=0;i<pts.length-1;i++){ p=pts[i]; q=pts[i+1]; s += p[0]*q[1]-q[0]*p[1]; }
+  return Math.abs(s)/2;
+}
+function polyArea(fn, poly){ var t = 0, i; for (i=0;i<poly.length;i++) t += (i===0 ? 1 : -1) * fn(poly[i]); return t; }
+function regionArea(feats, kind){      // kind: "sph" | "merc" | "mercc" (Mercator cropped at MERC_LAT) | "ee"; unit sphere
+  var t = 0;
+  feats.forEach(function(f){ f.p.forEach(function(poly){
+    t += polyArea(kind==="sph" ? sphRingArea : function(r){ return kind==="mercc" ? mapRingArea(merc, r, MERC_Y80) : mapRingArea(kind==="merc" ? merc : ee, r); }, poly);
+  }); });
+  return t;
+}
+function inRing(ring, x, y){
+  var c = false, i, j, a, b;
+  for (i=0, j=ring.length-1; i<ring.length; j=i++){
+    a = ring[i]; b = ring[j];
+    if ((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1]) + a[0]) c = !c;
+  }
+  return c;
+}
+function countryAt(lonDeg, latDeg){
+  var i, j, k, f, poly, inside;
+  for (i=0;i<COUNTRIES.length;i++){ f = COUNTRIES[i];
+    for (j=0;j<f.p.length;j++){ poly = f.p[j];
+      if (inRing(poly[0], lonDeg, latDeg)){
+        inside = true; for (k=1;k<poly.length;k++) if (inRing(poly[k], lonDeg, latDeg)) inside = false;
+        if (inside) return f.n;
+      }
+    }
+  }
+  return null;
+}
+
+// ---------- area numbers for one circle ----------
+// Mercator: map area = integral of 2 w(phi) sec(phi) dphi over the cap (w = half-width in longitude), by Simpson in t
+function mercCapIntegral(phi0, r){
+  var N = 2000, h = (PI)/N, s = 0, i, t, ph, w, arg, wt, f;
+  for (i=0;i<=N;i++){
+    t = -PI/2 + i*h; ph = phi0 + r*Math.sin(t);
+    arg = (Math.cos(r) - Math.sin(phi0)*Math.sin(ph))/(Math.cos(phi0)*Math.cos(ph));
+    w = Math.acos(Math.max(-1, Math.min(1, arg)));
+    f = 2*w/Math.cos(ph) * r*Math.cos(t);
+    wt = (i===0||i===N) ? 1 : (i%2 ? 4 : 2);
+    s += wt*f;
+  }
+  return s*h/3;
+}
+// any projection: integral of the area scale over the cap (midpoint rule on a (t, s) grid)
+function jacCapIntegral(proj, phi0, r, nt, ns){
+  var tot = 0, i, j, t, ph, arg, w, lam, rowsum, dt = PI/nt;
+  for (i=0;i<nt;i++){
+    t = -PI/2 + (i+0.5)*dt; ph = phi0 + r*Math.sin(t);
+    arg = (Math.cos(r) - Math.sin(phi0)*Math.sin(ph))/(Math.cos(phi0)*Math.cos(ph));
+    w = Math.acos(Math.max(-1, Math.min(1, arg)));
+    rowsum = 0;
+    for (j=0;j<ns;j++){ lam = -w + (j+0.5)*2*w/ns; rowsum += jac(proj, lam, ph).area; }
+    tot += rowsum*(2*w/ns) * Math.cos(ph) * (r*Math.cos(t)*dt);
+  }
+  return tot;
+}
+
+// ---------- circles ----------
+var MAXC = 8;
+var START = [[2,20],[70,-42],[0,-150],[46,8]];     // latitude, longitude in degrees
+var S = {r:10, sel:0, circles:[]};
+function limit(){ return MERC_LAT - S.r; }      // keeps every circle inside the cropped Mercator map
+function clampLat(v){ var L = limit(); return Math.max(-L, Math.min(L, v)); }
+function wrapLon(v){ v = ((v+180) % 360 + 360) % 360 - 180; return v; }
+function resetCircles(){ S.r = 10; S.sel = 0; S.circles = START.map(function(p){ return {lat:p[0], lon:p[1]}; }); }
+function mercTall(pts){      // percent by which the drawn Mercator circle is taller than wide (projected extent)
+  var mp = projRing(merc, pts), x0=Infinity, x1=-Infinity, y0=Infinity, y1=-Infinity;
+  mp.forEach(function(q){ x0=Math.min(x0,q[0]); x1=Math.max(x1,q[0]); y0=Math.min(y0,q[1]); y1=Math.max(y1,q[1]); });
+  return ((y1-y0)/(x1-x0)-1)*100;
+}
+function circleStats(c){
+  var phi0 = c.lat*D2R, lam0 = c.lon*D2R, r = S.r*D2R;
+  var pts = capPoints(lam0, phi0, r, 720);
+  var sph = capArea(r);
+  var aM = shoelace(projRing(merc, pts)), aE = shoelace(projRing(ee, pts));
+  var jm = jac(merc, lam0, phi0), je = jac(ee, lam0, phi0);
+  return {pts:pts, sph:sph, ratioM:aM/sph, ratioE:aE/sph, intM:mercCapIntegral(phi0, r)/sph,
+    scaleM:jm.a, secPhi:1/Math.cos(phi0), axisE:je.a/je.b, aE:je.a, bE:je.b, tallM:mercTall(pts), over:countryAt(c.lon, c.lat)};
+}
+function latTxt(v){ return fmt(Math.abs(v),1) + "°" + (v < 0 ? "S" : "N"); }
+function lonTxt(v){ return fmt(Math.abs(v),1) + "°" + (v < 0 ? "W" : "E"); }
+function times(x){ return fmt(x, x < 10 ? 2 : 1) + "×"; }
+
+// ---------- data ----------
+var COUNTRIES = window.NE110 || [];
+function features(pred){ return COUNTRIES.filter(pred); }
+var GREEN = features(function(f){ return f.n === "Greenland"; });
+var AFRICA = features(function(f){ return f.c === "Africa"; });
+
+// ---------- drawing ----------
+var views = {
+  M: {cv:$("cvM"), box:$("viewM"), proj:merc, inv:mercInv, w:0, h:0, s:1},
+  E: {cv:$("cvE"), box:$("viewE"), proj:ee, inv:eeInv, w:0, h:0, s:1}
+};
+function css(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function toPx(v, x, y){ return [v.w/2 + v.s*x, v.h/2 - v.s*y]; }
+function fromPx(v, px, py){ return [(px - v.w/2)/v.s, (v.h/2 - py)/v.s]; }
+function sizeViews(){
+  var W = Math.max(240, Math.floor(views.M.box.clientWidth)) ;
+  var s = W/6.4;
+  [["M", 2*MERC_Y80*s], ["E", 2*EE_Y90*s]].forEach(function(p){
+    var v = views[p[0]], H = Math.ceil(p[1]) + 2, dpr = window.devicePixelRatio || 1;
+    v.w = W; v.h = H; v.s = s;
+    v.cv.width = Math.round(W*dpr); v.cv.height = Math.round(H*dpr); v.cv.style.height = H + "px";
+  });
+}
+function pathLine(ctx, v, pts, wrapShift){
+  var i, q;
+  for (i=0;i<pts.length;i++){ q = toPx(v, pts[i][0]+wrapShift, pts[i][1]); if (i===0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
+}
+function outlinePath(ctx, v, which){
+  var i, q, n = 120;
+  ctx.beginPath();
+  if (which === "M"){ var a = toPx(v, -PI, MERC_Y80), b = toPx(v, PI, -MERC_Y80); ctx.rect(a[0], a[1], b[0]-a[0], b[1]-a[1]); return; }
+  for (i=0;i<=n;i++){ q = toPx(v, ee(-PI, -PI/2 + PI*i/n)[0], ee(-PI, -PI/2 + PI*i/n)[1]); if (i===0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
+  for (i=n;i>=0;i--){ q = toPx(v, ee(PI, -PI/2 + PI*i/n)[0], ee(PI, -PI/2 + PI*i/n)[1]); ctx.lineTo(q[0], q[1]); }
+  ctx.closePath();
+}
+function drawView(which){
+  var v = views[which], ctx = v.cv.getContext("2d"), dpr = window.devicePixelRatio || 1, proj = v.proj;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,v.w,v.h);
+  ctx.save();
+  outlinePath(ctx, v, which); ctx.clip();
+  // graticule
+  ctx.strokeStyle = css("--grat"); ctx.lineWidth = 1; ctx.beginPath();
+  var lo, la, k, p;
+  for (lo=-180; lo<=180; lo+=30){ for (k=0;k<=90;k++){ la = (-90 + 2*k)*D2R; p = toPx(v, proj(lo*D2R, la)[0], proj(lo*D2R, la)[1]); if (k===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); } }
+  for (la=-60; la<=60; la+=30){ for (k=0;k<=120;k++){ lo = (-180 + 3*k)*D2R; p = toPx(v, proj(lo, la*D2R)[0], proj(lo, la*D2R)[1]); if (k===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); } }
+  ctx.stroke();
+  // countries
+  var hi = css("--hi"), land = css("--land"), ll = css("--landline");
+  ctx.lineWidth = 0.8; ctx.strokeStyle = ll;
+  COUNTRIES.forEach(function(f){
+    var special = (f.n === "Greenland" || f.c === "Africa");
+    ctx.fillStyle = special ? hi : land;
+    f.p.forEach(function(poly){
+      ctx.beginPath();
+      poly.forEach(function(ring){
+        var i, q;
+        for (i=0;i<ring.length;i++){ var m = proj(ring[i][0]*D2R, ring[i][1]*D2R); q = toPx(v, m[0], m[1]); if (i===0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
+        ctx.closePath();
+      });
+      ctx.fill("evenodd"); ctx.stroke();
+    });
+  });
+  // circles (drawn three times, shifted by one world, so one crossing the date line shows on both sides)
+  var circ = css("--circ"), fill = css("--circfill"), ink = css("--ink");
+  S.circles.forEach(function(c, idx){
+    var st = capPoints(c.lon*D2R, c.lat*D2R, S.r*D2R, 180), sel = idx === S.sel;
+    [-2*PI, 0, 2*PI].forEach(function(sh){
+      ctx.beginPath();
+      var i, pp;
+      for (i=0;i<st.length;i++){ var z = proj(st[i][0]+sh, st[i][1]); pp = toPx(v, z[0], z[1]); if (i===0) ctx.moveTo(pp[0], pp[1]); else ctx.lineTo(pp[0], pp[1]); }
+      ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill();
+      ctx.lineWidth = sel ? 3 : 1.6; ctx.strokeStyle = circ; ctx.stroke();
+      if (sel){ ctx.lineWidth = 1; ctx.strokeStyle = ink; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]); }
+    });
+  });
+  ctx.restore();
+  // outline and numbers
+  ctx.lineWidth = 1; ctx.strokeStyle = css("--line"); outlinePath(ctx, v, which); ctx.stroke();
+  ctx.font = "bold 13px Georgia, serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  S.circles.forEach(function(c, idx){
+    var z = proj(c.lon*D2R, c.lat*D2R), pp = toPx(v, z[0], z[1]);
+    ctx.fillStyle = css("--paper"); ctx.beginPath(); ctx.arc(pp[0], pp[1], 9, 0, 2*PI); ctx.fill();
+    ctx.strokeStyle = idx === S.sel ? css("--ink") : css("--circ"); ctx.lineWidth = idx === S.sel ? 2 : 1.4; ctx.stroke();
+    ctx.fillStyle = css("--ink"); ctx.fillText(String(idx+1), pp[0], pp[1]+0.5);
+  });
+}
+function drawAll(){ drawView("M"); drawView("E"); }
+
+// ---------- readouts ----------
+var stats = [];
+function circleName(i){ return "Circle " + (i+1); }
+function describe(c, st, i){
+  var where = st.over ? "over " + st.over : "over open water";
+  return circleName(i) + " is centred at " + latTxt(c.lat) + " " + lonTxt(c.lon) + ", " + where + ".";
+}
+function renderDetail(){
+  var i = S.sel, c = S.circles[i], st = stats[i], el = $("detail"), r = S.r;
+  var areaKm = st.sph*EARTH_R*EARTH_R, radKm = r*D2R*EARTH_R;
+  var big = Math.abs(st.ratioM-1) >= 0.005;
+  var html = "<h2 style=\"font-size:1rem\">" + circleName(i) + " in numbers</h2>";
+  html += "<p>" + describe(c, st, i) + " On the globe it covers " + fmt(areaKm, 0) + " km² (radius " + fmt(r,1) + "°, about " + fmt(radKm, 0) + " km along the surface), wherever it sits.</p>";
+  html += "<p><b>Mercator</b> stretches every direction by the same factor, " + fmt(st.scaleM, 3) + " here (the secant of the latitude, " + fmt(st.secPhi, 3) + "), so the circle stays nearly round (on the map it is " + fmt(Math.abs(st.tallM), 1) + "% " + (st.tallM >= 0 ? "taller than wide" : "wider than tall") + ", from the extent of its projected outline) but its area becomes " +
+    (big ? fmt(st.ratioM, 3) + "× its true area" : "its true area (" + fmt(st.ratioM, 3) + "×)") + " (the integral gives " + fmt(st.intM, 3) + "×).</p>";
+  html += "<p><b>Equal Earth</b> keeps the area at " + fmt(st.ratioE, 3) + "× but not the shape: the circle becomes an ellipse whose long axis is " + fmt(st.axisE, 2) + " times its short axis" +
+    (st.axisE < 1.005 ? " (round here)" : "") + ".</p>";
+  el.innerHTML = html;
+}
+function renderTable(){
+  var tb = $("tab").tBodies[0], html = "";
+  stats.forEach(function(st, i){
+    var c = S.circles[i];
+    html += "<tr" + (i === S.sel ? " class=\"sel\"" : "") + "><td>" + (i+1) + "</td><td>" + (st.over || "open water") + " (" + latTxt(c.lat) + " " + lonTxt(c.lon) + ")</td><td class=\"n\">" +
+      fmt(st.ratioM, 2) + "</td><td class=\"n\">" + fmt(st.ratioE, 3) + "</td><td class=\"n\">" + fmt(st.axisE, 2) + "</td></tr>";
+  });
+  tb.innerHTML = html;
+  var ms = stats.map(function(s){ return s.ratioM; });
+  var mx = Math.max.apply(null, ms), mn = Math.min.apply(null, ms);
+  var imax = ms.indexOf(mx), imin = ms.indexOf(mn);
+  $("tabNote").textContent = stats.length === 1 ?
+    "One circle: Mercator draws it " + times(mx) + " its true area." :
+    "Mercator draws circle " + (imax+1) + " at " + times(mx) + " its true area and circle " + (imin+1) + " at " + times(mn) + ", though all " + stats.length + " are the same size on the globe.";
+}
+function renderPick(focusIdx){
+  var box = $("pick"), html = "";
+  S.circles.forEach(function(c, i){
+    html += "<label><input type=\"radio\" name=\"cs\" value=\"" + i + "\" autocomplete=\"off\"" + (i===S.sel ? " checked" : "") + "><span class=\"box\">" + (i+1) + "</span></label>";
+  });
+  box.innerHTML = html;
+  Array.prototype.forEach.call(box.querySelectorAll("input"), function(inp){
+    inp.addEventListener("change", function(){ S.sel = +inp.value; syncControls(); update(false); announce(); });
+  });
+  if (focusIdx != null){ var el = box.querySelectorAll("input")[focusIdx]; if (el) el.focus(); }
+}
+function syncControls(){
+  var c = S.circles[S.sel], L = limit();
+  $("sLat").min = -L; $("sLat").max = L; $("sLat").value = c.lat; $("oLat").textContent = latTxt(c.lat);
+  $("sLon").value = c.lon; $("oLon").textContent = lonTxt(c.lon);
+  $("sR").value = S.r; $("oR").textContent = fmt(S.r,1) + "°";
+  $("bAdd").disabled = S.circles.length >= MAXC;
+  $("bDel").disabled = S.circles.length <= 1;
+}
+function update(recheck){
+  S.circles.forEach(function(c){ c.lat = clampLat(c.lat); c.lon = wrapLon(c.lon); });
+  stats = S.circles.map(circleStats);
+  // numbers for the captions come from the selected circle
+  var st = stats[S.sel];
+  $("capM").innerHTML = "<b>Mercator</b>, latitudes " + MERC_LAT + "°S to " + MERC_LAT + "°N. Circle " + (S.sel+1) + " is " + times(st.ratioM) + " its true area here. Centres stay within " + fmt(limit(), 1) + "° of the equator (" + MERC_LAT + "° minus the radius) so no circle is cropped.";
+  $("capE").innerHTML = "<b>Equal Earth</b>, equal-area. Circle " + (S.sel+1) + " is " + times(st.ratioE) + " its true area here.";
+  drawAll(); renderDetail(); renderTable();
+}
+var lastAnnounce = "";
+function announce(){
+  var st = stats[S.sel], c = S.circles[S.sel];
+  var t = describe(c, st, S.sel) + " Mercator: " + times(st.ratioM) + " true area. Equal Earth: " + times(st.ratioE) + ".";
+  if (t !== lastAnnounce){ $("live").textContent = t; lastAnnounce = t; }
+}
+
+// ---------- Greenland and Africa (from the Natural Earth rows, computed here) ----------
+function renderGA(){
+  var el = $("ga");
+  if (!GREEN.length || !AFRICA.length){ el.innerHTML = "<p class=\"bad\">The country data did not load, so this comparison is unavailable.</p>"; return; }
+  var R2 = EARTH_R*EARTH_R;
+  var g = {sph:regionArea(GREEN,"sph"), m:regionArea(GREEN,"merc"), mc:regionArea(GREEN,"mercc"), e:regionArea(GREEN,"ee")};
+  var a = {sph:regionArea(AFRICA,"sph"), m:regionArea(AFRICA,"merc"), mc:regionArea(AFRICA,"mercc"), e:regionArea(AFRICA,"ee")};
+  GA = {g:g, a:a};
+  function row(name, x){ return "<tr><td>" + name + "</td><td class=\"n\">" + fmt(x.sph*R2/1e6, 2) + "</td><td class=\"n\">" + fmt(x.m*R2/1e6, 2) + "</td><td class=\"n\">" + fmt(x.e*R2/1e6, 2) + "</td><td class=\"n\">" + times(x.m/x.sph) + "</td></tr>"; }
+  var h = "<div class=\"tw\"><table><thead><tr><th>Region</th><th class=\"n\">True area<br>million km²</th><th class=\"n\">As drawn on<br>Mercator</th><th class=\"n\">As drawn on<br>Equal Earth</th><th class=\"n\">Mercator<br>inflation</th></tr></thead><tbody>";
+  h += row("Greenland", g) + row("Africa (" + AFRICA.length + " Natural Earth records)", a) + "</tbody></table></div>";
+  var pm = g.m/a.m*100, pmc = g.mc/a.mc*100, pt = g.sph/a.sph*100, pe = g.e/a.e*100;
+  h += "<p>On the Mercator map Greenland is drawn at " + fmt(pmc, 0) + "% of Africa's area on this map (cropped at " + MERC_LAT + "°); " + fmt(pm, 0) + "% if the map ran to Greenland's northern tip. On the globe it is " + fmt(pt, 1) + "%, and on the Equal Earth map " + fmt(pe, 1) + "%. " +
+    "Uncropped, Mercator inflates Greenland by " + times(g.m/g.sph) + " and Africa by " + times(a.m/a.sph) + ", so Greenland looks " + fmt((g.m/g.sph)/(a.m/a.sph), 1) + " times larger next to Africa than it is.</p>";
+  h += "<p class=\"small\">Areas are on a sphere of radius " + fmt(EARTH_R, 1) + " km, from the 110 m Natural Earth outlines (about 1:110,000,000), so they differ a little from published figures. The table's Mercator column counts all of Greenland, including the part north of " + MERC_LAT + "° that the map crops; the cropped figure clamps the outline at " + MERC_LAT + "° (vertex by vertex, so it is approximate). Antarctica is not used here.</p>";
+  el.innerHTML = h;
+}
+var GA = null;
+
+// ---------- self-checks ----------
+function runChecks(){
+  var rows = [], i, la, e;
+  // 1 Mercator scale factor against sec(phi)
+  var lats = [], maxe = 0;
+  for (la=0; la<=80; la+=10) lats.push(la);
+  lats.forEach(function(l){ var j = jac(merc, 0.3, l*D2R), s = 1/Math.cos(l*D2R); maxe = Math.max(maxe, Math.abs(j.kE/s-1), Math.abs(j.kN/s-1), Math.abs(j.a/s-1), Math.abs(j.b/s-1)); });
+  rows.push({name:"Mercator scale factor, east-west and north-south, equals sec φ at " + lats.length + " latitudes (" + lats[0] + "° to " + lats[lats.length-1] + "°)", err:maxe, tol:1e-6});
+  // 2 Mercator band: numeric area against closed form psi / sin
+  var tolB = 1e-3;
+  [30, 60].forEach(function(b){
+    var N = 400, M = 4, s = 0, k, l, p1 = -b*D2R, p2 = b*D2R, dp = (p2-p1)/N;
+    for (k=0;k<N;k++){ var ph = p1 + (k+0.5)*dp; for (l=0;l<M;l++) s += jac(merc, -PI + (l+0.5)*2*PI/M, ph).area * Math.cos(ph) * dp * (2*PI/M); }
+    var num = s/(4*PI*Math.sin(b*D2R));      // the band's area on the unit sphere is 4 pi sin b
+    var closed = psi(b*D2R)/Math.sin(b*D2R);
+    rows.push({name:"Mercator area inflation of the band ±" + b + "°: numeric integral of the Jacobian against ψ(φ)/sin φ = " + fmt(closed, 4) + "×", err:Math.abs(num/closed-1), tol:tolB});
+  });
+  // 3 Equal Earth over the whole sphere
+  var s2 = 0, nl = 180, np = 90, dphi = PI/np, dlam = 2*PI/nl, k2, l2, phh;
+  for (k2=0;k2<np;k2++){ phh = -PI/2 + (k2+0.5)*dphi; for (l2=0;l2<nl;l2++) s2 += jac(ee, -PI + (l2+0.5)*dlam, phh).area * Math.cos(phh) * dphi * dlam; }
+  rows.push({name:"Equal Earth: Jacobian integrated over the whole sphere against 4π = " + fmt(4*PI, 4), err:Math.abs(s2/(4*PI)-1), tol:1e-4});
+  var edge = [], n = 400;
+  for (i=0;i<=n;i++) edge.push(ee(-PI, -PI/2 + PI*i/n));
+  for (i=n;i>=0;i--) edge.push(ee(PI, -PI/2 + PI*i/n));
+  rows.push({name:"Equal Earth: area inside the drawn outline against 4π", err:Math.abs(shoelace(edge)/(4*PI)-1), tol:1e-4});
+  // 4 the circles on the page
+  var eM = 0, eE = 0, eI = 0;
+  S.circles.forEach(function(c){
+    var phi0 = c.lat*D2R, lam0 = c.lon*D2R, r = S.r*D2R, pts = capPoints(lam0, phi0, r, 720), sph = capArea(r);
+    var rm = shoelace(projRing(merc, pts))/sph, re = shoelace(projRing(ee, pts))/sph;
+    eM = Math.max(eM, Math.abs(rm/(mercCapIntegral(phi0, r)/sph)-1));
+    eE = Math.max(eE, Math.abs(re-1));
+    var ji = jacCapIntegral(ee, phi0, r, 60, 24)/sph;
+    eI = Math.max(eI, Math.abs(ji-1));
+  });
+  var cn = S.circles.length;
+  rows.push({name:"Mercator, the " + cn + " circle" + (cn===1?"":"s") + " on the page: drawn outline area against the integral of 2w(φ) sec φ", err:eM, tol:1e-3});
+  rows.push({name:"Equal Earth, the same circle" + (cn===1?"":"s") + ": drawn outline area against the cap area 2π(1 − cos r)", err:eE, tol:1e-3});
+  rows.push({name:"Equal Earth, the same: Jacobian integrated over each cap against the cap area", err:eI, tol:1e-3});
+  // 5 spherical area routine and the country outlines
+  var capRing = capPoints(20*D2R, 10*D2R, 12*D2R, 720).map(function(p){ return [p[0]*R2D, p[1]*R2D]; });
+  capRing.push(capRing[0]);
+  rows.push({name:"Spherical polygon-area routine on a 12° circle against 2π(1 − cos r)", err:Math.abs(sphRingArea(capRing)/capArea(12*D2R)-1), tol:2e-3});
+  if (GA){
+    rows.push({name:"Greenland and Africa: Equal Earth drawn area against spherical area (largest of the two)", err:Math.max(Math.abs(GA.g.e/GA.g.sph-1), Math.abs(GA.a.e/GA.a.sph-1)), tol:0.03});
+  } else {
+    rows.push({name:"Greenland and Africa: Equal Earth drawn area against spherical area", err:NaN, tol:0.03});
+  }
+  rows.forEach(function(r){ r.pass = r.err <= r.tol; });
+  return rows;
+}
+function renderChecks(rows){
+  var tb = $("chk").tBodies[0], html = "", fails = [];
+  rows.forEach(function(r, i){
+    if (!r.pass) fails.push(i+1);
+    html += "<tr><td>" + (i+1) + ". " + r.name + "</td><td class=\"" + (r.pass ? "ok" : "bad") + "\">" + (r.pass ? "✓ agrees" : "✗ differs") + "</td><td>" + (isNaN(r.err) ? "no data" : sci(r.err) + " (limit " + sci(r.tol) + ")") + "</td></tr>";
+  });
+  tb.innerHTML = html;
+  var v = $("chkV");
+  if (!fails.length){ v.className = "verdict ok"; v.textContent = rows.length === 1 ? "The check agrees." : "All " + rows.length + " checks agree."; }
+  else { v.className = "verdict bad"; v.textContent = (fails.length === 1 ? "One check differs: number " : fails.length + " checks differ: numbers ") + fails.join(", ") + " of " + rows.length + "."; }
+  window.__projChecks = rows;
+}
+
+// ---------- how it works text (numbers from the code) ----------
+function renderHow(){
+  var nPoly = 0, nPts = 0;
+  COUNTRIES.forEach(function(f){ f.p.forEach(function(p){ nPoly++; p.forEach(function(r){ nPts += r.length; }); }); });
+  $("how1").textContent = "Both maps use a sphere of radius 1 and the same pixel scale at the equator, so sizes are comparable. Mercator is x = λ, y = ln tan(π/4 + φ/2), which stretches every direction by sec φ and so keeps shapes but swells areas by sec² φ for small circles. " +
+    "Equal Earth (Savric, Patterson and Jenny, 2018) keeps area exactly by construction and bends shapes instead. A circle on the globe is the set of points at a fixed angle from its centre; the page projects 720 points of that edge and measures the area they enclose.";
+  $("how2").textContent = "Scale is measured, not assumed: the page projects points a hair apart (1e-5 radian) and divides map distance by globe distance in two directions, then compares with the formulas. Areas are taken three ways where possible: the outline of the drawn circle, an integral over the cap, and a closed form. The checks above list the differences.";
+  $("how3").textContent = "Outlines: Natural Earth 1:110m Admin 0 Countries, public domain, naturalearthdata.com, fetched 14 October 2026 from the natural-earth-vector repository on GitHub. This copy holds " + COUNTRIES.length + " country records, " + nPoly + " polygons and " + nPts + " points, rounded to 0.01°. No coastline is typed from memory. The Earth is a sphere here; the real one is slightly flattened.";
+}
+
+// ---------- pointer and keys ----------
+function pickAt(v, which, ev){
+  var r = v.box.getBoundingClientRect(), px = ev.clientX - r.left, py = ev.clientY - r.top;
+  var m = fromPx(v, px, py), g = v.inv(m[0], m[1]);
+  if (!g) return null;
+  // allow for the map being drawn one world over: inverse gives lon in [-pi, pi]
+  var best = -1, bd = 1e9, i;
+  S.circles.forEach(function(c, k){
+    var cl = c.lat*D2R, co = c.lon*D2R;
+    var d = Math.acos(Math.max(-1, Math.min(1, Math.sin(cl)*Math.sin(g[1]) + Math.cos(cl)*Math.cos(g[1])*Math.cos(g[0]-co))));
+    if (d < bd){ bd = d; best = k; }
+  });
+  return {g:g, hit: bd <= S.r*D2R*1.05 ? best : -1, near:best};
+}
+var drag = null;
+function setCenter(i, g){
+  var c = S.circles[i];
+  c.lat = clampLat(g[1]*R2D); c.lon = wrapLon(g[0]*R2D);
+}
+function onDown(which, ev){
+  if (ev.button != null && ev.button > 0) return;
+  var v = views[which], p = pickAt(v, which, ev);
+  if (!p) return;
+  var idx = p.hit >= 0 ? p.hit : S.sel;
+  if (ev.pointerType === "touch" && p.hit < 0) return;
+  S.sel = idx;
+  if (p.hit < 0) setCenter(idx, p.g);
+  drag = {which:which, id:ev.pointerId, grab:null};
+  var c = S.circles[idx];
+  if (p.hit >= 0) drag.grab = [wrapLon(p.g[0]*R2D - c.lon)*D2R, p.g[1] - c.lat*D2R];
+  v.box.classList.add("drag");
+  try { v.box.setPointerCapture(ev.pointerId); } catch(e){}
+  v.box.focus({preventScroll:true});
+  ev.preventDefault();
+  syncControls(); renderPick(); update(false);
+}
+function onMove(which, ev){
+  if (!drag || drag.which !== which || ev.pointerId !== drag.id) return;
+  var v = views[which], r = v.box.getBoundingClientRect(), m = fromPx(v, ev.clientX - r.left, ev.clientY - r.top);
+  var g = v.inv(m[0], m[1]);
+  if (!g) return;
+  if (drag.grab){ g = [g[0] - drag.grab[0], g[1] - drag.grab[1]]; }
+  setCenter(S.sel, g);
+  syncControls(); update(false);
+}
+function onUp(which, ev){
+  if (!drag || drag.which !== which) return;
+  views[which].box.classList.remove("drag"); drag = null;
+  try { views[which].box.releasePointerCapture(ev.pointerId); } catch(e){}
+  announce();
+}
+["M","E"].forEach(function(w){
+  var b = views[w].box;
+  b.addEventListener("pointerdown", function(e){ onDown(w, e); });
+  b.addEventListener("pointermove", function(e){ onMove(w, e); });
+  b.addEventListener("pointerup", function(e){ onUp(w, e); });
+  b.addEventListener("pointercancel", function(e){ onUp(w, e); });
+  b.addEventListener("keydown", function(e){
+    var step = e.shiftKey ? 5 : 1, c = S.circles[S.sel], used = true;
+    if (e.key === "ArrowLeft") c.lon -= step; else if (e.key === "ArrowRight") c.lon += step;
+    else if (e.key === "ArrowUp") c.lat += step; else if (e.key === "ArrowDown") c.lat -= step;
+    else used = false;
+    if (used){ e.preventDefault(); syncControls(); update(false); announce(); }
+  });
+});
+
+// ---------- controls ----------
+$("sLat").addEventListener("input", function(){ S.circles[S.sel].lat = +this.value; syncControls(); update(false); });
+$("sLon").addEventListener("input", function(){ S.circles[S.sel].lon = +this.value; syncControls(); update(false); });
+$("sR").addEventListener("input", function(){ S.r = +this.value; syncControls(); update(false); });
+["sLat","sLon","sR"].forEach(function(id){ $(id).addEventListener("change", announce); });
+$("bAdd").addEventListener("click", function(){
+  if (S.circles.length >= MAXC) return;
+  S.circles.push({lat:0, lon:0}); S.sel = S.circles.length-1;
+  syncControls(); renderPick(S.sel); update(false); announce();
+});
+$("bDel").addEventListener("click", function(){
+  if (S.circles.length <= 1) return;
+  S.circles.splice(S.sel, 1); S.sel = Math.min(S.sel, S.circles.length-1);
+  syncControls(); renderPick(S.sel); update(false); announce();
+});
+$("bReset").addEventListener("click", function(){
+  resetCircles(); syncControls(); renderPick(); update(false); announce();
+  $("h-circ").focus({preventScroll:true});
+});
+$("bChk").addEventListener("click", function(){
+  var b = this; b.disabled = true; b.textContent = "Checking…";
+  setTimeout(function(){
+    renderChecks(runChecks()); b.disabled = false; b.textContent = "Run the checks again";
+    var h = $("h-chk"); h.focus({preventScroll:true});
+    h.scrollIntoView({block:"start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  }, 30);
+});
+
+// ---------- start ----------
+resetCircles();
+renderHow(); renderPick(); syncControls();
+sizeViews(); update(false);
+renderGA();
+renderChecks(runChecks());
+var rt = 0;
+window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(function(){ sizeViews(); drawAll(); }, 120); });
+if (window.matchMedia){
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  var rd = function(){ drawAll(); };
+  if (mq.addEventListener) mq.addEventListener("change", rd); else if (mq.addListener) mq.addListener(rd);
+}
+window.Proj = {S:S, merc:merc, ee:ee, jac:jac, stats:function(){ return stats; }, runChecks:runChecks, update:function(){ update(false); }, GA:function(){ return GA; }};
+})();
+</script>
+</body>
+</html>

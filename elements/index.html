@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Element Timeline · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag a year slider to watch the periodic table fill in as each element was discovered, grouped by how it was found, with uncertain dates marked and counts computed from a named dataset (101 dated, 11 ancient, 6 with no usable year)">
+<link rel="canonical" href="https://vigilstudio.github.io/elements/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Element Timeline · Vigil">
+<meta property="og:description" content="Drag a year slider to watch the periodic table fill in as each element was discovered, grouped by how it was found, with uncertain dates marked and counts computed from a named dataset (101 dated, 11 ancient, 6 with no usable year)">
+<meta property="og:url" content="https://vigilstudio.github.io/elements/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Element Timeline · Vigil">
+<meta name="twitter:description" content="Drag a year slider to watch the periodic table fill in as each element was discovered, grouped by how it was found, with uncertain dates marked and counts computed from a named dataset (101 dated, 11 ancient, 6 with no usable year)">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--off:#ebe7da;--acc:#b8431a;--on-ink:#fff;
+  --g-ancient:#7a5c12;--g-chem:#1f5fa8;--g-spec:#a3367a;--g-elec:#b04600;--g-lab:#1f7a4d;--g-und:#6b675d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--on-ink:#111;
+  --g-ancient:#e0b85a;--g-chem:#7ab4f0;--g-spec:#e58cc4;--g-elec:#f0a05a;--g-lab:#62d09a;--g-und:#a8a498}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--on-ink:#111;
+  --g-ancient:#e0b85a;--g-chem:#7ab4f0;--g-spec:#e58cc4;--g-elec:#f0a05a;--g-lab:#62d09a;--g-und:#a8a498}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;overflow-x:hidden}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2.1rem;line-height:1.15;margin:8px 0 6px;font-weight:normal}
+h2{font-size:1.3rem;margin:28px 0 8px;font-weight:normal}
+.lede{margin:0 0 16px;max-width:40em}
+p{margin:0 0 12px}
+a{color:var(--acc)}
+.small{font-size:.86rem;color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button,input{font:inherit;color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 16px}
+.yearrow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.year{font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.readout{margin:8px 0 0}
+.ctl{display:flex;gap:8px;align-items:center;margin-top:10px}
+.ctl input[type=range]{flex:1;min-width:0;height:36px;accent-color:var(--acc)}
+.btn{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 14px;min-height:40px;cursor:pointer;font-size:.92rem}
+.btn:hover{border-color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.9rem;cursor:pointer;min-height:40px;text-align:left}
+.chip[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.chip[aria-pressed=false]{opacity:.55}
+.sw{width:14px;height:14px;border-radius:3px;flex:none}
+.tablewrap{overflow-x:auto;margin:0 0 6px;padding-bottom:4px}
+.table{min-width:620px;display:grid;grid-template-columns:repeat(18,minmax(0,1fr));grid-template-rows:repeat(7,auto) 8px auto auto;gap:2px}
+.cell{position:relative;min-width:0;aspect-ratio:1/1.1;padding:0;border:1px solid var(--line);border-radius:3px;background:var(--off);color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.cell .z{display:none;font-size:.58rem}
+.cell .s{font-size:.8rem;font-weight:bold}
+.cell.on{color:var(--on-ink);border-color:transparent}
+.cell.on.g-ancient{background:var(--g-ancient)}.cell.on.g-chem{background:var(--g-chem)}.cell.on.g-spec{background:var(--g-spec)}
+.cell.on.g-elec{background:var(--g-elec)}.cell.on.g-lab{background:var(--g-lab)}
+.cell.off{opacity:.7}
+.cell.hide{opacity:.25}
+.cell.und{border-color:var(--g-und);color:var(--ink)}
+.cell.unc{border:1.5px dashed var(--ink)}
+.cell.unc::after{content:"?";position:absolute;top:0;right:1px;font-size:.55rem;font-weight:bold}
+.cell.now{outline:3px solid var(--acc);outline-offset:1px;z-index:1}
+.cell.sel{box-shadow:0 0 0 2px var(--ink);z-index:1}
+@media (min-width:700px){.cell .z{display:block}.table{gap:3px}.cell .s{font-size:1.05rem}}
+.blank{grid-column:3;grid-row:6/8;font-size:.7rem;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.detail h3{margin:0 0 4px;font-size:1.15rem;font-weight:normal}
+.detail dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:6px 0 0}
+.detail dt{color:var(--muted);font-size:.85rem}
+@media (max-width:699px){.detail dl{grid-template-columns:1fr}.detail dd{margin-bottom:4px}}
+.detail dt{}.detail dd{margin:0}
+table.data{border-collapse:collapse;width:100%;font-size:.88rem}
+table.data th,table.data td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.scroll{overflow-x:auto}
+ul.flags{padding-left:1.1rem;margin:0 0 12px}
+ul.flags li{margin:0 0 6px}
+.ok{color:var(--g-lab)}.bad{color:var(--acc);font-weight:bold}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion: no-preference){.cell{transition:background-color .25s}}
+noscript{display:block;padding:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Element Timeline</h1>
+<p class="lede">Drag the year slider to watch the periodic table fill in as each chemical element was discovered.</p>
+
+<section class="panel" aria-label="Year control">
+  <div class="yearrow"><div class="year" id="yr">-</div><div id="yrnote" class="small"></div></div>
+  <p class="readout" id="readout"></p>
+  <div class="ctl">
+    <button class="btn" id="prev" type="button" aria-label="Previous year with a discovery">&#9664; Prev</button>
+    <input type="range" id="slider" aria-label="Year" aria-describedby="readout">
+    <button class="btn" id="next" type="button" aria-label="Next year with a discovery">Next &#9654;</button>
+  </div>
+  <div class="ctl"><button class="btn" id="play" type="button">Play</button><button class="btn" id="reset" type="button">Start</button><button class="btn" id="end" type="button">Latest</button></div>
+</section>
+
+<div class="chips" id="legend" role="group" aria-label="How the element was found. Press to show or hide a group."></div>
+
+<div class="tablewrap" tabindex="0" role="region" aria-label="Periodic table, scrolls sideways on narrow screens"><div class="table" id="table" role="group" aria-label="Periodic table, one button per element"></div></div>
+<p class="small" id="tablenote"></p>
+
+<section class="panel detail" id="detail" aria-live="polite"></section>
+
+<h2>Dates the page does not trust</h2>
+<p id="flagsum"></p>
+<ul class="flags" id="flags"></ul>
+
+<h2>Where the data comes from</h2>
+<div id="sources"></div>
+<p id="selfcheck"></p>
+<p><button class="btn" id="live" type="button">Check against the source now</button> <span id="livemsg" class="small" role="status"></span></p>
+
+<details class="panel">
+  <summary id="alltitle">All elements</summary>
+  <div class="scroll"><table class="data" id="all"></table></div>
+</details>
+
+<p class="small">Made by Claude, an AI model by Anthropic, for Vigil. The method groups and the <span id="nn"></span> memory notes on disputed dates are my own judgement from memory, not data from either source, and I could not check them against a third source.</p>
+</div>
+<noscript>This page needs JavaScript to draw the table.</noscript>
+<script>
+"use strict";
+/* rows: [Z, symbol, name, year or "Ancient" (source A), discoverer (source B), x, y (source B grid)] */
+var ROWS = [[1,"H","Hydrogen",1766,"Henry Cavendish",1,1],
+[2,"He","Helium",1868,"Pierre Janssen",18,1],
+[3,"Li","Lithium",1817,"Johan August Arfwedson",1,2],
+[4,"Be","Beryllium",1798,"Louis Nicolas Vauquelin",2,2],
+[5,"B","Boron",1807,"Joseph Louis Gay-Lussac",13,2],
+[6,"C","Carbon","Ancient","Ancient Egypt",14,2],
+[7,"N","Nitrogen",1772,"Daniel Rutherford",15,2],
+[8,"O","Oxygen",1774,"Carl Wilhelm Scheele",16,2],
+[9,"F","Fluorine",1670,"André-Marie Ampère",17,2],
+[10,"Ne","Neon",1898,"Morris Travers",18,2],
+[11,"Na","Sodium",1807,"Humphry Davy",1,3],
+[12,"Mg","Magnesium",1808,"Joseph Black",2,3],
+[13,"Al","Aluminum","Ancient","",13,3],
+[14,"Si","Silicon",1854,"Jöns Jacob Berzelius",14,3],
+[15,"P","Phosphorus",1669,"Hennig Brand",15,3],
+[16,"S","Sulfur","Ancient","Ancient china",16,3],
+[17,"Cl","Chlorine",1774,"Carl Wilhelm Scheele",17,3],
+[18,"Ar","Argon",1894,"Lord Rayleigh",18,3],
+[19,"K","Potassium",1807,"Humphry Davy",1,4],
+[20,"Ca","Calcium","Ancient","Humphry Davy",2,4],
+[21,"Sc","Scandium",1876,"Lars Fredrik Nilson",3,4],
+[22,"Ti","Titanium",1791,"William Gregor",4,4],
+[23,"V","Vanadium",1803,"Andrés Manuel del Río",5,4],
+[24,"Cr","Chromium","Ancient","Louis Nicolas Vauquelin",6,4],
+[25,"Mn","Manganese",1774,"Torbern Olof Bergman",7,4],
+[26,"Fe","Iron","Ancient","5000 BC",8,4],
+[27,"Co","Cobalt","Ancient","Georg Brandt",9,4],
+[28,"Ni","Nickel",1751,"Axel Fredrik Cronstedt",10,4],
+[29,"Cu","Copper","Ancient","Middle East",11,4],
+[30,"Zn","Zinc",1746,"India",12,4],
+[31,"Ga","Gallium",1875,"Lecoq de Boisbaudran",13,4],
+[32,"Ge","Germanium",1886,"Clemens Winkler",14,4],
+[33,"As","Arsenic","Ancient","Bronze Age",15,4],
+[34,"Se","Selenium",1817,"Jöns Jakob Berzelius",16,4],
+[35,"Br","Bromine",1826,"Antoine Jérôme Balard",17,4],
+[36,"Kr","Krypton",1898,"William Ramsay",18,4],
+[37,"Rb","Rubidium",1861,"Robert Bunsen",1,5],
+[38,"Sr","Strontium",1790,"William Cruickshank (chemist)",2,5],
+[39,"Y","Yttrium",1794,"Johan Gadolin",3,5],
+[40,"Zr","Zirconium",1789,"Martin Heinrich Klaproth",4,5],
+[41,"Nb","Niobium",1801,"Charles Hatchett",5,5],
+[42,"Mo","Molybdenum",1778,"Carl Wilhelm Scheele",6,5],
+[43,"Tc","Technetium",1937,"Emilio Segrè",7,5],
+[44,"Ru","Ruthenium",1827,"Karl Ernst Claus",8,5],
+[45,"Rh","Rhodium",1803,"William Hyde Wollaston",9,5],
+[46,"Pd","Palladium",1803,"William Hyde Wollaston",10,5],
+[47,"Ag","Silver","Ancient","unknown, before 5000 BC",11,5],
+[48,"Cd","Cadmium",1817,"Karl Samuel Leberecht Hermann",12,5],
+[49,"In","Indium",1863,"Ferdinand Reich",13,5],
+[50,"Sn","Tin","Ancient","unknown, before 3500 BC",14,5],
+[51,"Sb","Antimony","Ancient","unknown, before 3000 BC",15,5],
+[52,"Te","Tellurium",1782,"Franz-Joseph Müller von Reichenstein",16,5],
+[53,"I","Iodine",1811,"Bernard Courtois",17,5],
+[54,"Xe","Xenon",1898,"William Ramsay",18,5],
+[55,"Cs","Cesium",1860,"Robert Bunsen",1,6],
+[56,"Ba","Barium",1808,"Carl Wilhelm Scheele",2,6],
+[57,"La","Lanthanum",1839,"Carl Gustaf Mosander",3,9],
+[58,"Ce","Cerium",1803,"Martin Heinrich Klaproth",4,9],
+[59,"Pr","Praseodymium",1885,"Carl Auer von Welsbach",5,9],
+[60,"Nd","Neodymium",1885,"Carl Auer von Welsbach",6,9],
+[61,"Pm","Promethium",1947,"Chien Shiung Wu",7,9],
+[62,"Sm","Samarium",1853,"Lecoq de Boisbaudran",8,9],
+[63,"Eu","Europium",1901,"Eugène-Anatole Demarçay",9,9],
+[64,"Gd","Gadolinium",1880,"Jean Charles Galissard de Marignac",10,9],
+[65,"Tb","Terbium",1843,"Carl Gustaf Mosander",11,9],
+[66,"Dy","Dysprosium",1886,"Lecoq de Boisbaudran",12,9],
+[67,"Ho","Holmium",1878,"Marc Delafontaine",13,9],
+[68,"Er","Erbium",1842,"Carl Gustaf Mosander",14,9],
+[69,"Tm","Thulium",1879,"Per Teodor Cleve",15,9],
+[70,"Yb","Ytterbium",1878,"Jean Charles Galissard de Marignac",16,9],
+[71,"Lu","Lutetium",1907,"Georges Urbain",17,9],
+[72,"Hf","Hafnium",1923,"Dirk Coster",4,6],
+[73,"Ta","Tantalum",1802,"Anders Gustaf Ekeberg",5,6],
+[74,"W","Tungsten",1783,"Carl Wilhelm Scheele",6,6],
+[75,"Re","Rhenium",1925,"Masataka Ogawa",7,6],
+[76,"Os","Osmium",1803,"Smithson Tennant",8,6],
+[77,"Ir","Iridium",1803,"Smithson Tennant",9,6],
+[78,"Pt","Platinum","Ancient","Antonio de Ulloa",10,6],
+[79,"Au","Gold","Ancient","Middle East",11,6],
+[80,"Hg","Mercury","Ancient","unknown, before 2000 BCE",12,6],
+[81,"Tl","Thallium",1861,"William Crookes",13,6],
+[82,"Pb","Lead","Ancient","Middle East",14,6],
+[83,"Bi","Bismuth","Ancient","Claude François Geoffroy",15,6],
+[84,"Po","Polonium",1898,"Pierre Curie",16,6],
+[85,"At","Astatine",1940,"Dale R. Corson",17,6],
+[86,"Rn","Radon",1900,"Friedrich Ernst Dorn",18,6],
+[87,"Fr","Francium",1939,"Marguerite Perey",1,7],
+[88,"Ra","Radium",1898,"Pierre Curie",2,7],
+[89,"Ac","Actinium",1899,"Friedrich Oskar Giesel",3,10],
+[90,"Th","Thorium",1828,"Jöns Jakob Berzelius",4,10],
+[91,"Pa","Protactinium",1913,"William Crookes",5,10],
+[92,"U","Uranium",1789,"Martin Heinrich Klaproth",6,10],
+[93,"Np","Neptunium",1940,"Edwin McMillan",7,10],
+[94,"Pu","Plutonium",1940,"Glenn T. Seaborg",8,10],
+[95,"Am","Americium",1944,"Glenn T. Seaborg",9,10],
+[96,"Cm","Curium",1944,"Glenn T. Seaborg",10,10],
+[97,"Bk","Berkelium",1949,"Lawrence Berkeley National Laboratory",11,10],
+[98,"Cf","Californium",1950,"Lawrence Berkeley National Laboratory",12,10],
+[99,"Es","Einsteinium",1952,"Lawrence Berkeley National Laboratory",13,10],
+[100,"Fm","Fermium",1952,"Lawrence Berkeley National Laboratory",14,10],
+[101,"Md","Mendelevium",1955,"Lawrence Berkeley National Laboratory",15,10],
+[102,"No","Nobelium",1957,"Joint Institute for Nuclear Research",16,10],
+[103,"Lr","Lawrencium",1961,"Lawrence Berkeley National Laboratory",17,10],
+[104,"Rf","Rutherfordium",1969,"Joint Institute for Nuclear Research",4,7],
+[105,"Db","Dubnium",1967,"Joint Institute for Nuclear Research",5,7],
+[106,"Sg","Seaborgium",1974,"Lawrence Berkeley National Laboratory",6,7],
+[107,"Bh","Bohrium",1976,"Gesellschaft für Schwerionenforschung",7,7],
+[108,"Hs","Hassium",1984,"Gesellschaft für Schwerionenforschung",8,7],
+[109,"Mt","Meitnerium",1982,"Gesellschaft für Schwerionenforschung",9,7],
+[110,"Ds","Darmstadtium",1994,"Gesellschaft für Schwerionenforschung",10,7],
+[111,"Rg","Roentgenium",1994,"Gesellschaft für Schwerionenforschung",11,7],
+[112,"Cn","Copernicium",1996,"Gesellschaft für Schwerionenforschung",12,7],
+[113,"Nh","Nihonium",2003,"RIKEN",13,7],
+[114,"Fl","Flerovium",1998,"Joint Institute for Nuclear Research",14,7],
+[115,"Mc","Moscovium",2003,"Joint Institute for Nuclear Research",15,7],
+[116,"Lv","Livermorium",2000,"Joint Institute for Nuclear Research",16,7],
+[117,"Ts","Tennessine",2010,"Joint Institute for Nuclear Research",17,7],
+[118,"Og","Oganesson",2002,"Joint Institute for Nuclear Research",18,7]];
+var FETCHED = "14 Oct 2026";
+var URL_A = "https://raw.githubusercontent.com/andrejewski/periodic-table/master/data.json";
+var URL_B = "https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json";
+
+var GROUPS = [
+  {id:"ancient", cls:"g-ancient", label:"Ancient", desc:"labelled Ancient in the source and not contradicted by the second dataset; no year"},
+  {id:"undated", cls:"g-und", label:"No usable year", desc:"labelled Ancient in the source, but the second dataset names a later discoverer or none"},
+  {id:"chem", cls:"g-chem", label:"Chemistry", desc:"found by chemical analysis of minerals and air"},
+  {id:"spec", cls:"g-spec", label:"Spectroscopy", desc:"found or confirmed from spectral lines"},
+  {id:"elec", cls:"g-elec", label:"Electrolysis", desc:"first isolated with an electric current"},
+  {id:"lab", cls:"g-lab", label:"Made in labs", desc:"first made artificially"}
+];
+/* My classification, from memory (not in either source). Everything else not ancient is "chem". */
+var SPEC = "He Ne Kr Xe Rb Cs Tl In Ga Ho Hf Re".split(" ");
+var ELEC = "Na K Mg Ba".split(" ");
+var LAB = "Tc Pm At".split(" ");
+var LAB_FROM_Z = 93;
+/* My notes on contested dates, from memory (not in either source). */
+var NOTES = {
+  F:"The source year 1670 is usually tied to etching glass with fluorspar acid; the element itself was isolated in 1886 (Moissan).",
+  Si:"The second dataset names Berzelius but the source gives 1854; Berzelius's work is usually dated to 1823 and crystalline silicon to 1854.",
+  Re:"The second dataset names Ogawa (1908 claim, later reassigned) but the source gives 1925, the year usually credited to Noddack, Tacke and Berg.",
+  Pm:"The second dataset's discoverer is not the usual credit (Marinsky, Glendenin and Coryell at Oak Ridge, 1945; named later).",
+  Rf:"Priority was disputed between Dubna and Berkeley, settled by an international working party in the 1990s.",
+  Db:"Priority was disputed between Dubna and Berkeley, settled by an international working party in the 1990s.",
+  Sc:"Year kept as in the source (1876); Nilson found scandium in 1879, so this date is uncertain.",
+  Ru:"Year kept as in the source (1827); that was Osann's unconfirmed claim, and Claus's confirmed discovery is dated 1844, so this date is uncertain.",
+  Sm:"Year kept as in the source (1853); Lecoq de Boisbaudran's discovery is dated 1879, so this date is uncertain.",
+  Bh:"Year kept as in the source (1976); that was Dubna's claim, and GSI's discovery of 1981 is the one usually credited, so this date is uncertain.",
+  Nh:"Year kept as in the source (2003); RIKEN's first event was in 2004, so this date is uncertain.",
+  No:"The 1957 claim was not confirmed; the credit was later contested between Dubna and Berkeley."
+};
+var EXTRA_PLACE = /^(India|China|Middle East|Ancient|unknown|Bronze Age|\d)/i;
+
+function plc(n, one, many){ many = many || one + "s"; return n + " " + (n === 1 ? one : many); }
+function listNames(a){ if(!a.length) return "none"; if(a.length===1) return a[0]; return a.slice(0,-1).join(", ")+" and "+a[a.length-1]; }
+function $(id){ return document.getElementById(id); }
+
+var EL = ROWS.map(function(r){
+  var e = {z:r[0], sym:r[1], name:r[2], raw:r[3], by:r[4]||"", x:r[5], y:r[6]};
+  /* Rule: the source label "Ancient" is kept as e.srcAncient. The element counts as ancient only if the second
+     dataset's discoverer is a place, a period or "unknown"; if it names a person or nothing, the labels disagree
+     and the element is "undated" (no year, never lit by the slider). */
+  e.srcAncient = (r[3] === "Ancient");
+  e.ancient = e.srcAncient && !!e.by && EXTRA_PLACE.test(e.by);
+  e.undated = e.srcAncient && !e.ancient;
+  e.year = e.srcAncient ? null : r[3];
+  e.group = e.undated ? "undated" : e.ancient ? "ancient" : SPEC.indexOf(e.sym)>=0 ? "spec" : ELEC.indexOf(e.sym)>=0 ? "elec" :
+            (LAB.indexOf(e.sym)>=0 || e.z>=LAB_FROM_Z) ? "lab" : "chem";
+  e.reasons = [];
+  if(e.undated) e.reasons.push("The source calls it ancient, but the second dataset " + (e.by ? "credits " + e.by : "names no discoverer") + "; the two disagree, so the page does not call it ancient and gives it no year.");
+  if(!e.srcAncient && e.by && EXTRA_PLACE.test(e.by)) e.reasons.push("The source gives a year, but the second dataset names only \"" + e.by + "\" as discoverer.");
+  if(NOTES[e.sym]) e.reasons.push("My note from memory: " + NOTES[e.sym]);
+  e.unc = e.reasons.length > 0;
+  return e;
+});
+
+/* years */
+var years = EL.filter(function(e){return e.year!==null;}).map(function(e){return e.year;});
+var YMIN = Math.floor((Math.min.apply(null, years)-1)/10)*10, YMAX = Math.max.apply(null, years);
+var distinct = Array.from(new Set(years)).sort(function(a,b){return a-b;});
+var state = {year:YMIN, sel:null, on:{ancient:true,undated:true,chem:true,spec:true,elec:true,lab:true}, timer:null};
+var cells = {};
+var UND = EL.filter(function(e){return e.undated;}).length, ANC = EL.filter(function(e){return e.ancient;}).length;
+var DATED = EL.filter(function(e){return Number.isInteger(e.year);}).length, LIGHT = DATED + ANC;
+var NNOTES = Object.keys(NOTES).length;
+var SPLIT = DATED + " dated, " + ANC + " ancient, " + UND + " with no usable year";
+function isLit(e, y){ return e.ancient || (e.year !== null && e.year <= y); }
+
+function known(year, groupId){
+  return EL.filter(function(e){ return (groupId?e.group===groupId:true) && isLit(e, year); });
+}
+function reducedMotion(){ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
+
+/* build UI */
+(function build(){
+  var legend = $("legend");
+  GROUPS.forEach(function(g){
+    var b = document.createElement("button");
+    b.type="button"; b.className="chip"; b.setAttribute("aria-pressed","true"); b.dataset.g=g.id;
+    b.innerHTML = '<span class="sw" style="background:var(--'+g.cls+')"></span><span><b>'+g.label+'</b> <span class="cnt"></span></span>';
+    b.title = g.label + ": " + g.desc;
+    b.addEventListener("click", function(){ state.on[g.id]=!state.on[g.id]; b.setAttribute("aria-pressed", String(state.on[g.id])); render(); });
+    legend.appendChild(b);
+  });
+  var t = $("table");
+  EL.forEach(function(e){
+    var c = document.createElement("button");
+    c.type="button"; c.className="cell"; c.style.gridColumn=e.x; c.style.gridRow = e.y;
+    c.innerHTML = '<span class="z">'+e.z+'</span><span class="s">'+e.sym+'</span>';
+    c.addEventListener("click", function(){ state.sel=e.z; render(); });
+    t.appendChild(c); cells[e.z]=c;
+  });
+  var bl = document.createElement("div"); bl.className="blank"; bl.setAttribute("aria-hidden","true"); bl.textContent="57-71 / 89-103"; t.appendChild(bl);
+  var s = $("slider"); s.min=YMIN; s.max=YMAX; s.step=1; s.value=YMIN;
+  s.addEventListener("input", function(){ stop(); state.year=+s.value; render(); });
+  $("next").addEventListener("click", function(){ stop(); step(1); });
+  $("prev").addEventListener("click", function(){ stop(); step(-1); });
+  $("reset").addEventListener("click", function(){ stop(); state.year=YMIN; render(); });
+  $("end").addEventListener("click", function(){ stop(); state.year=YMAX; render(); });
+  $("play").addEventListener("click", function(){ if(state.timer){ stop(); } else { play(); } });
+  $("live").addEventListener("click", liveCheck);
+})();
+
+function step(dir){
+  var y = state.year, n = null, i;
+  if(dir>0){ for(i=0;i<distinct.length;i++) if(distinct[i]>y){ n=distinct[i]; break; } if(n===null) n=YMAX; }
+  else { for(i=distinct.length-1;i>=0;i--) if(distinct[i]<y){ n=distinct[i]; break; } if(n===null) n=YMIN; }
+  state.year = n; render();
+}
+function play(){
+  if(state.year>=YMAX) state.year=YMIN;
+  $("play").textContent="Pause";
+  state.timer = setInterval(function(){ if(state.year>=distinct[distinct.length-1]){ stop(); return; } step(1); }, reducedMotion()?900:350);
+}
+function stop(){ if(state.timer){ clearInterval(state.timer); state.timer=null; } $("play").textContent="Play"; }
+
+function render(){
+  var y = state.year;
+  $("slider").value = y;
+  $("slider").setAttribute("aria-valuetext", "Year " + y + ", " + plc(known(y).length,"element") + " known");
+  $("yr").textContent = y;
+  var all = known(y);
+  var found = EL.filter(function(e){return e.year===y;});
+  var unc = all.filter(function(e){return e.unc;});
+  var yn = y===YMIN ? "Only the ancient elements, which have no year." : "";
+  $("yrnote").textContent = yn;
+  var txt = (all.length===0 ? "No elements known by " + y : plc(all.length,"element") + " known by " + y + ", of " + LIGHT + " that can light up (" + SPLIT + ")") + ". ";
+  txt += "Found in " + y + ": " + listNames(found.map(function(e){return e.name;})) + ". ";
+  txt += unc.length ? ("Of the " + plc(all.length,"element") + " shown, " + (unc.length===1?"1 has":unc.length+" have") + " an uncertain date.") : "None of the elements shown has an uncertain date.";
+  $("readout").textContent = txt;
+  GROUPS.forEach(function(g){
+    var chip = document.querySelector('.chip[data-g="'+g.id+'"] .cnt');
+    var k = known(y,g.id).length, tot = EL.filter(function(e){return e.group===g.id;}).length;
+    chip.textContent = g.id==="undated" ? tot + " in total" : k + " of " + tot;
+  });
+  EL.forEach(function(e){
+    var c = cells[e.z], g = GROUPS.filter(function(x){return x.id===e.group;})[0];
+    var lit = isLit(e, y), vis = state.on[e.group];
+    c.className = "cell" + (lit ? " on "+g.cls : " off") + (vis ? "" : " hide") + (e.unc ? " unc" : "") + (e.undated ? " und" : "") +
+      (e.year===y ? " now" : "") + (state.sel===e.z ? " sel" : "");
+    c.setAttribute("aria-label", e.name + ", number " + e.z + ", " + (e.undated?"source says ancient, no usable year":e.ancient?"ancient":"found "+e.year) + ", " + g.label + (e.unc?", date uncertain":"") + (e.undated?"":lit?", known":", not yet known") + (vis?"":", group hidden"));
+    c.setAttribute("aria-pressed", String(state.sel===e.z));
+  });
+  var vis = EL.filter(function(e){return state.on[e.group];});
+  var hidden = GROUPS.filter(function(g){return !state.on[g.id];}).map(function(g){return g.label;});
+  $("tablenote").textContent = (hidden.length ? "Hidden groups (shown faded): " + listNames(hidden) + ". " : "") + (UND ? plc(UND,"element") + " with no usable year (grey border) " + (UND===1?"never lights":"never light") + " up. " : "") + "Dashed outline with ? means the date is uncertain. Lighter, plain boxes are not yet discovered at this year. Layout from the second dataset.";
+  detail();
+}
+
+function detail(){
+  var d = $("detail");
+  if(state.sel===null){ d.innerHTML = '<p class="small" style="margin:0">Press an element for its source year, discoverer, method group and any reason its date is doubted.</p>'; return; }
+  var e = EL.filter(function(x){return x.z===state.sel;})[0];
+  var g = GROUPS.filter(function(x){return x.id===e.group;})[0];
+  var lit = isLit(e, state.year);
+  var h = '<h3>'+e.name+' ('+e.sym+', number '+e.z+')</h3><dl>';
+  h += '<dt>Source year</dt><dd>'+(e.srcAncient?'"Ancient" (no year)':e.year)+'</dd>';
+  h += '<dt>Discoverer (2nd dataset)</dt><dd>'+(e.by||"none given")+'</dd>';
+  h += '<dt>Method group</dt><dd>'+g.label+' ('+g.desc+') - '+(e.srcAncient?'derived by this page&#39;s rule':'my classification')+'</dd>';
+  h += '<dt>At '+state.year+'</dt><dd>'+(e.undated?"no usable year":lit?"known":"not yet known")+'</dd>';
+  h += '<dt>Date</dt><dd>'+(e.unc?"uncertain":"no doubt raised by this page")+'</dd></dl>';
+  if(e.reasons.length){ h += '<ul class="flags" style="margin-top:8px">'+e.reasons.map(function(r){return "<li>"+r+"</li>";}).join("")+"</ul>"; }
+  d.innerHTML = h;
+}
+
+/* flags list */
+(function(){
+  var f = EL.filter(function(e){return e.unc;});
+  $("flagsum").textContent = (f.length===0 ? "No date is flagged." : plc(f.length,"element")+" "+(f.length===1?"is":"are")+" marked uncertain: ") + (f.length? listNames(f.map(function(e){return e.name;}))+".":"");
+  var auto = f.filter(function(e){return e.reasons.some(function(r){return r.indexOf("My note")!==0;});}).length;
+  var memo = f.filter(function(e){return e.reasons.some(function(r){return r.indexOf("My note")===0;});}).length;
+  $("flagsum").textContent += " " + plc(auto,"flag")+(auto===1?" comes":" come")+" from the two datasets disagreeing, computed here; "+plc(memo,"flag")+(memo===1?" comes":" come")+" from my own notes. Elements with a source year keep it; nothing was replaced with a date from memory.";
+  $("flags").innerHTML = f.map(function(e){ return "<li><b>"+e.name+"</b> ("+(e.srcAncient?"source: Ancient":e.year)+"): "+e.reasons.join(" ")+"</li>"; }).join("");
+})();
+
+/* sources + all */
+(function(){
+  var anc = EL.filter(function(e){return e.srcAncient;});
+  var ancOk = EL.filter(function(e){return e.ancient;});
+  $("sources").innerHTML =
+   '<p><b>Years:</b> <code>data.json</code> from the <a href="https://github.com/andrejewski/periodic-table">andrejewski/periodic-table</a> repository (ISC licence), field <code>yearDiscovered</code>, fetched '+FETCHED+'. A year there is a number or the word "Ancient". PubChem\'s own periodic table download could not be reached from where this page was made, so this is a different copy of a similar table; I do not know where its years come from.</p>'+
+   '<p><b>Discoverers and the table layout:</b> <a href="https://github.com/Bowserinator/Periodic-Table-JSON">Bowserinator/Periodic-Table-JSON</a> (CC BY-SA 3.0), fields <code>discovered_by</code>, <code>xpos</code> and <code>ypos</code>, fetched '+FETCHED+'. Element 119 in that file is left out.</p>'+
+   '<p><b>Counts:</b> every number on this page is computed in your browser from those rows. In the source, '+plc(anc.length,"element")+" "+(anc.length===1?"is":"are")+' labelled ancient, and '+plc(ancOk.length,"element")+" of them "+(ancOk.length===1?"is":"are")+' not contradicted by the second dataset. Rule used here: an element counts as ancient only if the second dataset gives a place, a period or "unknown" as discoverer. The other '+UND+' (' + listNames(EL.filter(function(e){return e.undated;}).map(function(e){return e.sym;})) + ') keep the source label in the detail view but are shown as "No usable year" and are never lit by the slider, so the page does not claim they were known in antiquity.</p>'+
+   '<p><b>Not from either source:</b> the five method groups, and the notes on contested dates. A group says how an element was first found or made, not the whole story, and some are debatable (the noble gases Ne, Kr and Xe are in Spectroscopy because their spectra identified them, while Ar is in Chemistry because Rayleigh and Ramsay isolated it by removing nitrogen, oxygen and other gases from air, with its spectrum only a confirmation; Hf and Re are in Spectroscopy because of X-ray spectra).</p>';
+  var rows = '<tr><th>Z</th><th>Element</th><th>Source year</th><th>Group</th><th>Discoverer (2nd dataset)</th><th>Date</th></tr>';
+  EL.forEach(function(e){
+    var g = GROUPS.filter(function(x){return x.id===e.group;})[0];
+    rows += '<tr><td>'+e.z+'</td><td>'+e.name+' ('+e.sym+')</td><td>'+(e.srcAncient?"Ancient":e.year)+'</td><td>'+g.label+'</td><td>'+(e.by||"none given")+'</td><td>'+(e.unc?"uncertain":"")+'</td></tr>';
+  });
+  $("all").innerHTML = rows;
+  $("alltitle").textContent = "All " + EL.length + " rows as used by this page";
+})();
+
+/* self checks */
+var checks = [];
+function chk(name, ok){ checks.push({name:name, ok:!!ok}); }
+(function(){
+  var zs = EL.map(function(e){return e.z;});
+  chk("atomic numbers run 1 to "+EL.length+" with no gaps or repeats", zs.every(function(z,i){return z===i+1;}));
+  var pos = {}; var dup = false; EL.forEach(function(e){ var k=e.x+","+e.y; if(pos[k]) dup=true; pos[k]=1; });
+  chk("no two elements share a table position", !dup);
+  chk("every year is a whole number or Ancient", EL.every(function(e){return e.srcAncient || Number.isInteger(e.year);}));
+  chk("group counts add up to the total", GROUPS.reduce(function(s,g){return s+EL.filter(function(e){return e.group===g.id;}).length;},0)===EL.length);
+  var mono = true, prev = -1; for(var y=YMIN;y<=YMAX;y++){ var k=known(y).length; if(k<prev) mono=false; prev=k; }
+  chk("the number known never falls as the year rises", mono);
+  chk("all "+LIGHT+" elements that can light up ("+DATED+" dated, "+ANC+" ancient) are known by "+YMAX, known(YMAX).length===LIGHT);
+  chk("the number known at the start equals the ancient count", known(YMIN).length===EL.filter(function(e){return e.ancient;}).length);
+  chk("source Ancient labels = ancient + no usable year", EL.filter(function(e){return e.srcAncient;}).length===EL.filter(function(e){return e.ancient;}).length+UND);
+  var bad = checks.filter(function(c){return !c.ok;});
+  $("selfcheck").innerHTML = bad.length===0 ? '<span class="ok">Self-checks: all '+checks.length+' pass</span> (' + checks.map(function(c){return c.name;}).join("; ") + ")." :
+    '<span class="bad">Self-checks: '+bad.length+' of '+checks.length+' fail</span>: '+bad.map(function(c){return c.name;}).join("; ")+".";
+})();
+
+/* live check against the source */
+function liveCheck(){
+  var m = $("livemsg"); m.textContent = "Fetching...";
+  fetch(URL_A, {cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(function(d){
+    var diff = [], missing = 0;
+    EL.forEach(function(e){
+      var s = d.filter(function(x){return x.atomicNumber===e.z;})[0];
+      if(!s){ missing++; return; }
+      if(s.symbol!==e.sym || s.yearDiscovered!==e.raw) diff.push(e.name);
+    });
+    var extra = d.filter(function(x){return x.atomicNumber>EL.length;}).length;
+    m.textContent = "Live source has " + plc(d.length,"row") + " today. " + (EL.length-diff.length-missing) + " of " + EL.length + " rows here match its symbol and year. Differences: " + listNames(diff.concat(missing?[plc(missing,"row")+" missing"]:[])) + (extra? "; "+plc(extra,"extra row")+" in the source":"") + ".";
+  }).catch(function(err){
+    m.textContent = "Could not reach the source ("+err.message+"). The table you see is the copy made on "+FETCHED+".";
+  });
+}
+
+$("nn").textContent = NNOTES;
+render();
+</script>
+</body>
+</html>

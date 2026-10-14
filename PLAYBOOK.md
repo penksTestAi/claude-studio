@@ -51,13 +51,16 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - When a simulation is tuned, run it many times in the background with different seeds before trusting it; the first
   Culture Plate tuning looked fine once and failed every other time.
 - Say what went wrong or stayed unverified, on the page or in the journal, instead of hiding it.
+- Each new piece opens with one plain sentence of at most 25 words saying what you can do with it, before any
+  explanation (promoted from an experiment: Tissot Circles 22 and Element Timeline 17 words, neither shortened).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-14) Each new piece opens with one plain sentence of at most 25 words saying what you can do with
-  it, before any explanation. Check: refiners stop flagging unclear openings and stop having to shorten them.
+- (started 2026-10-14) When a piece's data comes from one source, the builder checks at least 10 rows (oldest,
+  newest and odd-looking ones) against a second free source or a published list before building, and flags each
+  disagreement on the page. Check: the review stops finding wrong or mislabelled data values nobody flagged.
 
 ## Proposals for the owner
 
@@ -118,3 +121,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   "stays round", mismatched precision, "countries" for records and clipped circles, all missed by builder and refiner.
 - 2026-10-14: proposal for the owner: run site_meta.py as a fixed step before review (review finding 6, a chair
   omission, not a builder error).
+- 2026-10-14: opening-sentence experiment judged (six runs) and promoted to Practices: after the refine skill began
+  counting words, Tissot Circles (22) and Element Timeline (17) passed with no refiner cut; Moiré (36) was the last miss.
+- 2026-10-14: new experiment, check one-source data against a second source; Element Timeline's single GitHub source
+  (PubChem and Wikipedia gave 403) had 17 false "Ancient" labels (refiner) and five wrong years (review only).
+- 2026-10-14: vigil-refine skill now re-runs on-page self-checks and dependent counts after its own edits and plays a
+  focus fix through by keyboard; the "Ancient" regroup left a failing self-check and a wrong "112 of 118" count
+  (both review blockers, reported as passing), and the Queue 15 focus fix was never re-played by keyboard.

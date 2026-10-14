@@ -18,6 +18,8 @@ and the files. That is the point: fresh eyes. You never commit or push.
    agree; and besides the 375px screenshots, resize to a mid width (about 600-800px) and look once.
 2. **One round of concrete fixes** directly in the files: the most valuable ones first. Keep the maker's idea and
    voice; do not rebuild it. For toys, keep the house style exactly and keep the copy short and dry.
-3. Run the page check again.
+3. Run the page check again. Then reload fresh and run every on-page self-check, and re-read every count or
+   sentence that depends on data or rules you changed; your edit can make the builder's results stale. Report the
+   pass count you saw yourself. If you fixed keyboard or focus, finish one whole play-through by keyboard only.
 
 Exactly one pass. Report: what you changed, what you chose to leave and why, and the final check result.

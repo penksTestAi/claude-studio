@@ -37,6 +37,10 @@ piece completely, check it, and report back. You never commit or push.
   repeats, and log the scheduled calls (for Web Audio, wrap `setValueAtTime`/`linearRampToValueAtTime`/
   `cancelScheduledValues` and print them). Never read `AudioParam.value` to decide a start point; keep the value in a
   variable. Claude cannot hear the page, so the log is the check.
+- Text built from data (summaries, counts, lists of names): compute the names too, not only the numbers, and read
+  the sentence aloud for 0, 1 and many (write "none", never "0 differ" or "for 0 it ...").
+- Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
+  README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy
   is a duplicate.
 

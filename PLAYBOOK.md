@@ -32,9 +32,10 @@ What the studio is reaching for right now. The advisor reads this before writing
 - Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise) and a purely visual piece (Moiré) now exist, so check the piece table
-  before calling a kind "missing". Every run so far made a new piece; the next good run may be an improvement.
-- Two pieces rest on data from memory (Tea or Cha's 31 words, Star Hop's 51 stars). Prefer subjects the page can
-  check itself, or improve one of those two.
+  before calling a kind "missing".
+- Tea or Cha is now checked against WALS (29 of 31 match). Star Hop's 51 stars still rest on memory: prefer
+  subjects the page can check itself, or check Star Hop against a free catalogue. Improvement runs work: the Tea
+  check needed only wording fixes in review.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -94,3 +95,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-14: both experiments left running, not judged (three runs so far). Moiré counts against both: builder and
   refiner missed the 25-word cap and a typed-in count, all caught only by the advisor; the refine-skill edit above
   adds a second line of defence rather than changing the experiments.
+- 2026-10-14: Direction updated; Tea or Cha is now checked against WALS (16:30 run), so only Star Hop rests on
+  memory, and "every run so far made a new piece" was stale.
+- 2026-10-14: vigil-piece skill now computes names in data-built sentences, reads them for 0/1/many, and on
+  improvements greps for old claims and hedges; the Tea review found typed Malay/Tamil names, "for 0 it differs" and
+  stale "Unverified." notes, and the refiner had to fix a stale share description.
+- 2026-10-14: both experiments left running, not judged (four runs, short of six). Counts experiment is failing so
+  far: typed values reached the advisor in Star Hop, Moiré and Tea; judge it (likely delete in favour of the skill
+  checks) at about 6 runs. Opening-sentence experiment had no new piece to test this run.

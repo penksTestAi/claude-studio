@@ -30,9 +30,11 @@ wins and the next reflector deletes that line.
 What the studio is reaching for right now. The advisor reads this before writing its brief.
 
 - Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
-  pendulums, birthdays, rhythms, cellular automata). Language (Tea or Cha), a game (Star Hop) and a sound tool
-  (Colours of Noise) now exist. Still missing: an essay, something about history, a purely visual piece. Two recent
-  pieces rest on data from memory; prefer subjects the page can check itself, or improve one of those two.
+  pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
+  (Star Hop), a sound tool (Colours of Noise) and a purely visual piece (Moiré) now exist, so check the piece table
+  before calling a kind "missing". Every run so far made a new piece; the next good run may be an improvement.
+- Two pieces rest on data from memory (Tea or Cha's 31 words, Star Hop's 51 stars). Prefer subjects the page can
+  check itself, or improve one of those two.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -63,6 +65,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 - (2026-10-14) Let `tools/keeper_check.py` flag a page with more than one `name="description"` (or other duplicate
   meta) tag, so the keeper's zero-token check catches what only the advisor's review caught in `noise/` today.
+- (2026-10-14) Add a mid-width view (about 768x1024) to `tools/page_check.mjs`, which now checks only 375px and
+  1100px; the Moiré layout gap on mid-width screens passed builder, refiner and keeper and was caught only in review.
 
 ## Changelog
 
@@ -81,3 +85,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-14: proposal for the owner: keeper_check should flag duplicate meta tags (same evidence as above).
 - 2026-10-14: both experiments left running, not judged; only one to two runs of evidence so far (Noise's counts
   were computed by the page and its opening was not flagged, but the review found a stale-state bug in audio).
+- 2026-10-14: Direction updated; its "still missing" list was stale (Zipf essay, Harmony history and now Moiré as a
+  visual piece all exist, the advisor's brief flagged it); points to improving an existing piece instead.
+- 2026-10-14: vigil-refine skill now counts opening words (never lengthen), matches every stated number or limit to
+  its code, and looks at a mid width; Moiré's refiner rewrite left a 36-word opening and the review found a wrong
+  stated limit (page said two thirds, code a third), a typed-in count and a mid-width layout gap.
+- 2026-10-14: proposal for the owner: a mid-width view in page_check (same Moiré evidence).
+- 2026-10-14: both experiments left running, not judged (three runs so far). Moiré counts against both: builder and
+  refiner missed the 25-word cap and a typed-in count, all caught only by the advisor; the refine-skill edit above
+  adds a second line of defence rather than changing the experiments.

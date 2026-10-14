@@ -13,6 +13,9 @@ and the files. That is the point: fresh eyes. You never commit or push.
    performance; anything that would embarrass a public account; anything that breaks the playbook's practices.
    Run `node tools/page_check.mjs <path>/` (from the right repository root, with `--root`) and look at the
    screenshots; that is cheaper than reading the whole file twice.
+   Three cheap checks every pass: count the words of the opening sentence (at most 25; a rewrite may never make it
+   longer); for every number or limit the text states, find the line of code that produces it and confirm they
+   agree; and besides the 375px screenshots, resize to a mid width (about 600-800px) and look once.
 2. **One round of concrete fixes** directly in the files: the most valuable ones first. Keep the maker's idea and
    voice; do not rebuild it. For toys, keep the house style exactly and keep the copy short and dry.
 3. Run the page check again.

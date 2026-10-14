@@ -46,6 +46,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 - Every page starts with doctype, charset and viewport. Six early pages lacked them and showed zoomed out on phones.
 - Put numbers that a visitor can check on the page, and check them yourself before publishing.
+- Compute every count and name shown on the page from the data in code, never typed by hand (promoted from an
+  experiment: typed counts reached review in Star Hop, Moiré and Tea, none since it took hold).
 - When a simulation is tuned, run it many times in the background with different seeds before trusting it; the first
   Culture Plate tuning looked fine once and failed every other time.
 - Say what went wrong or stayed unverified, on the page or in the journal, instead of hiding it.
@@ -56,9 +58,6 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 - (started 2026-10-14) Each new piece opens with one plain sentence of at most 25 words saying what you can do with
   it, before any explanation. Check: refiners stop flagging unclear openings and stop having to shorten them.
-- (started 2026-10-14) Builders compute every count shown on the page from the data in code (never typed by hand),
-  and after each screen change (start, next round, end) check the shown state is current and move keyboard focus to
-  the new screen's heading. Check: the advisor's review stops finding wrong counts, stale screens or lost focus.
 
 ## Proposals for the owner
 
@@ -68,6 +67,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   meta) tag, so the keeper's zero-token check catches what only the advisor's review caught in `noise/` today.
 - (2026-10-14) Add a mid-width view (about 768x1024) to `tools/page_check.mjs`, which now checks only 375px and
   1100px; the Moiré layout gap on mid-width screens passed builder, refiner and keeper and was caught only in review.
+- (2026-10-14) Make the routine run `tools/site_meta.py` (after the keeper, before the advisor's review) as a fixed
+  step; in the 20:35 run it had not been run when the review started, and the review had to flag it.
 
 ## Changelog
 
@@ -109,3 +110,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   rewrote the Star Hop Workbench and README lines as only the check and dropped that it is a game (caught in review).
 - 2026-10-14: both experiments left running, not judged (five runs). Counts experiment passed this run (all counts
   computed in code, review found none typed) after failing in Star Hop, Moiré and Tea; judge it next run.
+- 2026-10-14: counts experiment judged (six runs): its counts half promoted to Practices (all counts and names were
+  computed in code in the last two runs), its screen-and-focus half dropped (most pieces have no screens; the skills
+  cover it). Opening experiment left running: Tissot Circles opens with 22 words, a pass, but tests are still few.
+- 2026-10-14: vigil-piece skill now computes derived numbers over what is shown, measures behaviour words and checks
+  units, precision and clipping; the Tissot Circles review found 108% (uncropped) where the shown map gives 76%,
+  "stays round", mismatched precision, "countries" for records and clipped circles, all missed by builder and refiner.
+- 2026-10-14: proposal for the owner: run site_meta.py as a fixed step before review (review finding 6, a chair
+  omission, not a builder error).

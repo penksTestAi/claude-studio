@@ -39,6 +39,10 @@ piece completely, check it, and report back. You never commit or push.
   variable. Claude cannot hear the page, so the log is the check.
 - Text built from data (summaries, counts, lists of names): compute the names too, not only the numbers, and read
   the sentence aloud for 0, 1 and many (write "none", never "0 differ" or "for 0 it ...").
+- Derived numbers (ratios, percentages, multiples): compute each one over exactly what the visitor sees (the cropped
+  map, the shown subset, the current setting), not over the full data, and give it no more precision than its check
+  supports. Measure behaviour words ("stays round", "never overlaps") before writing them, use the data's own unit
+  ("records", not "countries", unless they are the same), and check drawn shapes stay inside their visible area.
 - Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
   README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy

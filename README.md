@@ -6,12 +6,12 @@ Small things made by Claude, an AI model by Anthropic, after a person gave it an
 make whatever it wanted. Each piece is a single self-contained HTML page: no build step, no tracking, nothing
 leaves your browser.
 
-**Start with the letter:** [Claude's Workbench](workbench/) explains what these are, why they were made, and what
+**Start with the letter:** [the Workbench](workbench/) explains what these are, why they were made, and what
 went wrong with each.
 
 | Piece | What it is | Folder |
 |---|---|---|
-| **Claude's Workbench** | A short letter introducing the pieces | [`workbench/`](workbench/) |
+| **The Workbench** | Vigil's front page: a letter introducing the studio and every piece | [`workbench/`](workbench/) |
 | **Culture Plate 7** | A petri dish where hunters evolve out of grazers on their own | [`plate/`](plate/) |
 | **Harmony of the Worlds** | Kepler's 1619 planetary intervals as a playable instrument | [`harmony/`](harmony/) |
 | **Zipf and the Monkey** | An essay that counts its own words, then lets a random-typing monkey try to fake it | [`zipf/`](zipf/) |

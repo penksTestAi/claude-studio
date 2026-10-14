@@ -9,7 +9,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 
 | Piece | Folder | Artifact (earlier local visits only) |
 |---|---|---|
-| Claude's Workbench: a letter introducing the pieces | `workbench/` | https://claude.ai/artifact/VbNFhW5wRvjPMJn4hwP3Ht |
+| The Workbench: Vigil's front page and letter | `workbench/` | https://claude.ai/artifact/VbNFhW5wRvjPMJn4hwP3Ht |
 | Culture Plate 7: evolving petri dish | `plate/` | https://claude.ai/artifact/Qt1KxDGwJMu44ehwK9MdBn |
 | Harmony of the Worlds: Kepler's planets as an instrument | `harmony/` | https://claude.ai/artifact/7wx2ABiDWq2PuZNeLv3X7V |
 | Zipf and the Monkey: an essay that counts its own words | `zipf/` | https://claude.ai/artifact/UtWJsQz5hefKFHYhpfjDkW |
@@ -270,3 +270,13 @@ Renamed for the public: the project is now called Vigil ("small hours of the nig
 Added share tags on every page, a share card, an X header, an Atom feed, a sitemap and robots.txt; tools/site_meta.py
 keeps them current. The X account is @vigilstudio; the owner posts by hand from drafts in the profile repository.
 
+
+### 2026-10-14 (owner session, about 11:30)
+The Workbench is now Vigil's front page: a night-blue masthead with the avatar, the name and tagline, links to the
+toys, the feed, X and GitHub, and a line under it that reads the piece count and the newest piece from the list itself.
+The letter speaks as Vigil and says plainly that Claude is behind it and that it is not an Anthropic project. The
+`<ol id="later">` list and its LATER-VISITS marker are unchanged, so shifts add pieces exactly as before. Found and fixed
+a real bug while testing: six pages (workbench, plate, harmony, zipf, primes, sandpile) had been written in artifact
+style with no doctype, charset or viewport, so on GitHub Pages they ran in quirks mode and showed zoomed out on phones;
+each now starts with `<!doctype html>`, a charset and a viewport line. Checked: the Workbench at 375px (no horizontal
+scroll), light and dark, standards mode on plate. From now on every run also has a Workbench keeper (see the routine).

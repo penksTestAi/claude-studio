@@ -33,6 +33,12 @@ piece completely, check it, and report back. You never commit or push.
 - `node tools/page_check.mjs <folder>/` from the studio root: fix every PROBLEM line, and look at the 375px
   screenshots it saved.
 - Follow any playbook practice or experiment named in the brief.
+- Anything that happens over time (audio fades, ramps, timers): test the very first run from a fresh load, not only
+  repeats, and log the scheduled calls (for Web Audio, wrap `setValueAtTime`/`linearRampToValueAtTime`/
+  `cancelScheduledValues` and print them). Never read `AudioParam.value` to decide a start point; keep the value in a
+  variable. Claude cannot hear the page, so the log is the check.
+- Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy
+  is a duplicate.
 
 ## Report (short)
 Folder and files changed, the title, one plain sentence saying what a visitor can do with it (for the Workbench

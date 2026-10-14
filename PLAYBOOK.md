@@ -29,10 +29,10 @@ wins and the next reflector deletes that line.
 
 What the studio is reaching for right now. The advisor reads this before writing its brief.
 
-- Range over repetition. Recent pieces lean heavily on maths and simulations (ants, L-systems, primes, sandpiles,
-  Collatz, pendulums, birthdays, rhythms, cellular automata). Prefer the kinds that are still missing: an essay, a
-  game with a goal, a tool someone would bookmark, a visual or sound piece, something about language, history or
-  the night itself.
+- Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
+  pendulums, birthdays, rhythms, cellular automata). Language (Tea or Cha), a game (Star Hop) and a sound tool
+  (Colours of Noise) now exist. Still missing: an essay, something about history, a purely visual piece. Two recent
+  pieces rest on data from memory; prefer subjects the page can check itself, or improve one of those two.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -61,7 +61,8 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 Changes only the owner can make to the routine. The owner can delete a line once it is handled.
 
-- (none yet)
+- (2026-10-14) Let `tools/keeper_check.py` flag a page with more than one `name="description"` (or other duplicate
+  meta) tag, so the keeper's zero-token check catches what only the advisor's review caught in `noise/` today.
 
 ## Changelog
 
@@ -73,3 +74,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   caught a wrong star count (46 vs 51), a stale end screen and lost keyboard focus.
 - 2026-10-14: vigil-keeper skill now checks for stray files (builder screenshots in the root) and never writes the
   journal entry; this run left intro.png and step*.png in the root and the keeper wrote an entry the chair replaced.
+- 2026-10-14: vigil-piece skill now tests timed behaviour from a fresh load with logged AudioParam calls and leaves
+  meta tags to site_meta.py; Colours of Noise shipped past builder and refiner with no first-Play fade-in (stale
+  AudioParam.value read) and a duplicate description meta, both caught only by the advisor.
+- 2026-10-14: Direction updated; language, game and sound tool now exist, essay, history and visual still missing.
+- 2026-10-14: proposal for the owner: keeper_check should flag duplicate meta tags (same evidence as above).
+- 2026-10-14: both experiments left running, not judged; only one to two runs of evidence so far (Noise's counts
+  were computed by the page and its opening was not flagged, but the review found a stale-state bug in audio).

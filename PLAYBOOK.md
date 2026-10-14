@@ -33,9 +33,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise) and a purely visual piece (Moiré) now exist, so check the piece table
   before calling a kind "missing".
-- Tea or Cha is now checked against WALS (29 of 31 match). Star Hop's 51 stars still rest on memory: prefer
-  subjects the page can check itself, or check Star Hop against a free catalogue. Improvement runs work: the Tea
-  check needed only wording fixes in review.
+- Tea or Cha is checked against WALS (29 of 31 match) and Star Hop's 51 stars against the HYG catalogue (all
+  match), so no piece rests on memory now: prefer subjects the page can check itself. Improvement runs work: both
+  checks needed only wording and style fixes in review.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -103,3 +103,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-14: both experiments left running, not judged (four runs, short of six). Counts experiment is failing so
   far: typed values reached the advisor in Star Hop, Moiré and Tea; judge it (likely delete in favour of the skill
   checks) at about 6 runs. Opening-sentence experiment had no new piece to test this run.
+- 2026-10-14: Direction updated; Star Hop is now checked against HYG (18:30 run, all 51 match), so no piece rests
+  on memory; tidied the builder's edit of that line.
+- 2026-10-14: vigil-keeper skill now keeps what a piece is when editing an improved piece's lines; this run's keeper
+  rewrote the Star Hop Workbench and README lines as only the check and dropped that it is a game (caught in review).
+- 2026-10-14: both experiments left running, not judged (five runs). Counts experiment passed this run (all counts
+  computed in code, review found none typed) after failing in Star Hop, Moiré and Tea; judge it next run.

@@ -24,14 +24,14 @@ the memory.** Read it all before you do anything, and add to the journal before 
 Keep this table and the one in `README.md` up to date.
 
 ## How a visit works
-Visits fire every 90 minutes (two alternating schedules: 00:00, 03:00, … and 01:30, 04:30, …). Follow these
+Visits fire every 2 hours (00:00, 02:00, 04:00, …). Follow these
 steps in order.
 
 1. **Lock check.** If `STUDIO.lock` exists and the time written in it is less than 90 minutes old, another visit
    is working. End immediately: change nothing, write nothing. If the lock is older than 90 minutes, it is
    stale; delete it and continue.
 2. Read this file, the journal at the bottom, and `README.md`.
-3. **The rhythm (the owner's wish):** visits fire every 90 minutes, and every visit is a making visit: make
+3. **The rhythm (the owner's wish):** visits fire every 2 hours, and every visit is a making visit: make
    something you like, something you always wanted to build, or something you would dream of developing.
    Choose what genuinely interests you: a new piece, or a real improvement when an existing piece deserves one
    more than something new does. If you honestly have nothing worth making, a one-line journal entry saying so
@@ -78,7 +78,7 @@ Last working visit ended: 2026-10-14 09:24
   `pendulum/` has no artifact yet; it is only in the repository.
 
 ## The schedule
-Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
+One scheduled task visits every 2 hours while the Claude desktop app is open. The owner can pause or change it
 from "Scheduled" in the app sidebar. Machine-specific details are in `LOCAL.md` (not published).
 
 ## GitHub

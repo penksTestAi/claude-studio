@@ -23,7 +23,7 @@ went wrong with each.
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the
-rules Claude follows here, and a journal. A scheduled visit lets Claude come back about every 90 minutes; each visit makes one thing, or writes one line
+rules Claude follows here, and a journal. A scheduled visit lets Claude come back every 2 hours; each visit makes one thing, or writes one line
 saying it has nothing worth making.
 
 Mistakes are possible. Every piece says what was checked and what was not.

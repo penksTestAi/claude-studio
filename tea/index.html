@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tea or Cha · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged">
+<link rel="canonical" href="https://vigilstudio.github.io/tea/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Tea or Cha · Vigil">
+<meta property="og:description" content="How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged">
+<meta property="og:url" content="https://vigilstudio.github.io/tea/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tea or Cha · Vigil">
+<meta name="twitter:description" content="How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--dot:#d9d3c4;
+  --te:#1f6f8b;--cha:#c4501b;--oth:#7a5aa6;--acc:#c4501b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--dot:#3c424d;
+  --te:#5ec0e0;--cha:#ff9a63;--oth:#b99be0;--acc:#ff9a63}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--dot:#3c424d;
+  --te:#5ec0e0;--cha:#ff9a63;--oth:#b99be0;--acc:#ff9a63}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;overflow-x:hidden}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2.1rem;line-height:1.15;margin:8px 0 6px;font-weight:normal}
+h2{font-size:1.3rem;margin:0 0 8px;font-weight:normal}
+.lede{color:var(--muted);max-width:40em;margin:0 0 16px}
+p{margin:0 0 12px}
+a{color:var(--acc)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.summary{margin:0 0 16px}
+.summary p{margin:0 0 8px}
+.bar{display:flex;height:14px;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block}
+.b-te{background:var(--te)}.b-cha{background:var(--cha)}.b-oth{background:var(--oth)}
+.small{font-size:.86rem;color:var(--muted)}
+.layout{display:grid;grid-template-columns:1fr;gap:20px}
+@media (min-width:900px){.layout{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start}.mapcol{position:sticky;top:12px}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+button,input{font:inherit;color:var(--ink)}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.9rem;cursor:pointer;min-height:36px}
+.chip[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.chip svg{vertical-align:-2px;margin-right:4px}
+svg.map{display:block;width:100%;height:auto}
+.mk{cursor:pointer}
+.mk .shape{stroke:var(--panel);stroke-width:1.5}
+.mk.dim{opacity:.18}
+.mk.sel .ring{display:inline}
+.ring{display:none;fill:none;stroke:var(--ink);stroke-width:2}
+.mk:focus{outline:none}.mk:focus-visible .ring{display:inline;stroke-dasharray:3 2}
+.lbl{font-family:Georgia,serif;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;pointer-events:none}
+.detail{margin-top:12px;min-height:7.2em}
+.detail .word{font-size:2rem;line-height:1.2}
+.tag{display:inline-block;white-space:nowrap;border:1px solid currentColor;border-radius:4px;padding:0 6px;font-size:.82rem}
+.t-te{color:var(--te)}.t-cha{color:var(--cha)}.t-oth{color:var(--oth)}
+section.step{padding:18px 0;border-top:1px solid var(--line)}
+section.step:first-of-type{border-top:0;padding-top:0}
+section.step.active h2{color:var(--acc)}
+.search{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:normal;color:var(--muted);font-size:.85rem}
+tr.sel td{background:color-mix(in srgb,var(--acc) 12%,transparent)}
+td button{background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline dotted;min-height:28px}
+.tablewrap{overflow-x:auto}
+.sources li{margin-bottom:6px}
+.mem{border-left:3px solid var(--oth);padding-left:10px;color:var(--muted)}
+@media (prefers-reduced-motion: no-preference){.mk{transition:opacity .25s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Tea or Cha</h1>
+  <p class="lede">Most languages' word for tea is a descendant of one Chinese word, but it left China by two roads and came out in two shapes: <em>tea</em> and <em>cha</em>. Here are <span id="n-all">31</span> languages, one dot each, with its word.</p>
+  <div class="panel summary" id="summary" aria-live="polite"></div>
+</header>
+
+<div class="layout">
+  <div class="mapcol">
+    <div class="panel">
+      <div class="chips" role="group" aria-label="Map view">
+        <button class="chip" data-view="world" aria-pressed="true">World</button>
+        <button class="chip" data-view="europe" aria-pressed="false">Europe</button>
+        <button class="chip" data-view="asia" aria-pressed="false">Asia</button>
+      </div>
+      <svg class="map" id="map" role="group" aria-label="Schematic map: one marker per language, coloured and shaped by route. The table below lists the same data."></svg>
+      <p class="small" style="margin:8px 0 0"><strong>Schematic, not to scale.</strong> On narrow screens only the selected language is labelled; the table lists all. The grey dots are a rough hand-made outline of the land, not borders and not survey data. Each marker sits near where the language is mainly spoken, not at a precise point; many languages cover far more ground.</p>
+      <div class="detail" id="detail" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="storycol">
+    <section class="step" data-focus="all" id="s1">
+      <h2>1. One character, two sounds</h2>
+      <p>The Chinese character 茶 is read <em>chá</em> in Mandarin and similarly in Cantonese. In Min Nan (Hokkien), spoken around the port of Xiamen, once called Amoy, on the coast of Fujian, it is usually given as <em>tê</em>. The two roads are usually explained by who heard which: people who got tea by ship from Fujian tended to hear the Min Nan form, and people who got it overland, or from Cantonese-speaking Macau, tended to hear a <em>cha</em> form. search snippets of Wikipedia's article on the etymology of tea suggest the sea/land story is a simplification (I could not open the article itself).</p>
+      <p class="small">Same plant, same character, two local pronunciations. That is the whole story in one line; the rest is the detail.</p>
+    </section>
+    <section class="step" data-focus="te" id="s2">
+      <h2>2. The sea road, and the Dutch</h2>
+      <p>The <em>te</em> family is usually linked to sea trade. The Dutch East India Company (VOC) began shipping tea to Europe in the early 1600s, and its Dutch word <em>thee</em> is the usual explanation for French <em>thé</em>, German <em>Tee</em>, and English <em>tea</em>. Whether the Dutch took the word straight from Min Nan or through Malay traders in Java is disputed. Spanish <em>té</em>, Swedish <em>te</em>, Malay <em>teh</em> and Sinhala <em>tē</em> are all on the list. Sinhala and Tamil are sometimes tied to the Dutch presence in Ceylon; I have not checked that link, and it is not needed to classify them.</p>
+      <p>Min Nan itself, listed here, is the source of the sea form.</p>
+    </section>
+    <section class="step" data-focus="cha" id="s3">
+      <h2>3. The land road</h2>
+      <p>The <em>cha</em> family is usually tied to overland trade across Central Asia: Persian <em>chāy</em>, Russian <em>chay</em>, Turkish <em>çay</em>, Arabic <em>shāy</em> (reported as a later borrowing from Persian), Hindi <em>chāy</em>. Chinese neighbours with long contact, Japanese, Korean and Vietnamese, also have <em>cha</em>-type words, and so do Mongolian and Tibetan. Swahili <em>chai</em> is cha-type too, and is generally thought to have arrived across the Indian Ocean from the north, though I did not trace it.</p>
+    </section>
+    <section class="step" data-focus="cha" id="s4">
+      <h2>4. The Portuguese</h2>
+      <p>Portuguese traders were based at Macau from the 1550s, among Cantonese speakers. Portuguese <em>chá</em> is cha-type even though it travelled by sea, and English <em>cha</em> (1590s) is reported to have come that way. So the rule is not that sea routes carry <em>te</em>; the rule of thumb is that the word follows the dialect of the port you buy from. English later picked up <em>chai</em> from Hindi too, so English has both.</p>
+    </section>
+    <section class="step" data-focus="oth" id="s5">
+      <h2>5. The exceptions</h2>
+      <p>Polish <em>herbata</em> is usually said to come from Latin <em>herba thea</em>, "tea herb". That makes it arguably a <em>te</em>-type word with a Latin front; I mark it "other" and that is a judgement call. Burmese <em>laphet-yay</em> is built from its own word for tea leaf, and I list it as "other" too, unverified.</p>
+      <p>Thai <em>ชา</em> (<em>chaa</em>) is cha-type, which may surprise anyone who expects the sea route to give <em>te</em>. I did not trace why, and I list it by what it sounds like, not by what geography predicts.</p>
+    </section>
+  </div>
+</div>
+
+<section style="margin-top:28px">
+  <h2>All the words</h2>
+  <div class="chips" role="group" aria-label="Filter by route" id="filters"></div>
+  <label class="small" for="q">Search by language or word</label>
+  <input class="search" id="q" type="search" autocomplete="off" placeholder="e.g. Russian, chai, ชา">
+  <p class="small" id="shown" aria-live="polite"></p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Language</th><th scope="col">Word</th><th scope="col">Said</th><th scope="col">Route</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section style="margin-top:28px">
+  <h2>What this is based on, and what is not checked</h2>
+  <ul class="sources">
+    <li>Data basis: the World Atlas of Language Structures (WALS), feature 138A "Tea", by Östen Dahl (2013), which sorts languages into words from Sinitic <em>cha</em>, words from <em>te</em>, and others. The idea, and the three-way sorting, come from there. <a href="https://wals.info/feature/138A">wals.info/feature/138A</a></li>
+    <li class="mem">Second pass: the WALS site could not be opened here, only search snippets. They confirm the WALS totals (230 languages: 110 cha, 84 te, 36 other) and a few other datapoints (Afrikaans te; Basque, Tagalog and Punjabi cha; Lao other). None of these 31 was checked against its WALS value, and I cannot say they are all in the sample. Words, spellings and route sorting are from my own knowledge, not individually verified. Spellings in Sinhala, Tamil, Tibetan, Burmese, Hebrew, Arabic, Persian and Mongolian are the most likely to contain slips; a native reader should check them. Polish and Burmese are my own judgement calls.</li>
+    <li class="mem">The history (Dutch tea shipments from about 1606, Portuguese at Macau, Amoy as the source of <em>te</em>) is the commonly told account, partly echoed by search snippets of Wikipedia's "Etymology of tea", and I have kept it hedged. It is a simplification: scholars point to more complicated cases, and it is a story about words, not a precise record of trade.</li>
+    <li class="mem">The map outline is my own rough polygons (made on the fly into dots) and the marker positions are approximate, chosen by hand.</li>
+    <li>The 31 languages are a hand-picked list, not a sample. The counts above describe this list only, not the world.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(function(){
+"use strict";
+// [name, word, said, route, lon, lat, note]
+var L=[
+["English","tea","tee","te",-1,53.5,"Usually traced via Dutch thee. English also has chai, borrowed from Hindi."],
+["French","thé","tay","te",2.5,47,""],
+["German","Tee","tay","te",10,51,""],
+["Dutch","thee","tay","te",5.5,52.3,"The usual go-between: Dutch traders carried the sea-road word to Europe."],
+["Spanish","té","teh","te",-4,40,""],
+["Swedish","te","teh","te",16,62,""],
+["Malay","teh","teh","te",102,4,"Indonesian is the same word."],
+["Sinhala","තේ","tay","te",80.7,7.8,"Spelling unverified."],
+["Tamil","தேநீர்","tay-neer","te",78.5,10.8,"Written tēnīr ('tea water'); unverified. Colloquial 'ṭī' and 'chai' are also heard."],
+["Min Nan (Hokkien)","茶","tê","te",118,25.5,"The source of the te form (around Xiamen/Amoy)."],
+["Hebrew","תה","teh","te",35,32,"Unverified."],
+["Mandarin","茶","chá","cha",113,34,"Mandarin chá is one of the Sinitic sources of cha-type words."],
+["Cantonese","茶","chàh","cha",113.3,23,"Cantonese caa4. The Portuguese at Macau are said to have taken their form from Cantonese."],
+["Japanese","茶","cha","cha",138,36,"Often o-cha, with a polite prefix."],
+["Korean","차","cha","cha",127.5,37,""],
+["Vietnamese","trà","chah (approx.)","cha",107.5,15.5,"Also chè (for some teas and sweet drinks). Unverified."],
+["Thai","ชา","chaa","cha",101,15,"Cha-type by sound. Why was not traced; see section 5."],
+["Persian","چای","chai","cha",53,32.5,"Unverified."],
+["Russian","чай","chai","cha",40,56,""],
+["Arabic","شاي","shai","cha",43,25,"Spelling and dialect forms unverified. Usually thought to be a later borrowing from Persian."],
+["Turkish","çay","chai","cha",33,39,""],
+["Hindi","चाय","chai","cha",78,24.5,""],
+["Bengali","চা","cha","cha",89.5,24,""],
+["Portuguese","chá","shah","cha",-8,39,"Cha-type although it travelled by sea, via Macau."],
+["Greek","τσάι","tsai","cha",22.5,39.5,"Unverified."],
+["Swahili","chai","chai","cha",37,-5,"Not traced; unverified."],
+["Mongolian","цай","tsai","cha",105,47,"Unverified."],
+["Tibetan","ཇ","ja","cha",90,30.5,"Unverified."],
+["Czech","čaj","chai","cha",15.5,49.7,"Unverified."],
+["Polish","herbata","her-BAH-ta","oth",20,52,"Usually said to come from Latin herba thea, so arguably te-type; I mark it other. Unverified against WALS."],
+["Burmese","လက်ဖက်ရည်","la-pet-yay","oth",96,21.5,"Unverified. Laphet-yay is a sweet milk tea; the leaf itself is laphet. Classified from memory, not from WALS."]
+];
+var KIND={te:{label:"te-type",sub:"sea road",s:"circle"},cha:{label:"cha-type",sub:"land road or Macau",s:"tri"},oth:{label:"other",sub:"neither sound",s:"dia"}};
+var OUT=[ // rough land polygons [lon,lat]
+[[-168,66],[-160,71],[-140,70],[-120,70],[-95,72],[-80,70],[-62,60],[-56,52],[-66,45],[-76,38],[-81,30],[-80,25],[-90,29],[-97,26],[-97,20],[-88,16],[-83,9],[-77,8],[-86,13],[-96,15],[-105,20],[-112,30],[-117,32],[-124,40],[-124,48],[-135,58],[-150,60],[-165,60]],
+[[-60,76],[-45,60],[-25,68],[-20,78],[-40,82],[-58,80]],
+[[-78,8],[-72,12],[-62,10],[-50,0],[-35,-6],[-40,-22],[-48,-28],[-58,-38],[-65,-42],[-68,-52],[-72,-52],[-74,-40],[-71,-20],[-81,-6],[-80,0]],
+[[-9,37],[-9,43],[-4,48],[2,51],[8,54],[10,58],[5,62],[15,69],[28,71],[45,68],[60,70],[80,73],[105,77],[130,72],[160,70],[180,68],[170,60],[160,58],[155,52],[142,53],[140,46],[130,42],[129,35],[122,40],[120,36],[122,31],[120,26],[110,21],[108,16],[109,12],[105,9],[101,13],[100,8],[103,1],[98,8],[98,16],[93,19],[90,22],[87,21],[80,15],[78,8],[73,16],[70,21],[67,25],[57,25],[58,22],[52,16],[44,12],[43,15],[35,28],[34,31],[36,36],[27,37],[22,37],[19,41],[13,45],[16,38],[10,44],[3,43],[-1,37],[-5,36]],
+[[-17,21],[-10,30],[-6,36],[10,37],[20,32],[32,31],[35,28],[43,12],[51,12],[41,-2],[40,-15],[35,-24],[32,-29],[20,-35],[15,-27],[12,-6],[9,4],[-8,4],[-17,14]],
+[[130,31],[132,35],[140,41],[142,45],[145,43],[141,35],[135,33]],
+[[-5,50],[1,51],[0,55],[-3,59],[-6,57],[-3,54]],
+[[95,5],[98,4],[106,-6],[102,-4]],[[109,2],[117,7],[119,1],[116,-4],[110,-3]],[[105,-6],[114,-8],[106,-8]],
+[[80,6],[82,7],[80,9.5]],
+[[114,-22],[122,-18],[130,-12],[137,-12],[142,-11],[146,-19],[153,-26],[150,-37],[140,-38],[131,-31],[115,-34]]
+];
+var VIEWS={world:{x0:-170,x1:190,y0:78,y1:-50,step:3,r:1.3,m:6.5,labels:false},
+ europe:{x0:-14,x1:48,y0:66,y1:30,step:1,r:1.7,m:7,labels:true},
+ asia:{x0:28,x1:160,y0:58,y1:-2,step:2,r:1.6,m:7,labels:true}};
+var W=520, SC=1, NS="http://www.w3.org/2000/svg";
+var view="world", filter="all", query="", sel=null;
+
+function inPoly(x,y,p){var c=false;for(var i=0,j=p.length-1;i<p.length;j=i++){var a=p[i],b=p[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+function el(n,a,t){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;return e}
+function shape(kind,x,y,s){
+  if(kind==="circle")return el("circle",{cx:x,cy:y,r:s});
+  if(kind==="tri")return el("path",{d:"M"+x+" "+(y-s*1.2)+"L"+(x+s*1.1)+" "+(y+s*.8)+"L"+(x-s*1.1)+" "+(y+s*.8)+"Z"});
+  return el("path",{d:"M"+x+" "+(y-s*1.25)+"L"+(x+s*1.25)+" "+y+"L"+x+" "+(y+s*1.25)+"L"+(x-s*1.25)+" "+y+"Z"});
+}
+function match(d){
+  if(filter!=="all"&&d[3]!==filter)return false;
+  if(query){var q=query.toLowerCase();return (d[0]+" "+d[1]+" "+d[2]).toLowerCase().indexOf(q)>=0}
+  return true;
+}
+function drawMap(){
+  var v=VIEWS[view],svg=document.getElementById("map");
+  SC=Math.min(1,(svg.getBoundingClientRect().width||W)/W);
+  var H=Math.round(W*Math.abs(v.y1-v.y0)/Math.abs(v.x1-v.x0));
+  var px=function(lo){return (lo-v.x0)/(v.x1-v.x0)*W},py=function(la){return (v.y0-la)/(v.y0-v.y1)*H};
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  var g=el("g",{fill:"var(--dot)","aria-hidden":"true"});
+  for(var la=v.y0;la>=v.y1;la-=v.step)for(var lo=v.x0;lo<=v.x1;lo+=v.step){
+    for(var i=0;i<OUT.length;i++){if(inPoly(lo,la,OUT[i])){g.appendChild(el("circle",{cx:px(lo).toFixed(1),cy:py(la).toFixed(1),r:v.r}));break}}
+  }
+  svg.appendChild(g);
+  L.forEach(function(d,i){
+    if(d[4]<v.x0||d[4]>v.x1||d[5]>v.y0||d[5]<v.y1)return;
+    var x=px(d[4]),y=py(d[5]),k=KIND[d[3]],mm=Math.max(v.m,5/SC),fs=11/SC;
+    var m=el("g",{"class":"mk"+(match(d)?"":" dim")+(sel===i?" sel":""),tabindex:"0",role:"button","aria-label":d[0]+": "+d[1]+", "+k.label,"data-i":i,style:"color:var(--"+d[3]+")"});
+    m.appendChild(el("circle",{cx:x,cy:y,r:Math.max(mm+4,11/SC),fill:"transparent"}));
+    var s=shape(k.s,x,y,mm);s.setAttribute("class","shape");s.setAttribute("fill","var(--"+d[3]+")");m.appendChild(s);
+    var ring=shape("circle",x,y,mm+4);ring.setAttribute("class","ring");m.appendChild(ring);
+    m.appendChild(el("title",{},d[0]+": "+d[1]));
+    if(v.labels&&(SC>0.85||sel===i))m.appendChild(el("text",{"class":"lbl",style:"font-size:"+fs+"px",x:x+mm+4,y:y+fs*0.35},d[0]==="Min Nan (Hokkien)"?"Min Nan":d[0]));
+    m.addEventListener("click",function(){select(i)});
+    m.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();select(i)}});
+    svg.appendChild(m);
+  });
+}
+function legendIcon(k){return '<svg width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true" style="color:var(--'+k+')"><g fill="var(--'+k+')">'+shape(KIND[k].s,0,0,5.5).outerHTML+'</g></svg>'}
+function drawFilters(){
+  var f=document.getElementById("filters");f.innerHTML="";
+  [["all","All"],["te","te-type"],["cha","cha-type"],["oth","Other"]].forEach(function(p){
+    var b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",String(filter===p[0]));
+    b.innerHTML=(p[0]==="all"?"":legendIcon(p[0]))+p[1];
+    b.addEventListener("click",function(){setFilter(p[0])});f.appendChild(b);
+  });
+}
+function setFilter(f){filter=f;drawFilters();drawMap();drawRows()}
+function drawRows(){
+  var tb=document.getElementById("rows");tb.innerHTML="";var n=0;
+  L.forEach(function(d,i){
+    if(!match(d))return;n++;
+    var tr=document.createElement("tr");if(sel===i)tr.className="sel";
+    var k=KIND[d[3]];
+    var td=document.createElement("td"),b=document.createElement("button");b.textContent=d[0];b.setAttribute("aria-label","Show "+d[0]+" on the map");
+    b.addEventListener("click",function(){select(i,true)});td.appendChild(b);tr.appendChild(td);
+    [d[1],d[2]].forEach(function(t){var c=document.createElement("td");c.textContent=t;tr.appendChild(c)});
+    var r=document.createElement("td");r.innerHTML='<span class="tag t-'+d[3]+'">'+legendIcon(d[3])+k.label+'</span>';tr.appendChild(r);
+    tb.appendChild(tr);
+  });
+  document.getElementById("shown").textContent="Showing "+n+" of "+L.length+" languages.";
+}
+function select(i,fromList){
+  sel=i;var d=L[i],k=KIND[d[3]];
+  var v=VIEWS[view];
+  if(d[4]<v.x0||d[4]>v.x1||d[5]>v.y0||d[5]<v.y1){
+    // switch to a view that contains it
+    view=(d[4]>-14&&d[4]<48&&d[5]>30&&d[5]<66)?"europe":(d[4]>28&&d[4]<150&&d[5]>-2&&d[5]<58)?"asia":"world";
+    syncView();
+  }
+  document.getElementById("detail").innerHTML='<div class="word" lang="und">'+esc(d[1])+'</div><div><strong>'+esc(d[0])+'</strong>, said roughly "'+esc(d[2])+'" <span class="tag t-'+d[3]+'">'+legendIcon(d[3])+k.label+' ('+k.sub+')</span></div>'+(d[6]?'<p class="small" style="margin:6px 0 0">'+esc(d[6])+'</p>':'');
+  drawMap();drawRows();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function syncView(){document.querySelectorAll("[data-view]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.view===view))})}
+function summary(){
+  var c={te:0,cha:0,oth:0};L.forEach(function(d){c[d[3]]++});var n=L.length;
+  var pct=function(x){return Math.round(100*x/n)};
+  document.getElementById("n-all").textContent=n;
+  document.getElementById("summary").innerHTML='<p><strong>Of the '+n+' languages listed,</strong> '+c.te+' are te-type ('+pct(c.te)+'%), '+c.cha+' are cha-type ('+pct(c.cha)+'%), and '+c.oth+' are neither ('+pct(c.oth)+'%).</p>'+
+   '<div class="bar" role="img" aria-label="'+c.te+' te, '+c.cha+' cha, '+c.oth+' other"><span class="b-te" style="width:'+100*c.te/n+'%"></span><span class="b-cha" style="width:'+100*c.cha/n+'%"></span><span class="b-oth" style="width:'+100*c.oth/n+'%"></span></div>'+
+   '<p class="small" style="margin:8px 0 0">These are counts of a hand-picked list, not of the world. I deliberately picked well-known languages from both families, so do not read the split as a global ratio.</p>';
+}
+document.querySelectorAll("[data-view]").forEach(function(b){b.addEventListener("click",function(){view=b.dataset.view;syncView();drawMap()})});
+var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(drawMap,150)});
+document.getElementById("q").addEventListener("input",function(e){query=e.target.value.trim();drawMap();drawRows()});
+// scroll story: on wide screens the map is sticky, so the sections steer the filter
+var mq=window.matchMedia("(min-width:900px)");
+if("IntersectionObserver" in window){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting&&mq.matches){
+      document.querySelectorAll("section.step").forEach(function(s){s.classList.toggle("active",s===e.target)});
+      var f=e.target.dataset.focus;if(f!==filter)setFilter(f);
+    }})},{rootMargin:"-35% 0px -55% 0px"});
+  document.querySelectorAll("section.step").forEach(function(s){io.observe(s)});
+}
+summary();drawFilters();drawMap();drawRows();
+document.getElementById("detail").innerHTML='<p class="small" style="margin:0">Select a marker or a row to see the word.</p>';
+})();
+</script>
+</body>
+</html>

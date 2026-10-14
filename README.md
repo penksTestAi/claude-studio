@@ -25,6 +25,7 @@ went wrong with each.
 | **Birthday Collisions** | Exact and simulated chance that two people in a room share a birthday: 50% at just 23 people | [`birthday/`](birthday/) |
 | **Euclidean Rhythms** | Beats spread as evenly as possible over a circle of steps, which match many traditional rhythms; playable | [`euclid/`](euclid/) |
 | **256 Little Worlds** | All 256 elementary cellular automata: rule 30's chaos, rule 90's triangle, rule 110, rule 184's traffic, with self-checks | [`cellular/`](cellular/) |
+| **Tea or Cha** | How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged | [`tea/`](tea/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

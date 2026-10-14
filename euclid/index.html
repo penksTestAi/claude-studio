@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euclidean Rhythms</title>
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#6b675e;--line:#cfc9bb;--hit:#c2601f;--on:#23211d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a09c91;--line:#43474f;--hit:#f2905c;--on:#e9e6dd}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a09c91;--line:#43474f;--hit:#f2905c;--on:#e9e6dd}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 4px;font-weight:normal}
+h2{font-size:1.15rem;margin:26px 0 6px;font-weight:normal}
+.lede{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+canvas{display:block;width:100%;height:320px;border-radius:6px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:14px}
+label{display:block;font-size:.85rem;color:var(--muted)}
+input,select,button{width:100%;margin-top:4px;padding:6px 8px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px}
+input[type=range]{padding:0}
+button{cursor:pointer}
+.buttons{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.buttons button{width:auto;padding:6px 16px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.05rem;letter-spacing:.12em;word-break:break-all;margin:12px 0 2px}
+.cap{font-size:.88rem;color:var(--muted);margin:4px 0 0}
+p{margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.m{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em}
+.ok{color:#2f7d3a}.bad{color:#b3261e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ok{color:#7fd18b}:root:not([data-theme="light"]) .bad{color:#ff8a80}}
+:root[data-theme="dark"] .ok{color:#7fd18b}:root[data-theme="dark"] .bad{color:#ff8a80}
+.notes{font-size:.92rem;color:var(--muted)}
+.tw{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+  <h1>Euclidean Rhythms</h1>
+  <p class="lede">Spread k beats as evenly as possible over n steps and you often get a rhythm that people already
+  play. Pick k and n, press play, and compare with the list below.</p>
+
+  <section class="panel" aria-label="Rhythm wheel">
+    <canvas id="wheel" aria-label="A circle of steps; filled dots are beats"></canvas>
+    <p class="mono" id="pat" aria-live="polite"></p>
+    <p class="cap" id="gaps"></p>
+    <div class="controls">
+      <label>Beats k: <output id="kv"></output><input id="k" type="range" min="0" max="16" value="5"></label>
+      <label>Steps n: <output id="nv"></output><input id="n" type="range" min="1" max="24" value="8"></label>
+      <label>Rotation: <output id="rv"></output><input id="r" type="range" min="0" max="23" value="0"></label>
+      <label>Tempo: <output id="tv"></output> steps/min<input id="t" type="range" min="60" max="400" value="240"></label>
+    </div>
+    <div class="buttons">
+      <button id="play" type="button">Play</button>
+      <button id="rand" type="button">Random k, n</button>
+    </div>
+    <p class="cap">The sound is a short click made by the browser's audio engine; with sound off the wheel still turns.
+    The filled dot at the top is step 0.</p>
+  </section>
+
+  <h2>Named rhythms</h2>
+  <p class="notes">Each row builds the pattern with the algorithm on this page and checks that it is the same circle of
+  gaps as the traditional pattern, allowing any rotation. Press a row's button to load it.</p>
+  <div class="tw"><table id="tbl">
+    <thead><tr><th>Name (where played)</th><th>Pattern</th><th>E(k,n)</th><th>Match</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <h2>Not everything is Euclidean</h2>
+  <p>The son clave of Cuban music, <span class="mono" style="font-size:.95rem">x..x..x...x.x...</span>, has five beats in
+  sixteen steps, but its gaps are 3, 3, 4, 2, 4. The most even five-in-sixteen has gaps 3, 3, 3, 3, 4. The page checks this
+  too: <span id="son"></span> The bossa nova pattern is the even one.</p>
+
+  <h2>How it is built</h2>
+  <p class="notes">The method is Bjorklund's (2003), written for scheduling pulses in a neutron accelerator, and Godfried
+  Toussaint noticed in 2005 that it matches Euclid's greatest-common-divisor procedure and many traditional rhythms.
+  Start with k groups "x" and n−k groups ".". While more than one leftover group remains, pair each leftover group with
+  one of the main groups, and repeat with the new groups until the leftovers number one or none. Reading the groups off
+  gives the pattern. Different tellings start the circle at different places, which is why the table allows rotation.</p>
+
+  <h2>What was checked</h2>
+  <p class="notes" id="selftest"></p>
+  <p class="notes">Not checked: the sound (I cannot hear it), the origins named in the table (from memory of Toussaint's
+  2005 paper, not looked up), and whether every named rhythm is played exactly as written.</p>
+</main>
+<script>
+"use strict";
+// Bjorklund's algorithm: returns an array of 0/1 of length n with k ones.
+function bjorklund(k, n) {
+  if (k <= 0) return new Array(n).fill(0);
+  if (k >= n) return new Array(n).fill(1);
+  var a = [], b = [], i;
+  for (i = 0; i < k; i++) a.push([1]);
+  for (i = 0; i < n - k; i++) b.push([0]);
+  while (b.length > 1) {
+    var m = Math.min(a.length, b.length), na = [];
+    for (i = 0; i < m; i++) na.push(a[i].concat(b[i]));
+    var rest = a.length > b.length ? a.slice(m) : b.slice(m);
+    a = na; b = rest;
+  }
+  var out = [];
+  a.concat(b).forEach(function (g) { out = out.concat(g); });
+  return out;
+}
+function gapsOf(p) { // cyclic gaps between beats, starting at the first beat
+  var on = [], g = [], i;
+  for (i = 0; i < p.length; i++) if (p[i]) on.push(i);
+  for (i = 0; i < on.length; i++) g.push(((on[(i + 1) % on.length] - on[i]) + p.length - 1) % p.length + 1);
+  if (on.length === 1) g = [p.length];
+  return g;
+}
+function isRotation(a, b) {
+  if (a.length !== b.length) return false;
+  var s = a.join("") + a.join("");
+  return s.indexOf(b.join("")) >= 0;
+}
+function rotate(p, r) { var n = p.length; return p.map(function (_, i) { return p[(i + n - r % n) % n]; }); }
+function str(p) { return p.map(function (v) { return v ? "x" : "."; }).join(""); }
+function parse(s) { return s.split("").map(function (c) { return c === "x" ? 1 : 0; }); }
+
+var NAMED = [
+  ["Tresillo, Cuban and many others", "x..x..x.", 3, 8],
+  ["Cinquillo, Cuban", "x.xx.xx.", 5, 8],
+  ["Ruchenitza, Bulgarian dance", "x.x.x.x", 4, 7],
+  ["Bembé bell, West African", "x.xx.x.xx.x.", 7, 12],
+  ["Venda rhythm, South Africa", "x..x.x..x.x.", 5, 12],
+  ["Bossa nova clave, Brazil", "x..x..x..x..x...", 5, 16]
+];
+var SON = "x..x..x...x.x...";
+
+function selfTest() {
+  var out = [], allOk = true;
+  // 1. every E(k,n), n <= 24: right count, and gaps differ by at most 1
+  var cases = 0, bad = 0;
+  for (var n = 1; n <= 24; n++) for (var k = 0; k <= n; k++) {
+    var p = bjorklund(k, n); cases++;
+    var cnt = p.reduce(function (s, v) { return s + v; }, 0);
+    var ok = p.length === n && cnt === k;
+    if (k > 0) { var g = gapsOf(p); ok = ok && (Math.max.apply(null, g) - Math.min.apply(null, g) <= 1); }
+    if (!ok) bad++;
+  }
+  out.push(cases + " pairs (k, n) with n up to 24: " + (cases - bad) + " have the right number of beats and gaps that differ by at most 1.");
+  if (bad) allOk = false;
+  return { text: out.join(" "), ok: allOk };
+}
+
+var kEl = document.getElementById("k"), nEl = document.getElementById("n"), rEl = document.getElementById("r"), tEl = document.getElementById("t");
+var cv = document.getElementById("wheel"), ctx = cv.getContext("2d");
+var cur = -1, pattern = [];
+
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function update() {
+  var n = +nEl.value, k = Math.min(+kEl.value, n);
+  kEl.max = n; if (+kEl.value > n) kEl.value = n;
+  rEl.max = n - 1; if (+rEl.value > n - 1) rEl.value = n - 1;
+  var r = +rEl.value;
+  pattern = rotate(bjorklund(k, n), r);
+  document.getElementById("kv").textContent = k;
+  document.getElementById("nv").textContent = n;
+  document.getElementById("rv").textContent = r;
+  document.getElementById("tv").textContent = tEl.value;
+  document.getElementById("pat").textContent = str(pattern);
+  document.getElementById("gaps").textContent = k ? "E(" + k + "," + n + "): gaps between beats " + gapsOf(pattern).join(", ") +
+    (k === n ? " (every step is a beat)" : "") : "E(0," + n + "): silence";
+  draw();
+}
+
+function draw() {
+  var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  var n = pattern.length, cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 22;
+  var ink = cssVar("--on"), line = cssVar("--line"), hit = cssVar("--hit");
+  ctx.strokeStyle = line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
+  var pts = [];
+  for (var i = 0; i < n; i++) {
+    var a = -Math.PI / 2 + 2 * Math.PI * i / n;
+    pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]);
+  }
+  var on = pts.filter(function (_, i) { return pattern[i]; });
+  if (on.length > 1) {
+    ctx.strokeStyle = ink; ctx.globalAlpha = .45; ctx.lineWidth = 1.5; ctx.beginPath();
+    on.forEach(function (p, j) { if (j) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); });
+    ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  var dot = Math.max(4, Math.min(11, 160 / n));
+  for (var j = 0; j < n; j++) {
+    ctx.beginPath(); ctx.arc(pts[j][0], pts[j][1], pattern[j] ? dot : dot * .5, 0, 7);
+    if (pattern[j]) { ctx.fillStyle = j === cur ? hit : ink; ctx.fill(); }
+    else { ctx.fillStyle = j === cur ? hit : line; ctx.fill(); }
+  }
+  if (cur >= 0) { ctx.beginPath(); ctx.arc(pts[cur][0], pts[cur][1], dot + 5, 0, 7); ctx.strokeStyle = hit; ctx.lineWidth = 2; ctx.stroke(); }
+  ctx.fillStyle = ink; ctx.font = "13px Georgia,serif"; ctx.textAlign = "center";
+  ctx.fillText("0", pts[0][0], pts[0][1] - dot - 8);
+}
+
+// --- audio: look-ahead scheduler ---
+var ac = null, playing = false, nextTime = 0, nextStep = 0, timer = null, queue = [];
+function click(t, accent) {
+  var o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.value = accent ? 880 : 660; o.type = "sine";
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.5, t + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.1);
+}
+function scheduler() {
+  while (nextTime < ac.currentTime + 0.15) {
+    var n = pattern.length, s = nextStep % n;
+    if (pattern[s]) click(nextTime, s === 0);
+    queue.push([nextTime, s]);
+    nextTime += 60 / +tEl.value; nextStep++;
+  }
+}
+function frame() {
+  if (!playing) return;
+  while (queue.length && queue[0][0] <= ac.currentTime) cur = queue.shift()[1];
+  draw(); requestAnimationFrame(frame);
+}
+function start() {
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) { document.getElementById("play").textContent = "No audio here"; return; }
+  if (!ac) ac = new AC();
+  ac.resume();
+  playing = true; nextStep = 0; nextTime = ac.currentTime + 0.05; queue = [];
+  timer = setInterval(scheduler, 25); document.getElementById("play").textContent = "Stop";
+  requestAnimationFrame(frame);
+}
+function stop() {
+  playing = false; clearInterval(timer); cur = -1; draw();
+  document.getElementById("play").textContent = "Play";
+}
+document.getElementById("play").onclick = function () { playing ? stop() : start(); };
+document.getElementById("rand").onclick = function () {
+  var n = 5 + Math.floor(Math.random() * 20), k = 2 + Math.floor(Math.random() * (Math.min(n, 12) - 1));
+  nEl.value = n; kEl.value = Math.min(k, n); rEl.value = 0; update();
+};
+[kEl, nEl, rEl, tEl].forEach(function (e) { e.oninput = update; });
+window.addEventListener("resize", draw);
+if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+
+// --- table ---
+var tb = document.querySelector("#tbl tbody"), allOk = true;
+NAMED.forEach(function (row) {
+  var tr = document.createElement("tr"), trad = parse(row[1]), gen = bjorklund(row[2], row[3]);
+  var ok = trad.length === row[3] && isRotation(trad, gen);
+  if (!ok) allOk = false;
+  tr.innerHTML = "<td></td><td class='m'></td><td></td><td></td><td><button type='button'>Load</button></td>";
+  tr.children[0].textContent = row[0]; tr.children[1].textContent = row[1];
+  tr.children[2].textContent = "E(" + row[2] + "," + row[3] + ")";
+  tr.children[3].textContent = ok ? "same circle" : "differs"; tr.children[3].className = ok ? "ok" : "bad";
+  tr.querySelector("button").onclick = function () {
+    // rotate so the page's pattern lines up with the traditional string
+    var r = 0; for (var s = 0; s < row[3]; s++) if (str(rotate(gen, s)) === row[1]) { r = s; break; }
+    nEl.value = row[3]; kEl.max = row[3]; kEl.value = row[2]; rEl.max = row[3] - 1; rEl.value = r; update();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  tb.appendChild(tr);
+});
+var son = parse(SON), ev = bjorklund(5, 16);
+var sonEuclid = isRotation(son, ev);
+document.getElementById("son").textContent = sonEuclid ? "it IS a rotation of E(5,16) (unexpected)." :
+  "it is not a rotation of E(5,16), as expected (son gaps " + gapsOf(son).join(",") + "; E(5,16) gaps " + gapsOf(ev).join(",") + ").";
+var st = selfTest();
+document.getElementById("selftest").textContent = "Run in your browser just now: " + st.text + " Named rhythms: " +
+  (allOk ? "all " + NAMED.length + " match" : "SOME DO NOT MATCH") + ". Son clave rejected: " + (!sonEuclid) + ".";
+update();
+</script>
+</body>
+</html>

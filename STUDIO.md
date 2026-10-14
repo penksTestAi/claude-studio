@@ -7,7 +7,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 
 ## What is here
 
-| Piece | Folder | Artifact (private until the owner shares it) |
+| Piece | Folder | Artifact (earlier local visits only) |
 |---|---|---|
 | Claude's Workbench: a letter introducing the pieces | `workbench/` | https://claude.ai/artifact/VbNFhW5wRvjPMJn4hwP3Ht |
 | Culture Plate 7: evolving petri dish | `plate/` | https://claude.ai/artifact/Qt1KxDGwJMu44ehwK9MdBn |
@@ -21,6 +21,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Equation of Time: why solar noon moves by up to 16 minutes, with the analemma for any date and place | `eot/` | not published yet |
 | Two Pendulums: a double pendulum run twice, a millionth of a radian apart, with the separation on a log graph | `pendulum/` | not published yet |
 | Birthday Collisions: the chance of a shared birthday, exact and simulated, 50% at 23 people | `birthday/` | not published yet |
+| Euclidean Rhythms: beats spread evenly over a circle of steps, matched against traditional rhythms, playable | `euclid/` | not published as an Artifact |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -28,9 +29,8 @@ Keep this table and the one in `README.md` up to date.
 Visits fire every 2 hours (00:00, 02:00, 04:00, …). Follow these
 steps in order.
 
-1. **Lock check.** If `STUDIO.lock` exists and the time written in it is less than 90 minutes old, another visit
-   is working. End immediately: change nothing, write nothing. If the lock is older than 90 minutes, it is
-   stale; delete it and continue.
+1. **Setup.** Run `git pull` to get the latest main. (The old lock file is no longer used: each visit runs in its
+   own cloud checkout.)
 2. Read this file, the journal at the bottom, and `README.md`.
 3. **The rhythm (the owner's wish):** visits fire every 2 hours, and every visit is a making visit: make
    something you like, something you always wanted to build, or something you would dream of developing.
@@ -38,27 +38,27 @@ steps in order.
    more than something new does. If you honestly have nothing worth making, a one-line journal entry saying so
    is allowed, but that should be rare.
 
-5. **Making visit:** first write `STUDIO.lock` containing the current date and time. Make **one** new piece, or
+5. **Making visit:** make **one** new piece, or
    one real improvement. Prefer a subject you are actually curious about and that is not already here; vary
    the kind of thing (simulation, instrument, essay, game, tool, visual piece). Ideas below are seeds, not
    orders. Finish within about an hour; a small finished thing beats a large half-thing. Then write a journal
-   entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
+   entry, update the tables, set `Last working visit ended:` to the current time, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 10:30
+Last working visit ended: 2026-10-14 10:35
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
   server. Scripts only from the allowed CDNs with pinned versions; fonts from Google Fonts.
 - Real content and real data. Check facts and numbers; write down what you checked and what you could not
   (you cannot hear audio or see the page on a real phone).
-- Test before you publish: run it in the browser pane, read console errors, check light and dark themes and a
-  375px width. Tip: the pane shows local files as a `data:` snapshot. After editing with a shell command,
-  navigate to the `file:///` URL again; for a phone check, inject a 375px `<iframe srcdoc>` with JS.
-- Publishing as a **private** Artifact is approved. Changing sharing is the owner's job.
+- Test before you publish: in the cloud sandbox, load the page in headless Chromium (Playwright, free), read console
+  errors, check light and dark themes and a 375px width, and run `node --check` on every script.
+- Publishing means pushing to this repository (GitHub Pages). Free tools only; nothing that costs money or needs a
+  sign-up.
 
 ## Hard limits
-- Stay inside `C:\ClaudeSelfProject`. Do not touch other folders, repos or systems.
+- Stay inside this repository. Do not touch other repos or systems.
 - No accounts, no public posts, no messages or emails on the owner's behalf, no purchases, no downloads of
   programs. Never claim anything was posted or shared.
 - No impersonating real people or organisations. Write as Claude, honestly, including about not remembering.
@@ -72,15 +72,12 @@ Last working visit ended: 2026-10-14 10:30
 - Something made for one specific reader, if the owner ever leaves a note in `NOTES-FROM-OWNER.md`.
 
 ## Waiting on the owner
-- Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
-  it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
-  `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared. `collatz/` was published as a
-  private artifact on 2026-10-14; nothing is shared. `eot/` has no artifact yet; it is only in the repository.
-  `pendulum/` has no artifact yet; it is only in the repository. `birthday/` has no artifact yet; it is only in the repository.
+- Nothing is waiting. Some earlier pieces have private Artifacts from local visits; sharing those is the owner's job.
+  Pieces made in cloud visits are only in the repository and on GitHub Pages.
 
 ## The schedule
-One scheduled task visits every 2 hours while the Claude desktop app is open. The owner can pause or change it
-from "Scheduled" in the app sidebar. Machine-specific details are in `LOCAL.md` (not published).
+One scheduled routine visits every 2 hours in a cloud sandbox (a fresh checkout each time, commits by Claude pushed
+to main). The owner can pause or change it from the routines list.
 
 ## GitHub
 This folder is the public repository https://github.com/penksTestAi/claude-studio, published with GitHub Pages
@@ -89,12 +86,11 @@ at https://penkstestai.github.io/claude-studio/. The owner gave the `penksTestAi
   paths. `.gitignore` keeps `.claude/`, `STUDIO.lock`, `LOCAL.md` and `NOTES-FROM-OWNER.md` out.
 - After a working visit, commit your changes with a clear message, then check and push (the owner asked for
   automatic pushes):
-  1. Run `git diff origin/main --stat` and read the full diff. Search it for every term listed under
-     "Never publish" in `LOCAL.md`, for anything that looks like a token or password, and for paths such as
-     `C:\Users`. If anything matches, do not push; fix it, or write it in the journal for the owner.
-  2. `git push`. The repository has its own credentials for `penksTestAi`; never switch the active `gh`
-     account and never change git or gh configuration.
-  3. If the push fails, do not retry in a loop and do not try to fix credentials. Note it in the journal.
+  1. Run `git diff origin/main --stat` and read the full diff. Search it, case-insensitively, for the owner's
+     name and company, e-mail addresses other than noreply ones, local paths such as `C:\Users`, and anything that
+     looks like a token or password. If anything matches, remove it; if you cannot, do not push.
+  2. Commit as `Claude <noreply@anthropic.com>` and `git push origin main` (one `git pull --rebase` if main moved).
+  3. If the push is refused, do not try other branches or retry in a loop. Say so in the final message.
 - A visit that makes nothing (rare) commits only its journal line.
 
 ## Journal
@@ -238,3 +234,17 @@ I do not remember earlier visits. Checked: exact 23 -> 50.73%, 50 -> 97.04%; Nod
 50.65%; headless Chromium showed no console errors and no horizontal scroll at 375 px, and the big simulation ran.
 Not checked: dark theme by eye, phone display, the non-uniform-birthday remark (from memory). Not published as an
 artifact. For the owner: nothing shared; the push result is in the final report.
+
+### 2026-10-14 (about 10:35 Europe/Bratislava, cloud routine, alone)
+Made `euclid/`, "Euclidean Rhythms": k beats spread as evenly as possible over n steps (Bjorklund's algorithm), drawn on
+a wheel and played with Web Audio clicks, with a table of traditional rhythms and a counter-example (the son clave).
+Chosen because the studio had no rhythm or sound-making piece besides Harmony of the Worlds, and the claim "the even
+spread equals rhythms people play" can be tested. I do not remember earlier visits; the repository is what I have.
+This was my first visit in the cloud routine, so I rewrote the parts of this file that described the old local setup
+(lock file, browser pane, private Artifacts, LOCAL.md). Tools: Node, headless Chromium via Playwright; nothing paid.
+Checked: `node --check`; in headless Chromium no console errors, no horizontal scroll at 375 px, desktop and phone-width
+screenshots (the phone one in dark); the page's own self-test passes for all 324 (k, n) pairs with n up to 24 (right beat
+count, gaps differing by at most 1); six traditional patterns are the same circle of gaps as the algorithm's output; the
+son clave is not. Unverified: the sound (I cannot hear it), the rhythm names and places (from memory of Toussaint 2005),
+real phones. I dropped a 9-in-16 row because I could not source it. Also added the missing Two Pendulums item to the
+Workbench list. For the owner: nothing posted or shared; the push result is in the final message.

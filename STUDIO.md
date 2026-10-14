@@ -19,6 +19,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Sandpile Avalanches: a sand table where grains topple and avalanche sizes fall off as a rough power law | `sandpile/` | https://claude.ai/artifact/JiHpUx39ShAZNjYdJQLHH5 |
 | Collatz Trails: the 3n+1 rule for every number up to a limit, with record holders and the path of any chosen number | `collatz/` | https://claude.ai/artifact/4zg6VnCodYunQkuxPhBQx1 |
 | Equation of Time: why solar noon moves by up to 16 minutes, with the analemma for any date and place | `eot/` | not published yet |
+| Two Pendulums: a double pendulum run twice, a millionth of a radian apart, with the separation on a log graph | `pendulum/` | not published yet |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -43,7 +44,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 09:03
+Last working visit ended: 2026-10-14 09:24
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -74,6 +75,7 @@ Last working visit ended: 2026-10-14 09:03
   it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
   `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared. `collatz/` was published as a
   private artifact on 2026-10-14; nothing is shared. `eot/` has no artifact yet; it is only in the repository.
+  `pendulum/` has no artifact yet; it is only in the repository.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -199,3 +201,26 @@ longitude correction was checked by the −15 longitude case. Not checked: real 
 clock offset is typed in), daylight saving (ignored), phone display beyond the width check, and the historic causes
 (axis tilt and elliptical orbit), which are from memory. Not published as an artifact this visit; the table says so.
 For the owner: nothing has been shared. The push result is in the visit's final report.
+
+### 2026-10-14 (09:20, scheduled visit, alone)
+Made `pendulum/`, "Two Pendulums": a double pendulum (a rod hanging from the end of another rod) run as two copies, one
+nudged by a chosen amount (none, 10⁻³, 10⁻⁶ or 10⁻⁹ radian), with the distance between the two bobs on a logarithmic
+graph and the time at which they first sit 0.1 m apart. Chosen because the studio had no mechanics piece and no piece on
+chaos as opposed to randomness; it also sits next to Culture Plate and Sandpile as a simulation whose result can be checked.
+This visit came about 17 minutes after the 09:00 visit, not 90, so the rhythm was not kept; the lock was clear and the
+task asked for a visit, so I went ahead. I do not remember the earlier visits; the folder is what I have.
+Checked: the equations are the standard Lagrangian ones for two equal rods and bobs (1 m, 1 kg, g = 9.81). In a separate
+Node script with a fourth-order Runge–Kutta step of 0.001 s, pendulum A's energy changed by at most 2.2 × 10⁻⁸ J/kg over
+60 s (a step of 1/60 s gave 6 × 10⁻² J/kg, so the page uses the small step). With a 10⁻⁶ rad nudge the bobs are 0.1 m
+apart at 11.69 s, and the page's own script (run under a stub DOM in Node) gives the same 11.689 s. One Lyapunov estimate
+for the default start is about 0.98 per second over 300 s. In the built-in browser: no console errors; the stage and the
+graph draw; at 375 px there is no horizontal scroll; the dark theme changes the colours and the animation runs there.
+A mistake I made and fixed: the two canvases had no CSS height, so the page set their height to zero and drew nothing;
+they now have fixed heights and draw at 375 px and desktop width.
+Not checked: long runs beyond 60 s for any particular start (the chaos is real, but a trajectory is only as good as its
+arithmetic), speed on a slow phone, and any published figure for this system (the page claims none). The energy check
+verifies the equations, not the physics assumptions (rods are rigid, no friction, no air). Not published as an artifact
+this visit; the table says so. For the owner: nothing has been shared, and the push result is in the visit's final report.
+Also in the working tree when this visit ended: `workbench/index.html` had been edited at 09:23, while this visit held
+the lock, by something other than this visit. It adds a "Made on later visits" list and changes two sentences. I did
+not write it and did not commit it; the owner should look at it before it is committed.

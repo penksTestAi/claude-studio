@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equation of Time</title>
+<style>
+:root{
+  --bg:#f6f4ee; --panel:#fffdf8; --ink:#23211d; --muted:#6b675e; --line:#cfc9bb;
+  --sun:#c2601f; --curve:#2c5d86; --zero:#8a8577;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --panel:#1c1f25; --ink:#e9e6dd; --muted:#a09c91; --line:#43474f;
+    --sun:#f2905c; --curve:#84b8e8; --zero:#7d7a70;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --panel:#1c1f25; --ink:#e9e6dd; --muted:#a09c91; --line:#43474f;
+  --sun:#f2905c; --curve:#84b8e8; --zero:#7d7a70;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 4px;font-weight:normal}
+h2{font-size:1.15rem;margin:28px 0 6px;font-weight:normal}
+.lede{color:var(--muted);margin:0 0 18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--muted)}
+input{width:100%;margin-top:4px;padding:6px 8px;font:inherit;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:5px}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px}
+.tile{border-top:2px solid var(--line);padding-top:6px}
+.tile .k{font-size:.8rem;color:var(--muted)}
+.tile .v{font-size:1.25rem;font-variant-numeric:tabular-nums}
+.say{margin:10px 0 0;min-height:1.5em}
+canvas{display:block;width:100%;border-radius:6px}
+.cap{font-size:.88rem;color:var(--muted);margin:6px 0 0}
+p{margin:0 0 10px}
+.notes{font-size:.92rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Equation of Time</h1>
+  <p class="lede">The sun is not on time. Solar noon, the moment it crosses your meridian, moves about by up to
+  16 minutes across the year. Pick a date and place to see why.</p>
+
+  <section class="panel" aria-label="Controls">
+    <div class="controls">
+      <div><label for="date">Date</label><input id="date" type="date"></div>
+      <div><label for="lon">Longitude, degrees east (west is negative)</label>
+        <input id="lon" type="number" step="0.01" min="-180" max="180" value="0"></div>
+      <div><label for="tz">Clock offset from UTC, hours (no daylight saving)</label>
+        <input id="tz" type="number" step="0.5" min="-12" max="14" value="0"></div>
+    </div>
+    <div class="readouts">
+      <div class="tile"><div class="k">Equation of time</div><div class="v" id="eot">–</div></div>
+      <div class="tile"><div class="k">Solar noon on your clock</div><div class="v" id="noon">–</div></div>
+      <div class="tile"><div class="k">Sun's declination</div><div class="v" id="dec">–</div></div>
+      <div class="tile"><div class="k">Day of year</div><div class="v" id="day">–</div></div>
+    </div>
+    <p class="say" id="say"></p>
+  </section>
+
+  <h2>Over the year</h2>
+  <canvas id="year" aria-label="Equation of time through the year"></canvas>
+  <p class="cap">Above zero, the sun is ahead of the clock and a sundial reads noon before it. Below zero, it is behind.</p>
+
+  <h2>The analemma</h2>
+  <canvas id="ana" aria-label="Sun's declination against the equation of time, one point per day"></canvas>
+  <p class="cap">One dot per day: the sun's declination (vertical) against the equation of time (horizontal, in minutes).
+  The horizontal axis is not to the same scale as the vertical one. This is the figure-of-eight from a fixed clock
+  time, drawn as a graph; it is not a picture of the sky.</p>
+
+  <h2>Why it changes</h2>
+  <p>Two things make the sun's day uneven. The Earth's axis is tilted by about 23.4 degrees, so the sun's apparent
+  path along the sky runs slant to the clock's steady hours. And the orbit is an ellipse: the Earth moves fastest when it
+  is closest to the sun, in early January, and slowest in early July. Together these give a sundial a lead of about
+  16 minutes in early November and a lag of about 14 minutes in mid-February.</p>
+  <p>To find solar noon on your clock, the page uses: noon + 4 minutes for each degree your place lies west of your clock's
+  standard meridian (15 degrees per hour of offset), minus the equation of time.</p>
+
+  <h2>What was checked</h2>
+  <p class="notes">The equation of time and declination use the Fourier series of Spencer (1971). Against values I remember
+  (11 February about −14.2 minutes, 3 November about +16.4, 14 May about +3.7, 26 July about −6.4) it is within 0.2
+  minute. Its largest value is +16.4 minutes on day 305, its smallest −14.3 on day 45; the declination runs from −23.4
+  to +23.5 degrees. The solar noon for Greenwich on 3 November is 11:43.6. These came from a separate Node script, not
+  from this page. In the built-in browser the readouts matched that script: 3 November shows +16 min 22 s, declination
+  −14.83° and solar noon 11:43:38 (12:43:38 at longitude −15); 11 February shows −14 min 12 s; 21 June shows +23.45°.
+  The browser showed no console errors, and the year curve and the analemma both drew. At 375 px wide the page has no
+  horizontal scroll (page width 375) and the two charts fill 343 px.</p>
+  <p class="notes">Dark theme: forced by setting the theme attribute, which switched the page colours; I could not get a
+  screenshot of it, so the look of the dark theme is not checked by eye. Also not checked: real sun times at real places (no sun-position data is used, so local noon can differ by a few
+  minutes from the formula, and the time zone is typed in, not looked up); daylight saving; and the series' exact error
+  beyond the points I remember. The historic reasons for the uneven day are from memory.</p>
+</main>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var dateIn = $("date"), lonIn = $("lon"), tzIn = $("tz");
+  var yearCv = $("year"), anaCv = $("ana");
+  var MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+  var MONTH_START = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+
+  // Day of year for a calendar date (1 = 1 January).
+  function doy(y, m, d) {
+    return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000) + 1;
+  }
+  // Spencer (1971) series. eot in minutes, declination in degrees.
+  function gamma(n) { return 2 * Math.PI * (n - 1) / 365; }
+  function eot(n) {
+    var g = gamma(n);
+    return 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g)
+      - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  }
+  function dec(n) {
+    var g = gamma(n);
+    return (0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g)
+      - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g)
+      - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g)) * 180 / Math.PI;
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clockFrom(minutes) {
+    // minutes after midnight, wrapped to 0..1440, shown as h:mm:ss
+    var m = ((minutes % 1440) + 1440) % 1440;
+    var total = Math.round(m * 60);
+    var h = Math.floor(total / 3600), mi = Math.floor(total / 60) % 60, s = total % 60;
+    return h + ":" + pad(mi) + ":" + pad(s);
+  }
+  function minSec(e) {
+    var total = Math.round(Math.abs(e) * 60);
+    return (e < 0 ? "−" : "+") + Math.floor(total / 60) + " min " + pad(total % 60) + " s";
+  }
+  function colours() {
+    var cs = getComputedStyle(document.documentElement);
+    var get = function (k) { return cs.getPropertyValue(k).trim(); };
+    return { ink: get("--ink"), muted: get("--muted"), line: get("--line"), sun: get("--sun"),
+      curve: get("--curve"), zero: get("--zero") };
+  }
+  function setup(cv, h) {
+    var w = cv.clientWidth, r = window.devicePixelRatio || 1;
+    cv.style.height = h + "px";
+    cv.width = Math.round(w * r);
+    cv.height = Math.round(h * r);
+    var g = cv.getContext("2d");
+    g.setTransform(r, 0, 0, r, 0, 0);
+    g.clearRect(0, 0, w, h);
+    return { g: g, w: w, h: h };
+  }
+
+  var state = { n: 1, lon: 0, tz: 0 };
+
+  function readInputs() {
+    var parts = (dateIn.value || "").split("-").map(Number);
+    var now = new Date();
+    var y = parts[0] || now.getFullYear(), m = parts[1] || (now.getMonth() + 1), d = parts[2] || now.getDate();
+    state.n = doy(y, m, d);
+    var lon = parseFloat(lonIn.value), tz = parseFloat(tzIn.value);
+    state.lon = isNaN(lon) ? 0 : lon;
+    state.tz = isNaN(tz) ? 0 : tz;
+  }
+
+  function drawYear(c) {
+    var H = 230;
+    var s = setup(yearCv, H), g = s.g, w = s.w;
+    var L = 40, R = 10, T = 10, B = 24;
+    var pw = w - L - R, ph = H - T - B;
+    var yMax = 17;
+    var x = function (n) { return L + (n - 1) / 364 * pw; };
+    var y = function (e) { return T + (yMax - e) / (2 * yMax) * ph; };
+    g.font = "12px Georgia, serif";
+    g.strokeStyle = c.line; g.lineWidth = 1;
+    [-15, -10, -5, 0, 5, 10, 15].forEach(function (v) {
+      g.beginPath(); g.moveTo(L, y(v)); g.lineTo(w - R, y(v)); g.stroke();
+      g.fillStyle = c.muted; g.textAlign = "right"; g.textBaseline = "middle";
+      g.fillText((v > 0 ? "+" : "") + v, L - 6, y(v));
+    });
+    g.strokeStyle = c.zero; g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(L, y(0)); g.lineTo(w - R, y(0)); g.stroke();
+    g.fillStyle = c.muted; g.textAlign = "left"; g.textBaseline = "top";
+    MONTHS.forEach(function (mName, i) {
+      g.fillText(mName, x(MONTH_START[i]) + 2, H - B + 6);
+    });
+    g.strokeStyle = c.curve; g.lineWidth = 2; g.beginPath();
+    for (var n = 1; n <= 365; n++) {
+      var px = x(n), py = y(eot(n));
+      if (n === 1) g.moveTo(px, py); else g.lineTo(px, py);
+    }
+    g.stroke();
+    var e = eot(state.n);
+    g.strokeStyle = c.sun; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x(state.n), T); g.lineTo(x(state.n), H - B); g.stroke();
+    g.fillStyle = c.sun; g.beginPath(); g.arc(x(state.n), y(e), 4.5, 0, 2 * Math.PI); g.fill();
+  }
+
+  function drawAna(c) {
+    var H = 300;
+    var s = setup(anaCv, H), g = s.g, w = s.w;
+    var L = 44, R = 12, T = 12, B = 30;
+    var pw = w - L - R, ph = H - T - B;
+    var xMax = 17, yMax = 24;
+    var X = function (e) { return L + (e + xMax) / (2 * xMax) * pw; };
+    var Y = function (d) { return T + (yMax - d) / (2 * yMax) * ph; };
+    g.font = "12px Georgia, serif";
+    g.strokeStyle = c.line; g.lineWidth = 1;
+    [-20, -10, 0, 10, 20].forEach(function (d) {
+      g.beginPath(); g.moveTo(L, Y(d)); g.lineTo(w - R, Y(d)); g.stroke();
+      g.fillStyle = c.muted; g.textAlign = "right"; g.textBaseline = "middle";
+      g.fillText((d > 0 ? "+" : "") + d + "°", L - 6, Y(d));
+    });
+    [-10, 0, 10].forEach(function (e) {
+      g.beginPath(); g.moveTo(X(e), T); g.lineTo(X(e), H - B); g.stroke();
+      g.fillStyle = c.muted; g.textAlign = "center"; g.textBaseline = "top";
+      g.fillText((e > 0 ? "+" : "") + e, X(e), H - B + 6);
+    });
+    g.strokeStyle = c.zero; g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(X(0), T); g.lineTo(X(0), H - B); g.stroke();
+    g.fillStyle = c.muted; g.textAlign = "center"; g.textBaseline = "bottom";
+    g.fillText("equation of time, minutes", L + pw / 2, H - 2);
+    g.save(); g.translate(12, T + ph / 2); g.rotate(-Math.PI / 2);
+    g.textAlign = "center"; g.fillText("declination", 0, 0); g.restore();
+    g.strokeStyle = c.curve; g.lineWidth = 2; g.beginPath();
+    for (var n = 1; n <= 365; n++) {
+      var px = X(eot(n)), py = Y(dec(n));
+      if (n === 1) g.moveTo(px, py); else g.lineTo(px, py);
+    }
+    g.stroke();
+    g.fillStyle = c.sun; g.beginPath();
+    g.arc(X(eot(state.n)), Y(dec(state.n)), 5, 0, 2 * Math.PI); g.fill();
+  }
+
+  function render() {
+    readInputs();
+    var c = colours();
+    var e = eot(state.n), d = dec(state.n);
+    var noon = 720 + 4 * (15 * state.tz - state.lon) - e;
+    $("eot").textContent = minSec(e);
+    $("noon").textContent = clockFrom(noon);
+    $("dec").textContent = (d > 0 ? "+" : "−") + Math.abs(d).toFixed(2) + "°";
+    $("day").textContent = state.n + " of 365";
+    $("say").textContent = e > 0
+      ? "The sun is ahead of the clock today: a sundial reads noon before your clock does."
+      : "The sun is behind the clock today: a sundial reads noon after your clock does.";
+    drawYear(c);
+    drawAna(c);
+  }
+
+  var today = new Date();
+  dateIn.value = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
+  [dateIn, lonIn, tzIn].forEach(function (el) { el.addEventListener("input", render); });
+  var rt;
+  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(render, 120); });
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", render);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

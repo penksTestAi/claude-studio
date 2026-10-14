@@ -18,6 +18,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Primes on a Spiral: Ulam's square spiral with primes coloured, counts checked against a sieve | `primes/` | https://claude.ai/artifact/RDzCB5PZDNN4ZE4JbVimGP |
 | Sandpile Avalanches: a sand table where grains topple and avalanche sizes fall off as a rough power law | `sandpile/` | https://claude.ai/artifact/JiHpUx39ShAZNjYdJQLHH5 |
 | Collatz Trails: the 3n+1 rule for every number up to a limit, with record holders and the path of any chosen number | `collatz/` | https://claude.ai/artifact/4zg6VnCodYunQkuxPhBQx1 |
+| Equation of Time: why solar noon moves by up to 16 minutes, with the analemma for any date and place | `eot/` | not published yet |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -42,7 +43,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, delete `STUDIO.lock`, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 06:02
+Last working visit ended: 2026-10-14 09:03
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -72,7 +73,7 @@ Last working visit ended: 2026-10-14 06:02
 - Share the artifacts (Share menu on each page) if they should be seen by others. `lsystems/` has no artifact yet;
   it is only in the repository. `primes/` was published as a private artifact on 2026-10-14; nothing is shared.
   `sandpile/` was published as a private artifact on 2026-10-14; nothing is shared. `collatz/` was published as a
-  private artifact on 2026-10-14; nothing is shared.
+  private artifact on 2026-10-14; nothing is shared. `eot/` has no artifact yet; it is only in the repository.
 
 ## The schedule
 Two scheduled tasks visit every 90 minutes while the Claude desktop app is open. The owner can pause or change it
@@ -183,3 +184,18 @@ conjecture beyond the page's limit (the page says so; the "checked far beyond" f
 for Collatz, which is from memory. The published copy had its document wrapper tags removed, as the page contract asks;
 the repository copy keeps them so it works on GitHub Pages. For the owner: the artifact is private and nothing is shared.
 The push result is in the visit's final report.
+
+### 2026-10-14 (09:00, scheduled visit, alone)
+Made `eot/`, "Equation of Time": why solar noon moves by up to about 16 minutes across the year, with a date and
+longitude picker, a year graph of the equation of time, and the analemma (declination against equation of time, one dot
+per day). Chosen because the studio had no piece on the sky or on time-keeping, and the numbers can be checked against
+values I remember. I do not remember the earlier visits; the folder is what I have. Checked: in a separate Node script
+the Spencer (1971) series gives 11 February −14.20 min, 3 November +16.37, 14 May +3.93 and 26 July −6.57 (the last two
+differ from my remembered +3.7 and −6.4 by about 0.2 min); the maximum +16.38 falls on day 305 and the minimum −14.26 on
+day 45; Greenwich solar noon on 3 November is 11:43.6. The page showed the same numbers in the built-in browser (also
+11:43:38 for solar noon, and one hour later at longitude −15), no console errors, the charts drawing, and no horizontal
+scroll at 375 px. The dark theme was forced by setting the theme attribute, but I did not see it in a screenshot. The sign of the
+longitude correction was checked by the −15 longitude case. Not checked: real sun times at real places (no sun-position data; the
+clock offset is typed in), daylight saving (ignored), phone display beyond the width check, and the historic causes
+(axis tilt and elliptical orbit), which are from memory. Not published as an artifact this visit; the table says so.
+For the owner: nothing has been shared. The push result is in the visit's final report.

@@ -22,6 +22,7 @@ the memory.** Read it all before you do anything, and add to the journal before 
 | Two Pendulums: a double pendulum run twice, a millionth of a radian apart, with the separation on a log graph | `pendulum/` | not published yet |
 | Birthday Collisions: the chance of a shared birthday, exact and simulated, 50% at 23 people | `birthday/` | not published yet |
 | Euclidean Rhythms: beats spread evenly over a circle of steps, matched against traditional rhythms, playable | `euclid/` | not published as an Artifact |
+| 256 Little Worlds: all elementary cellular automata (rule 30, 90, 110, 184), with self-checks | `cellular/` | not published as an Artifact |
 
 Keep this table and the one in `README.md` up to date.
 
@@ -45,7 +46,7 @@ steps in order.
    entry, update the tables, set `Last working visit ended:` to the current time, and
    commit and push as described under GitHub.
 
-Last working visit ended: 2026-10-14 10:35
+Last working visit ended: 2026-10-14 12:30
 
 ## Craft rules (they worked last time)
 - One self-contained `index.html` per piece in its own folder, plus a short `README.md`. No build step, no
@@ -248,3 +249,14 @@ count, gaps differing by at most 1); six traditional patterns are the same circl
 son clave is not. Unverified: the sound (I cannot hear it), the rhythm names and places (from memory of Toussaint 2005),
 real phones. I dropped a 9-in-16 row because I could not source it. Also added the missing Two Pendulums item to the
 Workbench list. For the owner: nothing posted or shared; the push result is in the final message.
+
+### 2026-10-14 (about 12:30 Europe/Bratislava, cloud routine, alone)
+Made `cellular/`, "256 Little Worlds": every elementary cellular automaton (a ring of on/off cells, each new row from
+a cell and its two neighbours), with a rule number box, clickable rule table, famous presets, one-cell or seeded random
+start. Chosen because the studio had no piece on emergent computation in one dimension and the results can be checked.
+I do not remember earlier visits. Tools: Node, headless Chromium via Playwright; nothing paid. Checked: `node --check`;
+the page's own self-checks pass (rule 90 row n has 2^popcount(n) cells for rows 0-255; rule 30 centre column starts
+1101110011; its first 1000 digits hold 481 ones; rule 184 conserves 156 cells over 120 generations); no console errors
+at 1100px (light) and 375px (dark), no horizontal scroll, screenshot of the phone view looked right. Unverified: Cook's
+2004 rule 110 result and Wolfram's use of rule 30 for random numbers are from memory; real phones. The funStylePage toy
+for this run was forecast-0007. For the owner: nothing posted or shared.

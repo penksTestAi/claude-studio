@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Colours of Noise · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Play white, pink or brown noise with a fading sleep timer and a live spectrum, and watch the page measure the slope of the sound it makes (about 0, -3 and -6 dB per octave)">
+<link rel="canonical" href="https://vigilstudio.github.io/noise/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Colours of Noise · Vigil">
+<meta property="og:description" content="Play white, pink or brown noise with a fading sleep timer and a live spectrum, and watch the page measure the slope of the sound it makes (about 0, -3 and -6 dB per octave)">
+<meta property="og:url" content="https://vigilstudio.github.io/noise/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Colours of Noise · Vigil">
+<meta name="twitter:description" content="Play white, pink or brown noise with a fading sleep timer and a live spectrum, and watch the page measure the slope of the sound it makes (about 0, -3 and -6 dB per octave)">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--curve:#2f5f9e;--inst:#9ab0cc;--ideal:#b5541c;--band:rgba(47,95,158,.08);--ok:#2f7d3a;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--curve:#8fbdf5;--inst:#46618a;--ideal:#f2905c;--band:rgba(143,189,245,.09);--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--curve:#8fbdf5;--inst:#46618a;--ideal:#f2905c;--band:rgba(143,189,245,.09);--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.15rem;margin:28px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:16px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend,.lab{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:4px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg .box{display:block;min-height:56px;padding:8px 6px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.seg .box b{display:block;font-weight:normal;font-size:1.05rem}
+.seg .box small{display:block;color:var(--muted);font-size:.78rem}
+.seg input:checked + .box{border:3px solid var(--accent);padding:6px 4px;background:var(--panel)}
+.seg input:checked + .box b::before{content:"\2713\00a0"}
+.seg input:focus-visible + .box{outline:3px solid var(--ink);outline-offset:2px}
+.blurb{margin:8px 0 0;font-size:.92rem;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+@media (min-width:560px){.row{grid-template-columns:1fr 1fr}}
+.play{width:100%;min-height:52px;font:inherit;font-size:1.1rem;color:var(--accent-ink);background:var(--accent);border:2px solid var(--accent);border-radius:8px;cursor:pointer;margin-top:14px}
+.play[aria-disabled="true"]{opacity:.6;cursor:default}
+.play:focus-visible,select:focus-visible,input[type=range]:focus-visible,input[type=checkbox]:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+select{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}
+.val{font-variant-numeric:tabular-nums;font-size:.95rem}
+.status{margin:14px 0 0;min-height:1.5em}
+.small{font-size:.85rem;color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums;font-size:1.3rem;margin:2px 0 0}
+canvas{display:block;width:100%;height:300px;border-radius:6px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:6px 5px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal}
+th{color:var(--muted);font-size:.8rem}
+td{font-variant-numeric:tabular-nums}
+td small{display:block;color:var(--muted);font-size:.78rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+tr.cur th[scope=row]{font-weight:bold}
+details{margin-top:8px}
+summary{cursor:pointer;min-height:32px}
+details p{font-size:.95rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.err{color:var(--bad)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<main>
+  <h1>Colours of Noise</h1>
+  <p class="lede">Steady noise for focus or sleep: pick a colour, press play, and the page measures the slope of what it plays.</p>
+
+  <section class="panel" aria-label="Controls">
+    <fieldset>
+      <legend>Colour</legend>
+      <div class="seg" id="colours"></div>
+    </fieldset>
+    <p class="blurb" id="blurb"></p>
+
+    <button class="play" id="play" type="button" aria-disabled="true">Preparing the noise&hellip;</button>
+
+    <div class="row">
+      <div>
+        <label class="lab" for="vol">Volume (starts low)</label>
+        <input id="vol" type="range" min="0" max="100" step="1" value="20">
+        <div class="val" id="volval"></div>
+        <div class="small">Level is before your device&rsquo;s own volume control.</div>
+      </div>
+      <div>
+        <label class="lab" for="timer">Sleep timer</label>
+        <select id="timer"></select>
+        <p class="timer" id="left" role="timer" aria-label="Time left on the sleep timer">Timer off</p>
+        <div class="small" id="fadeinfo"></div>
+      </div>
+    </div>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="panel" aria-label="Spectrum">
+    <canvas id="spec" role="img" aria-label="Spectrum chart"></canvas>
+    <p class="small" id="speccap"></p>
+  </section>
+
+  <h2>The slope it makes, measured</h2>
+  <section class="panel" aria-label="Slope measurements">
+    <div class="tw">
+      <table id="tbl">
+        <caption class="sr">Ideal and measured spectrum slope in decibels per octave, for each colour</caption>
+        <thead><tr><th scope="col">Colour</th><th scope="col">Ideal</th><th scope="col">Generated buffer</th><th scope="col">Live (playing)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="small" id="tblnote" style="margin-top:10px"></p>
+    <p class="small" id="levels"></p>
+  </section>
+
+  <details>
+    <summary>How it is made and how the measuring works</summary>
+    <p id="how1"></p>
+    <p id="how2"></p>
+    <p id="how3"></p>
+    <p>Some people find steady noise helps them concentrate or fall asleep. The studies I know of are small and
+    mixed, so this page makes no claim that it will work for you. Keep it quiet: it is easy to leave a steady
+    sound on too loud.</p>
+    <p class="small">Made by Claude, an AI model by Anthropic, for Vigil. I cannot hear audio, so I checked the numbers, not the
+    sound. Not checked: how it sounds on real speakers and phones, and whether a phone keeps the sound going with the
+    screen locked (some browsers stop web audio then).</p>
+  </details>
+</main>
+
+<script>
+"use strict";
+(function(){
+  // ---- Constants (every number the page shows comes from these or from measurement) ----
+  var COLOURS = [
+    {id:"white", name:"White", beta:0, seed:11, blurb:"Same energy at every frequency, so it sounds bright and hissy, like a radio between stations."},
+    {id:"pink",  name:"Pink",  beta:1, seed:22, blurb:"Equal energy in every octave, so it is softer than white, like steady rain."},
+    {id:"brown", name:"Brown", beta:2, seed:33, blurb:"Falls steeply with pitch, so it is deep and rumbling, like a distant waterfall."}
+  ];
+  var LOG2 = Math.log(2), DB_PER_OCT_PER_BETA = 10*Math.log10(2);       // power halves per octave per unit of beta
+  var LEN = 1<<19;                 // samples in each looped buffer
+  var FFT_N = 16384;               // analysis size (also the analyser's fftSize)
+  var ASSUMED_SR = 48000;          // used for the buffer analysis until the real sample rate is known
+  var TARGET_RMS = 0.15;           // loudness of every colour at full volume, before the device volume
+  var VOL_RANGE_DB = 30, VOL_DEFAULT = 20;
+  var FADE_IN = 3, FADE_OUT_MAX = 60, XFADE = 0.6, STOP_FADE = 0.5;
+  var TIMER_MIN = [0,1,15,30,45,60,90,120];
+  var FIT_LO = 100, FIT_HI = 10000; // fit range in Hz, bands one third of an octave wide
+  var TOL_BUFFER = 0.20, TOL_LIVE = 0.50;
+  var F_MIN = 20, F_MAX = 20000, Y_RANGE = 80;
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  var $ = function(id){ return document.getElementById(id); };
+  var fmt = function(v,d){ d = d==null?2:d; var s = Math.abs(v).toFixed(d); if (+s===0) return s; return (v<0?"−":"+")+s; };
+  var fmtPlain = function(v,d){ var a = Math.abs(v).toFixed(d); return (v<0 && +a!==0 ? "−" : "")+a; };
+  var ideal = function(c){ return -DB_PER_OCT_PER_BETA*c.beta; };
+  function byId(id){ for (var i=0;i<COLOURS.length;i++) if (COLOURS[i].id===id) return COLOURS[i]; return COLOURS[1]; }
+  function safeGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function safeSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+
+  // ---- FFT (radix 2, in place, forward). Inverse: fft(im, re) leaves the real part in re (unscaled). ----
+  var twCache = {};
+  function fft(re, im){
+    var n = re.length, i, j, k, t;
+    var tw = twCache[n];
+    if (!tw){ var c = new Float64Array(n>>1), s = new Float64Array(n>>1); for (k=0;k<n>>1;k++){ c[k]=Math.cos(2*Math.PI*k/n); s[k]=-Math.sin(2*Math.PI*k/n); } tw = twCache[n] = {c:c,s:s}; }
+    for (i=1,j=0;i<n;i++){ var bit = n>>1; for (;j&bit;bit>>=1) j^=bit; j^=bit; if (i<j){ t=re[i];re[i]=re[j];re[j]=t; t=im[i];im[i]=im[j];im[j]=t; } }
+    for (var len=2; len<=n; len<<=1){
+      var half = len>>1, step = n/len;
+      for (i=0;i<n;i+=len){
+        for (k=0;k<half;k++){
+          var wr = tw.c[k*step], wi = tw.s[k*step];
+          var a = i+k, b = a+half;
+          var xr = re[b]*wr - im[b]*wi, xi = re[b]*wi + im[b]*wr;
+          re[b] = re[a]-xr; im[b] = im[a]-xi; re[a] += xr; im[a] += xi;
+        }
+      }
+    }
+  }
+  function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a>>>15, 1|a); t = t + Math.imul(t ^ t>>>7, 61|t) ^ t; return ((t ^ t>>>14)>>>0)/4294967296; }; }
+
+  // ---- The generator: amplitude proportional to f^(-beta/2), random phase, inverse FFT. Periodic, so it loops without a seam. ----
+  function makeNoise(beta, seed){
+    var re = new Float64Array(LEN), im = new Float64Array(LEN), rng = mulberry32(seed), k;
+    for (k=1;k<LEN/2;k++){
+      var mag = Math.pow(k, -beta/2), ph = 2*Math.PI*rng();
+      re[k] = mag*Math.cos(ph); im[k] = mag*Math.sin(ph);
+      re[LEN-k] = re[k]; im[LEN-k] = -im[k];
+    }
+    re[LEN/2] = Math.pow(LEN/2, -beta/2);
+    fft(im, re);                                  // inverse transform, real part ends in re
+    var out = new Float32Array(LEN), sum = 0, peak = 0, v;
+    for (k=0;k<LEN;k++) sum += re[k]*re[k];
+    var g = TARGET_RMS/Math.sqrt(sum/LEN);
+    for (k=0;k<LEN;k++){ v = re[k]*g; out[k] = v; if (Math.abs(v)>peak) peak = Math.abs(v); }
+    return {data:out, rms:TARGET_RMS, peak:peak};
+  }
+
+  // ---- Analysis: Blackman-windowed power spectrum, averaged (same window and scaling as the browser's analyser) ----
+  var blackman = new Float64Array(FFT_N);
+  for (var bi=0; bi<FFT_N; bi++) blackman[bi] = 0.42 - 0.5*Math.cos(2*Math.PI*bi/FFT_N) + 0.08*Math.cos(4*Math.PI*bi/FFT_N);
+  function welch(data){
+    var N = FFT_N, bins = N/2, pow = new Float64Array(bins), re = new Float64Array(N), im = new Float64Array(N), segs = 0, i;
+    for (var s=0; s+N<=data.length; s+=N/2){
+      for (i=0;i<N;i++){ re[i] = data[s+i]*blackman[i]; im[i] = 0; }
+      fft(re, im);
+      for (i=0;i<bins;i++){ var m = Math.hypot(re[i],im[i])/N; pow[i] += m*m; }
+      segs++;
+    }
+    for (i=0;i<bins;i++) pow[i] /= segs;
+    return pow;
+  }
+  // Slope in dB per octave: mean power in each third-octave band (per bin, so it is a density), dB, least-squares line against log2(f).
+  function fitSlope(pow, sr){
+    var bw = sr/FFT_N, xs = [], ys = [];
+    for (var k=0; FIT_LO*Math.pow(2,(k+1)/3) <= FIT_HI*1.0000001; k++){
+      var lo = FIT_LO*Math.pow(2,k/3), hi = FIT_LO*Math.pow(2,(k+1)/3), s = 0, n = 0;
+      for (var j=Math.ceil(lo/bw); j*bw<hi && j<pow.length; j++){ s += pow[j]; n++; }
+      if (!n || s<=0) continue;
+      xs.push(Math.log(Math.sqrt(lo*hi))/LOG2); ys.push(10*Math.log10(s/n));
+    }
+    var m = xs.length; if (m<3) return null;
+    var xb = 0, yb = 0, i; for (i=0;i<m;i++){ xb += xs[i]; yb += ys[i]; } xb /= m; yb /= m;
+    var sxx = 0, sxy = 0; for (i=0;i<m;i++){ sxx += (xs[i]-xb)*(xs[i]-xb); sxy += (xs[i]-xb)*(ys[i]-yb); }
+    var slope = sxy/sxx, sse = 0; for (i=0;i<m;i++){ var r = ys[i]-(yb+slope*(xs[i]-xb)); sse += r*r; }
+    return {slope:slope, se:Math.sqrt(sse/(m-2)/sxx), bands:m, xb:xb, yb:yb};
+  }
+
+  // ---- State ----
+  var buffers = {}, bufPow = {}, bufFit = {}, live = {};        // by colour id
+  var ctx = null, nodes = null, cur = null, state = "loading";  // loading | idle | starting | playing | stopping
+  var colour = byId("pink"), endAt = null, fadeLen = 0, fadeStartAt = null, inEnd = 0, fadeAnnounced = false;
+  var liveSum = null, liveN = 0, liveFrom = 0, dbNow = null, tickId = null, drawId = null, stopTimeout = null;
+  var sr = ASSUMED_SR;
+
+  // ---- Build the static pieces from the constants ----
+  var segEl = $("colours");
+  COLOURS.forEach(function(c){
+    var lab = document.createElement("label");
+    lab.innerHTML = '<input type="radio" name="colour" value="'+c.id+'"><span class="box"><b>'+c.name+'</b><small>'+fmtPlain(ideal(c),2).replace(/^0\.00$/,"0")+' dB/oct</small></span>';
+    segEl.appendChild(lab);
+  });
+  var tb = $("tbl").tBodies[0];
+  COLOURS.forEach(function(c){
+    var tr = document.createElement("tr"); tr.id = "row-"+c.id;
+    tr.innerHTML = '<th scope="row">'+c.name+'</th><td>'+fmtPlain(ideal(c),2)+'</td><td id="b-'+c.id+'">&hellip;</td><td id="l-'+c.id+'">play to measure</td>';
+    tb.appendChild(tr);
+  });
+  var tsel = $("timer");
+  TIMER_MIN.forEach(function(m){
+    var o = document.createElement("option"); o.value = m;
+    o.textContent = m===0 ? "Off" : (m===1 ? "1 minute (to hear the fade)" : (m<60 ? m+" minutes" : (m%60===0 ? (m/60)+(m===60?" hour":" hours") : m+" minutes")));
+    tsel.appendChild(o);
+  });
+  var fadeFor = function(min){ return Math.min(FADE_OUT_MAX, min*60/2); };
+  $("how1").textContent = "Each colour is a power law: the power at frequency f is proportional to 1/f^b, with b = 0 for white, 1 for pink and 2 for brown. "
+    + "Every halving of that power is "+DB_PER_OCT_PER_BETA.toFixed(2)+" dB, and each octave doubles f, so the slope is −"+DB_PER_OCT_PER_BETA.toFixed(2)+" dB per octave for each unit of b. "
+    + "The sound is built that way directly: random phases, magnitudes proportional to f^(−b/2), then an inverse FFT of "+LEN.toLocaleString("en-US")+" samples that loops without a seam. "
+    + "Brown noise is named after Brownian motion (Robert Brown), not the colour.";
+  $("how2").textContent = "To measure, the page takes a Blackman-windowed FFT of "+FFT_N.toLocaleString("en-US")+" points, averages the power in third-octave bands from "
+    + FIT_LO+" Hz to "+FIT_HI.toLocaleString("en-US")+" Hz, converts to decibels and fits a straight line against log2(frequency). The slope of that line is the number in the table. "
+    + "The ± figure is the scatter of the bands around the line. The buffer column measures the numbers the generator wrote. The live column measures the signal the browser's audio engine is playing, "
+    + "tapped before the volume control and averaged from the moment each colour settles, so more seconds mean a steadier figure.";
+  $("how3").textContent = "Another convention adds up the power in each whole octave instead of per hertz. Then white noise rises by +"+DB_PER_OCT_PER_BETA.toFixed(2)
+    + " dB per octave, pink is flat, and brown falls by "+DB_PER_OCT_PER_BETA.toFixed(2)+". Same sounds, different bookkeeping; this page uses the per-hertz one.";
+  $("tblnote").textContent = "A measurement counts as a match within ±"+TOL_BUFFER.toFixed(2)+" dB/octave of the ideal for the buffer and ±"+TOL_LIVE.toFixed(2)
+    + " for the live signal, which is noisier. Fit range "+FIT_LO+" Hz to "+FIT_HI.toLocaleString("en-US")+" Hz. This measures the signal, not your speakers or room.";
+  $("fadeinfo").textContent = "";
+
+  // ---- Table and text updates ----
+  function cell(r, tol, extra){
+    var d = r.slope - r.ideal, okc = Math.abs(d) <= tol;
+    return '<span class="'+(okc?"ok":"bad")+'">'+fmtPlain(r.slope,2)+'</span><small>± '+r.se.toFixed(2)+' · '+(okc?"match":"differs by "+fmt(d,2))+(extra?' · '+extra:'')+'</small>';
+  }
+  function updateTable(){
+    COLOURS.forEach(function(c){
+      var b = bufFit[c.id], l = live[c.id];
+      if (b) $("b-"+c.id).innerHTML = cell({slope:b.slope, se:b.se, ideal:ideal(c)}, TOL_BUFFER);
+      $("l-"+c.id).innerHTML = l ? cell({slope:l.slope, se:l.se, ideal:ideal(c)}, TOL_LIVE, l.secs.toFixed(0)+" s") : "play to measure";
+      $("row-"+c.id).className = c.id===colour.id ? "cur" : "";
+    });
+    var parts = COLOURS.filter(function(c){ return buffers[c.id]; }).map(function(c){
+      var bf = buffers[c.id]; return c.name.toLowerCase()+": rms "+fmtPlain(20*Math.log10(bf.rms),1)+" dBFS, peak "+fmtPlain(20*Math.log10(bf.peak),1)+" dBFS";
+    });
+    $("levels").textContent = parts.length ? "Levels at full volume (computed from the samples): "+parts.join("; ")+"." : "";
+  }
+  function volGain(v){ return v<=0 ? 0 : Math.pow(10, -(100-v)*VOL_RANGE_DB/100/20); }
+  function updateVol(){
+    var v = +$("vol").value, g = volGain(v);
+    var txt = v===0 ? "Muted" : v+"%, about "+fmtPlain(20*Math.log10(TARGET_RMS*g),0)+" dBFS";
+    $("volval").textContent = txt; $("vol").setAttribute("aria-valuetext", txt);
+  }
+  function setStatus(t, isErr){ var s = $("status"); s.className = "status"+(isErr?" err":""); s.textContent = t; }
+  function setButton(){
+    var b = $("play");
+    if (state==="loading"){ b.textContent = "Preparing the noise…"; b.setAttribute("aria-disabled","true"); }
+    else if (state==="starting"){ b.textContent = "Starting…"; b.setAttribute("aria-disabled","true"); }
+    else if (state==="stopping"){ b.textContent = "Stopping…"; b.setAttribute("aria-disabled","true"); }
+    else { b.setAttribute("aria-disabled","false"); b.textContent = state==="playing" ? "Stop" : "Play "+colour.name.toLowerCase()+" noise"; }
+  }
+  function minutesText(m){ return m===1 ? "1 minute" : (m<60 ? m+" minutes" : (m%60===0 ? (m/60)+(m===60?" hour":" hours") : m+" minutes")); }
+  function timerMin(){ return +tsel.value; }
+  function updateTimerInfo(){
+    var m = timerMin();
+    if (!m){ $("fadeinfo").textContent = ""; $("left").textContent = "Timer off"; return; }
+    $("fadeinfo").textContent = "Fades out over the last "+fadeFor(m).toFixed(0)+" s, then stops.";
+    if (state!=="playing") $("left").textContent = clock(m*60)+" once playing";
+  }
+  function clock(s){ s = Math.max(0, Math.ceil(s)); var h = Math.floor(s/3600), mm = Math.floor(s%3600/60), ss = s%60; return (h?h+":"+(mm<10?"0":""):"")+mm+":"+(ss<10?"0":"")+ss; }
+  function updateBlurb(){ $("blurb").textContent = colour.blurb; }
+  function updateCaption(){
+    var l = live[colour.id], playing = state==="playing" && liveN>0;
+    var txt = playing
+      ? "Showing the live signal: pale line is the current moment, strong line the average over "+Math.max(0,(ctx.currentTime-liveFrom)).toFixed(0)+" s. "
+      : "Showing the generated "+colour.name.toLowerCase()+" noise buffer, averaged over its whole length. Press play to see the live signal.";
+    txt += " Dashed line: the ideal slope of "+fmtPlain(ideal(colour),2)+" dB/octave, placed through the middle of the measured curve. Shaded: the range used for the fit.";
+    $("speccap").textContent = txt;
+    var fit = playing ? l : bufFit[colour.id];
+    var summary = fit ? " Measured slope "+fmtPlain(fit.slope,2)+" dB per octave, ideal "+fmtPlain(ideal(colour),2)+"." : "";
+    $("spec").setAttribute("aria-label", "Spectrum chart, frequency from "+F_MIN+" Hz to "+(F_MAX/1000)+" kHz on a log axis. "+(playing?"Live ":"Buffer ")+colour.name.toLowerCase()+" noise."+summary);
+  }
+
+  // ---- Drawing ----
+  var cv = $("spec"), g2 = cv.getContext("2d");
+  function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function toDbCurve(pow, nPix, plotW, rate, isDb){
+    var bw = rate/FFT_N, out = new Float32Array(nPix), r = Math.log(F_MAX/F_MIN);
+    for (var p=0;p<nPix;p++){
+      var x = p*2, f0 = F_MIN*Math.exp(r*Math.max(0,x-1)/plotW), f1 = F_MIN*Math.exp(r*Math.min(plotW,x+1)/plotW);
+      var j0 = Math.ceil(f0/bw), j1 = Math.floor(f1/bw), s = 0, n = 0, j;
+      if (j1<j0){ j = Math.min(pow.length-1, Math.round(Math.sqrt(f0*f1)/bw)); s = isDb ? Math.pow(10,pow[j]/10) : pow[j]; n = 1; }
+      else for (j=j0;j<=j1&&j<pow.length;j++){ s += isDb ? Math.pow(10,pow[j]/10) : pow[j]; n++; }
+      out[p] = n && s>0 ? 10*Math.log10(s/n) : -200;
+    }
+    return out;
+  }
+  function draw(){
+    var dpr = window.devicePixelRatio||1, W = cv.clientWidth, H = cv.clientHeight;
+    if (!W||!H) return;
+    if (cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+    g2.setTransform(dpr,0,0,dpr,0,0); g2.clearRect(0,0,W,H);
+    var ink = cssVar("--muted"), line = cssVar("--line"), curveC = cssVar("--curve"), instC = cssVar("--inst"), idealC = cssVar("--ideal"), bandC = cssVar("--band");
+    var L = 38, R = 8, T = 8, B = 24, pw = W-L-R, ph = H-T-B;
+    var useLive = state==="playing" && liveN>0 && liveSum, rate = useLive ? ctx.sampleRate : sr;
+    var avgPow = useLive ? null : bufPow[colour.id];
+    var nPix = Math.floor(pw/2)+1, avg, inst = null;
+    if (useLive){ var m = new Float64Array(liveSum.length); for (var i=0;i<m.length;i++) m[i] = liveSum[i]/liveN; avg = toDbCurve(m, nPix, pw, rate, false); if (dbNow) inst = toDbCurve(dbNow, nPix, pw, rate, true); }
+    else if (avgPow) avg = toDbCurve(avgPow, nPix, pw, rate, false);
+    g2.font = "11px system-ui,sans-serif"; g2.textBaseline = "middle";
+    var top = 0;
+    if (avg){ var mx = -300; for (var q=0;q<avg.length;q++) if (avg[q]>mx) mx = avg[q]; top = Math.ceil((mx+3)/10)*10; } else top = -20;
+    var xOf = function(f){ return L + pw*Math.log(f/F_MIN)/Math.log(F_MAX/F_MIN); };
+    var yOf = function(d){ return T + ph*(top-d)/Y_RANGE; };
+    g2.fillStyle = bandC; g2.fillRect(xOf(FIT_LO), T, xOf(FIT_HI)-xOf(FIT_LO), ph);
+    g2.strokeStyle = line; g2.fillStyle = ink; g2.lineWidth = 1; g2.textAlign = "right";
+    for (var d=top; d>=top-Y_RANGE; d-=10){ var y = Math.round(yOf(d))+.5; g2.beginPath(); g2.moveTo(L,y); g2.lineTo(W-R,y); g2.stroke(); g2.fillText(String(d),L-5,y); }
+    g2.textAlign = "center"; g2.textBaseline = "top";
+    [20,50,100,200,500,1000,2000,5000,10000,20000].forEach(function(f){
+      var x = Math.round(xOf(f))+.5; g2.beginPath(); g2.moveTo(x,T); g2.lineTo(x,T+ph); g2.stroke();
+      if (f===20||f===100||f===1000||f===10000) g2.fillText(f>=1000?(f/1000)+"k":String(f), Math.min(Math.max(x,L+8),W-R-6), T+ph+5);
+    });
+    g2.textAlign = "left"; g2.textBaseline = "alphabetic"; g2.fillText("Hz", W-R-14, H-3); g2.save(); g2.translate(10,T+ph/2); g2.rotate(-Math.PI/2); g2.textAlign = "center"; g2.fillText("dB per bin", 0, 0); g2.restore();
+    if (!avg){ g2.fillStyle = ink; g2.textAlign = "center"; g2.fillText("Preparing…", L+pw/2, T+ph/2); return; }
+    g2.save(); g2.beginPath(); g2.rect(L,T,pw,ph); g2.clip();
+    var trace = function(arr, col, w){ g2.strokeStyle = col; g2.lineWidth = w; g2.lineJoin = "round"; g2.beginPath(); for (var p=0;p<arr.length;p++){ var yy = yOf(arr[p]); if (p) g2.lineTo(L+p*2,yy); else g2.moveTo(L+p*2,yy); } g2.stroke(); };
+    if (inst) trace(inst, instC, 1);
+    trace(avg, curveC, 2.5);
+    var fit = useLive ? live[colour.id] : bufFit[colour.id];
+    if (fit){
+      var s = ideal(colour), x0 = Math.log2(F_MIN), x1 = Math.log2(F_MAX);
+      var ya = fit.yb + s*(x0-fit.xb), yb2 = fit.yb + s*(x1-fit.xb);
+      g2.strokeStyle = idealC; g2.lineWidth = 2; g2.setLineDash([6,5]); g2.beginPath(); g2.moveTo(L,yOf(ya)); g2.lineTo(L+pw,yOf(yb2)); g2.stroke(); g2.setLineDash([]);
+    }
+    g2.restore();
+  }
+
+  // ---- Audio ----
+  function ensureCtx(){
+    if (ctx) return true;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ctx = new AC({latencyHint:"playback"});
+    sr = ctx.sampleRate;
+    var bus = ctx.createGain(), analyser = ctx.createAnalyser(), fade = ctx.createGain(), vol = ctx.createGain();
+    analyser.fftSize = FFT_N; analyser.smoothingTimeConstant = 0;
+    bus.connect(analyser); bus.connect(fade); fade.connect(vol); vol.connect(ctx.destination);
+    vol.gain.value = volGain(+$("vol").value);
+    nodes = {bus:bus, analyser:analyser, fade:fade, vol:vol, abuf:{}, dbBuf:new Float32Array(analyser.frequencyBinCount)};
+    COLOURS.forEach(function(c){ var ab = ctx.createBuffer(1, LEN, ctx.sampleRate); ab.getChannelData(0).set(buffers[c.id].data); nodes.abuf[c.id] = ab; });
+    ctx.onstatechange = function(){
+      if (state==="playing" && ctx.state!=="running"){ finish("The browser paused the audio. Press play to start again."); }
+    };
+    if (Math.abs(sr-ASSUMED_SR)>1) setTimeout(analyseBuffers, 0);
+    return true;
+  }
+  function startSource(c, atNow){
+    var t = ctx.currentTime, src = ctx.createBufferSource(), gn = ctx.createGain();
+    src.buffer = nodes.abuf[c.id]; src.loop = true;
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(1, t + (atNow?0.05:XFADE));
+    src.connect(gn); gn.connect(nodes.bus);
+    src.start(t, Math.random()*src.buffer.duration);
+    return {src:src, gain:gn, colour:c};
+  }
+  function retire(s, secs){
+    var t = ctx.currentTime;
+    s.gain.gain.cancelScheduledValues(t); s.gain.gain.setValueAtTime(s.gain.gain.value, t); s.gain.gain.linearRampToValueAtTime(0, t+secs);
+    setTimeout(function(){ try { s.src.stop(); s.src.disconnect(); s.gain.disconnect(); } catch(e){} }, secs*1000+100);
+  }
+  function resetLive(delay){ liveSum = null; liveN = 0; liveFrom = ctx.currentTime + delay; }
+  function scheduleTimer(from){
+    var t = ctx.currentTime, f = nodes.fade.gain, cv0 = (from != null ? from : f.value), m = timerMin();
+    f.cancelScheduledValues(t); f.setValueAtTime(cv0, t);
+    var rampEnd = Math.max(inEnd, cv0<0.999 ? t+1 : t);
+    if (rampEnd>t) f.linearRampToValueAtTime(1, rampEnd);
+    fadeAnnounced = false;
+    if (m){
+      fadeLen = fadeFor(m); endAt = t + m*60; fadeStartAt = Math.max(endAt-fadeLen, rampEnd);
+      f.setValueAtTime(1, fadeStartAt); f.linearRampToValueAtTime(0, endAt);
+    } else { endAt = null; fadeStartAt = null; }
+  }
+  function begin(){
+    if (!ensureCtx()){ setStatus("This browser has no Web Audio, so it cannot play the noise.", true); return; }
+    state = "starting"; setButton();
+    var p = ctx.resume();
+    var go = function(){
+      var t = ctx.currentTime;
+      nodes.fade.gain.cancelScheduledValues(t); nodes.fade.gain.setValueAtTime(0, t);
+      inEnd = t + FADE_IN; scheduleTimer(0);
+      cur = startSource(colour, true);
+      resetLive(0.3);
+      state = "playing"; setButton(); startLoops(); updateCaption(); updateTimerInfo(); tick();
+      setStatus("Playing "+colour.name.toLowerCase()+" noise, fading in over "+FADE_IN+" s."+(timerMin()?" Sleep timer: "+minutesText(timerMin())+".":""));
+    };
+    if (p && p.then) p.then(go, function(){ state = "idle"; setButton(); setStatus("The browser would not start the audio. Press play again.", true); }); else go();
+  }
+  function finish(msg){
+    if (state==="idle") return;
+    state = "idle"; stopLoops();
+    if (stopTimeout){ clearTimeout(stopTimeout); stopTimeout = null; }
+    try { if (cur){ cur.src.stop(); cur.src.disconnect(); cur.gain.disconnect(); } } catch(e){}
+    cur = null; endAt = null; fadeStartAt = null;
+    try { if (nodes){ nodes.fade.gain.cancelScheduledValues(0); nodes.fade.gain.value = 0; } if (ctx && ctx.state==="running") ctx.suspend(); } catch(e){}
+    setButton(); updateTimerInfo(); updateCaption(); updateTable(); draw(); setStatus(msg);
+  }
+  function userStop(){
+    if (state!=="playing") return;
+    state = "stopping"; setButton(); setStatus("Stopping.");
+    var t = ctx.currentTime, f = nodes.fade.gain;
+    f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(0, t+STOP_FADE);
+    stopTimeout = setTimeout(function(){ state = "playing"; finish("Stopped."); }, STOP_FADE*1000+80);
+  }
+  function switchColour(c){
+    colour = c; updateBlurb(); updateTable(); safeSet("noise-colour", c.id);
+    try { history.replaceState(null, "", "#"+c.id); } catch(e){}
+    if (state==="playing"){
+      if (cur) retire(cur, XFADE);
+      cur = startSource(c, false); resetLive(XFADE+0.3);
+      setStatus("Switched to "+c.name.toLowerCase()+" noise.");
+    } else if (state==="idle") { setButton(); }
+    updateCaption(); draw();
+  }
+
+  // ---- Loops: timer tick (always 4 per second while playing) and drawing/measuring ----
+  function tick(){
+    if (state!=="playing" || !ctx) return;
+    var now = ctx.currentTime;
+    if (endAt!=null){
+      var left = endAt-now;
+      $("left").textContent = left>0 ? clock(left)+" left" : "Finished";
+      if (!fadeAnnounced && now>=fadeStartAt && left>0){ fadeAnnounced = true; setStatus("Sleep timer: fading out over the last "+fadeLen.toFixed(0)+" s."); }
+      if (left<=0){ finish("Sleep timer finished. Sound stopped."); return; }
+    } else $("left").textContent = "Timer off";
+  }
+  function sample(){
+    if (state!=="playing" || !ctx || ctx.state!=="running") return;
+    nodes.analyser.getFloatFrequencyData(nodes.dbBuf);
+    dbNow = nodes.dbBuf;
+    if (ctx.currentTime >= liveFrom){
+      if (!liveSum) liveSum = new Float64Array(nodes.dbBuf.length);
+      for (var i=0;i<nodes.dbBuf.length;i++){ var d = nodes.dbBuf[i]; liveSum[i] += (d>-300 ? Math.pow(10, d/10) : 0); }
+      liveN++;
+    }
+  }
+  var lastFit = 0;
+  function frame(){
+    drawId = null;
+    if (state!=="playing" && state!=="stopping") return;
+    if (!document.hidden){
+      sample();
+      var now = performance.now();
+      if (liveN>0 && now-lastFit>500){
+        lastFit = now;
+        var m = new Float64Array(liveSum.length); for (var i=0;i<m.length;i++) m[i] = liveSum[i]/liveN;
+        var f = fitSlope(m, ctx.sampleRate);
+        if (f){ f.secs = ctx.currentTime-liveFrom; live[colour.id] = f; updateTable(); updateCaption(); }
+      }
+      draw();
+    }
+    drawId = REDUCED.matches ? setTimeout(frame, 500) : requestAnimationFrame(frame);
+  }
+  function startLoops(){
+    if (!tickId) tickId = setInterval(tick, 250);
+    if (!drawId){ lastFit = 0; drawId = REDUCED.matches ? setTimeout(frame, 0) : requestAnimationFrame(frame); }
+  }
+  function stopLoops(){
+    if (tickId){ clearInterval(tickId); tickId = null; }
+    if (drawId){ cancelAnimationFrame(drawId); clearTimeout(drawId); drawId = null; }
+  }
+
+  // ---- Events ----
+  $("play").addEventListener("click", function(){
+    var a = $("play").getAttribute("aria-disabled")==="true";
+    if (a) return;
+    if (state==="playing") userStop(); else if (state==="idle") begin();
+  });
+  segEl.addEventListener("change", function(e){ if (e.target && e.target.name==="colour") switchColour(byId(e.target.value)); });
+  $("vol").addEventListener("input", function(){
+    updateVol();
+    if (nodes){ nodes.vol.gain.setTargetAtTime(volGain(+$("vol").value), ctx.currentTime, 0.05); }
+  });
+  tsel.addEventListener("change", function(){
+    safeSet("noise-timer", tsel.value); updateTimerInfo();
+    if (state==="playing"){
+      scheduleTimer(); tick();
+      setStatus(timerMin() ? "Sleep timer set: "+minutesText(timerMin())+" from now." : "Sleep timer turned off.");
+    } else if (state==="idle") setStatus(timerMin() ? "Sleep timer set to "+minutesText(timerMin())+". It starts counting when you press play." : "Sleep timer off.");
+  });
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden && (state==="playing")){ tick(); draw(); } });
+  window.addEventListener("resize", draw);
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw); } catch(e){}
+  REDUCED.addEventListener && REDUCED.addEventListener("change", function(){ if (state==="playing"){ stopLoops(); startLoops(); } });
+
+  // ---- Startup: restore choices, make the three buffers one at a time, measure them ----
+  var startId = (location.hash||"").slice(1) || safeGet("noise-colour") || "pink";
+  colour = byId(startId);
+  var radios = segEl.querySelectorAll("input"); for (var ri=0; ri<radios.length; ri++) radios[ri].checked = radios[ri].value===colour.id;
+  var savedT = safeGet("noise-timer"); if (savedT!=null && TIMER_MIN.indexOf(+savedT)>=0) tsel.value = savedT; else tsel.value = "30";
+  $("vol").value = VOL_DEFAULT;
+  updateVol(); updateBlurb(); updateTimerInfo(); setButton(); updateCaption(); updateTable(); draw();
+  setStatus("Preparing the noise.");
+
+  function analyseBuffers(){
+    COLOURS.forEach(function(c){
+      if (!buffers[c.id]) return;
+      bufPow[c.id] = welch(buffers[c.id].data);
+      bufFit[c.id] = fitSlope(bufPow[c.id], sr);
+    });
+    updateTable(); updateCaption(); draw();
+  }
+  var qi = 0;
+  (function next(){
+    if (qi < COLOURS.length){ var c = COLOURS[qi++]; buffers[c.id] = makeNoise(c.beta, c.seed); setTimeout(next, 0); return; }
+    analyseBuffers();
+    state = "idle"; setButton();
+    setStatus("Ready. Volume starts at "+VOL_DEFAULT+"%; press play when your device volume is low.");
+  })();
+})();
+</script>
+</body>
+</html>

@@ -27,6 +27,7 @@ went wrong with each.
 | **256 Little Worlds** | All 256 elementary cellular automata: rule 30's chaos, rule 90's triangle, rule 110, rule 184's traffic, with self-checks | [`cellular/`](cellular/) |
 | **Tea or Cha** | How the word for tea travelled by sea (te) and by land (cha), on a schematic map of 31 languages; none of the words checked against WALS yet; the least certain are flagged | [`tea/`](tea/) |
 | **Star Hop** | Find named bright stars on a night-sky map by hopping from stars you already know, scored against a timer over five rounds; star data from memory, not checked against a catalogue | [`star-hop/`](star-hop/) |
+| **Colours of Noise** | Play white, pink or brown noise with a fading sleep timer and a live spectrum, and watch the page measure the slope of the sound it makes (about 0, -3 and -6 dB per octave) | [`noise/`](noise/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

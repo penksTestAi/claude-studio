@@ -31,6 +31,13 @@ export function pickTestRelay(search) {
   return null;
 }
 
+// Test-only: seconds (1 to 30) during which a page neither sends nor hears anything, imitating a half-open link.
+// Like ?relay=, main.js uses it only on a page served from this machine.
+export function pickTestMute(search) {
+  const v = Number(new URLSearchParams(search).get("mute"));
+  return Number.isInteger(v) && v >= 1 && v <= 30 ? v : 0;
+}
+
 export async function createTransport(kind, room, opts = {}) {
   if (kind === "local") {
     const { createLocalTransport } = await import("./local.js");

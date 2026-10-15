@@ -1,7 +1,7 @@
 // Boot and glue: identity, room choice, the game loop, and the small status panel.
 import { generateWorld, spawnFor, isBlocked, tileAt, T, worldFingerprint } from "./world.js";
 import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
-import { createTransport, pickKind, pickTestRelay } from "./net/transport.js";
+import { createTransport, pickKind, pickTestRelay, pickTestMute } from "./net/transport.js";
 import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
@@ -14,6 +14,7 @@ import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.j
 import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventory.js";
+import { createBeacons, BEACON_NEED, BEACON_RANGE, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText } from "./craft.js";
 
 const ROOMS = 6;
@@ -26,6 +27,7 @@ const world = generateWorld();
 const netKind = pickKind(location.search);
 const onLoopback = location.hostname === "127.0.0.1" || location.hostname === "localhost";
 const testRelay = onLoopback ? pickTestRelay(location.search) : null; // ?relay= is ignored on the live site
+const testMute = onLoopback ? pickTestMute(location.search) : 0;     // so is ?mute=
 const nodes = generateNodes(world);
 const respawnPin = (() => { const v = Number(new URLSearchParams(location.search).get("respawn")); return Number.isInteger(v) && v >= 1 && v <= 600 ? v : 0; })(); // tests: shorter respawn
 
@@ -79,14 +81,14 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, give = null, craft = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
   if (playing) return;
   $("enter").disabled = true;
   try {
-    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay });
+    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, mute: testMute });
   } catch (e) {
     console.error(e);
     $("status").textContent = "Could not start networking in this browser.";
@@ -98,7 +100,9 @@ async function enter() {
   gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
   give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save });
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
+  beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   me.say = null; me.emote = null;
+  paintBeacon(true); $("beaconinfo").textContent = "";
   paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
@@ -115,8 +119,8 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null;
-  setTalkOpen(false); $("heard").textContent = ""; paintGive();
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null;
+  paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
@@ -147,14 +151,17 @@ function frame(t) {
   gather.tick();
   give.tick();
   craft.tick();
+  beacon.tick();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
   const reach = gather.reach();
-  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach);
+  const fires = fireList();
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires);
+  paintBeacon();
   $("gather").disabled = !reach;
   paintGive();
-  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values()); }
+  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
   requestAnimationFrame(frame);
@@ -180,6 +187,39 @@ function paintPack() {
   const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${KIND_NAMES[KINDS[e.i]].toLowerCase()} for ${nameFor(e.s)}`).join(", ")}` : "";
   const made = CRAFTED.filter(k => cr[k] > 0).map(k => `${CRAFT_NAMES[k]} ${cr[k]}`);
   $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).concat(made).join(", ") + away;
+}
+// ---- beacons: fuel an old beacon together; it lights when enough fuel is in and two or more players added some ----
+const beaconList = world.landmarks.filter(l => l.kind === "beacon");
+const FUEL_ITEMS = ["driftwood", "berries"];
+const fireList = () => beaconList.map((l, b) => beacon ? { x: l.x, y: l.y, n: b, fuel: beacon.shares.fuel(b), frac: Math.min(1, beacon.shares.fuel(b) / BEACON_NEED), lit: beacon.shares.lit(b) } : { x: l.x, y: l.y, n: b, fuel: 0, frac: 0, lit: false });
+const beaconBox = $("beaconbtns");
+FUEL_ITEMS.forEach((k) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ghost"; b.dataset.item = k; b.textContent = `Add ${ITEM_NAMES[k]} (${WORTH[k]} fuel)`;
+  b.addEventListener("click", () => { if (beacon) beacon.add(k); canvas.focus({ preventScroll: true }); });
+  beaconBox.append(b);
+});
+function beaconEvent(type, b, r) {
+  let say = "";
+  if (type === "added") say = `You added ${ITEM_NAMES[r.item]} to the beacon. It is gone from your pack.`;
+  else if (type === "lit") say = "A beacon is lit! It will burn while anyone is in this lantern.";
+  else if (type === "refused") say = { far: `Stand within ${BEACON_RANGE} tiles of a beacon to add fuel.`, wait: "Still hearing from the others. Try again in a moment.", lit: "This beacon is already lit.", full: `You have added as much as one player can to this beacon (${MAX_OWN} fuel). Others have to add the rest.`, missing: `You have no ${ITEM_NAMES[r && r.item] || "such item"} to add.`, }[r && r.why] || "Nothing was added.";
+  if (say) $("beaconinfo").textContent = say;
+  if (type === "added") { paintPack(); lastGiveKey = ""; save(); }
+  lastBeaconKey = "";
+}
+let lastBeaconKey = "";
+function paintBeacon(force) {
+  if (force) lastBeaconKey = "";
+  const b = beacon ? beacon.near() : -1;
+  const key = [!!beacon, b, b >= 0 ? beacon.shares.fuel(b) + "/" + beacon.shares.players(b) + "/" + beacon.shares.own(b, me.seed) : "", FUEL_ITEMS.map(k => inv[k]).join()].join("|");
+  if (key === lastBeaconKey) return;
+  lastBeaconKey = key;
+  $("beacon").hidden = !beacon || b < 0;
+  if (!beacon || b < 0) return;
+  const f = beacon.shares.fuel(b), n = beacon.shares.players(b), lit = beacon.shares.lit(b);
+  $("beaconstate").textContent = lit ? `This beacon is lit (${f} fuel from ${n} players).` : `Fuel ${f} of ${BEACON_NEED}, from ${n} player${n === 1 ? "" : "s"}. It lights when it has ${BEACON_NEED} and at least ${MIN_PLAYERS} players added some. You added ${beacon.shares.own(b, me.seed)} (at most ${MAX_OWN}).`;
+  for (const btn of beaconBox.children) btn.disabled = lit || inv[btn.dataset.item] < 1;
 }
 // ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
 const craftBox = $("craftbtns"), holdBox = $("holdbtns");
@@ -369,12 +409,15 @@ window.__longWatch = {
   world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world), landmarks: landmarkFingerprint(world), landmarkList: world.landmarks.map(l => ({ kind: l.kind, x: l.x, y: l.y })) }),
   teleport: (x, y) => { if (Number.isFinite(x) && Number.isFinite(y) && !isBlocked(world, x, y)) { me.x = x; me.y = y; return true; } return false; }, // tests only: no network message can reach this
   light: () => lightNow(),
-  hud: () => ({ where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
+  hud: () => ({ rebuilds: net ? net.status().rebuilds | 0 : 0, where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
+  linkHistory: () => net ? (net.status().history || []) : [],
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
   nodes: () => nodes.map(n => ({ id: n.id, kind: n.kind, x: n.x, y: n.y, respawn: n.respawn })),
   nodeFingerprint: () => nodeFingerprint(nodes),
   give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
+  beacon: () => beacon ? { fuel: beaconList.map((_, b) => beacon.shares.fuel(b)), players: beaconList.map((_, b) => beacon.shares.players(b)), lit: beaconList.map((_, b) => beacon.shares.lit(b)), own: beaconList.map((_, b) => beacon.shares.own(b, me.seed)), near: beacon.near(), synced: beacon.synced(), pending: beacon.pending(), inv: { ...inv }, info: $('beaconinfo').textContent, panel: !$('beacon').hidden, list: beaconList.map(l => ({ x: l.x, y: l.y })), fires: fireList() } : null,
+  addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },
   holdLamp: (n) => !!craft && craft.hold(n),

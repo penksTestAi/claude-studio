@@ -24,8 +24,14 @@ export function createPresence(net, world, me, onChange = () => {}) {
 
   const hi = () => ({ k: "hi", v: PROTOCOL, s: me.seed, x: round(me.x), y: round(me.y), d: round(me.d) });
 
-  net.onPeerJoin((id) => { net.send(hi(), id); });
-  net.onPeerLeave((id) => { guard.forget(id); if (peers.delete(id)) onChange(); });
+  // Watchdog (milestone 6): over real WebRTC a link sometimes comes up on one side before the other, and the one
+  // "hi" sent at that moment is lost. So: greet everyone we hear from that we have not greeted; repeat our "hi" to a
+  // peer we have not heard a "hi" from after 3 s (up to 3 times); and answer movement from a stranger with our "hi".
+  // `greeted` = ids we have sent a "hi" to; `waiting` = ids greeted but not yet heard from.
+  const greeted = new Set(), waiting = new Map(), nudged = new Map();
+  const greet = (id, now) => { net.send(hi(), id); greeted.add(id); if (!peers.has(id)) waiting.set(id, { at: now, tries: 0 }); };
+  net.onPeerJoin((id) => { if (!greeted.has(id)) greet(id, performance.now()); });
+  net.onPeerLeave((id) => { guard.forget(id); greeted.delete(id); waiting.delete(id); nudged.delete(id); if (peers.delete(id)) onChange(); });
   net.onMessage((msg, id) => {
     if (!msg || typeof msg !== "object" || typeof id !== "string") return;
     if (msg.k !== "hi" && msg.k !== "st" && msg.k !== "by") return; // other kinds belong to other modules
@@ -41,9 +47,14 @@ export function createPresence(net, world, me, onChange = () => {}) {
       const p = known || { id, x, y, say: null, emote: null };
       Object.assign(p, { seed: msg.s, name: nameFor(msg.s), colour: colourFor(msg.s), tx: x, ty: y, d: num(msg.d, -4, 4) ?? 0, moving: false, seen: now });
       if (!known) { peers.set(id, p); onChange(); }
+      waiting.delete(id);
+      if (!greeted.has(id)) greet(id, now); // they greeted us first: greet back, once
     } else if (msg.k === "st") {
       const p = peers.get(id);
-      if (!p) return; // we only accept movement from someone who said hello
+      if (!p) { // a stranger moving: they may never have received our "hi"; send it at most once every 2 s
+        if (now - (nudged.get(id) ?? -1e9) >= 2000 && nudged.size < 64) { nudged.set(id, now); net.send(hi(), id); greeted.add(id); }
+        return; // we only accept movement from someone who said hello
+      }
       const x = num(msg.x, 0, world.w), y = num(msg.y, 0, world.h);
       if (x === null || y === null) return;
       p.tx = x; p.ty = y; p.d = num(msg.d, -4, 4) ?? p.d; p.moving = msg.m === 1; p.seen = now;
@@ -66,6 +77,10 @@ export function createPresence(net, world, me, onChange = () => {}) {
       // Ease drawn positions toward the reported ones; frame-rate independent.
       const a = 1 - Math.exp(-dt * 12);
       let changed = false;
+      for (const [id, w] of waiting) {
+        if (peers.has(id)) { waiting.delete(id); continue; }
+        if (now - w.at >= 3000) { if (w.tries >= 3) { waiting.delete(id); continue; } w.tries++; w.at = now; net.send(hi(), id); }
+      }
       for (const p of peers.values()) {
         const dx = p.tx - p.x, dy = p.ty - p.y;
         if (dx * dx + dy * dy > 16) { p.x = p.tx; p.y = p.ty; } else { p.x += dx * a; p.y += dy * a; }

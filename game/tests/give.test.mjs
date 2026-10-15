@@ -370,7 +370,9 @@ async function scenario(label, mk, query, room, opts = {}) {
   ok((await pageA.locator("#pack").textContent()).includes("On its way to another player"), "A's pack line says what is on its way");
   const bReeds0 = b0.inv.reeds, totalBefore = total(a0.inv) + total(b0.inv) + a0.out.length;
   await enter(pageA, pageB); await meet();
-  ok(await waitFor(pageB, () => window.__longWatch.give().inv.reeds === 1, null, 12000), "when both are back, the reeds arrive");
+  const arrived = await waitFor(pageB, () => window.__longWatch.give().inv.reeds === 1, null, 12000);
+  if (!arrived) { const dump = (p) => p.evaluate(() => ({ self: window.__longWatch.self(), links: window.__longWatch.linkHistory(), peers: window.__longWatch.peers().map(q => ({ id: q.id, seed: q.seed })), give: window.__longWatch.give() })); console.log("  diagnostics A", JSON.stringify(await dump(pageA)), "B", JSON.stringify(await dump(pageB))); }
+  ok(arrived, "when both are back, the reeds arrive");
   ok(await waitFor(pageA, () => window.__longWatch.give().out.length === 0, null, 8000), "and A's list of gifts on their way clears");
   await sleep(RESEND_MS * 2 + 1000);
   a = await gv(pageA); b = await gv(pageB);

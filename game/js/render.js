@@ -6,6 +6,7 @@ import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 import { lampOf } from "./craft.js";
+import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -92,7 +93,7 @@ export function createRenderer(canvas, world, opts = {}) {
     dark.width = canvas.width; dark.height = canvas.height;
   }
 
-  function draw(me, peers, stick, t, light, nodes = [], reach = null) {
+  function draw(me, peers, stick, t, light, nodes = [], reach = null, fires = []) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
     const tile = (cw < 520 ? 30 : 36) * dpr; // screen px per tile
@@ -104,6 +105,8 @@ export function createRenderer(canvas, world, opts = {}) {
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
 
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
+
+    for (const f of fires) drawFlame(g, f, f.x * tile - camX, (f.y - 0.85) * tile - camY, tile, t, reduce);
 
     const all = [...peers.values(), me];
     all.sort((a, b) => a.y - b.y);
@@ -128,6 +131,14 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)");
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
+    // Beacons: a lit one clears a wide pool of night; one that is taking fuel gives a small ember light.
+    for (const f of fires) {
+      const sx = f.x * tile - camX, sy = f.y * tile - camY, tiles = f.lit ? LIT_RADIUS * (reduce ? 1 : 1 + Math.sin(t / 300 + f.n) * 0.015) : 0.8 + 1.8 * f.frac;
+      if (f.fuel <= 0 && !f.lit) continue;
+      const r = tile * tiles, grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
+      grad.addColorStop(0, "rgba(0,0,0,0.98)"); grad.addColorStop(0.6, f.lit ? "rgba(0,0,0,0.8)" : "rgba(0,0,0,0.5)"); grad.addColorStop(1, "rgba(0,0,0,0)");
+      dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
+    }
     g.drawImage(dark, 0, 0);
     // The glow of a coloured lantern: a soft pool of its colour on the ground, for everyone who can see it.
     g.globalCompositeOperation = "lighter";
@@ -137,6 +148,13 @@ export function createRenderer(canvas, world, opts = {}) {
       const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach * lamp.mult * 0.85, [cr, cg, cb] = lamp.glow;
       const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
       grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.30)`); grad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`); grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
+    }
+    for (const f of fires) {
+      if (!f.lit) continue;
+      const sx = f.x * tile - camX, sy = f.y * tile - camY, r = tile * LIT_RADIUS * 0.8;
+      const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+      grad.addColorStop(0, "rgba(255,170,70,0.28)"); grad.addColorStop(0.5, "rgba(255,150,60,0.10)"); grad.addColorStop(1, "rgba(255,150,60,0)");
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
     g.globalCompositeOperation = "source-over";
@@ -149,7 +167,9 @@ export function createRenderer(canvas, world, opts = {}) {
       const lx = l.x * tile - camX, ly = (l.y - (l.kind === "jetty" ? 0.2 : 1.3)) * tile - camY;
       g.globalAlpha = Math.min(1, (7 - d) / 2);
       g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#f2d9a0";
-      g.strokeText(LANDMARK_NAMES[l.kind], lx, ly); g.fillText(LANDMARK_NAMES[l.kind], lx, ly);
+      const f = l.kind === "beacon" ? fires.find(q => q.x === l.x && q.y === l.y) : null;
+      const label = LANDMARK_NAMES[l.kind] + (f ? (f.lit ? ": lit" : `: fuel ${f.fuel} of ${BEACON_NEED}`) : ""); // words and numbers from our own code
+      g.strokeText(label, lx, ly); g.fillText(label, lx, ly);
       g.globalAlpha = 1;
     }
 
@@ -186,6 +206,16 @@ export function createRenderer(canvas, world, opts = {}) {
   }
 
   return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })) };
+}
+
+// A beacon basket's fire: nothing without fuel, embers while it fills, a tall flame once lit.
+function drawFlame(g, f, sx, sy, tile, t, reduce) {
+  if (f.fuel <= 0 && !f.lit) return;
+  const u = tile / 8, wob = reduce ? 0 : Math.sin(t / 110 + f.n * 2) * 0.35, h = f.lit ? 4.6 : 1.2 + 2.2 * f.frac;
+  g.fillStyle = f.lit ? "#ff9a2e" : "#c8501c";
+  g.beginPath(); g.moveTo(sx - 2 * u, sy + u); g.quadraticCurveTo(sx - 2.2 * u + wob * u, sy - h * u * 0.6, sx + wob * u, sy - h * u); g.quadraticCurveTo(sx + 2.2 * u + wob * u, sy - h * u * 0.6, sx + 2 * u, sy + u); g.closePath(); g.fill();
+  g.fillStyle = f.lit ? "#ffe08a" : "#ff9a2e";
+  g.beginPath(); g.ellipse(sx + wob * u * 0.3, sy - u * 0.2, u, h * u * 0.4, 0, 0, Math.PI * 2); g.fill();
 }
 
 // Gatherables: a pale log, a tuft of reeds, a cluster of berries. A ring marks the one within reach.

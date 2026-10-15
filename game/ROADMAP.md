@@ -30,10 +30,13 @@ working features.
   glows in its colour, and every nearby player sees that reach drawn around you; the held lantern is told to the room
   as one number and saved in your own browser. Crafted things cannot be given yet. (2026-10-15, local relay only)
 
+- **6. Beacons.** Four old beacons fuelled together: driftwood and oil berries are burned, each player's share is
+  counted in a grow-only counter, a beacon lights at 12 fuel from at least two players and then lights a wide area
+  for everyone; one player's share is capped at 16. Also the presence watchdog (a lost first `hi` is repeated).
+  (2026-10-15, local relay only)
+
 ## Later (in rough order, each one run)
-6. **NEXT: Beacons.** Fuel a beacon together (G-counter of contributions); when lit it stays lit for that room's
-   session and lights a wide area; a lit beacon needs at least two players to light.
-7. **The living island (a look step).** Animated water and shore foam, swaying reeds and trees, fireflies near
+7. **NEXT: The living island (a look step).** Animated water and shore foam, swaying reeds and trees, fireflies near
    lit lanterns, a moon and stars that follow the night hour, softer light edges for coloured lanterns, still honouring
    reduced motion and 60 fps on a phone. (Visual items should stay about one in three; this is the next one.)
 8. **The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
@@ -46,10 +49,15 @@ working features.
     (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
 
 ## Known problems
-- `gather.test.mjs` over real WebRTC sometimes fails at "a third player joins and sees both others" (about 3 of 27
-  earlier runs: 2 of 14 on milestone 4 code, 1 of 5, 0 of 8 extra); `talk.test.mjs` also failed once. Cause traced, not
-  fixed: one WebRTC link times out (Trystero's 10 s handshake) on one side, which loses the other side's presence 'hi'.
-  Suggested fix: a presence watchdog that rebuilds the transport when a join gets no hi within about 8 s.
+- Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
+  of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
+  which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150
+  meshes) and found the real shape: a half-open link (a join event on one side only, the other side silent for ever).
+  It added two watchdogs (repeat and answer `hi`; rejoin the room when a joined peer stays silent for 8 s, see
+  DESIGN.md). In 180 further meshes with them none failed (no round was seen to need a rebuild, so this is
+  encouraging, not proof; at the old rate, 2 in 150, 180 clean meshes would happen by chance about 1 time in 11).
+  Still to watch: `give` step "when both are back, the reeds arrive" failed 3 times in about 100 WebRTC runs
+  (both pages had lost each other; before link history existed), and a real network with TURN needs is untested.
 
 ## Ideas parked (no order)
 Fishing at the jetty; a shared music stone players can play together with preset notes; weather; a

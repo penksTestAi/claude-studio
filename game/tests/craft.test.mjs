@@ -289,7 +289,9 @@ async function scenario(label, mk, query, room, opts = {}) {
   const C = await mk();
   await seedPack(C, url, { inv: { driftwood: 3, reeds: 7, berries: 5 }, cr: { wick: CRAFT_STACK } });
   await C.click("#enter");
-  ok(await waitFor(C, () => window.__longWatch.peers().length === 2, null, opts.timeout), "a third player joins and sees both others");
+  const threeSeen = await waitFor(C, () => window.__longWatch.peers().length === 2, null, opts.timeout);
+  if (!threeSeen) { const dump = (p) => p.evaluate(() => ({ id: window.__longWatch.self().id, links: window.__longWatch.linkHistory(), peers: window.__longWatch.peers().map(q => q.id) })); console.log("  diagnostics A", JSON.stringify(await dump(A)), "B", JSON.stringify(await dump(B)), "C", JSON.stringify(await dump(C))); }
+  ok(threeSeen, "a third player joins and sees both others");
   ok(await waitFor(C, () => window.__longWatch.craft().peerLamps.some(p => p.lamp === 3), null, 6000), "the late joiner sees A's azure lantern without A doing anything");
   const c0 = await lw(C);
   ok(c0.cr.wick === CRAFT_STACK, `C starts with a full stack of ${CRAFT_STACK} wicks`);

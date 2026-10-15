@@ -186,3 +186,68 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
   sandbox's proxy refuses them; only the local relay was used), how the glow looks and feels on a real phone and
   whether it still reads well in bright daylight screens, screen readers. A modified client can claim a lantern it
   never made; that only changes how it looks to others.
+
+
+### 2026-10-15 · milestone 6 (beacons)
+- **Players can now:** fuel the island's four old beacons together. Stand within 2.5 tiles of a beacon and a Beacon
+  panel appears: add driftwood (1 fuel) or oil berries (2 fuel) and it is burned (used up and gone from your pack). Each
+  player's share is counted, and everyone sees the beacon's fuel (a label on the beacon, an ember glow that grows with
+  the fuel, and a mark on the minimap). A beacon lights at 12 fuel, but only when at least two different players have
+  added some: one player alone can put in up to 16 and it still stays dark until someone else adds even 1. A lit beacon
+  burns with a flame and lights a wide area (9 tiles) for everyone who can see it, and takes no more fuel. If two of you
+  add at the same moment nothing is lost; late joiners are told what is already in; if you leave and come back your share
+  is remembered and you cannot go past your 16. A lit beacon stays lit while anyone is in the lantern; when the last
+  player leaves the lantern, the beacons go dark again (nothing is kept on a server), and fuel you spent stays spent.
+- **Also changed:** now and then two players in the same lantern never saw each other, because their connection came up
+  on one side only; the game now repeats its hello, answers a hello it had not expected, and, if a player stays silent
+  for 8 seconds, rejoins the lantern (everyone reconnects briefly; at most 3 times). Measured on a local relay only; not
+  proven to remove every case.
+- **Network:** three number-only messages. `fu {b,n}` is a player's own total on beacon b (0 to 3); sent when it changes,
+  to each newcomer, and every 5 s. `fq` asks a peer for the shares it knows and `fs {b[],s[],n[],f}` answers in chunks
+  of at most 10 (each share is beacon, player seed, total), so shares of players who have left also reach newcomers; `fs`
+  is accepted only from a peer we asked, while we still wait for that answer (asked again at most twice). Shares are a
+  grow-only counter per player (merge keeps the larger): `lit` is derived (sum at least 12 and at least 2 players), so
+  nothing about "lit" crosses the network. Limits, each from a constant in `js/beacon.js`: `BEACON_NEED` 12,
+  `MIN_PLAYERS` 2, `MAX_OWN` 16 per player per beacon, `MAX_ENTRIES` 24 players counted per beacon (a full list refuses
+  new players and never drops one; 24 players hold at least 24 fuel, so such a beacon is already lit and refuses more
+  before an item is taken), `BEACON_RANGE` 2.5 tiles to add, `LIT_RADIUS` 9 tiles, worth driftwood 1 and oil berries 2
+  (reeds do not burn). Receivers need a known sender, exact fields, whole numbers in range and allow 8 a second per
+  sender; the 512-byte message cap is checked for the biggest possible `fs` chunk. Accepted weakness: shares are not
+  checked against where the sender stands, and a modified client can claim shares or use another player's seed.
+  Watchdogs: presence (`hi` repeated after 3 s up to 3 times; a `hi` from a peer we have not greeted is answered once;
+  movement from a stranger makes us send our `hi` once every 2 s, 64 strangers at most) and transport (a peer joined for
+  8 s with no message at all makes the transport leave and rejoin the room, at most 3 times, at least 10 s apart).
+- **Tested** (`node game/tests/beacon.test.mjs`, new): in node, the shares are a grow-only counter (smaller numbers and
+  repeats ignored, 30 shuffled copies with repeats end identical, bad beacons/seeds/amounts such as 0, 17, 1.5, "3" and
+  NaN refused), one player alone with 16 fuel does not light a beacon and a second player's 1 fuel does, a lit beacon stays
+  lit, 24 counted players refuse a 25th without dropping anyone, the 16 cap refuses a 2-fuel item at 15 and fits a 1-fuel
+  one, a missing item or an unknown item (`__proto__`, reeds) is refused without changing the pack, 200 random adds equal
+  exactly the fuel the items were worth. On a fake mesh: one item per add and the pack saved in the same step, messages of
+  three numbers under the size cap, out of range or too far refused (range 2.5, just inside works), the lit event fires
+  once for each page, 21 kinds of bad message and a stranger change nothing, snapshots are chunked and answered to the
+  asker only (and a repeat within a second not answered), the biggest chunk fits the cap, 30 forged snapshot seeds make
+  at most 24 shares. Presence watchdog on a fake mesh: hi resent after 3 s, three repeats then stop, repeats stop when
+  their hi arrives, a hi from an ungreeted peer answered once (no ping-pong), a late join event sends nothing more, 5
+  moves from a stranger make 1 hi, 300 strangers cause at most 65. Then two pages, on the local transport and again on
+  real Trystero/WebRTC through the local Nostr relay: the Beacon panel is hidden away from beacons and refuses far adds;
+  real button presses burn one driftwood; 12 fuel from A alone does not light it on either page and the ground 6 tiles away stays dark;
+  B's 2 fuel lights it on both pages (14 fuel, 2 players) and the ground becomes clearly brighter on B's screen
+  (brightness 83 to 163); a lit beacon refuses more fuel; A and B each add 6 at the same moment on the second beacon and
+  both pages show exactly 12 from 2 players; A's 20 tries on the third beacon add exactly 16 and are refused 4 times
+  (also oil berries at the cap) and 16 fuel from one player is still dark; a late third player is told all shares at once
+  and its single driftwood lights the third beacon on all three pages; after a reload A is told its old shares back (12, 6
+  and 16, so it cannot exceed the cap) and the pack is as saved; after A leaves the beacons stay lit for B and C; after
+  everyone leaves a new player finds no fuel. Local only: forged and flooded messages change nothing (a snapshot not asked
+  for, extra fields, strings, a stranger; a claimed 16 on a fourth beacon is one player and does not light it). Link
+  watchdog (WebRTC): a page that is deaf for 12 s after joining is found by its partner, whose transport rebuilds once.
+  A 3-player stress harness (not kept in the repository) opened 150 meshes on the old code (2 failed: a link up on one side
+  only, found from the joins and leaves of the two sides) and 180 on the new code (all connected; none needed a rebuild).
+  Browser: `chromium_headless_shell-1194` (set `CHROME`). Runs of each file, 5 in a row (two files at a time, the same way as for earlier milestones): beacon 5/5, presence 5/5, talk 5/5, world 5/5, gather 5/5, give 5/5, craft 5/5. An earlier set of runs on the same code had give 3/5 (step "when both are back, the reeds arrive": both pages had lost each other, no link history yet), gather 4/5 (the first connection never completed) and craft 4/5 (a third player never saw both others); those are the half-open links described above (captured in the stress harness) or load, not proven for each; the gather late-joiner failures were the test's 8 s clock (see below).
+  Before and after screenshots at 375 and 1100 px were looked at (ember and lit beacon). `page_check` clean.
+- **Test fixes (not game bugs):** `gather.test.mjs` failed 7 of 36 runs under 6 parallel runs at "the late joiner's map already hides that node": the node's pinned 8 s respawn had run out before the third player finished connecting (it took 5.5 to 34 s under that load), measured by a new diagnostic line. The WebRTC run now pins 20 s and no longer waits for contested nodes to grow back. `give`, `gather` and `craft` tests now print both pages' peers and link history when a connection check fails.
+- **Unverified:** beacons over the public Nostr relays and across real home and mobile networks (the sandbox's proxy
+  refuses them; only the local relay was used), how the panel, flame and light look on a real phone, screen readers. A modified
+  client can claim shares it did not add, or another player's seed (so "two players" can be faked); there is nothing to
+  win from others. The link watchdog fixes the half-open link seen in the stress run; whether it removes every
+  "never met" failure is not proven (180 clean meshes), and one `give` failure ("when both are back, the reeds arrive",
+  both pages had lost each other) has no captured cause.

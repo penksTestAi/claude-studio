@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Check Digit Tool · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches (a command-line tool; the first piece whose main output is a command-line tool).">
+<link rel="canonical" href="https://vigilstudio.github.io/checkdigits/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Check Digit Tool · Vigil">
+<meta property="og:description" content="Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches (a command-line tool; the first piece whose main output is a command-line tool).">
+<meta property="og:url" content="https://vigilstudio.github.io/checkdigits/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Check Digit Tool · Vigil">
+<meta name="twitter:description" content="Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches (a command-line tool; the first piece whose main output is a command-line tool).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--hi:#e6eefb;--ok:#2f7d3a;--bad:#b3261e;--bar:#c9d6ea;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#22304a;--ok:#7fd18b;--bad:#ff8a80;--bar:#2a3a57;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#22304a;--ok:#7fd18b;--bad:#ff8a80;--bar:#2a3a57;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:32px 0 8px;font-weight:normal}
+h3{font-size:1.02rem;margin:0 0 4px;font-weight:bold}
+h4{font-size:.95rem;margin:0 0 2px;font-weight:bold}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 16px;font-size:1.08rem}
+.small{font-size:.86rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+code,pre{font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{margin:0 0 10px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow-x:auto;white-space:pre;line-height:1.45}
+.dl{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.btn{display:inline-block;min-height:44px;padding:10px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--bg);color:var(--accent);text-decoration:none;font:inherit}
+.btn.main{background:var(--accent);color:var(--accent-ink)}
+button.btn{cursor:pointer}
+label,.lab{display:block;font-size:.86rem;color:var(--muted);margin-bottom:3px}
+input[type=text],input[type=number],select{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+@media (min-width:560px){.row.two{grid-template-columns:2fr 1fr}.row.three{grid-template-columns:1fr 1fr auto;align-items:end}}
+.verdict{margin:6px 0 0;min-height:1.6em}
+.verdict b.pass{color:var(--ok)}
+.verdict b.fail{color:var(--bad)}
+.rules{list-style:none;margin:0;padding:0}
+.rules li{padding:7px 0;border-bottom:1px solid var(--line)}
+.rules li:last-child{border-bottom:0}
+.rules b{display:inline-block;min-width:5.5em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.variant{padding:10px 0;border-top:1px solid var(--line)}
+.variant:first-of-type{border-top:0;padding-top:4px}
+.variant.off h4::before{content:"switched off: ";font-weight:normal;color:var(--bad)}
+.cause{margin:0 0 6px;font-size:.88rem;color:var(--muted)}
+.stat{margin:0 0 6px;font-size:.92rem}
+.stat span.k{display:block;font-size:.82rem;color:var(--muted)}
+.bar{height:8px;border-radius:4px;background:var(--bad);overflow:hidden;margin:3px 0 0}
+.bar i{display:block;height:100%;background:var(--ok)}
+.miss{margin:0;font-size:.88rem}
+.good{color:var(--ok)}
+.warn{color:var(--bad)}
+.summary{font-size:1.02rem}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:5px 6px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:normal;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+ul.plain{margin:6px 0 10px;padding-left:20px}
+ul.plain li{margin-bottom:4px}
+.dis{word-break:break-word}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Check Digit Tool</h1>
+<p class="lede" id="lede">Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches.</p>
+
+<div class="panel">
+  <div class="dl">
+    <a class="btn main" href="checkdigits.py" download>Download checkdigits.py</a>
+    <a class="btn" href="test_checkdigits.py" download>test_checkdigits.py</a>
+    <a class="btn" href="reference_examples.json" download>reference_examples.json</a>
+  </div>
+  <p class="small">One file, Python standard library only, no install. Tested here on Python 3.11 only. Run <code>python3 checkdigits.py check VALUE</code>; it exits 0 if every value passes, 1 if any fails. Made by Claude, an AI model. <a href="README.md">README</a></p>
+</div>
+
+<h2>Using it</h2>
+<p>Spaces, hyphens and dots are ignored. With no <code>-s</code> option the tool guesses from the shape: two letters and two digits is an IBAN, ten characters is an ISBN-10, thirteen digits is an ISBN-13 (if it starts 978 or 979) or an EAN-13, any other run of digits is Luhn. A ten-digit card or ID number therefore needs <code>-s luhn</code>.</p>
+<pre id="demo1"></pre>
+<pre id="demo2"></pre>
+<p class="small">Both blocks are pasted from real runs of the script in this folder (Python 3.11). A pass means the digits fit the arithmetic. It does not mean the card, book, product or account exists.</p>
+
+<h2>Try the same rules here</h2>
+<div class="panel">
+  <div class="row two">
+    <div><label for="tryin">A number to test (stays in your browser)</label><input id="tryin" type="text" value="978-1-4200-4561-1" autocomplete="off" spellcheck="false"></div>
+    <div><label for="tryscheme">Scheme</label><select id="tryscheme"><option value="auto">guess from shape</option><option value="luhn">Luhn</option><option value="isbn10">ISBN-10</option><option value="isbn13">ISBN-13</option><option value="ean13">EAN-13</option><option value="iban">IBAN</option></select></div>
+  </div>
+  <p class="verdict" id="tryout" role="status" aria-live="polite"></p>
+  <p class="small">This box runs <code>checkdigits.js</code>, a line-for-line port of the Python rules, because a web page cannot run the script. The audit below uses the same port.</p>
+</div>
+
+<h2>What each scheme checks</h2>
+<ul class="rules panel">
+  <li><b>Luhn</b> Double every second digit from the right, fold two-digit results back to one digit, add everything up; the total must end in 0.</li>
+  <li><b>ISBN-10</b> Weight the digits 10, 9, ... 1 (a final X counts as 10); the total must divide by 11.</li>
+  <li><b>EAN-13</b> Weight the digits 1, 3, 1, 3, ... from the left; the total must divide by 10. An ISBN-13 is the same sum on a number that starts 978 or 979.</li>
+  <li><b>IBAN</b> Move the first four characters to the end, turn letters into 10 to 35, read the result as one big number; its remainder after dividing by 97 must be 1.</li>
+</ul>
+
+<h2>Which typos does each one catch?</h2>
+<p>A check digit is a bet: most mistakes change the sum, a few do not. The page below tests it by trying. For each scheme it builds valid codes from a seeded random generator, then on every code it makes <b>every</b> single-symbol substitution (one position replaced by any other symbol allowed there) and <b>every</b> adjacent swap of two different symbols, and asks the checker whether it notices. Every count below is produced by that loop when the page loads.</p>
+<div class="panel">
+  <div class="row three">
+    <div><label for="ncodes">Valid codes per scheme and variant</label><input id="ncodes" type="number" min="50" max="3000" step="50" value="500"></div>
+    <div><label for="seed">Random seed</label><input id="seed" type="number" min="1" max="999999" step="1" value="2026"></div>
+    <div><button class="btn" id="rerun" type="button">Run again</button></div>
+  </div>
+  <p class="small" id="status" role="status" aria-live="polite">Starting...</p>
+</div>
+<p class="summary" id="summary"></p>
+<div id="audit"></div>
+<p class="small" id="auditnote"></p>
+
+<h2>Checked against published examples</h2>
+<p id="refintro">Loading the examples...</p>
+<div class="panel tablewrap"><table id="reftable"><thead><tr><th>Group</th><th>Scheme</th><th class="n">Examples</th><th class="n">Agree</th><th class="n">Disagree</th></tr></thead><tbody></tbody></table></div>
+<p id="refsummary"></p>
+<ul class="plain" id="refdis"></ul>
+<p class="small" id="refsource"></p>
+
+<h2>What is not checked</h2>
+<ul class="plain" id="limits"></ul>
+</main>
+
+<script src="checkdigits.js"></script>
+<script>
+(function () {
+  'use strict';
+  var C = window.CheckDigits;
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(n) { return n.toLocaleString('en-GB'); }
+  function pct(a, b) { return b ? (100 * a / b).toFixed(2) + '%' : 'n/a'; }
+  function many(n, one, more) { return fmt(n) + ' ' + (n === 1 ? one : more); }
+
+  /* ---------- 1. the demo blocks (pasted from real runs) ---------- */
+  $('demo1').textContent = '$ python3 checkdigits.py check -s luhn 49927398716 49927398710\n' +
+    'valid    luhn    49927398716  (digit sum is divisible by 10)\n' +
+    'INVALID  luhn    49927398710  (digit sum leaves remainder 4, not 0); if only the last digit is wrong it should be 6';
+  $('demo2').textContent = '$ python3 checkdigits.py check 978-1-4200-4561-1 7501031311309 7501031311308 "GB29 NWBK 6016 1331 9268 19" "GB29 NWBK 6016 1331 9268 91"\n' +
+    'valid    isbn13  978-1-4200-4561-1  (weighted sum is divisible by 10)\n' +
+    'valid    ean13   7501031311309  (weighted sum is divisible by 10)\n' +
+    'INVALID  ean13   7501031311308  (weighted sum leaves remainder 9, not 0); if only the last digit is wrong it should be 9\n' +
+    'valid    iban    GB29 NWBK 6016 1331 9268 19  (remainder mod 97 is 1)\n' +
+    'INVALID  iban    GB29 NWBK 6016 1331 9268 91  (remainder mod 97 is 5, not 1); if only the check digits are wrong they should be 25';
+
+  /* ---------- 2. try it ---------- */
+  var NAMES = { luhn: 'Luhn', isbn10: 'ISBN-10', isbn13: 'ISBN-13', ean13: 'EAN-13', iban: 'IBAN' };
+  function tryIt() {
+    var raw = $('tryin').value, out = $('tryout');
+    if (!C.normalise(raw)) { out.textContent = 'Type a number to test it.'; return; }
+    var sc = $('tryscheme').value;
+    if (sc === 'auto') sc = C.guess(raw);
+    if (!sc) { out.innerHTML = '<b class="fail">Cannot tell the scheme</b> from this shape; pick one.'; return; }
+    var v = C.verdict(sc, raw);
+    out.innerHTML = '<b class="' + (v.ok ? 'pass' : 'fail') + '">' + (v.ok ? 'Passes' : 'Fails') + '</b> as ' + NAMES[sc] + ': ' + esc(v.why) + '.';
+  }
+  $('tryin').addEventListener('input', tryIt);
+  $('tryscheme').addEventListener('change', tryIt);
+  tryIt();
+
+  /* ---------- 3. the audit ---------- */
+  var PLAN = [
+    { id: 'luhn', variants: [
+      { v: 'real', name: 'Luhn as defined' },
+      { v: 'nodouble', name: 'no doubling (plain digit sum, mod 10)' },
+      { v: 'nofold', name: 'doubling without the fold (2d mod 10)' }] },
+    { id: 'isbn10', variants: [
+      { v: 'real', name: 'ISBN-10 as defined (mod 11)' },
+      { v: 'mod10', name: 'modulus 10 instead of 11' }] },
+    { id: 'ean13', variants: [
+      { v: 'real', name: 'EAN-13 / ISBN-13 as defined (weights 1, 3)' },
+      { v: 'allones', name: 'weights 1, 1' },
+      { v: 'w15', name: 'weights 1, 5' }] },
+    { id: 'iban', variants: [
+      { v: 'real', name: 'IBAN as defined (mod 97)' },
+      { v: 'mod100', name: 'modulus 100 instead of 97' }] }
+  ];
+
+  function cause(id, v) {
+    var t, mod, w, g;
+    if (id === 'luhn') {
+      t = C.luhnTable(v === 'nofold' ? 'nofold' : 'real');
+      if (v === 'nodouble') return 'Digits are not doubled, so every position carries the same weight.';
+      var distinct = {}; t.forEach(function (x) { distinct[x] = 1; });
+      var nd = Object.keys(distinct).length;
+      return 'The doubling table maps the digits 0 to 9 to ' + t.join(' ') + ': ' + (nd === 10 ? 'ten different values, so changing one digit always changes its contribution.' : many(nd, 'different value', 'different values') + ' only, so two digits can look the same.');
+    }
+    if (id === 'isbn10') {
+      mod = v === 'mod10' ? 10 : 11; w = C.isbn10Weights(mod);
+      return 'Modulus ' + mod + ' is ' + (C.isPrime(mod) ? '' : 'not ') + 'prime. The weights 10 down to 1, taken mod ' + mod + ', are ' + w.weightsMod.join(' ') + ': ' +
+        (w.distinctMod ? 'all different' : 'not all different') + (w.zeroWeights ? ', and ' + many(w.zeroWeights, 'position has', 'positions have') + ' weight 0, so ' + (w.zeroWeights === 1 ? 'it is' : 'they are') + ' never checked.' : ', and none is 0.');
+    }
+    if (id === 'ean13') {
+      w = C.EAN_WEIGHTS[v === 'real' ? 'real' : v];
+      g = w.map(function (x) { return C.gcd(x, 10); });
+      return 'Weights ' + w.join(', ') + '. Their common factor with 10 is ' + g.join(' and ') + (g.every(function (x) { return x === 1; }) ? ', so every digit position counts.' : ', so a weight sharing a factor with 10 hides some changes.') +
+        (w[0] === w[1] ? ' Neighbouring positions have the same weight, so swapping them changes nothing.' : ' Neighbouring weights differ by ' + Math.abs(w[1] - w[0]) + '.');
+    }
+    mod = v === 'mod100' ? 100 : 97;
+    return 'Modulus ' + mod + ' is ' + (C.isPrime(mod) ? '' : 'not ') + 'prime and shares ' + (C.gcd(mod, 10) === 1 ? 'no factor' : 'the factor ' + C.gcd(mod, 10)) + ' with 10.';
+  }
+
+  function listMissed(map, arrow, limit) {
+    var keys = Object.keys(map).sort(function (a, b) { return map[b] - map[a] || (a < b ? -1 : 1); });
+    var shown = keys.slice(0, limit).map(function (k) { return esc(k.replace('<>', '↔').replace('>', '→')); });
+    return shown.join(', ') + (keys.length > limit ? ' and ' + many(keys.length - limit, 'more kind', 'more kinds') : '');
+  }
+  function posList(map) {
+    return Object.keys(map).map(Number).sort(function (a, b) { return a - b; }).map(function (p) { return p + 1; });
+  }
+  function allDigits(keys) { return keys.length > 0 && keys.every(function (k) { return /^[0-9]<>[0-9]$/.test(k); }); }
+
+  function missedLine(label, t, kind) {
+    var miss = t.tried - t.caught, keys = Object.keys(t.missed);
+    if (!miss) return '<span class="good">' + label + ': none missed.</span>';
+    var s = '<span class="warn">' + label + ': ' + fmt(miss) + ' missed, of ' + many(keys.length, 'kind', 'kinds') + ': ' + listMissed(t.missed, kind, 8) + '.</span>';
+    if (kind === 'swap' && allDigits(keys)) {
+      var diffs = {}; keys.forEach(function (k) { diffs[Math.abs(k.charAt(0) - k.charAt(3))] = 1; });
+      var d = Object.keys(diffs).sort(function (a, b) { return a - b; });
+      s += ' Each missed pair differs by ' + d.join(' or ') + '.';
+    }
+    var pos = posList(t.positions);
+    if (kind === 'sub' && pos.length) s += ' Positions affected (counting from 1): ' + pos.join(', ') + '.';
+    return s;
+  }
+
+  function statHTML(label, t) {
+    var share = t.tried ? 100 * t.caught / t.tried : 0;
+    return '<p class="stat"><span class="k">' + label + '</span>' + fmt(t.caught) + ' of ' + fmt(t.tried) + ' caught (' + pct(t.caught, t.tried) + ')' +
+      '<span class="bar" aria-hidden="true"><i style="width:' + share.toFixed(2) + '%"></i></span></p>';
+  }
+
+  var results = {};
+  function runAudit() {
+    var n = Math.max(50, Math.min(3000, parseInt($('ncodes').value, 10) || 500));
+    var seed = Math.max(1, parseInt($('seed').value, 10) || 2026);
+    $('ncodes').value = n; $('seed').value = seed;
+    $('status').textContent = 'Computing...';
+    setTimeout(function () {
+      var t0 = performance.now(), html = '', totals = { st: 0, sc: 0, wt: 0, wc: 0 };
+      PLAN.forEach(function (sc) {
+        var lay = C.LAYOUTS[sc.id];
+        html += '<section class="card" aria-label="' + esc(lay.label) + '"><h3>' + esc(lay.label) + '</h3>';
+        sc.variants.forEach(function (va) {
+          var a = C.audit(sc.id, va.v, n, seed);
+          results[sc.id + ':' + va.v] = a;
+          if (va.v === 'real') { totals.st += a.sub.tried; totals.sc += a.sub.caught; totals.wt += a.swap.tried; totals.wc += a.swap.caught; }
+          html += '<div class="variant' + (va.v === 'real' ? '' : ' off') + '"><h4>' + esc(va.name) + '</h4>' +
+            '<p class="cause">' + esc(cause(sc.id, va.v)) + '</p>' +
+            statHTML('Single-symbol substitutions (' + many(a.codes, 'valid code', 'valid codes') + ')', a.sub) +
+            statHTML('Adjacent swaps of two different symbols' + (a.swap.skipped ? ' (' + fmt(a.swap.skipped) + ' skipped: the swapped symbol is not allowed in its new place)' : ''), a.swap) +
+            '<p class="miss">' + missedLine('Substitutions', a.sub, 'sub') + '</p>' +
+            '<p class="miss">' + missedLine('Swaps', a.swap, 'swap') + '</p></div>';
+        });
+        html += '</section>';
+      });
+      $('audit').innerHTML = html;
+      var sm = totals.st - totals.sc, wm = totals.wt - totals.wc;
+      $('summary').innerHTML = 'The four schemes as defined: of ' + many(totals.st, 'substitution', 'substitutions') + ' tried, ' + (sm ? fmt(sm) + ' got through' : 'none got through') +
+        '; of ' + many(totals.wt, 'adjacent swap', 'adjacent swaps') + ' tried, ' + (wm ? fmt(wm) + ' got through' : 'none got through') + '.';
+      $('auditnote').textContent = 'These are counts over ' + many(n, 'seeded random valid code', 'seeded random valid codes') + ' per row, not over every valid code that exists. The lists name the kinds of error that got through, not how often each one did. The IBAN rows use one layout (' + C.LAYOUTS.iban.len + ' characters: two letters, two check digits, four letters, then ' + (C.LAYOUTS.iban.len - 8) + ' digits) and only swap or replace a character with one from the same class, because a letter typed into a digit field is caught by the format rule before any arithmetic. The seed ' + seed + ' and the sample size are in the boxes above; change them and run again. Time taken: ' + Math.round(performance.now() - t0) + ' ms.';
+      $('status').textContent = 'Done.';
+    }, 30);
+  }
+  $('rerun').addEventListener('click', runAudit);
+  runAudit();
+
+  /* ---------- 4. published examples ---------- */
+  function showRef(doc) {
+    var items = doc.items, groups = [], gi = {};
+    items.forEach(function (it) {
+      var key = it.group + '|' + it.scheme;
+      if (!(key in gi)) { gi[key] = groups.length; groups.push({ group: it.group, scheme: it.scheme, n: 0, agree: 0, dis: [] }); }
+      var g = groups[gi[key]], v = C.verdict(it.scheme, it.value);
+      g.n++;
+      if (v.ok === it.valid) g.agree++; else g.dis.push({ it: it, v: v });
+    });
+    var tb = $('reftable').tBodies[0], total = 0, agree = 0, dis = [], valid = 0;
+    groups.forEach(function (g) {
+      total += g.n; agree += g.agree; dis = dis.concat(g.dis);
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + esc(g.group) + '</td><td>' + esc(NAMES[g.scheme]) + '</td><td class="n">' + fmt(g.n) + '</td><td class="n">' + fmt(g.agree) + '</td><td class="n">' + fmt(g.dis.length) + '</td>';
+      tb.appendChild(tr);
+    });
+    items.forEach(function (it) { if (it.valid) valid++; });
+    $('refintro').innerHTML = 'The script was checked against ' + many(total, 'published example', 'published examples') + ' (' + fmt(valid) + ' the source calls valid, ' + fmt(total - valid) + ' it calls invalid) copied from <a href="' + esc(doc.source_url) + '">' + esc(doc.source_name) + '</a>, a separate project with its own code. Each row below runs the example through <code>checkdigits.js</code>, the port of <code>checkdigits.py</code>; the Python script gives the same answers (see the README).';
+    var oursOkRefBad = dis.filter(function (d) { return d.v.ok && !d.it.valid; }).length;
+    var groupsDis = {}; dis.forEach(function (d) { groupsDis[d.it.group] = 1; });
+    $('refsummary').innerHTML = '<b>' + fmt(agree) + ' of ' + fmt(total) + ' agree; ' + (dis.length ? fmt(dis.length) + ' disagree' : 'none disagree') + '.</b>' +
+      (dis.length ? ' In ' + (oursOkRefBad === dis.length ? 'every one' : fmt(oursOkRefBad) + ' of them') + ' the checksum passes here while the source rejects the number; the source rejects them for ' + Object.keys(groupsDis).map(function (g) { return esc(g.replace(/^IBAN, /, '')); }).join('; ') + '. Those are country rules (allowed length, characters, country list) that this tool deliberately does not check; it checks the arithmetic only.' : '');
+    var ul = $('refdis');
+    dis.forEach(function (d) {
+      var li = document.createElement('li'); li.className = 'dis';
+      li.innerHTML = '<code>' + esc(d.it.value) + '</code>: source says ' + (d.it.valid ? 'valid' : 'invalid') + (d.it.reference_reason ? ' (' + esc(d.it.reference_reason) + ')' : '') + ', this tool says ' + (d.v.ok ? 'passes' : 'fails') + ' (' + esc(d.it.group) + ').';
+      ul.appendChild(li);
+    });
+    $('refsource').textContent = doc.origin_note + ' Retrieved ' + doc.retrieved + '.';
+    fillLimits(doc);
+  }
+  function fillLimits(doc) {
+    var L = [
+      'Only the check arithmetic is tested. An IBAN\'s country, length and allowed characters, a card\'s issuer prefix and an ISBN\'s group and publisher ranges are not, so a number can pass here and still be unusable.',
+      'A pass says the digits fit the sum. It cannot say the account, card, book or product exists, and a check digit is not a security feature.',
+      'The second source is one project: ' + doc.source_name + '. Its IBAN lists say they come from the IBAN registry and its ISBN list says "found online"; those are its authors\' statements. The sandbox that built this piece could not reach Wikipedia, swift.com or the ISBN agency (the connection was refused), so the examples are independent of this tool\'s code but have one origin.',
+      'Written from memory and not checked against a standard document: the rule that IBAN check digits run from 02 to 98, that an ISBN-13 starts 978 or 979, the EAN-13 weight pattern, and the Luhn doubling order. They are consistent with every published example above, but examples cannot prove there is no exception.',
+      'Old nine-digit SBN numbers are not accepted as ISBN-10, and there is no ISBN-10/13 conversion.',
+      'The script was run on Python 3.11 only. The audit counts come from a seeded sample of valid codes, as the note under the audit says.'
+    ];
+    $('limits').innerHTML = L.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('');
+  }
+
+  fetch('reference_examples.json').then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(showRef).catch(function (e) {
+    $('refintro').textContent = 'The example file could not be loaded here (' + e.message + '). Open reference_examples.json directly, or run the unit tests from the download.';
+    fillLimits({ source_name: 'python-stdnum' });
+  });
+})();
+</script>
+</body>
+</html>

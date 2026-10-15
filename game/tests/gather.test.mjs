@@ -178,6 +178,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   await pageA.goto(`${base}${query}#room=${room}`); await pageB.goto(`${base}${query}#room=${room}`);
   await pageA.click("#enter"); await pageB.click("#enter");
   const seen = await waitFor(pageA, () => window.__longWatch.peers().length === 1, null, opts.timeout) && await waitFor(pageB, () => window.__longWatch.peers().length === 1, null, opts.timeout);
+  if (!seen) { const dump = (p) => p.evaluate(() => ({ id: window.__longWatch.self().id, links: window.__longWatch.linkHistory(), peers: window.__longWatch.peers().map(q => q.id), hud: window.__longWatch.hud() })); console.log("  diagnostics A", JSON.stringify(await dump(pageA)), "B", JSON.stringify(await dump(pageB))); }
   ok(seen, "each page sees exactly one other player");
   if (!seen) return;
   const list = await pageA.evaluate(() => window.__longWatch.nodes());
@@ -213,7 +214,7 @@ async function scenario(label, mk, query, room, opts = {}) {
     await sleep(500);
     const gx = await lw(X), gy = await lw(Y);
     ok(synced && sum(gx) + sum(gy) - x0 === 1 && gx.hidden.includes(n.id) && gy.hidden.includes(n.id), `contested node ${n.id}: exactly one of the two got it, and it is hidden for both`);
-    await waitFor(X, (id) => !window.__longWatch.gather().hidden.includes(id), n.id, (opts.respawn + 3) * 1000);
+    // (no wait for the contested node to grow back: nothing later uses it, and the real-WebRTC run pins a long respawn)
   }
 
   // 3. a late joiner gets a snapshot of what is hidden
@@ -222,10 +223,17 @@ async function scenario(label, mk, query, room, opts = {}) {
   await waitFor(X, ([x, y]) => window.__longWatch.peers().some(p => Math.hypot(p.x - x, p.y - y) < 0.05), [spawn.x, spawn.y], 6000);
   await teleportSynced(X, [Y], nS.x, nS.y);
   await X.evaluate(() => window.__longWatch.pick());
+  const pickedAt = Date.now();
   ok(await waitFor(Y, (id) => window.__longWatch.gather().hidden.includes(id), nS.id, 5000), "X picks another node; Y sees it hidden");
   const pageC = await mk(); await pageC.goto(`${base}${query}#room=${room}`); await pageC.click("#enter");
   ok(await waitFor(pageC, () => window.__longWatch.peers().length === 2, null, opts.timeout), "a third player joins and sees both others");
-  ok(await waitFor(pageC, (id) => window.__longWatch.gather().hidden.includes(id), nS.id, 5000), "the late joiner's map already hides that node (snapshot)");
+  const metAfter = Date.now() - pickedAt;
+  const snap = await waitFor(pageC, (id) => window.__longWatch.gather().hidden.includes(id), nS.id, 5000);
+  // The node is only hidden for the pinned respawn time (opts.respawn s: 20 over WebRTC, where a third player can take
+  // several seconds to connect, 8 on the instant local channel). A slower join found it grown back in 7 of 36 runs under
+  // heavy load with the old 8 s pin: that was the test's clock, not the game. Say so instead of a bare failure.
+  if (!snap) console.log(`  diagnostics: the third player took ${metAfter} ms after the pick to see both others; the node respawns after ${opts.respawn * 1000} ms; X still hides it: ${await X.evaluate((id) => window.__longWatch.gather().hidden.includes(id), nS.id)}`);
+  ok(snap, "the late joiner's map already hides that node (snapshot)");
   ok(await waitFor(pageC, () => window.__longWatch.gather().synced, null, 4000), "and the late joiner counts itself synced");
   ok(await waitFor(pageC, (id) => !window.__longWatch.gather().hidden.includes(id), nS.id, (opts.respawn + 3) * 1000) && await waitFor(Y, (id) => !window.__longWatch.gather().hidden.includes(id), nS.id, 3000), "it grows back for the late joiner and the others at about the same time");
   if (opts.local) await forged(X, Y, pageC, list);
@@ -302,7 +310,7 @@ if (!onlyLocal) {
   const c = [await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true }), await browser.newContext({ viewport: { width: 1000, height: 800 } }), await browser.newContext({ viewport: { width: 800, height: 700 } })];
   let i = 0;
   const mk = () => c[i++ % 3].newPage().then(p => (watch(p, "webrtc"), p));
-  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1)", mk, `?net=nostr&respawn=8&relay=${encodeURIComponent(relay.url)}`, 5, { timeout: 30000, respawn: 8, shot: "gather-webrtc" });
+  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1)", mk, `?net=nostr&respawn=20&relay=${encodeURIComponent(relay.url)}`, 5, { timeout: 30000, respawn: 20, shot: "gather-webrtc" });
   for (const x of c) await x.close().catch(() => {});
   relay.close();
 }

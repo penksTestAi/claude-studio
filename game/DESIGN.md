@@ -117,6 +117,34 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   jade, azure) and `lamp` (checked on load; you can only hold a lantern you own). Accepted weakness: a modified client
   can claim a bigger lantern than it owns, which only changes how it looks to others (no gameplay depends on it yet).
   Crafted items are not part of giving yet, so they cannot be copied that way.
+- **Beacon protocol v1** (`js/beacon.js`, milestone 6): the island's four old beacons are fuelled together. The shared
+  state is one whole number per player per beacon (that player's share of fuel), a grow-only counter keyed by the
+  player's seed: merging keeps the larger number, so order, repeats and crossing messages never lose or lower a share.
+  A beacon is lit when the shares add up to `BEACON_NEED` (12) and at least `MIN_PLAYERS` (2) players have a share,
+  so it is derived, never sent, and (the counters only grow) stays lit while anyone who holds the state is in the
+  room; a room that empties forgets it, and fuel a player spent stays spent. Driftwood is worth 1 fuel, oil berries 2
+  (`WORTH`); a player must stand within `BEACON_RANGE` (2.5) tiles; one player's share is capped at `MAX_OWN` (16),
+  so one player alone could reach the fuel but never lights it; a lit beacon takes no more. At most `MAX_ENTRIES`
+  (24) players are counted per beacon, and a full list refuses new ones (it is always already lit, so a real player's
+  item is refused before it is taken). Adding fuel changes the pack and saves it before anything is sent. Messages:
+  `fu {b,n}` (my total on beacon b, sent on change, to each newcomer, every 5 s), `fq` (newcomer asks a peer) and
+  `fs {b:[],s:[],n:[],f}` (up to 10 shares a chunk, so a snapshot also carries the shares of players who left); `fs`
+  is accepted only from a peer asked and still being waited for (asked again at most twice, 2.5 s apart). Receivers
+  need a known sender, exact fields, whole numbers in range and allow 8 a second per sender. The shares are not
+  checked against where the sender stands (accepted weakness: a modified client can claim shares, and a claimed seed
+  of someone else counts as another player; there is nothing to win from others). A lit beacon draws a flame and a
+  wide pool of light (`LIT_RADIUS` 9 tiles) for everyone, and a warm mark on the minimap.
+- **Presence watchdog** (milestone 6, in `js/presence.js`): over real WebRTC a link can come up on one side before the
+  other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
+  but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
+  greeted is answered with ours (once), and movement from an unknown peer makes us send our `hi` (once every 2 s, 64
+  strangers at most). A second, lower watchdog lives in the Trystero transport (`js/net/trystero.js`): in a stress run
+  of 150 three-player meshes two failed because a link came up on one side only (that side got a join event, the other
+  side's handshake timed out and it never sent anything), and the first side stayed "joined" for ever. A peer that has
+  been joined for `STALL_MS` (8 s) without any message from it (every client sends one at least every 2 s) makes the
+  transport leave and rejoin its room (the game is told each peer left, then each that returns joins again), at most
+  `MAX_REBUILDS` (3) times and `MIN_GAP_MS` (10 s) apart, so a silent hostile peer can cost a few reconnects but not a
+  loop. `?mute=N` (loopback pages only, 1 to 30 s) makes a page neither send nor hear for N seconds, for the test.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -149,6 +177,7 @@ game/
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
   js/resources.js       seeded gathering spots (driftwood, reeds, oil berries), respawn times (pure)
+  js/beacon.js          beacons: shares counter (G-counter), lighting rule, fuel messages, snapshot for newcomers
   js/craft.js           crafting recipes, lantern table (reach, glow), the `lt` lantern message (rules are pure)
   js/give.js            giving: offer, accept, commit, receipt; faults never copy or lose an item
   js/inventory.js       saved pack and gift lists: checks, caps, adopting another tab's save (pure)
@@ -163,7 +192,7 @@ game/
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
-  js/net/trystero.js    Trystero transport (nostr, torrent)
+  js/net/trystero.js    Trystero transport (nostr, torrent) with the link watchdog (rejoin when a joined peer stays silent)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
@@ -171,14 +200,15 @@ game/
   tests/gather.test.mjs    node checks of nodes and the arbiter on a fake mesh, then local and WebRTC pages: picks, contested picks, respawn, late joiner, arbiter leaving, forged messages
   tests/give.test.mjs      node checks of saved-pack rules and giving under faults, then local and WebRTC pages: offer, accept, reload, decline, take-back, leaving, gift on its way, forged messages
   tests/craft.test.mjs     node checks of recipes (conversion only, refusals, full stacks, saved data, the lantern message), then local and WebRTC pages: a second player sees the lantern's reach (drawn radius and ground brightness), late joiner, reload, full stack, forged messages
+  tests/beacon.test.mjs    node checks of the shares, caps, fuel messages and the presence watchdog, then local and WebRTC pages: fuel shared, one player alone cannot light, simultaneous adds, light on the ground, late joiner, reload, leaving, empty room, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
+URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

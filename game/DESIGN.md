@@ -87,6 +87,17 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   the same instant) are settled by the **arbiter**: the connected peer with the lowest id, which every peer
   can work out by itself; if the arbiter leaves, the next lowest takes over. Resource respawns are derived from
   the seed and wall-clock time, so they need no messages.
+- **Gathering protocol v1** (`js/gather.js`, nodes in `js/resources.js`, built in milestone 3): 42 nodes (14 each of
+  driftwood, reeds, oil berries) come from the seed and are known by index only. `pk {n}` (ask the arbiter),
+  `gt {n,r}` (arbiter to all: node n hidden for r seconds), `ok {n}` / `no {n}` (arbiter to the asker), `rq` and
+  `sn {n:[..],t:[..],f}` (snapshot, at most 16 entries a chunk, `f`=1 on the last). The state is "node n is hidden
+  until T"; merging keeps the later T; T travels as remaining seconds and becomes the receiver's own clock time, so
+  clocks need not agree, and everyone holds the full map (any peer can answer `rq`). `gt` counts only from the
+  arbiter as the receiver sees it; the arbiter refuses picks farther than 2.6 tiles from where it last saw the asker
+  (players may only pick within 1.3), and a newcomer that has not yet heard a snapshot (1.5 s at most) refuses to
+  decide. The pack is in memory only until milestone 4. Accepted weakness: a modified client that is the arbiter
+  could grant itself everything; there is nothing to win from others. `?respawn=N` (1 to 600 s) shortens the
+  respawn for tests.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -118,6 +129,8 @@ game/
   js/world.js           seeded island generation, landmarks (beacons, lighthouse, jetty, well), tile queries, surfaces, fingerprints
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
+  js/resources.js       seeded gathering spots (driftwood, reeds, oil berries), respawn times (pure)
+  js/gather.js          shared gathering: arbiter, hidden-until map, snapshots, validation
   js/talk.js            gestures and preset phrases: lists, send, validated receive, cooldowns
   js/arrows.js          edge arrows toward off-screen players (pure maths)
   js/guard.js           per-peer rate limiter (token bucket)
@@ -133,6 +146,7 @@ game/
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
   tests/world.test.mjs     node checks plus two local pages: landmarks, minimap, footsteps, light, reduced motion, size cap
+  tests/gather.test.mjs    node checks of nodes and the arbiter on a fake mesh, then local and WebRTC pages: picks, contested picks, respawn, late joiner, arbiter leaving, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
@@ -140,7 +154,7 @@ URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the 
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

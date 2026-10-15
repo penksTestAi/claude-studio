@@ -10,6 +10,8 @@ import { createMinimap, describeNearest } from "./minimap.js";
 import { hourAt, lightFor, pickHour, HOURS } from "./nightclock.js";
 import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
 import { surfaceAt, landmarkFingerprint } from "./world.js";
+import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.js";
+import { createGather } from "./gather.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -20,6 +22,8 @@ const $ = (id) => document.getElementById(id);
 const world = generateWorld();
 const netKind = pickKind(location.search);
 const testRelay = pickTestRelay(location.search);
+const nodes = generateNodes(world);
+const respawnPin = (() => { const v = Number(new URLSearchParams(location.search).get("respawn")); return Number.isInteger(v) && v >= 1 && v <= 600 ? v : 0; })(); // tests: shorter respawn
 
 // ---- identity, saved only in this browser ----
 // In local test mode each tab is its own character (sessionStorage), so two tabs can meet each other.
@@ -67,7 +71,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -83,7 +87,9 @@ async function enter() {
   }
   presence = createPresence(net, world, me, updatePeers);
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
+  gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent });
   me.say = null; me.emote = null;
+  paintPack(); $("gathered").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
   document.body.classList.add("playing");
@@ -99,7 +105,7 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null;
+  playing = false; net = null; presence = null; talk = null; gather = null;
   setTalkOpen(false); $("heard").textContent = "";
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -128,10 +134,13 @@ function frame(t) {
   step(dt);
   presence.tick(t, dt);
   talk.tick(t);
+  gather.tick();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
-  renderer.draw(me, presence.peers, input.stick, t, light);
+  const reach = gather.reach();
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach);
+  $("gather").disabled = !reach;
   if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values()); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
@@ -149,6 +158,21 @@ function footsteps(light) {
     for (let i = 0; i < k; i++) steps.step(surfaceAt(world, p.x, p.y), g * 0.7);
   }
 }
+// ---- gathering: E or the Gather button picks what is in reach; the room sees it vanish ----
+function gatherEvent(type, kind) {
+  if (type === "got") { $("gathered").textContent = `You gathered ${KIND_NAMES[kind].toLowerCase()}.`; paintPack(); }
+  else $("gathered").textContent = `Someone was first to the ${KIND_NAMES[kind].toLowerCase()}.`;
+}
+function paintPack() {
+  $("pack").textContent = "Pack (this visit): " + KINDS.map(k => `${KIND_NAMES[k]} ${gather ? gather.inv[k] : 0}`).join(", ");
+}
+function doGather() { if (playing) gather.pick(); }
+$("gather").addEventListener("click", () => { doGather(); canvas.focus({ preventScroll: true }); });
+addEventListener("keydown", (e) => {
+  if (!playing || e.code !== "KeyE" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+  doGather();
+});
 function paintHud(light) {
   const near = describeNearest(world, me.x, me.y);
   const hour = `${light.name}, hour ${light.index + 1} of ${HOURS}`;
@@ -251,6 +275,10 @@ window.__longWatch = {
   hud: () => ({ where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
+  nodes: () => nodes.map(n => ({ id: n.id, kind: n.kind, x: n.x, y: n.y, respawn: n.respawn })),
+  nodeFingerprint: () => nodeFingerprint(nodes),
+  gather: () => gather ? { hidden: nodes.filter(n => gather.isHidden(n.id)).map(n => n.id), inv: { ...gather.inv }, synced: gather.synced, arbiter: gather.arbiterId(), isArbiter: gather.isArbiter(), reach: gather.reach()?.id ?? null } : null,
+  pick: () => !!gather && !!gather.pick(),
   mine: () => ({ say: me.say ? me.say.id : null, emote: me.emote ? me.emote.id : null }),
   say: (i) => !!talk && talk.say(i),
   emote: (i) => !!talk && talk.emote(i),

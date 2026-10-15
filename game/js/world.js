@@ -10,7 +10,7 @@ export const T = { DEEP: 0, SHALLOW: 1, SAND: 2, GRASS: 3, TREE: 4, ROCK: 5, MEA
 const BLOCKING = new Set([T.DEEP, T.TREE, T.ROCK]);
 
 // Integer hash of (x, y, seed) -> [0, 1). Uses Math.imul, which is exact.
-function hash3(x, y, s) {
+export function hash3(x, y, s) {
   let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   h ^= h >>> 16;
@@ -75,7 +75,7 @@ export const LANDMARK_NAMES = { beacon: "Old beacon", lighthouse: "Ruined lighth
 export const BEACON_SIDES = ["north-west", "north-east", "south-west", "south-east"];
 
 // Open ground a player can walk to from the spawn (flood fill over tiles that do not block).
-function reachable(world) {
+export function reachable(world) {
   const { w, h } = world, seen = new Uint8Array(w * h), q = [];
   const sx = Math.floor(world.spawn.x), sy = Math.floor(world.spawn.y);
   seen[sy * w + sx] = 1; q.push(sx, sy);
@@ -200,12 +200,28 @@ function openAround(world, x, y) {
   return true;
 }
 
+// The player's collision half-width (main.js RADIUS). A spawn must let the body move in at least one of the
+// four directions; about 1 in 100 spawns inside a pocket of rock or tree could not move at all.
+const BODY = 0.28;
+function canMoveFrom(world, x, y) {
+  const hits = (px, py) => [[-BODY, -BODY], [BODY, -BODY], [-BODY, BODY], [BODY, BODY]].some(([ox, oy]) => isBlocked(world, px + ox, py + oy));
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    let px = x, py = y;
+    for (let s = 0; s < 10; s++) { // walk 0.01 tile at a time, as the player does, and stop at the first wall
+      if (hits(px + dx * 0.01, py + dy * 0.01)) break;
+      px += dx * 0.01; py += dy * 0.01;
+    }
+    if (Math.hypot(px - x, py - y) >= 0.1) return true;
+  }
+  return false;
+}
+
 // A walkable point near the spawn, chosen from a player's own seed so arrivals do not stack exactly.
 export function spawnFor(world, playerSeed) {
   for (let i = 0; i < 40; i++) {
     const ox = (hash3(playerSeed, i, 17) - 0.5) * 6, oy = (hash3(playerSeed, i, 29) - 0.5) * 6;
     const x = world.spawn.x + ox, y = world.spawn.y + oy;
-    if (!isBlocked(world, x, y) && tileAt(world, x, y) !== T.SHALLOW) return { x, y };
+    if (!isBlocked(world, x, y) && tileAt(world, x, y) !== T.SHALLOW && canMoveFrom(world, x, y)) return { x, y };
   }
   return { ...world.spawn };
 }

@@ -2,6 +2,7 @@
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
 import { T, LANDMARK_NAMES } from "./world.js";
+import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 
@@ -90,7 +91,7 @@ export function createRenderer(canvas, world, opts = {}) {
     dark.width = canvas.width; dark.height = canvas.height;
   }
 
-  function draw(me, peers, stick, t, light) {
+  function draw(me, peers, stick, t, light, nodes = [], reach = null) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
     const tile = (cw < 520 ? 30 : 36) * dpr; // screen px per tile
@@ -100,6 +101,8 @@ export function createRenderer(canvas, world, opts = {}) {
     g.fillStyle = PAL[T.DEEP][0]; g.fillRect(0, 0, W, H);
     const k = tile / TILE_SRC;
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
+
+    for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
 
     const all = [...peers.values(), me];
     all.sort((a, b) => a.y - b.y);
@@ -134,6 +137,13 @@ export function createRenderer(canvas, world, opts = {}) {
       g.globalAlpha = 1;
     }
 
+    // The prompt over the node in reach (words from our own list).
+    if (reach) {
+      const lx = reach.x * tile - camX, ly = (reach.y + 1.05) * tile - camY, txt = `${KIND_NAMES[reach.kind]}: gather (E)`;
+      g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#ffe9a8";
+      g.strokeText(txt, lx, ly); g.fillText(txt, lx, ly);
+    }
+
     // Names above the dark layer so they stay readable.
     for (const p of all) {
       const sx = p.x * tile - camX, sy = p.y * tile - camY - tile * 0.62;
@@ -160,6 +170,31 @@ export function createRenderer(canvas, world, opts = {}) {
   }
 
   return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })) };
+}
+
+// Gatherables: a pale log, a tuft of reeds, a cluster of berries. A ring marks the one within reach.
+function drawNode(g, n, sx, sy, tile, inReach, t, reduce) {
+  const u = tile / 8;
+  if (inReach) {
+    g.strokeStyle = "rgba(255,233,168,0.85)"; g.lineWidth = Math.max(1.5, u * 0.5);
+    g.beginPath(); g.arc(sx, sy, tile * (0.42 + (reduce ? 0 : Math.sin(t / 260) * 0.03)), 0, Math.PI * 2); g.stroke();
+  }
+  if (n.kind === "driftwood") {
+    g.save(); g.translate(sx, sy); g.rotate(((n.id * 37) % 7 - 3) * 0.2);
+    g.fillStyle = "#b59a72"; g.fillRect(-3 * u, -u, 6 * u, 2 * u);
+    g.fillStyle = "#d8c29a"; g.fillRect(-3 * u, -u, 6 * u, 0.7 * u);
+    g.fillStyle = "#7d6544"; g.fillRect(-1 * u, -2 * u, 0.8 * u, 1.2 * u); g.fillRect(1.2 * u, u, 0.8 * u, 1.2 * u);
+    g.restore();
+  } else if (n.kind === "reeds") {
+    g.strokeStyle = "#8fb06a"; g.lineWidth = Math.max(1.5, u * 0.55);
+    for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(sx + i * u * 0.7, sy + 2.5 * u); g.lineTo(sx + i * u * 1.1, sy - (2.8 - Math.abs(i) * 0.4) * u); g.stroke(); }
+    g.fillStyle = "#6b4a2a"; g.fillRect(sx - 0.5 * u, sy - 3.2 * u, u, 1.4 * u);
+  } else {
+    g.fillStyle = "#2f5a3a"; g.beginPath(); g.arc(sx, sy + 0.3 * u, 2.6 * u, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#b07ad8";
+    for (const [dx, dy] of [[-1.2, -0.6], [1.1, -0.3], [0, 1.1]]) { g.beginPath(); g.arc(sx + dx * u, sy + dy * u, 0.95 * u, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = "#f0d8ff"; g.fillRect(sx - 1.5 * u, sy - 1.1 * u, 0.6 * u, 0.6 * u);
+  }
 }
 
 function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {

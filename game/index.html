@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
+<meta name="description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
+<meta property="og:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
+<meta name="twitter:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -61,6 +61,7 @@ canvas#view:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .where{margin:8px 0 0;min-height:1.4em}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0}
 .tools .ghost[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.pack{margin:8px 0 0}
 .status{margin:10px 0 6px;min-height:1.5em}
 .peers{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 18px}
 .peers li{display:inline-flex;align-items:center;gap:8px}
@@ -129,7 +130,10 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <div class="tools">
       <button class="ghost" id="maptoggle" type="button" aria-pressed="true">Map <kbd>M</kbd></button>
       <button class="ghost" id="stepstoggle" type="button" aria-pressed="false">Footsteps: off</button>
+      <button class="ghost" id="gather" type="button" disabled>Gather <kbd>E</kbd></button>
     </div>
+    <p class="small pack" id="pack"></p>
+    <p class="small heard" id="gathered" role="status" aria-live="polite"></p>
     <div class="talk">
       <button class="ghost" id="talktoggle" type="button" aria-expanded="false" aria-controls="talkbox">Talk <kbd>T</kbd></button>
       <div id="talkbox" hidden>
@@ -142,7 +146,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <ul class="peers" id="peers" aria-label="Players in this lantern"></ul>
-    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles. <kbd>M</kbd> shows or hides the minimap. Footsteps are off until you turn them on. The light changes through an eight-hour night that repeats every 48 minutes of the clock (UTC), the same for everyone.</p>
+    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles. <kbd>M</kbd> shows or hides the minimap. Stand next to driftwood, reeds or oil berries and press <kbd>E</kbd> (or Gather) to pick them; the plant disappears for everyone in the lantern and grows back after a minute or two. If two of you reach for the same one, only the first gets it. Footsteps are off until you turn them on. The light changes through an eight-hour night that repeats every 48 minutes of the clock (UTC), the same for everyone.</p>
   </section>
 
   <!-- PATCHNOTES:START (written by tools/game_patchnotes.py from CHANGELOG.md) -->
@@ -150,6 +154,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.4</b> · milestone 3 (gathering, shared) <span class="when">2026-10-15</span></summary>
+    <p><span class="tag t-new">New</span> gather driftwood on the shore, reeds at the water's edge and oil berries near the woods. The island holds 42 spots, 14 of each. Stand next to one (a ring and its name appear) and press <code>E</code> or the Gather button to pick it. The plant disappears for everyone in your lantern and grows back after one and a half to two and a half minutes. If two of you reach for the same one at the same moment, only one of you gets it and the other is told someone was first. If you arrive late, you see the spots that are already picked as empty. Your pack (driftwood, reeds, oil berries) is shown under the map; for now it is only kept while you stay on the page, and nobody else sees it.</p>
+    <p><span class="tag t-not">Not yet checked</span> gathering over the public Nostr relays and across real home and mobile networks (the sandbox's proxy refuses them; only the local relay was used), how the new plants look and feel on a real phone, screen readers. A modified client that is the arbiter could hand itself everything; accepted for now (nothing to win).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.3</b> · milestone 2 (the island worth walking) <span class="when">2026-10-15</span></summary>
     <p><span class="tag t-new">New</span> find seven landmarks on the island: four old beacons on the headlands (one in each quarter), a ruined lighthouse, a jetty out over the shallows and a well not far from where everyone arrives. Their names show when you get close, and the beacons, lighthouse and well are solid, so you walk around them. A minimap in the corner shows the whole island, the landmarks and every player in their lantern colour (button or <code>M</code> to hide it). A line under the map names the hour and the nearest landmark with its distance and direction. The night now has eight hours (Dusk, First watch, Deep night, Midnight, Small hours, Late watch, Grey before dawn, Dawn); the light gets darker toward midnight and your lantern reaches further when it is darkest. A night lasts 48 minutes of the clock (UTC) and then repeats, the same for everyone. Footsteps are available but off until you press Footsteps; when on, you hear your own steps (sand, grass, stone, shallow water and the jetty's planks all sound different) and, more quietly, players walking within about 8 tiles.</p>
     <p><span class="tag t-fixed">Fixed</span> the little walking bob of avatars (and the jump, wave and pointing movements of gestures) now stops when your device asks for reduced motion. Incoming messages that are too large are now ignored.</p>
@@ -191,7 +200,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 2 (the island worth walking). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 3 (gathering, shared). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

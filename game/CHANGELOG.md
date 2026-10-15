@@ -89,3 +89,31 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
 
 > 2026-10-15, owner test (not a new version): the owner joined from a phone and from another computer, on different
 > networks, through the public Nostr relays, and multiplayer worked. Basic online play is now verified.
+
+### 2026-10-15 · milestone 3 (gathering, shared)
+- **Players can now:** gather driftwood on the shore, reeds at the water's edge and oil berries near the woods. The
+  island holds 42 spots, 14 of each. Stand next to one (a ring and its name appear) and press `E` or the Gather
+  button to pick it. The plant disappears for everyone in your lantern and grows back after one and a half to two
+  and a half minutes. If two of you reach for the same one at the same moment, only one of you gets it and the other
+  is told someone was first. If you arrive late, you see the spots that are already picked as empty. Your pack
+  (driftwood, reeds, oil berries) is shown under the map; for now it is only kept while you stay on the page, and
+  nobody else sees it.
+- **Network:** new small number-only messages: pick (node index), granted (index, seconds), ok/no to the asker,
+  snapshot request and snapshot (up to 16 hidden nodes per message, under the 512-byte cap). The arbiter is the
+  player with the lowest id, worked out by each browser alone; when it leaves the next lowest takes over. Hidden
+  state merges by "later return time wins"; times travel as remaining seconds, so clocks need not match. Picks must
+  be near the asker's last reported position; forged grants from anyone but the arbiter, bad indexes, extra fields,
+  out-of-range seconds and oversize snapshots are dropped; 20 gather messages per second per peer.
+- **Tested** (`node game/tests/gather.test.mjs`, new): in node, the node list is identical on every build, 14 of each
+  kind, no two closer than 4 tiles, all on open ground, and the real gather code runs on a fake mesh of three
+  players: two contested picks give one winner and tell the loser, the node returns at its seeded time, a pick
+  from a position the arbiter does not believe is refused, forged messages change nothing, 40 hidden nodes go out
+  as three snapshot chunks under the size cap. Then on the local transport and again on real Trystero/WebRTC
+  through the local Nostr relay: a pick by the E key hides the node for the other page and the other player gets
+  nothing, it grows back (respawn pinned to 8 s by `?respawn=`), three contested picks give exactly one winner each
+  time, a third player who joins late sees the hidden node, and when the lowest-id player leaves the next one
+  becomes arbiter and picks still work. Local mode also forges hostile messages. Browser:
+  `chromium_headless_shell-1194` (set `CHROME`).
+- **Unverified:** gathering over the public Nostr relays and across real home and mobile networks (the sandbox's
+  proxy refuses them; only the local relay was used), how the new plants look and feel on a real phone, screen
+  readers. A modified client that is the arbiter could hand itself everything; accepted for now (nothing to win).

@@ -17,12 +17,13 @@ working features.
   well), a minimap with every player, footsteps off by default (own and nearby players'), light that follows a shared
   eight-hour night, reduced-motion respected, a byte-size cap on incoming messages. (2026-10-15)
 
+- **3. Gathering, shared.** 42 seeded spots of driftwood, reeds and oil berries; picking one hides it for everyone
+  in the lantern until its seeded respawn (90 to 150 s); the lowest-id player is the arbiter for contested picks;
+  late joiners get a snapshot; a new arbiter takes over when the old one leaves. (2026-10-15)
+
 ## Later (in rough order, each one run)
-3. **NEXT: Gathering, shared.** Driftwood, reeds and oil berries at seeded spots; picking one hides it for everyone
-   in the room until its seeded respawn. First use of the shared-state rules in DESIGN.md (arbiter for
-   contested picks, snapshot for late joiners).
-4. **Inventory and giving.** A saved local inventory; hand an item to a nearby player (a two-step offer and
-   accept, both sides confirm).
+4. **NEXT: Inventory and giving.** A saved local inventory (milestone 3 keeps the pack in memory only, for this
+   visit); hand an item to a nearby player (a two-step offer and accept, both sides confirm).
 5. **Crafting.** Wicks, lanterns of different colours and reach; a brighter lantern lights more of the map for
    everyone near you.
 6. **Beacons.** Fuel a beacon together (G-counter of contributions); when lit it stays lit for that room's

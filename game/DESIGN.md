@@ -95,9 +95,15 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   clocks need not agree, and everyone holds the full map (any peer can answer `rq`). `gt` counts only from the
   arbiter as the receiver sees it; the arbiter refuses picks farther than 2.6 tiles from where it last saw the asker
   (players may only pick within 1.3), and a newcomer that has not yet heard a snapshot (1.5 s at most) refuses to
-  decide. The pack is in memory only until milestone 4. Accepted weakness: a modified client that is the arbiter
+  decide. The pack is saved since milestone 4. Accepted weakness: a modified client that is the arbiter
   could grant itself everything; there is nothing to win from others. `?respawn=N` (1 to 600 s) shortens the
   respawn for tests.
+- **Giving protocol v1** (`js/give.js`, saved state in `js/inventory.js`, milestone 4): `of {t,i}` offer, `ac {t}`
+  accept, `dc {t}` decline, `cx {t}` take back, `cf {t,i}` commit, `rc {t}` receipt, all to one peer. The item leaves
+  the giver only on `ac`, is saved in the giver's `out` list first, and goes to the receiver on `cf` only if it is in
+  the receiver's saved `exp` list; `got` stops repeats. The giver repeats `cf` every 3 s to the same seed until `rc`.
+  A gift whose receiver never returns stays in `out` (never given back, so never copied; it is lost only if storage is blocked or cleared). `exp` is never trimmed: a receiver with `MAX_EXP` (32) entries declines new offers and `accept()` refuses; `got` keeps the newest `MAX_GOT` (1000). Known limits: a peer can claim another player's public seed and so receive gifts meant for them; storage cleared after the hand-over loses the record. Saved key
+  `vigil.longwatch.v1` now holds `inv`, `out`, `exp`, `got` next to seed and position, all checked on load.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -118,7 +124,7 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   tries it.
 - What *is* tested: the full real code path (vendored Trystero, Nostr signalling messages, WebRTC data channels
   in Chromium) between two separate browser contexts, with signalling through `tests/nostr-relay.mjs`, a tiny
-  Nostr relay the test starts on 127.0.0.1 (the page accepts `?relay=` only for 127.0.0.1/localhost). Only the
+  Nostr relay the test starts on 127.0.0.1 (the page accepts `?relay=` only for 127.0.0.1/localhost, and main.js ignores it entirely when the page itself is served from any other host, such as the live site). Only the
   public relays and NAT traversal across real networks remain unchecked.
 
 ## File map
@@ -130,6 +136,8 @@ game/
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
   js/resources.js       seeded gathering spots (driftwood, reeds, oil berries), respawn times (pure)
+  js/give.js            giving: offer, accept, commit, receipt; faults never copy or lose an item
+  js/inventory.js       saved pack and gift lists: checks, caps, adopting another tab's save (pure)
   js/gather.js          shared gathering: arbiter, hidden-until map, snapshots, validation
   js/talk.js            gestures and preset phrases: lists, send, validated receive, cooldowns
   js/arrows.js          edge arrows toward off-screen players (pure maths)
@@ -147,6 +155,7 @@ game/
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
   tests/world.test.mjs     node checks plus two local pages: landmarks, minimap, footsteps, light, reduced motion, size cap
   tests/gather.test.mjs    node checks of nodes and the arbiter on a fake mesh, then local and WebRTC pages: picks, contested picks, respawn, late joiner, arbiter leaving, forged messages
+  tests/give.test.mjs      node checks of saved-pack rules and giving under faults, then local and WebRTC pages: offer, accept, reload, decline, take-back, leaving, gift on its way, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
@@ -154,7 +163,7 @@ URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the 
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

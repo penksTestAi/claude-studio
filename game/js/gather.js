@@ -29,7 +29,7 @@ export function createGather(net, world, me, peers, nodes, opts = {}) {
   const pending = new Map();    // node id -> give-up time of my own request
   const asked = new Set();      // peers I already asked for a snapshot
   const lastRq = new Map();
-  const inv = Object.fromEntries(KINDS.map(k => [k, 0]));
+  const inv = opts.inv || Object.fromEntries(KINDS.map(k => [k, 0])); // the saved pack, shared with giving
   const guard = createGuard(20, 40); // a busy room sends a few "gt" a second; the rest is dropped
   const startedAt = now();
   let synced = false, lastPick = -1e9;

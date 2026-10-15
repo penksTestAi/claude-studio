@@ -164,6 +164,13 @@ async function arrows(pageA, pageB, opts) {
   const aSees = () => pageA.evaluate(() => window.__longWatch.arrows());
   let found = (await aSees()).length > 0;
   await pageA.locator("#view").focus();
+  if (!found) { // walking can be blocked by water or trees depending on the random spawns, so first stand at the landmark farthest from B
+    await pageA.evaluate(() => {
+      const w = window.__longWatch, b = w.peers()[0], list = w.world().landmarkList.slice().sort((p, q) => Math.hypot(q.x - b.x, q.y - b.y) - Math.hypot(p.x - b.x, p.y - b.y));
+      for (const l of list) for (const [dx, dy] of [[0, 2], [2, 0], [0, -2], [-2, 0], [2, 2], [-2, -2]]) if (w.teleport(l.x + dx, l.y + dy)) return;
+    });
+    for (let i = 0; i < 60 && !found; i++) { await sleep(100); found = (await aSees()).length > 0; }
+  }
   for (const key of found ? [] : ["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"]) {
     await pageA.keyboard.down(key);
     for (let i = 0; i < 60 && !found; i++) { await sleep(100); found = (await aSees()).length > 0; }
@@ -178,13 +185,12 @@ async function arrows(pageA, pageB, opts) {
   const want = Math.atan2(b.y - a.y, b.x - a.x);
   const diff = Math.abs(Math.atan2(Math.sin(arr.ang - want), Math.cos(arr.ang - want)));
   ok(diff < 0.2 && Math.abs(arr.dist - Math.hypot(b.x - a.x, b.y - a.y)) < 1, `the arrow points at B (off by ${diff.toFixed(2)} rad, ${arr.dist.toFixed(1)} tiles away)`);
-  // walk toward B until the arrow goes
-  for (let i = 0; i < 120 && (await aSees()).length; i++) {
-    const s = await pageA.evaluate(() => ({ me: window.__longWatch.self(), p: window.__longWatch.peers()[0] }));
-    const dx = s.p.x - s.me.x, dy = s.p.y - s.me.y;
-    const key = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "ArrowRight" : "ArrowLeft") : (dy > 0 ? "ArrowDown" : "ArrowUp");
-    await pageA.keyboard.down(key); await sleep(150); await pageA.keyboard.up(key);
-  }
+  // return to B (a teleport: walking back can be blocked by water or trees) until the arrow goes
+  await pageA.evaluate(() => {
+    const w = window.__longWatch, p = w.peers()[0];
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]]) if (w.teleport(p.x + dx, p.y + dy)) return;
+  });
+  for (let i = 0; i < 60 && (await aSees()).length; i++) await sleep(100);
   ok((await aSees()).length === 0, "the arrow disappears when B is back on screen");
 }
 

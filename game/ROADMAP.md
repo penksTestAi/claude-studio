@@ -16,15 +16,17 @@ working features.
 - **2. The island worth walking.** Seven landmarks from the seed (four old beacons, a ruined lighthouse, a jetty, a
   well), a minimap with every player, footsteps off by default (own and nearby players'), light that follows a shared
   eight-hour night, reduced-motion respected, a byte-size cap on incoming messages. (2026-10-15)
-
 - **3. Gathering, shared.** 42 seeded spots of driftwood, reeds and oil berries; picking one hides it for everyone
   in the lantern until its seeded respawn (90 to 150 s); the lowest-id player is the arbiter for contested picks;
   late joiners get a snapshot; a new arbiter takes over when the old one leaves. (2026-10-15)
 
+- **4. Inventory and giving.** The pack is saved in the player's own browser (every change at once); hand one
+  item to a player within 3 tiles by offer, accept, then a commit and a receipt; an item is never copied; when
+  anyone leaves or a page closes it waits "on its way" until the two meet again. (2026-10-15, local relay
+  only)
+
 ## Later (in rough order, each one run)
-4. **NEXT: Inventory and giving.** A saved local inventory (milestone 3 keeps the pack in memory only, for this
-   visit); hand an item to a nearby player (a two-step offer and accept, both sides confirm).
-5. **Crafting.** Wicks, lanterns of different colours and reach; a brighter lantern lights more of the map for
+5. **NEXT: Crafting.** Wicks, lanterns of different colours and reach; a brighter lantern lights more of the map for
    everyone near you.
 6. **Beacons.** Fuel a beacon together (G-counter of contributions); when lit it stays lit for that room's
    session and lights a wide area; a lit beacon needs at least two players to light.

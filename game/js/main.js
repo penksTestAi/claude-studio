@@ -12,6 +12,8 @@ import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
 import { surfaceAt, landmarkFingerprint } from "./world.js";
 import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.js";
 import { createGather } from "./gather.js";
+import { createGive, GIVE_RANGE } from "./give.js";
+import { cleanSave, adoptSave, SOFT_STACK } from "./inventory.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -21,7 +23,8 @@ const STORE = "vigil.longwatch.v1";
 const $ = (id) => document.getElementById(id);
 const world = generateWorld();
 const netKind = pickKind(location.search);
-const testRelay = pickTestRelay(location.search);
+const onLoopback = location.hostname === "127.0.0.1" || location.hostname === "localhost";
+const testRelay = onLoopback ? pickTestRelay(location.search) : null; // ?relay= is ignored on the live site
 const nodes = generateNodes(world);
 const respawnPin = (() => { const v = Number(new URLSearchParams(location.search).get("respawn")); return Number.isInteger(v) && v >= 1 && v <= 600 ? v : 0; })(); // tests: shorter respawn
 
@@ -32,10 +35,13 @@ function loadSave() {
   try { const s = JSON.parse(store().getItem(STORE) || "null"); if (s && isSeed(s.seed)) return s; } catch { /* storage blocked */ }
   return { seed: newSeed() };
 }
+// The pack and the giving lists are saved with the character; every change to them is saved at once, not on a timer.
 function save() {
-  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y })); } catch { /* storage blocked */ }
+  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y, inv, out: ledger.out, exp: ledger.exp, got: ledger.got })); } catch { /* storage blocked: the pack then lasts only while the page stays open */ }
 }
 const saved = loadSave();
+const { inv, out, exp, got } = cleanSave(saved);
+const ledger = { out, exp, got };
 const start = (Number.isFinite(saved.x) && Number.isFinite(saved.y) && !isBlocked(world, saved.x, saved.y)) ? { x: saved.x, y: saved.y } : spawnFor(world, saved.seed);
 const me = { id: "me", seed: saved.seed, name: nameFor(saved.seed), colour: colourFor(saved.seed), x: start.x, y: start.y, d: 0, moving: false, say: null, emote: null };
 save();
@@ -71,7 +77,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, give = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -87,9 +93,10 @@ async function enter() {
   }
   presence = createPresence(net, world, me, updatePeers);
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
-  gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent });
+  gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
+  give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save });
   me.say = null; me.emote = null;
-  paintPack(); $("gathered").textContent = "";
+  paintPack(); paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
   document.body.classList.add("playing");
@@ -105,8 +112,8 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null;
-  setTalkOpen(false); $("heard").textContent = "";
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null;
+  setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
@@ -135,12 +142,14 @@ function frame(t) {
   presence.tick(t, dt);
   talk.tick(t);
   gather.tick();
+  give.tick();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
   const reach = gather.reach();
   renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach);
   $("gather").disabled = !reach;
+  paintGive();
   if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values()); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
@@ -160,12 +169,62 @@ function footsteps(light) {
 }
 // ---- gathering: E or the Gather button picks what is in reach; the room sees it vanish ----
 function gatherEvent(type, kind) {
-  if (type === "got") { $("gathered").textContent = `You gathered ${KIND_NAMES[kind].toLowerCase()}.`; paintPack(); }
+  if (type === "got") { $("gathered").textContent = `You gathered ${KIND_NAMES[kind].toLowerCase()}.`; paintPack(); save(); }
   else $("gathered").textContent = `Someone was first to the ${KIND_NAMES[kind].toLowerCase()}.`;
 }
 function paintPack() {
-  $("pack").textContent = "Pack (this visit): " + KINDS.map(k => `${KIND_NAMES[k]} ${gather ? gather.inv[k] : 0}`).join(", ");
+  const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${KIND_NAMES[KINDS[e.i]].toLowerCase()} for ${nameFor(e.s)}`).join(", ")}` : "";
+  $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).join(", ") + away;
 }
+// ---- giving: offer to the nearest player, they accept, then the item moves ----
+const giveBox = $("givebtns");
+KINDS.forEach((k, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ghost"; b.dataset.kind = i; b.textContent = `Give ${KIND_NAMES[k].toLowerCase()}`;
+  b.addEventListener("click", () => { if (give && give.offer(i)) paintGive(); canvas.focus({ preventScroll: true }); });
+  giveBox.append(b);
+});
+const KIND_LOWER = (i) => KIND_NAMES[KINDS[i]].toLowerCase();
+function giveEvent(type, d) {
+  const who = nameFor(d.seed), what = KIND_LOWER(d.kind);
+  const say = {
+    offering: `Offer sent to ${who}: one ${what}. Waiting for them to accept.`,
+    offered: `${who} offers you one ${what}.`,
+    accepted: `You accepted ${what} from ${who}. Waiting for it to arrive.`,
+    sent: `You gave ${who} one ${what}; waiting for them to confirm it arrived.`,
+    received: `You received one ${what} from ${who}.`,
+    delivered: `${who} confirmed the ${what} arrived.`,
+    declined: `${who} did not take the ${what}. It is still in your pack.`,
+    cancelled: `The offer of ${what} ended. Nothing moved.`,
+    expired: `The offer of ${what} timed out. Nothing moved.`,
+    lost: `The offer of ${what} ended because ${who} left. Nothing moved.`,
+  }[type];
+  if (say) $("giveinfo").textContent = say;
+  if (type === "received" || type === "sent" || type === "delivered") paintPack();
+  paintGive();
+}
+let lastGiveKey = "";
+function paintGive() {
+  const t = give ? give.target() : null, o = give ? give.outgoing : null, inc = give ? give.incoming : null;
+  const key = [t ? t.id : "", o ? o.t : "", inc ? inc.t : "", KINDS.map(k => inv[k]).join(), ledger.out.length, !!give].join("|");
+  if (key === lastGiveKey) return;
+  lastGiveKey = key;
+  $("give").hidden = !give;
+  for (const b of giveBox.children) b.disabled = !give || !t || !!o || inv[KINDS[b.dataset.kind]] < 1;
+  $("givetarget").textContent = o ? `Offer to ${nameFor(o.seed)} is waiting for an answer.` : t ? `Nearest player in reach: ${t.name}.` : `No one within ${GIVE_RANGE} tiles to give to.`;
+  $("givecancel").hidden = !o;
+  $("offerbox").hidden = !inc;
+  if (inc) $("offertext").textContent = `${nameFor(inc.seed)} offers you one ${KIND_LOWER(inc.i)}. Take it?`;
+}
+$("givecancel").addEventListener("click", () => { if (give) give.cancel(); paintGive(); });
+$("offeryes").addEventListener("click", () => { if (give) give.accept(); paintGive(); canvas.focus({ preventScroll: true }); });
+$("offerno").addEventListener("click", () => { if (give) give.decline(); paintGive(); canvas.focus({ preventScroll: true }); });
+paintPack();
+// Another tab of this browser may have saved a newer pack (same character): adopt it instead of overwriting it.
+addEventListener("storage", (e) => {
+  if (netKind === "local" || e.key !== STORE || !e.newValue) return;
+  try { adoptSave(inv, ledger, JSON.parse(e.newValue)); paintPack(); lastGiveKey = ""; } catch { /* ignore */ }
+});
 function doGather() { if (playing) gather.pick(); }
 $("gather").addEventListener("click", () => { doGather(); canvas.focus({ preventScroll: true }); });
 addEventListener("keydown", (e) => {
@@ -277,6 +336,11 @@ window.__longWatch = {
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
   nodes: () => nodes.map(n => ({ id: n.id, kind: n.kind, x: n.x, y: n.y, respawn: n.respawn })),
   nodeFingerprint: () => nodeFingerprint(nodes),
+  give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
+  offer: (i) => !!give && give.offer(i),
+  accept: () => !!give && give.accept(),
+  decline: () => !!give && give.decline(),
+  cancelOffer: () => !!give && give.cancel(),
   gather: () => gather ? { hidden: nodes.filter(n => gather.isHidden(n.id)).map(n => n.id), inv: { ...gather.inv }, synced: gather.synced, arbiter: gather.arbiterId(), isArbiter: gather.isArbiter(), reach: gather.reach()?.id ?? null } : null,
   pick: () => !!gather && !!gather.pick(),
   mine: () => ({ say: me.say ? me.say.id : null, emote: me.emote ? me.emote.id : null }),

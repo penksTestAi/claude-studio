@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
+<meta name="description" content="A peer-to-peer night-island game where you walk by lantern light, gather driftwood, reeds and oil berries into a pack saved in your own browser, and hand items to nearby players through an offer-and-accept that never copies an item; if someone leaves halfway it waits &#x27;on its way&#x27; until you meet again (milestone 4; tested on a local relay only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
+<meta property="og:description" content="A peer-to-peer night-island game where you walk by lantern light, gather driftwood, reeds and oil berries into a pack saved in your own browser, and hand items to nearby players through an offer-and-accept that never copies an item; if someone leaves halfway it waits &#x27;on its way&#x27; until you meet again (milestone 4; tested on a local relay only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update. Milestone 3 adds gathering: players gather seeded driftwood, reeds and oil berries; a pick hides the spot for everyone, contested picks are settled by an arbiter and late joiners get a snapshot (tested on a local relay only).">
+<meta name="twitter:description" content="A peer-to-peer night-island game where you walk by lantern light, gather driftwood, reeds and oil berries into a pack saved in your own browser, and hand items to nearby players through an offer-and-accept that never copies an item; if someone leaves halfway it waits &#x27;on its way&#x27; until you meet again (milestone 4; tested on a local relay only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -62,6 +62,10 @@ canvas#view:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0}
 .tools .ghost[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
 .pack{margin:8px 0 0}
+.give{margin:10px 0 0}
+.give[hidden],.offer[hidden]{display:none}
+.offer{border:2px solid var(--acc);border-radius:8px;padding:8px 12px;margin:8px 0}
+.offer p{margin:0 0 6px}
 .status{margin:10px 0 6px;min-height:1.5em}
 .peers{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 18px}
 .peers li{display:inline-flex;align-items:center;gap:8px}
@@ -104,8 +108,8 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
 <div class="wrap">
   <h1>The Long Watch</h1>
   <p class="lede">An island at night, and the people keeping its lanterns. This is the very first piece of a
-    multiplayer game that grows a little at a time: for now you can walk the island and find its old beacons, lighthouse, jetty and well,
-    see the other players who are here with you, each carrying a lantern, and greet them with gestures and preset phrases.</p>
+    multiplayer game that grows a little at a time: for now you can walk the island, find its old beacons, lighthouse, jetty and well,
+    gather driftwood, reeds and oil berries and give them to people nearby, see the other players who are here with you, each carrying a lantern, and greet them with gestures and preset phrases.</p>
 
   <section class="panel lobby" aria-labelledby="lobby-h">
     <h2 id="lobby-h">Join a lantern</h2>
@@ -134,6 +138,17 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </div>
     <p class="small pack" id="pack"></p>
     <p class="small heard" id="gathered" role="status" aria-live="polite"></p>
+    <div class="give" id="give" hidden>
+      <p class="small" id="give-label">Give one item to a nearby player. They have to accept before anything moves.</p>
+      <div class="tools" id="givebtns" role="group" aria-labelledby="give-label"></div>
+      <p class="small" id="givetarget"></p>
+      <button class="ghost" id="givecancel" type="button" hidden>Take the offer back</button>
+      <div class="offer" id="offerbox" role="group" aria-labelledby="offertext" hidden>
+        <p id="offertext"></p>
+        <div class="tools"><button class="primary" id="offeryes" type="button">Accept</button> <button class="ghost" id="offerno" type="button">No thanks</button></div>
+      </div>
+      <p class="small heard" id="giveinfo" role="status" aria-live="polite"></p>
+    </div>
     <div class="talk">
       <button class="ghost" id="talktoggle" type="button" aria-expanded="false" aria-controls="talkbox">Talk <kbd>T</kbd></button>
       <div id="talkbox" hidden>
@@ -146,7 +161,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <ul class="peers" id="peers" aria-label="Players in this lantern"></ul>
-    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles. <kbd>M</kbd> shows or hides the minimap. Stand next to driftwood, reeds or oil berries and press <kbd>E</kbd> (or Gather) to pick them; the plant disappears for everyone in the lantern and grows back after a minute or two. If two of you reach for the same one, only the first gets it. Footsteps are off until you turn them on. The light changes through an eight-hour night that repeats every 48 minutes of the clock (UTC), the same for everyone.</p>
+    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles. <kbd>M</kbd> shows or hides the minimap. Stand next to driftwood, reeds or oil berries and press <kbd>E</kbd> (or Gather) to pick them; the plant disappears for everyone in the lantern and grows back after a minute and a half to two and a half. If two of you reach for the same one, only the first gets it. Your pack is saved in this browser. To give something away, stand within a few tiles of another player and press a Give button: they see your offer and must press Accept before one item moves. Footsteps are off until you turn them on. The light changes through an eight-hour night that repeats every 48 minutes of the clock (UTC), the same for everyone.</p>
   </section>
 
   <!-- PATCHNOTES:START (written by tools/game_patchnotes.py from CHANGELOG.md) -->
@@ -154,6 +169,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.5</b> · milestone 4 (inventory and giving) <span class="when">2026-10-15</span></summary>
+    <p><span class="tag t-new">New</span> keep what they gather. Your pack of driftwood, reeds and oil berries is saved in your own browser, so it is still there when you come back, and it is saved the moment it changes. Stand within three tiles of another player and press Give driftwood, Give reeds or Give oil berries: they see your offer and one item moves only if they press Accept. They can say No thanks, you can take the offer back, and an offer nobody answers ends after 20 seconds; in all of those the item stays in your pack. If either of you leaves or closes the page halfway, the item is never copied: if it had already left your pack it shows as "on its way" and arrives, once, the next time the two of you are in the same lantern (if your browser blocks or clears its saved data, that record is lost). A player who already holds 999 of a kind politely declines more.</p>
+    <p><span class="tag t-not">Not yet checked</span> giving over the public Nostr relays and across real home and mobile networks (the sandbox's proxy refuses them; only the local relay was used), how the new buttons look and feel on a real phone, screen readers, and two tabs of one real browser sharing a saved pack. A modified client can still invent items for itself (nothing to win from others). Also limited: if storage is blocked or cleared after the hand-over, the record of a gift on its way is lost; a peer can claim another player's public seed, so a gift meant for one player could be taken by someone using the same seed; a receiver with 32 gifts still expected declines new offers; only the newest 1000 received-gift records are kept.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.4</b> · milestone 3 (gathering, shared) <span class="when">2026-10-15</span></summary>
     <p><span class="tag t-new">New</span> gather driftwood on the shore, reeds at the water's edge and oil berries near the woods. The island holds 42 spots, 14 of each. Stand next to one (a ring and its name appear) and press <code>E</code> or the Gather button to pick it. The plant disappears for everyone in your lantern and grows back after one and a half to two and a half minutes. If two of you reach for the same one at the same moment, only one of you gets it and the other is told someone was first. If you arrive late, you see the spots that are already picked as empty. Your pack (driftwood, reeds, oil berries) is shown under the map; for now it is only kept while you stay on the page, and nobody else sees it.</p>
     <p><span class="tag t-not">Not yet checked</span> gathering over the public Nostr relays and across real home and mobile networks (the sandbox's proxy refuses them; only the local relay was used), how the new plants look and feel on a real phone, screen readers. A modified client that is the arbiter could hand itself everything; accepted for now (nothing to win).</p>
@@ -188,10 +208,10 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
         the same lantern at the same time, and there is no shared saved world on a server.</li>
       <li>Like a video call, a direct connection lets the other players' browsers see your network (IP) address.
         If that matters to you, do not join.</li>
-      <li>Tested online on 15 October 2026: a phone and a computer on different networks found each other through
-        the public relays and played together. With no TURN relay server, some pairs of networks may still never
+      <li>Tested online on 15 October 2026, before gathering and giving existed: a phone and a computer on different networks found each other through
+        the public relays and played together. Giving has only been tested on a local relay. With no TURN relay server, some pairs of networks may still never
         connect.</li>
-      <li>Your character (its generated name and where you stood) is saved only in your own browser.</li>
+      <li>Your character (its generated name, where you stood, your pack and any gift still on its way) is saved only in your own browser. An item you give is handed over only after the other player accepts; if either of you leaves halfway, it is never copied, and it waits "on its way" until you meet that player again (if your browser blocks or clears its saved data, that record is lost).</li>
       <li>Vigil collects nothing. The public Nostr relays and the STUN servers (run by Google and Cloudflare) that your browser
         contacts to set up a connection see your IP address, as any website would. Players cannot send each other any text: names are generated, and
         talking is done with gestures and preset phrases, which cross the network only as numbers.</li>
@@ -200,7 +220,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 3 (gathering, shared). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 4 (inventory and giving). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

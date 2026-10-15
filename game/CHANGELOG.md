@@ -117,3 +117,38 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
 - **Unverified:** gathering over the public Nostr relays and across real home and mobile networks (the sandbox's
   proxy refuses them; only the local relay was used), how the new plants look and feel on a real phone, screen
   readers. A modified client that is the arbiter could hand itself everything; accepted for now (nothing to win).
+
+### 2026-10-15 · milestone 4 (inventory and giving)
+- **Players can now:** keep what they gather. Your pack of driftwood, reeds and oil berries is saved in your own
+  browser, so it is still there when you come back, and it is saved the moment it changes. Stand within three tiles
+  of another player and press Give driftwood, Give reeds or Give oil berries: they see your offer and one item moves
+  only if they press Accept. They can say No thanks, you can take the offer back, and an offer nobody answers ends
+  after 20 seconds; in all of those the item stays in your pack. If either of you leaves or closes the page halfway,
+  the item is never copied: if it had already left your pack it shows as "on its way" and arrives, once,
+  the next time the two of you are in the same lantern (if your browser blocks or clears its saved data, that record is lost). A player who already holds 999 of a kind politely declines more.
+- **Network:** new number-only messages: offer (gift number, kind), accept, decline, take-back, commit (gift number,
+  kind) and receipt, all addressed to one player and under the 512-byte cap. The item leaves the giver's pack only
+  after an accept, and is written to the giver's saved "on its way" list before the commit goes out; the receiver
+  adds it only for a gift it accepted and has not received before, and saves before it sends the receipt. The giver
+  repeats the commit every 3 seconds to the same receiver (known by seed) until the receipt arrives; repeats add
+  nothing. An item whose receiver never returns stays "on its way" for ever, because giving it back could create a
+  second copy. Everything from peers is validated (exact fields, integers in range, sender known, giver within about
+  5 tiles, 10 messages a second per peer, one offer shown at a time). Everything read back from storage is
+  checked and clamped, lists are capped, and another tab of the same browser that saves the character is adopted
+  instead of overwritten (that last path is not browser-tested). Storage access is wrapped in try/catch; if it is
+  blocked the pack lasts only while the page is open.
+- **Tested** (`node game/tests/give.test.mjs`, new): in node, saved-pack rules, then the real giving code on a fake mesh
+  with 24 faulted runs (each of the 4 messages dropped, or the giver, the receiver or both killed and restarted from
+  their saved state just before or just after it): after every delivered message the item exists exactly once, at the
+  end it exists once and nothing is left on its way; a giver away for a long time, repeated commits, a lost receipt,
+  timeouts, declines, take-backs, a full pack, range, one offer at a time, and 25 kinds of hostile message. Breaking the
+  code on purpose (no save before the commit; no record of received gifts) makes the tests fail. Then two pages on the
+  local transport and again on real Trystero/WebRTC through the local Nostr relay: gather two items, an offer moves
+  nothing until accepted, accept moves one item and both are told, the pack survives a reload, decline, take-back and
+  the receiver leaving move nothing, a gift that was on its way when pages closed arrives once and still once after
+  more repeats, and (local only) forged messages change nothing. Browser: `chromium_headless_shell-1194` (set `CHROME`). The existing `talk.test.mjs` edge-arrow check was unreliable (failed 1 of 8 runs on the unmodified code, 3 of 8 with this change): it walked a player toward and away from the other, and water or trees could block the walk. It now teleports to the farthest landmark and back; 8 of 8 and then 5 of 5 pass. Run 5 times each: give 5/5, presence 5/5, world 5/5, gather 5/5, talk 5/5 (after that fix); `page_check` clean.
+- **Unverified:** giving over the public Nostr relays and across real home and mobile networks (the sandbox's proxy
+  refuses them; only the local relay was used), how the new buttons look and feel on a real phone, screen readers, and two
+  tabs of one real browser sharing a saved pack. A modified client can still invent items for itself (nothing to win from
+  others). Also limited: if storage is blocked or cleared after the hand-over, the record of a gift on its way is lost; a peer can claim another player's public seed, so a gift meant for one player could be taken by someone using the same seed; a receiver with 32 gifts still expected declines new offers; only the newest 1000 received-gift records are kept.
+

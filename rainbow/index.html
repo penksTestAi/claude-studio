@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why the Rainbow Sits at 42° · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag a ray into a round raindrop and watch the turning angle go flat at its minimum, so rays bunch into the primary and secondary bows; sliders for dispersion and refractive index, Alexander&#x27;s dark band, and self-checks (11 of 12 agree, 1 flagged: the blue end of the water-index table differs from a second table), including n = 1 giving no bow.">
+<link rel="canonical" href="https://vigilstudio.github.io/rainbow/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why the Rainbow Sits at 42° · Vigil">
+<meta property="og:description" content="Drag a ray into a round raindrop and watch the turning angle go flat at its minimum, so rays bunch into the primary and secondary bows; sliders for dispersion and refractive index, Alexander&#x27;s dark band, and self-checks (11 of 12 agree, 1 flagged: the blue end of the water-index table differs from a second table), including n = 1 giving no bow.">
+<meta property="og:url" content="https://vigilstudio.github.io/rainbow/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why the Rainbow Sits at 42° · Vigil">
+<meta name="twitter:description" content="Drag a ray into a round raindrop and watch the turning angle go flat at its minimum, so rays bunch into the primary and secondary bows; sliders for dispersion and refractive index, Alexander&#x27;s dark band, and self-checks (11 of 12 agree, 1 flagged: the blue end of the water-index table differs from a second table), including n = 1 giving no bow.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--drop:#dbe9f6;--dropline:#4b6f94;--ray:#8a8577;--red:#c42d1c;--violet:#6a35cf;--sky:#e9eef3;--dark:#9aa3ad;--ground:#c9c4b3;--spec-l:44%;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--drop:#1c2a3a;--dropline:#7fa6cf;--ray:#8f9aa8;--red:#ff7a66;--violet:#b394ff;--sky:#27384c;--dark:#0a0d12;--ground:#1a1d22;--spec-l:62%;--ok:#7fd18b;--bad:#ff8a80;--warn:#f0b955;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--drop:#1c2a3a;--dropline:#7fa6cf;--ray:#8f9aa8;--red:#ff7a66;--violet:#b394ff;--sky:#27384c;--dark:#0a0d12;--ground:#1a1d22;--spec-l:62%;--ok:#7fd18b;--bad:#ff8a80;--warn:#f0b955;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:26px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;max-width:44em;margin:0 0 6px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 14px}
+.controls{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:760px){.controls{grid-template-columns:1fr 1fr}}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ctl label,.ctl legend{font-size:.95rem}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.val{color:var(--muted);font-variant-numeric:tabular-nums}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+button{font:inherit;background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:8px 12px;min-height:40px;cursor:pointer}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.radios label{display:inline-flex;align-items:center;gap:6px;margin-right:14px;min-height:32px}
+.figs{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:900px){.figs{grid-template-columns:1.15fr 1fr}}
+svg{display:block;width:100%;height:auto}
+.svgtxt{fill:var(--ink);font:12px Georgia,serif}
+.svgmut{fill:var(--muted);font:11px Georgia,serif}
+.readout{font-size:.95rem;margin:8px 0 0}
+.readout p{margin:0 0 6px}
+.sr{position:absolute;left:-9999px}
+.row{display:grid;grid-template-columns:1fr;gap:2px;padding:8px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.badge{font-weight:bold;font-variant-numeric:tabular-nums}
+.badge.ok{color:var(--ok)}
+.badge.bad{color:var(--bad)}
+.badge.warn{color:var(--warn)}
+.rtitle{font-size:.95rem}
+.rdet{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+.tw{overflow-x:auto}
+details{margin:8px 0}
+summary{cursor:pointer;padding:6px 0;min-height:32px}
+ul{margin:0 0 10px;padding-left:20px}
+li{margin-bottom:4px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<h1 id="h-title">Why the rainbow sits at 42°</h1>
+<p class="lede" id="lede">Drag a ray into a raindrop and watch sunlight bunch up at one turning angle, which is where the rainbow's edge appears.</p>
+<p class="small" id="made">Made by Claude, an AI model. It follows rays through a perfect sphere of water; the checks further down compare it with the closed-form answer from Descartes.</p>
+
+<section class="panel" aria-labelledby="h-ctl">
+<h2 id="h-ctl" style="margin-top:0">Controls</h2>
+<div class="controls">
+  <fieldset class="ctl radios" id="ctl-bow"><legend>Which bow to trace</legend><span id="bow-radios"></span></fieldset>
+  <div class="ctl"><label for="in-b">Where the ray enters: height <span class="val" id="val-b"></span></label>
+    <input type="range" id="in-b" step="any" aria-describedby="hint-b"><span class="small" id="hint-b">Or drag in the left part of the drop picture.</span></div>
+  <div class="ctl"><label for="in-disp">Dispersion: how much the index changes with colour <span class="val" id="val-disp"></span></label>
+    <input type="range" id="in-disp" step="0.05"></div>
+  <div class="ctl"><label for="in-n">Refractive index of the drop, at the reference wavelength <span class="val" id="val-n"></span></label>
+    <input type="range" id="in-n" step="any">
+    <div class="btns"><button type="button" id="btn-real">Real water</button><button type="button" class="alt" id="btn-off"></button></div></div>
+</div>
+</section>
+
+<div class="figs">
+<section class="panel" aria-labelledby="h-drop">
+<h2 id="h-drop" style="margin-top:0">Inside the drop</h2>
+<svg id="svg-drop" viewBox="0 0 720 440" role="img" aria-label="A raindrop seen from the side with sunlight entering from the left, refracting, reflecting inside and leaving"></svg>
+<div class="readout" id="out-drop"></div>
+</section>
+<section class="panel" aria-labelledby="h-curve">
+<h2 id="h-curve" style="margin-top:0">How far each ray turns</h2>
+<svg id="svg-curve" viewBox="0 0 520 440" role="img" aria-label="Total turning angle against entry height for red and violet light, flat at its minimum"></svg>
+<div class="readout" id="out-curve"></div>
+</section>
+</div>
+
+<section class="panel" aria-labelledby="h-sky">
+<h2 id="h-sky" style="margin-top:0">What you see from the ground</h2>
+<svg id="svg-sky" viewBox="0 0 720 330" role="img" aria-label="Rainbow arcs seen around the point opposite the Sun, with a darker band between the primary and secondary bows"></svg>
+<div class="readout" id="out-sky"></div>
+</section>
+
+<h2 id="h-why">Why an edge, and why there</h2>
+<p>A ray that enters at height <i>b</i> turns by a total angle <i>D</i> before it leaves the drop. Near the entry height where <i>D</i> is smallest, the curve is flat, so a whole bundle of neighbouring rays leaves at almost the same angle and adds up. Rays with a smaller <i>D</i> do not exist, so light stops abruptly there: that is the edge of the bow. Water bends violet more than red, so each colour has its own minimum and the edge is spread into a spectrum.</p>
+<p>Setting <code>dD/di = 0</code> in Snell's law gives Descartes' closed form, <code>cos² i = (n² − 1) / (k (k + 2))</code>, where <i>k</i> counts the reflections inside (<span data-kwords="1"></span> for the primary bow, <span data-kwords="2"></span> for the secondary). The page does not use this formula to draw anything in the drop picture: it traces each ray with vectors and Snell's law, and the closed form is only the answer the scan is held against.</p>
+<p>The same formula says when there is nothing to find. If the drop does not bend light at all, <code>n² − 1</code> is not positive, <i>D</i> only falls as the ray moves outward, and there is no minimum and no bow. Use the button to see that.</p>
+
+<h2 id="h-checks">The page checks itself</h2>
+<p class="small" id="chk-sum" aria-live="polite"></p>
+<section class="panel" id="chk-list" aria-label="Check results"></section>
+<details open><summary id="sum-drills">Fault drills</summary>
+<p class="small" id="drill-intro"></p>
+<div class="panel" id="drill-list"></div></details>
+<details><summary id="sum-index">Refractive index of water against a second source</summary>
+<div id="idx-box"></div></details>
+
+<h2 id="h-not">What this does not show</h2>
+<ul id="not-list">
+<li>Brightness. Rays are counted, not weighted, and the bunching count is a count of the drawn rays only.</li>
+<li>Wave effects. Light is treated as rays, so the faint extra bands inside the primary bow, and the blurring of the edges and of the dark band, are missing. Light reflected straight off the outside of the drop still falls in the dark band, so it is darker, not black.</li>
+<li>Real rain: drops are modelled as perfect spheres of equal size, and the Sun is a point.</li>
+<li>Polarisation, and the sky's own light.</li>
+<li>The history in the next paragraph is from memory and was not checked here.</li>
+</ul>
+<p class="small">Descartes published the closed form in 1637; the dark band is named for Alexander of Aphrodisias, who described it in antiquity. Refractive indices: Daimon and Masumura (2007) Sellmeier fit for water at 20.0 °C, checked against the Hale and Querry (1973) table for water at 25 °C. Both were read from the refractiveindex.info database (public domain, CC0).</p>
+</main>
+
+<script>
+(function(){
+"use strict";
+/* ---------- configuration (parameters, not results) ---------- */
+var CFG={
+  BOWS:[{k:1,name:"Primary"},{k:2,name:"Secondary"}],
+  RED_NM:700, VIOLET_NM:400, REF_NM:589.3,
+  N_OFF:1, N_MAX:2.2, DISP_MAX:3,
+  SCAN_STEP_DEG:0.001, FAN:48, WINDOW_DEG:0.5,
+  TOL_D_DEG:0.001, TOL_I_DEG:0.01, TOL_TRACE_DEG:1e-6, ROUND_HALF:0.0005, T_DIFF_K:5, DNDT:0.0001, MARGIN:0.0005, TABLE_FROM_NM:575,
+  MIN_TABLE_ROWS:10, SKY_MAX_DEG:70, SKY_SAMPLES:36, CURVE_SAMPLES:240,
+  B_MIN:0.005, B_MAX:0.999, START_FRACTION:0.7
+};
+/* Water, 20.0 C: Daimon & Masumura 2007, Sellmeier "formula 2" (wavelength in micrometres). */
+var SELL={B:[0.5684027565,0.1726177391,0.02086189578,0.1130748688],C:[0.005101829712,0.01821153936,0.02620722293,10.69792721]};
+/* Water, 25 C: Hale & Querry 1973 table [nm, n]; read from refractiveindex.info (data/main/H2O/nk/Hale.yml). */
+var HALE=[[400,1.339],[425,1.338],[450,1.337],[475,1.336],[500,1.335],[525,1.334],[550,1.333],[575,1.333],[600,1.332],[625,1.332],[650,1.331],[675,1.331],[700,1.331],[725,1.330],[750,1.330],[775,1.330],[800,1.329]];
+
+var DEG=Math.PI/180;
+CFG.TOL_N=CFG.ROUND_HALF+CFG.T_DIFF_K*CFG.DNDT+CFG.MARGIN;
+function $(id){return document.getElementById(id);}
+function nWater(nm){var l=nm/1000,l2=l*l,s=1,i;for(i=0;i<4;i++){s+=SELL.B[i]*l2/(l2-SELL.C[i]);}return Math.sqrt(s);}
+var N_REF=nWater(CFG.REF_NM);
+function nLam(nm,n0,disp){return Math.max(1,n0+disp*(nWater(nm)-N_REF));}
+function fmt(x,d){return x.toFixed(d);}
+function words(k){return ["no","one","two","three","four","five"][k]||String(k);}
+function plural(n,w){return n===0?"no "+w+"s":(n===1?"1 "+w:n+" "+w+"s");}
+
+/* ---------- optics ---------- */
+/* Closed form (Descartes). fault: "divisor" or "noGuard" are deliberate faults for the drills. */
+function closed(n,k,fault){
+  var div=k*(k+2)+(fault==="divisor"?1:0);
+  var c=(n*n-1)/div;
+  var exists=fault==="noGuard"?(c<1):(c>0&&c<1);
+  if(!exists)return {exists:false};
+  var i=Math.acos(Math.sqrt(c)),r=Math.asin(Math.sin(i)/n);
+  var D=k*Math.PI+2*i-2*(k+1)*r;
+  return {exists:true,iDeg:i/DEG,Ddeg:D/DEG};
+}
+function formulaD(iRad,n,k){var r=Math.asin(Math.sin(iRad)/n);return (k*Math.PI+2*iRad-2*(k+1)*r)/DEG;}
+function ang(ax,ay,bx,by){return Math.atan2(ax*by-ay*bx,ax*bx+ay*by);}
+/* Vector trace through the unit circle, ray travelling along +x at height b. Returns total clockwise turning in degrees. */
+function trace(n,k,b,record,fault){
+  var nn=fault==="traceIndex"?n+0.01:n;
+  var px=-Math.sqrt(1-b*b),py=b,dx=1,dy=0,rot=0,j;
+  var eta=1/nn,ci=-(dx*px+dy*py),s2=eta*eta*(1-ci*ci);
+  if(s2>=1)return null;
+  var ct=Math.sqrt(1-s2),f=eta*ci-ct;
+  var tx=eta*dx+f*px,ty=eta*dy+f*py;
+  rot+=ang(dx,dy,tx,ty);
+  var pts=record?[[px,py]]:null;
+  for(j=0;j<=k;j++){
+    var s=-2*(px*tx+py*ty);px+=tx*s;py+=ty*s;
+    if(record)pts.push([px,py]);
+    if(j<k){
+      var dp=tx*px+ty*py,rx=tx-2*dp*px,ry=ty-2*dp*py;
+      rot+=ang(tx,ty,rx,ry);tx=rx;ty=ry;
+    }else{
+      var c2=tx*px+ty*py,e2=nn,t2=e2*e2*(1-c2*c2);
+      if(t2>=1)return null;
+      var c3=Math.sqrt(1-t2),g=e2*c2-c3;
+      var ox=e2*tx+g*(-px),oy=e2*ty+g*(-py);
+      rot+=ang(tx,ty,ox,oy);
+      return {D:-rot/DEG,pts:pts,dx:ox,dy:oy};
+    }
+  }
+  return null;
+}
+/* Scan entry angle i from the first step to 90 degrees; the bow is the minimum if it lies inside the scan. */
+function scanMin(n,k,fault){
+  var step=CFG.SCAN_STEP_DEG,cnt=Math.round(90/step),best=Infinity,bi=-1,first=-1,last=-1,m;
+  for(m=1;m<=cnt;m++){
+    var t=trace(n,k,Math.min(1,Math.sin(m*step*DEG)),false,fault);
+    if(!t)continue;
+    if(first<0)first=m;
+    last=m;
+    if(t.D<best){best=t.D;bi=m;}
+  }
+  if(bi<0)return {exists:false,rows:0};
+  return {exists:bi>first&&bi<last,iDeg:bi*step,Ddeg:best};
+}
+/* ---------- the checks (each returns {verdict:"pass"|"fail", title, detail}) ---------- */
+function checkBow(label,n,k,fault){
+  var sc=scanMin(n,k,null),cf=closed(n,k,fault),v,det;
+  if(sc.exists&&cf.exists){
+    var dD=Math.abs(sc.Ddeg-cf.Ddeg),dI=Math.abs(sc.iDeg-cf.iDeg);
+    v=(dD<=CFG.TOL_D_DEG&&dI<=CFG.TOL_I_DEG)?"pass":"fail";
+    det="n = "+fmt(n,5)+". Scan: minimum turning "+fmt(sc.Ddeg,4)+"° at entry angle "+fmt(sc.iDeg,3)+"°. Closed form: "+fmt(cf.Ddeg,4)+"° at "+fmt(cf.iDeg,3)+"°. Differences "+fmt(dD,4)+"° and "+fmt(dI,3)+"° (allowed "+CFG.TOL_D_DEG+"° and "+CFG.TOL_I_DEG+"°).";
+    if(v==="fail")det+=" The numbers do not match.";
+  }else if(!sc.exists&&!cf.exists){
+    v="pass";det="n = "+fmt(n,5)+". The scan finds its smallest turning at the edge of the range, not inside it, and the closed form has no solution: both say there is no bow.";
+  }else{
+    v="fail";det="n = "+fmt(n,5)+". The scan says "+(sc.exists?"there is a minimum":"there is no minimum")+" but the closed form says "+(cf.exists?"there is one":"there is none")+". They disagree about whether a bow exists.";
+  }
+  return {verdict:v,title:label,detail:det};
+}
+function checkTrace(label,n,k,b,fault){
+  var t=trace(n,k,b,false,fault),i=Math.asin(b),f=formulaD(i,n,k);
+  if(!t)return {verdict:"fail",title:label,detail:"The ray could not be traced."};
+  var d=Math.abs(t.D-f),v=d<=CFG.TOL_TRACE_DEG?"pass":"fail";
+  return {verdict:v,title:label,detail:"n = "+fmt(n,5)+", entry angle "+fmt(i/DEG,3)+"°. Vector trace turns "+fmt(t.D,5)+"°; the formula turning = "+words(k)+" × 180° + 2i − "+(2*(k+1))+"r gives "+fmt(f,5)+"°. Difference "+d.toExponential(1)+"° (allowed "+CFG.TOL_TRACE_DEG.toExponential(0)+"°)."+(v==="fail"?" They do not match.":"")};
+}
+function checkTable(from,fault){
+  var rows=HALE.filter(function(r){return r[0]>=from;});
+  if(fault==="tableFew")rows=rows.slice(0,CFG.MIN_TABLE_ROWS-1);
+  var worst=-1,wi=-1,out=[],i,bad=[];
+  for(i=0;i<rows.length;i++){
+    var m=nWater(rows[i][0]),h=rows[i][1]+(fault==="tableShift"&&i===0?0.01:0),d=Math.abs(m-h);
+    out.push({nm:rows[i][0],model:m,hale:h,diff:d,off:d>CFG.TOL_N});
+    if(d>CFG.TOL_N)bad.push(rows[i][0]);
+    if(d>worst){worst=d;wi=i;}
+  }
+  var v,det,base=plural(rows.length,"row")+" from "+(rows.length?rows[0][0]+" to "+rows[rows.length-1][0]+" nm":"none")+"; allowed difference "+fmt(CFG.TOL_N,4)+" (table rounding, plus "+CFG.T_DIFF_K+" K of temperature difference at about "+CFG.DNDT+" per K, plus a margin; the temperature figure is from memory). ";
+  if(rows.length<CFG.MIN_TABLE_ROWS){v="fail";det="Only "+plural(rows.length,"row")+" compared; at least "+CFG.MIN_TABLE_ROWS+" are required, so this check is not accepted.";}
+  else if(!bad.length){v="pass";det=base+"All "+rows.length+" rows agree; the largest difference is "+fmt(worst,4)+" at "+rows[wi][0]+" nm.";}
+  else{
+    v="flag";
+    var nh=rows[wi][1]+(fault==="tableShift"&&wi===0?0.01:0),shift=Math.abs(theta(closed(nh,1))-theta(closed(nWater(rows[wi][0]),1)));
+    det=base+plural(bad.length,"row")+" of "+rows.length+(bad.length===1?" differs":" differ")+" by more than that ("+bad.join(", ")+" nm); the largest difference is "+fmt(worst,4)+" at "+rows[wi][0]+" nm. At that wavelength it would move the primary bow's edge by "+fmt(shift,2)+"°. The page uses the Daimon and Masumura fit (a direct measurement at 20 °C) and leaves the disagreement flagged, not hidden.";
+  }
+  det+=" The two tables come from different papers, temperatures and methods, but both reached this page through one database, so a copying error there would not be caught.";
+  return {verdict:v,title:"Index of water against a second table",detail:det,rows:out,bad:bad};
+}
+function checkTitle(fault){
+  var m=/(\d+)\s*°/.exec($("h-title").textContent);
+  var claimed=m?parseInt(m[1],10)+(fault==="titleOff"?1:0):NaN;
+  var cf=closed(N_REF,1),th=180-cf.Ddeg,rounded=Math.round(th);
+  var v=claimed===rounded?"pass":"fail";
+  return {verdict:v,title:"The number in the title",detail:"The title says "+claimed+"°. The primary bow computed for "+CFG.REF_NM+" nm light is "+fmt(th,2)+"° from the point opposite the Sun, which rounds to "+rounded+"°."+(v==="fail"?" They differ.":"")};
+}
+/* the fixed checks that do not depend on the sliders */
+var FIXED=null;
+function fixedChecks(){
+  if(FIXED)return FIXED;
+  var list=[],bi;
+  for(bi=0;bi<CFG.BOWS.length;bi++){
+    var k=CFG.BOWS[bi].k;
+    list.push(checkBow(CFG.BOWS[bi].name+" bow with the cause switched off",CFG.N_OFF,k));
+  }
+  FIXED={bows:list,table:checkTable(0),title:checkTitle()};
+  return FIXED;
+}
+/* ---------- state ---------- */
+var S={k:CFG.BOWS[0].k,disp:1,n0:N_REF,b:0.5};
+S.b=Math.sin(closed(N_REF,1).iDeg*DEG)*CFG.START_FRACTION;
+var cacheKey="",cacheRows=null;
+function liveChecks(){
+  var key=S.n0+"|"+S.disp;
+  if(key===cacheKey)return cacheRows;
+  var rows=[],bi,ci,cols=[{nm:CFG.RED_NM,name:"red"},{nm:CFG.REF_NM,name:"reference"},{nm:CFG.VIOLET_NM,name:"violet"}];
+  for(bi=0;bi<CFG.BOWS.length;bi++)for(ci=0;ci<cols.length;ci++){
+    var n=nLam(cols[ci].nm,S.n0,S.disp);
+    rows.push(checkBow(CFG.BOWS[bi].name+" bow, "+cols[ci].name+" ("+cols[ci].nm+" nm)",n,CFG.BOWS[bi].k));
+  }
+  cacheKey=key;cacheRows=rows;return rows;
+}
+
+/* ---------- drawing helpers ---------- */
+var NS="http://www.w3.org/2000/svg";
+function hue(nm){return 275*(CFG.RED_NM-nm)/(CFG.RED_NM-CFG.VIOLET_NM);}
+function specColor(nm){return "hsl("+fmt(hue(nm),0)+" 85% var(--spec-l))";}
+function px(x,y){return [360+150*x,220-150*y];}
+function pl(pts,cls,style,extra){
+  var s=pts.map(function(p){var q=px(p[0],p[1]);return fmt(q[0],1)+","+fmt(q[1],1);}).join(" ");
+  return '<polyline points="'+s+'" fill="none" '+(cls?'class="'+cls+'" ':'')+'style="'+style+'" '+(extra||'')+'/>';
+}
+function rayPath(n,k,b){
+  var t=trace(n,k,b,true);
+  if(!t)return null;
+  var pts=[[-2.2,b]].concat(t.pts);
+  pts.push([t.pts[t.pts.length-1][0]+t.dx*1.9,t.pts[t.pts.length-1][1]+t.dy*1.9]);
+  return {pts:pts,D:t.D};
+}
+function bowAt(nm,k){return closed(nLam(nm,S.n0,S.disp),k);}
+function theta(c){return Math.abs(180-c.Ddeg);}
+function degTxt(c){return c.exists?fmt(theta(c),1)+"°":"none";}
+
+/* ---------- panels ---------- */
+function drawDrop(){
+  var k=S.k,h='',j,mid=nLam(CFG.REF_NM,S.n0,S.disp);
+  h+='<circle cx="360" cy="220" r="150" style="fill:var(--drop);stroke:var(--dropline)" stroke-width="2"/>';
+  h+='<line x1="20" y1="220" x2="700" y2="220" style="stroke:var(--line)" stroke-dasharray="4 5"/>';
+  var cl=closed(mid,k),inWin=0,devs=[],span;
+  for(j=0;j<CFG.FAN;j++){
+    var b=(j+0.5)/CFG.FAN,rp=rayPath(mid,k,b);
+    if(!rp)continue;
+    devs.push(rp.D);
+    h+=pl(rp.pts,'', 'stroke:var(--ray)','stroke-width="1" opacity=".55"');
+  }
+  var dmin=Math.min.apply(null,devs),dmax=Math.max.apply(null,devs);
+  if(cl.exists){for(j=0;j<devs.length;j++){if(Math.abs(devs[j]-cl.Ddeg)<=CFG.WINDOW_DEG)inWin++;}}
+  var rr=rayPath(nLam(CFG.RED_NM,S.n0,S.disp),k,S.b),vv=rayPath(nLam(CFG.VIOLET_NM,S.n0,S.disp),k,S.b);
+  if(vv)h+=pl(vv.pts,'', 'stroke:var(--violet)','stroke-width="3"');
+  if(rr)h+=pl(rr.pts,'', 'stroke:var(--red)','stroke-width="3"');
+  var hp=px(-2.2+1.55,S.b);
+  h+='<circle cx="'+fmt(hp[0],1)+'" cy="'+fmt(hp[1],1)+'" r="9" style="fill:var(--accent);stroke:var(--panel)" stroke-width="2"/>';
+  h+='<text class="svgmut" x="24" y="30">sunlight comes in from the left</text>';
+  h+='<rect id="dragzone" x="0" y="0" width="190" height="440" fill="transparent" style="touch-action:none;cursor:ns-resize"/>';
+  $("svg-drop").innerHTML=h;
+  var i=Math.asin(S.b)/DEG,txt='<p>Entry height <i>b</i> = '+fmt(S.b,3)+', angle of incidence '+fmt(i,1)+'°. ';
+  if(rr&&vv)txt+='Red turns by '+fmt(rr.D,1)+'° in total and violet by '+fmt(vv.D,1)+'°, '+fmt(Math.abs(rr.D-vv.D),1)+'° apart.</p>';
+  else txt+='This ray cannot be traced.</p>';
+  if(cl.exists){
+    var span=dmax-dmin;
+    txt+='<p>Bunching, drawn rays only: '+plural(inWin,'ray')+' of '+devs.length+' leave within '+CFG.WINDOW_DEG+'° of the minimum turning ('+fmt(cl.Ddeg,1)+'°). That window is '+fmt(100*CFG.WINDOW_DEG/span,0)+'% of the whole spread of turning angles among them ('+fmt(span,0)+'°).</p>';
+  }else{
+    txt+='<p>No minimum: turning angle only '+(devs[devs.length-1]<devs[0]?'falls':'rises')+' as the entry height rises, so the rays never bunch.</p>';
+  }
+  $("out-drop").innerHTML=txt;
+}
+function niceStep(range,target){
+  var raw=range/target,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;
+  return (f<1.5?1:f<3.5?2:f<7.5?5:10)*p;
+}
+function drawCurve(){
+  var k=S.k,W=520,H=440,L=58,R=14,T=16,B=48,pw=W-L-R,ph=H-T-B,cols=[{nm:CFG.VIOLET_NM,c:"var(--violet)"},{nm:CFG.RED_NM,c:"var(--red)"}],data=[],ci,j;
+  var lo=Infinity,hi=-Infinity;
+  for(ci=0;ci<cols.length;ci++){
+    var n=nLam(cols[ci].nm,S.n0,S.disp),pts=[];
+    for(j=0;j<CFG.CURVE_SAMPLES;j++){
+      var b=CFG.B_MIN+(1-CFG.B_MIN)*j/(CFG.CURVE_SAMPLES-1),t=trace(n,k,Math.min(1,b),false);
+      if(!t)continue;
+      pts.push([b,t.D]);lo=Math.min(lo,t.D);hi=Math.max(hi,t.D);
+    }
+    data.push(pts);
+  }
+  var pad=(hi-lo)*0.06;lo-=pad;hi+=pad;
+  function X(b){return L+pw*b;}
+  function Y(d){return T+ph*(1-(d-lo)/(hi-lo));}
+  var h='',st=niceStep(hi-lo,5),t0=Math.ceil(lo/st)*st,v;
+  for(v=t0;v<=hi;v+=st){h+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+fmt(Y(v),1)+'" y2="'+fmt(Y(v),1)+'" style="stroke:var(--line)"/><text class="svgmut" x="'+(L-6)+'" y="'+fmt(Y(v)+4,1)+'" text-anchor="end">'+fmt(v,0)+'°</text>';}
+  for(v=0;v<=1.0001;v+=0.25){h+='<line x1="'+fmt(X(v),1)+'" x2="'+fmt(X(v),1)+'" y1="'+T+'" y2="'+(T+ph)+'" style="stroke:var(--line)" opacity=".5"/><text class="svgmut" x="'+fmt(X(v),1)+'" y="'+(T+ph+16)+'" text-anchor="middle">'+fmt(v,2)+'</text>';}
+  h+='<text class="svgtxt" x="'+(L+pw/2)+'" y="'+(H-8)+'" text-anchor="middle">entry height b (0 = through the centre, 1 = grazing)</text>';
+  h+='<text class="svgtxt" transform="translate(14 '+(T+ph/2)+') rotate(-90)" text-anchor="middle">total turning D</text>';
+  for(ci=0;ci<cols.length;ci++){
+    var d=data[ci].map(function(p){return fmt(X(p[0]),1)+","+fmt(Y(p[1]),1);}).join(" ");
+    h+='<polyline points="'+d+'" fill="none" style="stroke:'+cols[ci].c+'" stroke-width="2.5"/>';
+    var cf=closed(nLam(cols[ci].nm,S.n0,S.disp),k);
+    if(cf.exists){var bm=Math.sin(cf.iDeg*DEG);h+='<circle cx="'+fmt(X(bm),1)+'" cy="'+fmt(Y(cf.Ddeg),1)+'" r="5" style="fill:var(--panel);stroke:'+cols[ci].c+'" stroke-width="2.5"/>';}
+  }
+  h+='<line x1="'+fmt(X(S.b),1)+'" x2="'+fmt(X(S.b),1)+'" y1="'+T+'" y2="'+(T+ph)+'" style="stroke:var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>';
+  $("svg-curve").innerHTML=h;
+  var cr=bowAt(CFG.RED_NM,k),cv=bowAt(CFG.VIOLET_NM,k),m='<p>Rings mark the closed-form minimum of each curve. ';
+  if(cr.exists&&cv.exists)m+='Red bottoms out at '+fmt(cr.Ddeg,2)+'° and violet at '+fmt(cv.Ddeg,2)+'°.';
+  else if(!cr.exists&&!cv.exists)m+='There is no ring: neither curve has a minimum, which is the missing bow.';
+  else m+='Only '+(cr.exists?'red':'violet')+' has a minimum.';
+  $("out-curve").innerHTML=m+'</p>';
+}
+function drawSky(){
+  var CX=360,CY=290,SC=270/CFG.SKY_MAX_DEG,h='',bi,j;
+  function ar(deg){return deg*SC;}
+  var edges=[],bows=[];
+  for(bi=0;bi<CFG.BOWS.length;bi++){
+    var k=CFG.BOWS[bi].k,arr=[];
+    for(j=0;j<CFG.SKY_SAMPLES;j++){
+      var nm=CFG.RED_NM-(CFG.RED_NM-CFG.VIOLET_NM)*j/(CFG.SKY_SAMPLES-1),c=bowAt(nm,k);
+      if(c.exists)arr.push({nm:nm,th:theta(c)});
+    }
+    bows.push(arr);
+  }
+  var p1=bows[0],p2=bows[1];
+  h+='<defs><clipPath id="sky-clip"><rect x="0" y="0" width="720" height="'+CY+'"/></clipPath></defs>';
+  h+='<rect x="0" y="0" width="720" height="'+CY+'" style="fill:var(--sky)"/>';
+  var bandLo=null,bandHi=null;
+  if(p1.length&&p2.length){
+    bandLo=Math.max.apply(null,p1.map(function(e){return e.th;}));
+    bandHi=Math.min.apply(null,p2.map(function(e){return e.th;}));
+    if(bandHi>bandLo){
+      h+='<path clip-path="url(#sky-clip)" fill-rule="evenodd" style="fill:var(--dark)" opacity=".75" d="M'+(CX-ar(bandHi))+' '+CY+'a'+ar(bandHi)+' '+ar(bandHi)+' 0 1 0 '+2*ar(bandHi)+' 0a'+ar(bandHi)+' '+ar(bandHi)+' 0 1 0 '+(-2*ar(bandHi))+' 0ZM'+(CX-ar(bandLo))+' '+CY+'a'+ar(bandLo)+' '+ar(bandLo)+' 0 1 0 '+2*ar(bandLo)+' 0a'+ar(bandLo)+' '+ar(bandLo)+' 0 1 0 '+(-2*ar(bandLo))+' 0Z"/>';
+    }else bandLo=bandHi=null;
+  }
+  for(bi=0;bi<bows.length;bi++){
+    var a=bows[bi];
+    for(j=0;j<a.length;j++){
+      var nx=a[j+1]||a[j-1]||a[j],w=Math.max(1.5,Math.abs(nx.th-a[j].th)*SC+0.8);
+      h+='<circle clip-path="url(#sky-clip)" cx="'+CX+'" cy="'+CY+'" r="'+fmt(ar(a[j].th),2)+'" fill="none" style="stroke:'+specColor(a[j].nm)+'" stroke-width="'+fmt(w,2)+'"/>';
+    }
+  }
+  h+='<rect x="0" y="'+CY+'" width="720" height="'+(330-CY)+'" style="fill:var(--ground)"/>';
+  var tk;
+  for(tk=0;tk<=CFG.SKY_MAX_DEG;tk+=10){
+    h+='<line x1="'+(CX+ar(tk))+'" x2="'+(CX+ar(tk))+'" y1="'+CY+'" y2="'+(CY+6)+'" style="stroke:var(--muted)"/><text class="svgmut" x="'+(CX+ar(tk))+'" y="'+(CY+20)+'" text-anchor="middle">'+tk+'°</text>';
+    if(tk>0)h+='<line x1="'+(CX-ar(tk))+'" x2="'+(CX-ar(tk))+'" y1="'+CY+'" y2="'+(CY+6)+'" style="stroke:var(--muted)"/><text class="svgmut" x="'+(CX-ar(tk))+'" y="'+(CY+20)+'" text-anchor="middle">'+tk+'°</text>';
+  }
+  h+='<text class="svgmut" x="'+CX+'" y="'+(CY+36)+'" text-anchor="middle">angle from the point opposite the Sun (your shadow\'s head)</text>';
+  if(bandLo!==null){h+='<text class="svgtxt" x="'+CX+'" y="'+(CY-ar((bandLo+bandHi)/2)+4)+'" text-anchor="middle">Alexander\'s band</text>';}
+  $("svg-sky").innerHTML=h;
+  function edgeTxt(arr,which){
+    if(!arr.length)return "none";
+    var e=arr.map(function(x){return x.th;});
+    return fmt(Math.min.apply(null,e),1)+"° to "+fmt(Math.max.apply(null,e),1)+"°";
+  }
+  var m='<p>'+CFG.BOWS[0].name+' bow, violet to red: '+edgeTxt(p1)+'. '+CFG.BOWS[1].name+' bow: '+edgeTxt(p2)+'. ';
+  if(p1.length&&p2.length)m+=S.disp>0?'Red sits outside violet in the primary bow and inside it in the secondary, because the extra reflection reverses the order.':'With no dispersion every colour turns the same, so each bow shrinks to one angle (the colours drawn are only labels).';
+  m+='</p>';
+  if(bandLo!==null)m+='<p>Alexander\'s dark band, the angles where neither bow sends light (ray optics): from '+fmt(bandLo,1)+'° to '+fmt(bandHi,1)+'°, '+fmt(bandHi-bandLo,1)+'° wide.</p>';
+  else if(p1.length&&p2.length)m+='<p>The bows overlap, so there is no gap between them.</p>';
+  else m+='<p>No dark band: it needs both bows'+(p1.length||p2.length?' (only the '+(p1.length?'primary':'secondary')+' exists here)':', and neither exists here')+'.</p>';
+  $("out-sky").innerHTML=m;
+}
+function verdictWord(v){return v==="pass"?"agrees":(v==="flag"?"flags a difference":"fails");}
+function badge(v){return v==="pass"?'<span class="badge ok">Agrees</span>':(v==="flag"?'<span class="badge warn">Flagged</span>':'<span class="badge bad">Fails</span>');}
+function rowHtml(c){return '<div class="row"><div class="rtitle">'+badge(c.verdict)+' &middot; '+c.title+'</div><div class="rdet">'+c.detail+'</div></div>';}
+function drawChecks(){
+  var fx=fixedChecks(),live=liveChecks(),tc=[],ci,all,
+      cols=[CFG.RED_NM,CFG.VIOLET_NM];
+  for(ci=0;ci<cols.length;ci++)tc.push(checkTrace(CFG.BOWS.find(function(b){return b.k===S.k;}).name+" bow trace at the entry point, "+(ci?"violet":"red"),nLam(cols[ci],S.n0,S.disp),S.k,S.b));
+  all=live.concat(fx.bows,tc,[fx.table,fx.title]);
+  var nf=all.filter(function(c){return c.verdict==="fail";}),nl=all.filter(function(c){return c.verdict==="flag";}),np=all.length-nf.length-nl.length;
+  var s=np+" of "+all.length+" checks agree";
+  if(nl.length)s+="; "+plural(nl.length,"check")+" flagged a difference ("+nl.map(function(c){return c.title;}).join("; ")+")";
+  if(nf.length)s+="; "+plural(nf.length,"check")+" failed ("+nf.map(function(c){return c.title;}).join("; ")+")";
+  s+=".";
+  $("chk-sum").textContent=s;
+  $("chk-list").innerHTML='<div class="small" style="margin-bottom:6px">Scan: '+(90/CFG.SCAN_STEP_DEG).toFixed(0)+' rays per row, entry angle in steps of '+CFG.SCAN_STEP_DEG+'°, each traced with vectors and Snell\'s law. Compared with the closed form for the same index.</div>'+all.map(rowHtml).join("");
+}
+/* the fault drills run once: each check is given a deliberate fault and must fail */
+function drills(){
+  var list=[
+    {name:"Control: no fault in the primary-bow check",res:checkBow("c",N_REF,1),want:"pass"},
+    {name:"Closed form with the wrong divisor",res:checkBow("c",N_REF,1,"divisor"),want:"fail"},
+    {name:"Closed form without its guard, with the cause switched off",res:checkBow("c",CFG.N_OFF,1,"noGuard"),want:"fail"},
+    {name:"Vector trace with the index nudged",res:checkTrace("c",N_REF,1,0.6,"traceIndex"),want:"fail"},
+    {name:"Control: the table rows where the two sources agree",res:checkTable(CFG.TABLE_FROM_NM),want:"pass"},
+    {name:"One of those rows changed",res:checkTable(CFG.TABLE_FROM_NM,"tableShift"),want:"flag"},
+    {name:"Second table cut below the minimum row count",res:checkTable(0,"tableFew"),want:"fail"},
+    {name:"Title number off by the smallest step",res:checkTitle("titleOff"),want:"fail"}
+  ];
+  var caught=0,h='';
+  list.forEach(function(d){
+    var ok=d.res.verdict===d.want;
+    if(d.want!=="pass"&&ok)caught++;
+    h+='<div class="row"><div class="rtitle">'+(ok?'<span class="badge ok">As expected</span>':'<span class="badge bad">Unexpected</span>')+' &middot; '+d.name+'</div><div class="rdet">Check said: '+verdictWord(d.res.verdict)+'. '+d.res.detail+'</div></div>';
+  });
+  var faults=list.filter(function(d){return d.want!=="pass";}).length;
+  $("drill-intro").textContent="A check that can never fail proves nothing, so each one is run once with a deliberate fault and must not say it agrees. Caught "+caught+" of "+plural(faults,"fault")+" ("+plural(list.length,"drill")+" including the control).";
+  $("sum-drills").textContent="Fault drills: caught "+caught+" of "+faults;
+  $("drill-list").innerHTML=h;
+}
+function drawIndexTable(){
+  var t=fixedChecks().table,h='<p class="small">Model: Sellmeier fit to Daimon and Masumura\'s 2007 measurements at 20.0 °C. Second source: Hale and Querry 1973 at 25 °C, rounded to three decimals. '+t.detail+' Rows over the allowance are marked.</p><div class="tw"><table><thead><tr><th>Wavelength (nm)</th><th>Model n</th><th>Table n</th><th>Difference</th></tr></thead><tbody>';
+  t.rows.forEach(function(r){h+='<tr><td>'+r.nm+'</td><td>'+fmt(r.model,4)+'</td><td>'+fmt(r.hale,3)+'</td><td>'+fmt(r.diff,4)+(r.off?' (over)':'')+'</td></tr>';});
+  $("idx-box").innerHTML=h+'</tbody></table></div>';
+  $("sum-index").textContent="Refractive index of water against a second source: "+plural(t.rows.length,"row")+", "+(t.verdict==="pass"?"agree":plural(t.bad.length,"row")+" flagged");
+}
+
+/* ---------- controls ---------- */
+function syncControls(){
+  $("in-b").value=S.b;$("val-b").textContent="b = "+fmt(S.b,3);
+  $("in-disp").value=S.disp;$("val-disp").textContent=fmt(S.disp,2)+" × real water";
+  $("in-n").value=S.n0;$("val-n").textContent="n = "+fmt(S.n0,3)+" at "+CFG.REF_NM+" nm";
+}
+var pending=false;
+function render(){
+  if(pending)return;
+  pending=true;
+  requestAnimationFrame(function(){pending=false;syncControls();drawDrop();drawCurve();drawSky();drawChecks();});
+}
+function setupControls(){
+  var box=$("bow-radios"),h='';
+  CFG.BOWS.forEach(function(b){h+='<label><input type="radio" name="bow" id="bow-'+b.k+'" value="'+b.k+'"'+(b.k===S.k?' checked':'')+'> '+b.name+' ('+plural(b.k,'reflection')+')</label>';});
+  box.innerHTML=h;
+  CFG.BOWS.forEach(function(b){$("bow-"+b.k).addEventListener("change",function(){S.k=b.k;render();});});
+  var ib=$("in-b");ib.min=CFG.B_MIN;ib.max=CFG.B_MAX;
+  var id=$("in-disp");id.min=0;id.max=CFG.DISP_MAX;
+  var inn=$("in-n");inn.min=CFG.N_OFF;inn.max=CFG.N_MAX;
+  ib.addEventListener("input",function(){S.b=parseFloat(ib.value);render();});
+  id.addEventListener("input",function(){S.disp=parseFloat(id.value);render();});
+  inn.addEventListener("input",function(){S.n0=parseFloat(inn.value);render();});
+  $("btn-real").addEventListener("click",function(){S.n0=N_REF;S.disp=1;render();});
+  $("btn-off").textContent="Switch off the cause (n = "+CFG.N_OFF+", no dispersion)";
+  $("btn-off").addEventListener("click",function(){S.n0=CFG.N_OFF;S.disp=0;render();});
+  var dragging=false;
+  function setFromEvent(e){
+    var svg=$("svg-drop"),r=svg.getBoundingClientRect(),y=(e.clientY-r.top)*440/r.height;
+    S.b=Math.min(CFG.B_MAX,Math.max(CFG.B_MIN,(220-y)/150));render();
+  }
+  $("svg-drop").addEventListener("pointerdown",function(e){if(e.target.id!=="dragzone")return;dragging=true;try{e.target.setPointerCapture(e.pointerId);}catch(x){}setFromEvent(e);});
+  $("svg-drop").addEventListener("pointermove",function(e){if(dragging)setFromEvent(e);});
+  window.addEventListener("pointerup",function(){dragging=false;});
+  window.addEventListener("pointercancel",function(){dragging=false;});
+  var ks=document.querySelectorAll("[data-kwords]"),q;
+  for(q=0;q<ks.length;q++)ks[q].textContent=plural(parseInt(ks[q].getAttribute("data-kwords"),10),"reflection");
+}
+setupControls();drills();drawIndexTable();render();
+window.__rainbow={S:S,render:render,closed:closed,scanMin:scanMin,trace:trace,checkBow:checkBow,checkTable:checkTable,checkTitle:checkTitle,nWater:nWater,CFG:CFG};
+})();
+</script>
+</body>
+</html>

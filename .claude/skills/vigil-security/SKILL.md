@@ -15,6 +15,10 @@ From the studio root: `VIGIL_PRIVATE_TERMS="<the terms the chair gives you>" pyt
 It scans every tracked file in the three repositories for leaked tokens and keys, private terms, `eval` and similar,
 HTML injection sinks where untrusted input exists, scripts from outside the allowed CDNs, plain http, risky GitHub
 workflows and executables. Fix every BLOCK. Look at every WARN that touches a file changed in this run.
+The scan sees only tracked files, so a new file is invisible to it until it is added. List new files with
+`git ls-files --others --exclude-standard` in each repository and read each one against section 2 yourself, and tell
+the chair to re-run the scan after `git add` and before each commit, in every repository it commits (a BLOCK in the
+untracked game/tests/talk.test.mjs was missed by the first scan and found only after the game commit had gone out).
 
 ## 2. Review this run's changes
 Run `git status --short` and `git diff` (plus new files) in each repository. Check, for every change:

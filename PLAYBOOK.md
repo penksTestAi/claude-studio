@@ -70,6 +70,9 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   explanation (promoted from an experiment: Tissot Circles 22 and Element Timeline 17 words, neither shortened).
 - Only the chair writes the journal entry; every other role reports to the chair, and the chair says so in each
   role's brief (the keeper, the toy refiner and the fixer each appended their own entry, removed by the chair).
+- Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
+  default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
+  its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
 
 ## Experiments
 
@@ -85,7 +88,9 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 Changes only the owner can make to the routine. The owner can delete a line once it is handled.
 
-- (none open)
+- (2026-10-15) `tools/security_check.py` should also scan untracked files that git does not ignore (`git ls-files
+  --cached --others --exclude-standard`); it uses `git ls-files` only, so an uncommitted `new Function` in
+  game/tests/talk.test.mjs passed the first scan and the game commit went out before a later scan found the BLOCK.
 
 ## Changelog
 
@@ -93,21 +98,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: playbook created with a direction, four practices and one experiment, seeded from the first day's
-  journal.
-- 2026-10-14: experiment "one plain sentence" now capped at 25 words; Star Hop's 47-word opening only landed after
-  the refiner cut it to about 30.
-- 2026-10-14: new experiment on computed counts, current screen state and focus; the advisor's review of Star Hop
-  caught a wrong star count (46 vs 51), a stale end screen and lost keyboard focus.
-- 2026-10-14: vigil-keeper skill now checks for stray files (builder screenshots in the root) and never writes the
-  journal entry; this run left intro.png and step*.png in the root and the keeper wrote an entry the chair replaced.
-- 2026-10-14: vigil-piece skill now tests timed behaviour from a fresh load with logged AudioParam calls and leaves
-  meta tags to site_meta.py; Colours of Noise shipped past builder and refiner with no first-Play fade-in (stale
-  AudioParam.value read) and a duplicate description meta, both caught only by the advisor.
-- 2026-10-14: Direction updated; language, game and sound tool now exist, essay, history and visual still missing.
-- 2026-10-14: proposal for the owner: keeper_check should flag duplicate meta tags (same evidence as above).
-- 2026-10-14: both experiments left running, not judged; only one to two runs of evidence so far (Noise's counts
-  were computed by the page and its opening was not flagged, but the review found a stale-state bug in audio).
 - 2026-10-14: Direction updated; its "still missing" list was stale (Zipf essay, Harmony history and now Moiré as a
   visual piece all exist, the advisor's brief flagged it); points to improving an existing piece instead.
 - 2026-10-14: vigil-refine skill now counts opening words (never lengthen), matches every stated number or limit to
@@ -182,3 +172,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: vigil-game skill's honesty rule now names relays and STUN servers instead of "nothing is collected",
   requires saying whether online play was tested and ties stated limits to code; review found the overclaim and the
   missing "online untested" note, and the tester found an invented "dozen players" limit.
+- 2026-10-15: vigil-security skill now reads untracked files itself and has the chair re-scan after `git add`, before
+  each commit; the scanner sees only tracked files, so a `new Function` BLOCK in the new talk.test.mjs was missed and
+  the game commit went out before a later scan found it.
+- 2026-10-15: proposal for the owner: security_check.py should scan untracked, non-ignored files (same evidence).
+- 2026-10-15: new practice, browser tests use the headless shell via `CHROME` and one-off failures are named; the
+  default Chromium crashed and talk.test failed once this run. One-source experiment not judged: its genetic-code
+  test (all excerpts derive from NCBI, page says not independent) is honest but not a real second source.

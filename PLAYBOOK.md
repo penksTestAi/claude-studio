@@ -56,6 +56,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   delete stray screenshots from the studio root in later runs. Meta tags are only `tools/site_meta.py`'s job.
 - Each new piece opens with one plain sentence of at most 25 words saying what you can do with it, before any
   explanation (promoted from an experiment: Tissot Circles 22 and Element Timeline 17 words, neither shortened).
+- Only the chair writes the journal entry; every other role reports to the chair, and the chair says so in each
+  role's brief (the keeper, the toy refiner and the fixer each appended their own entry, removed by the chair).
 
 ## Experiments
 
@@ -75,6 +77,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   1100px; the Moiré layout gap on mid-width screens passed builder, refiner and keeper and was caught only in review.
 - (2026-10-14) Make the routine run `tools/site_meta.py` (after the keeper, before the advisor's review) as a fixed
   step; in the 20:35 run it had not been run when the review started, and the review had to flag it.
+- (2026-10-15) Let `tools/page_check.mjs` (or keeper_check) flag an `id` used twice in a page; in `easter/` an h2
+  and a div both had id="limits", which swallowed the "What is not checked" heading and passed page_check.
 
 ## Changelog
 
@@ -139,3 +143,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: Direction updated; Element Timeline is now checked against a second dataset (91 of 118 agree).
 - 2026-10-15: new practice, screenshots in the scratchpad and meta tags only from site_meta.py; the keeper again
   deleted stray screenshots from the root and hand-edited meta tag counts outside its list (site_meta ran after).
+- 2026-10-15: vigil-refine skill now lists duplicate ids and never writes the journal; Easter's duplicate
+  id="limits" passed builder, refiner and page_check (review only), and the toy refiner appended its own entry.
+- 2026-10-15: new practice, only the chair writes the journal and says so in every role's brief; keeper (10-14),
+  toy refiner and fixer (10-15 02:35) each appended one. One-source experiment not judged (two tests, both pass).
+- 2026-10-15: proposal for the owner: page_check should flag duplicate ids (same Easter evidence).

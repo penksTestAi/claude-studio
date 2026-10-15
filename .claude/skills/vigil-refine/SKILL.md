@@ -15,11 +15,14 @@ and the files. That is the point: fresh eyes. You never commit or push.
    screenshots; that is cheaper than reading the whole file twice.
    Three cheap checks every pass: count the words of the opening sentence (at most 25; a rewrite may never make it
    longer); for every number or limit the text states, find the line of code that produces it and confirm they
-   agree; and besides the 375px screenshots, resize to a mid width (about 600-800px) and look once.
+   agree; and besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
+   `id="..."` used twice in the page (page_check does not; a duplicate swallowed Easter's "What is not checked").
 2. **One round of concrete fixes** directly in the files: the most valuable ones first. Keep the maker's idea and
    voice; do not rebuild it. For toys, keep the house style exactly and keep the copy short and dry.
 3. Run the page check again. Then reload fresh and run every on-page self-check, and re-read every count or
    sentence that depends on data or rules you changed; your edit can make the builder's results stale. Report the
    pass count you saw yourself. If you fixed keyboard or focus, finish one whole play-through by keyboard only.
+
+Never write or edit a journal entry in STUDIO.md; the chair writes it from your report.
 
 Exactly one pass. Report: what you changed, what you chose to leave and why, and the final check result.

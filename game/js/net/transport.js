@@ -40,6 +40,26 @@ export async function createTransport(kind, room, opts = {}) {
   return createTrysteroTransport(kind, room, opts);
 }
 
+// The biggest message the game will look at, measured as JSON bytes. Real messages are under 100 bytes;
+// anything bigger is dropped before any game code sees it. (Trystero has already decoded it by then, so this keeps
+// big objects away from the game, it does not stop a peer from making the browser decode them.)
+export const MAX_MESSAGE_BYTES = 512;
+export function withinSizeCap(msg, max = MAX_MESSAGE_BYTES) {
+  try {
+    const s = JSON.stringify(msg);
+    return typeof s === "string" && s.length <= max && new TextEncoder().encode(s).length <= max;
+  } catch { return false; }
+}
+// Wraps an emitter so oversize messages never reach listeners; `dropped()` counts them.
+export function capped(inner, max = MAX_MESSAGE_BYTES) {
+  let dropped = 0;
+  return {
+    add: inner.add,
+    emit(msg, id) { if (withinSizeCap(msg, max)) inner.emit(msg, id); else dropped++; },
+    dropped: () => dropped,
+  };
+}
+
 // Small helper both implementations use for their listener lists.
 export function emitter() {
   const fns = new Set();

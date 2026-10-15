@@ -1,7 +1,7 @@
 // Drawing: the island is painted once into an offscreen canvas (8 px per tile), then each frame the
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
-import { T } from "./world.js";
+import { T, LANDMARK_NAMES } from "./world.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 
@@ -15,6 +15,40 @@ const PAL = {
   [T.TREE]: ["#2f5a3a", "#31603d", "#2c5537", "#335f3f"],
   [T.ROCK]: ["#3a3f47", "#3e434b", "#373c44", "#41464e"],
 };
+
+// The small up-and-down bob while walking. Reduced-motion players get a steady avatar.
+export function walkBob(moving, t, tile, reduce) { return moving && !reduce ? Math.sin(t / 90) * tile * 0.03 : 0; }
+
+function paintLandmarks(g, world) {
+  const P = TILE_SRC;
+  for (const l of world.landmarks) {
+    const px = Math.floor(l.x) * P, py = Math.floor(l.y) * P;
+    if (l.kind === "beacon") { // a stone base, a dark post and an unlit iron basket
+      g.fillStyle = "#4a4f58"; g.fillRect(px + 1, py + 4, 6, 4);
+      g.fillStyle = "#2a2118"; g.fillRect(px + 3, py - 6, 2, 11);
+      g.fillStyle = "#1a1612"; g.fillRect(px + 1, py - 10, 6, 4);
+      g.fillStyle = "#6b4a2a"; g.fillRect(px + 2, py - 9, 4, 1);
+    } else if (l.kind === "lighthouse") { // a round tower with a broken top and a dark doorway
+      g.fillStyle = "#8d8f94"; g.fillRect(px + 1, py - 14, 6, 21);
+      g.fillStyle = "#6e7077"; g.fillRect(px + 1, py - 14, 2, 21);
+      g.fillStyle = "#b9bbbf"; g.fillRect(px + 1, py - 4, 6, 2); g.fillRect(px + 1, py - 10, 6, 2);
+      g.fillStyle = "#0b1830"; g.fillRect(px + 1, py - 15, 2, 2); g.fillRect(px + 4, py - 16, 2, 3); // broken crown
+      g.fillStyle = "#1a1612"; g.fillRect(px + 3, py + 3, 2, 4);
+    } else if (l.kind === "jetty") {
+      for (const [bx, by] of l.planks) {
+        g.fillStyle = "#6b4a2a"; g.fillRect(bx * P, by * P, P, P);
+        g.fillStyle = "#8a6238";
+        if (l.dir[0]) for (let i = 1; i < P; i += 3) g.fillRect(bx * P + i, by * P, 1, P);
+        else for (let i = 1; i < P; i += 3) g.fillRect(bx * P, by * P + i, P, 1);
+        g.fillStyle = "#2a2118";
+        if (l.dir[0]) { g.fillRect(bx * P, by * P, P, 1); g.fillRect(bx * P, by * P + P - 1, P, 1); } else { g.fillRect(bx * P, by * P, 1, P); g.fillRect(bx * P + P - 1, by * P, 1, P); }
+      }
+    } else if (l.kind === "well") { // a ring of stones around dark water
+      g.fillStyle = "#6b727d"; g.beginPath(); g.arc(px + 4, py + 4, 3.6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#0b1830"; g.beginPath(); g.arc(px + 4, py + 4, 2, 0, Math.PI * 2); g.fill();
+    }
+  }
+}
 
 export function paintWorld(world) {
   const c = document.createElement("canvas");
@@ -38,10 +72,11 @@ export function paintWorld(world) {
       }
     }
   }
+  paintLandmarks(g, world);
   return c;
 }
 
-export function createRenderer(canvas, world) {
+export function createRenderer(canvas, world, opts = {}) {
   const g = canvas.getContext("2d");
   const map = paintWorld(world);
   const dark = document.createElement("canvas");
@@ -55,7 +90,8 @@ export function createRenderer(canvas, world) {
     dark.width = canvas.width; dark.height = canvas.height;
   }
 
-  function draw(me, peers, stick, t) {
+  function draw(me, peers, stick, t, light) {
+    const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
     const tile = (cw < 520 ? 30 : 36) * dpr; // screen px per tile
     const W = canvas.width, H = canvas.height;
@@ -70,20 +106,33 @@ export function createRenderer(canvas, world) {
     const fontPx = Math.round(12 * dpr);
     g.font = `${fontPx}px Georgia, serif`;
     g.textAlign = "center";
-    for (const p of all) drawAvatar(g, p, p.x * tile - camX, p.y * tile - camY, tile, p === me, t);
+    for (const p of all) drawAvatar(g, p, p.x * tile - camX, p.y * tile - camY, tile, p === me, t, reduce);
 
     // Night layer with light pools.
     dg.globalCompositeOperation = "source-over";
     dg.clearRect(0, 0, W, H);
-    dg.fillStyle = "rgba(3,6,18,0.5)"; dg.fillRect(0, 0, W, H);
+    const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2 };
+    dg.fillStyle = `rgba(${lt.tint[0]},${lt.tint[1]},${lt.tint[2]},${lt.dark.toFixed(3)})`; dg.fillRect(0, 0, W, H);
     dg.globalCompositeOperation = "destination-out";
     for (const p of all) {
-      const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * 3.2;
+      const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach;
       const grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
       grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)");
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
     g.drawImage(dark, 0, 0);
+
+    // Landmark names when one is close (words from our own list).
+    g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
+    for (const l of world.landmarks) {
+      const d = Math.hypot(l.x - me.x, l.y - me.y);
+      if (d > 7) continue;
+      const lx = l.x * tile - camX, ly = (l.y - (l.kind === "jetty" ? 0.2 : 1.3)) * tile - camY;
+      g.globalAlpha = Math.min(1, (7 - d) / 2);
+      g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#f2d9a0";
+      g.strokeText(LANDMARK_NAMES[l.kind], lx, ly); g.fillText(LANDMARK_NAMES[l.kind], lx, ly);
+      g.globalAlpha = 1;
+    }
 
     // Names above the dark layer so they stay readable.
     for (const p of all) {
@@ -113,14 +162,14 @@ export function createRenderer(canvas, world) {
   return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })) };
 }
 
-function drawAvatar(g, p, sx, sy, tile, isMe, t) {
+function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   const r0 = tile * 0.33;
   const e = p.emote && t < p.emote.until ? p.emote : null;
   const name = e ? EMOTES[e.id] : "";
   const k = e ? (t - e.start) / (e.until - e.start) : 0; // 0..1 through the gesture
-  let r = r0, bob = p.moving ? Math.sin(t / 90) * tile * 0.03 : 0, dip = 0;
+  let r = r0, bob = walkBob(p.moving, t, tile, reduce), dip = 0;
   if (name === "bow") dip = Math.sin(Math.PI * Math.min(1, k * 1.4)) * tile * 0.16;
-  if (name === "cheer") bob -= Math.abs(Math.sin(k * Math.PI * 3)) * tile * 0.22;
+  if (name === "cheer" && !reduce) bob -= Math.abs(Math.sin(k * Math.PI * 3)) * tile * 0.22;
   if (name === "sit") { r = r0 * 0.82; dip = r0 * 0.25; }
   g.fillStyle = "rgba(0,0,0,0.35)";
   g.beginPath(); g.ellipse(sx, sy + r0 * 0.9, r0 * 0.9, r0 * 0.35, 0, 0, Math.PI * 2); g.fill();
@@ -134,12 +183,12 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t) {
   g.fillStyle = p.colour;
   g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();
   if (name === "wave") { // a raised hand swinging side to side
-    const hx = sx + r * 1.1 + Math.sin(t / 80) * r * 0.5, hy = sy - r * 1.35;
+    const hx = sx + r * 1.1 + (reduce ? 0 : Math.sin(t / 80) * r * 0.5), hy = sy - r * 1.35;
     g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);
     g.beginPath(); g.moveTo(sx + r * 0.8, sy - r * 0.3); g.lineTo(hx, hy); g.stroke();
     g.fillStyle = "#e8d3b0"; g.beginPath(); g.arc(hx, hy, r * 0.22, 0, Math.PI * 2); g.fill();
   } else if (name === "point") { // an arm and arrow head along the facing direction
-    const len = r * (2.5 + Math.sin(t / 120) * 0.2), ax = sx + Math.cos(p.d) * len, ay = sy + bob + Math.sin(p.d) * len;
+    const len = r * (2.5 + (reduce ? 0 : Math.sin(t / 120) * 0.2)), ax = sx + Math.cos(p.d) * len, ay = sy + bob + Math.sin(p.d) * len;
     g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);
     g.beginPath(); g.moveTo(sx + Math.cos(p.d) * r, sy + bob + Math.sin(p.d) * r); g.lineTo(ax, ay); g.stroke();
     g.fillStyle = "#e8d3b0"; g.beginPath();
@@ -149,7 +198,7 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t) {
   } else if (name === "cheer") { // little sparks
     g.fillStyle = "#ffe9a8";
     for (let i = 0; i < 6; i++) {
-      const a = i * 1.047 + k * 3, d = r * (1.6 + k * 1.2);
+      const a = i * 1.047 + (reduce ? 0 : k * 3), d = r * (1.6 + k * 1.2);
       g.fillRect(sx + Math.cos(a) * d - 1.5, sy + bob + Math.sin(a) * d - 1.5, 3, 3);
     }
   }

@@ -6,6 +6,10 @@ import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
 import { createRenderer } from "./render.js";
+import { createMinimap, describeNearest } from "./minimap.js";
+import { hourAt, lightFor, pickHour, HOURS } from "./nightclock.js";
+import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
+import { surfaceAt, landmarkFingerprint } from "./world.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -54,7 +58,15 @@ $("netkind").textContent = netKind === "local" ? "local test mode (tabs of this 
 
 // ---- the game ----
 const canvas = $("view");
-const renderer = createRenderer(canvas, world);
+const motionQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+const reducedMotion = () => !!(motionQuery && motionQuery.matches);
+const renderer = createRenderer(canvas, world, { reducedMotion });
+const minimap = createMinimap($("minimap"), world);
+const steps = createFootsteps();
+const strides = createStrideTracker();
+const pinnedHour = pickHour(location.search);
+const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
+let lastHud = 0, lastMap = 0, mapOn = true;
 let net = null, presence = null, talk = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
@@ -72,6 +84,7 @@ async function enter() {
   presence = createPresence(net, world, me, updatePeers);
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
   me.say = null; me.emote = null;
+  strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
   document.body.classList.add("playing");
   $("roomname").textContent = `Lantern ${roomNo}`;
@@ -85,6 +98,7 @@ async function enter() {
 function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
+  strides.clear(); setSteps(false); steps.close();
   playing = false; net = null; presence = null; talk = null;
   setTalkOpen(false); $("heard").textContent = "";
   document.body.classList.remove("playing");
@@ -115,10 +129,49 @@ function frame(t) {
   presence.tick(t, dt);
   talk.tick(t);
   paintCooldowns(t);
-  renderer.draw(me, presence.peers, input.stick, t);
+  const light = lightNow();
+  footsteps(light);
+  renderer.draw(me, presence.peers, input.stick, t, light);
+  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values()); }
+  if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
   requestAnimationFrame(frame);
 }
+
+// ---- footsteps: own steps, and steps of players walking within earshot ----
+function footsteps(light) {
+  const n = strides.advance("me", me.x, me.y, me.moving);
+  for (let i = 0; i < n; i++) steps.step(surfaceAt(world, me.x, me.y), 1);
+  for (const p of presence.peers.values()) {
+    const k = strides.advance(p.id, p.x, p.y, p.moving);
+    if (!k) continue;
+    const g = stepGain(Math.hypot(p.x - me.x, p.y - me.y));
+    for (let i = 0; i < k; i++) steps.step(surfaceAt(world, p.x, p.y), g * 0.7);
+  }
+}
+function paintHud(light) {
+  const near = describeNearest(world, me.x, me.y);
+  const hour = `${light.name}, hour ${light.index + 1} of ${HOURS}`;
+  $("where").textContent = `${hour}.` + (near ? ` Nearest landmark: ${near.name}, ${near.tiles} tiles ${near.dir}.` : "");
+}
+function setMap(on) {
+  mapOn = on;
+  $("minimap").hidden = !on;
+  $("maptoggle").setAttribute("aria-pressed", String(on));
+}
+$("maptoggle").addEventListener("click", () => setMap(!mapOn));
+function setSteps(on) {
+  const state = steps.set(on);
+  $("stepstoggle").setAttribute("aria-pressed", String(state));
+  $("stepstoggle").textContent = steps.supported ? `Footsteps: ${state ? "on" : "off"}` : "Footsteps: not available here";
+}
+$("stepstoggle").addEventListener("click", () => setSteps(!steps.on));
+if (!steps.supported) { $("stepstoggle").disabled = true; setSteps(false); }
+addEventListener("keydown", (e) => {
+  if (!playing || e.code !== "KeyM" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+  setMap(!mapOn);
+});
 
 // ---- talk: gestures and preset phrases (buttons and the T key) ----
 const GESTURE_NAMES = { wave: "Wave", bow: "Bow", point: "Point", cheer: "Cheer", sit: "Sit" };
@@ -192,7 +245,10 @@ addEventListener("hashchange", () => { if (!playing) { roomNo = roomFromHash(); 
 
 // Read-only view for the tests (and the curious): plain copies, no handles into the game.
 window.__longWatch = {
-  world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world) }),
+  world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world), landmarks: landmarkFingerprint(world), landmarkList: world.landmarks.map(l => ({ kind: l.kind, x: l.x, y: l.y })) }),
+  teleport: (x, y) => { if (Number.isFinite(x) && Number.isFinite(y) && !isBlocked(world, x, y)) { me.x = x; me.y = y; return true; } return false; }, // tests only: no network message can reach this
+  light: () => lightNow(),
+  hud: () => ({ where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
   mine: () => ({ say: me.say ? me.say.id : null, emote: me.emote ? me.emote.id : null }),

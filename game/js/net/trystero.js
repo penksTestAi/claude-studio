@@ -1,7 +1,7 @@
 // Real transport: Trystero 0.25.4 (MIT, vendored in ../../vendor/). Signalling (finding each other) goes
 // through public Nostr relays or BitTorrent trackers; after that, game messages travel directly between
 // browsers over encrypted WebRTC data channels. No server of ours, no keys, no sign-up.
-import { APP_ID, emitter } from "./transport.js";
+import { APP_ID, emitter, capped } from "./transport.js";
 
 const MODULES = {
   nostr: "../../vendor/trystero-0.25.4/nostr/index.mjs",
@@ -14,7 +14,7 @@ export async function createTrysteroTransport(kind, room, opts = {}) {
   if (opts.relay) config.relayConfig.urls = [opts.relay];
   const r = lib.joinRoom(config, room);
   const action = r.makeAction("m");
-  const onMsg = emitter(), onJoin = emitter(), onLeave = emitter();
+  const onMsg = capped(emitter()), onJoin = emitter(), onLeave = emitter();
 
   r.onPeerJoin = (id) => onJoin.emit(id);
   r.onPeerLeave = (id) => onLeave.emit(id);
@@ -27,7 +27,7 @@ export async function createTrysteroTransport(kind, room, opts = {}) {
     onMessage: onMsg.add, onPeerJoin: onJoin.add, onPeerLeave: onLeave.add,
     status() {
       const socks = Object.values(lib.getRelaySockets?.() || {});
-      return { relays: socks.length, relaysOpen: socks.filter(s => s && s.readyState === 1).length };
+      return { relays: socks.length, relaysOpen: socks.filter(s => s && s.readyState === 1).length, dropped: onMsg.dropped() };
     },
     leave() { r.leave().catch(() => {}); },
   };

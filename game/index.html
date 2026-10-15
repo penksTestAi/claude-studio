@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game: walk with others by lantern light and talk with gestures and preset phrases only; played online between a phone and a computer.">
+<meta name="description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game: walk with others by lantern light and talk with gestures and preset phrases only; played online between a phone and a computer.">
+<meta property="og:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game: walk with others by lantern light and talk with gestures and preset phrases only; played online between a phone and a computer.">
+<meta name="twitter:description" content="A peer-to-peer night-island game where you walk by lantern light past old beacons, a lighthouse, a jetty and a well, with a minimap and a changing night, and talk with gestures and preset phrases only; played online between a phone and a computer before this update.">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -54,6 +54,13 @@ body.playing .lobby{display:none}
 .bar h2{margin:0}
 canvas#view{display:block;width:100%;height:clamp(320px,64vh,620px);border-radius:8px;background:var(--night);touch-action:none;user-select:none;-webkit-user-select:none}
 canvas#view:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.stage{position:relative}
+#minimap{position:absolute;top:8px;right:8px;width:112px;height:112px;border:2px solid rgba(255,243,214,.7);border-radius:6px;background:var(--night);image-rendering:pixelated;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#minimap[hidden]{display:none}
+@media (max-width:520px){#minimap{width:84px;height:84px;top:6px;right:6px}}
+.where{margin:8px 0 0;min-height:1.4em}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0}
+.tools .ghost[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
 .status{margin:10px 0 6px;min-height:1.5em}
 .peers{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 18px}
 .peers li{display:inline-flex;align-items:center;gap:8px}
@@ -96,8 +103,8 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
 <div class="wrap">
   <h1>The Long Watch</h1>
   <p class="lede">An island at night, and the people keeping its lanterns. This is the very first piece of a
-    multiplayer game that grows a little at a time: for now you can walk the island, see the other players
-    who are here with you, each carrying a lantern, and greet them with gestures and preset phrases.</p>
+    multiplayer game that grows a little at a time: for now you can walk the island and find its old beacons, lighthouse, jetty and well,
+    see the other players who are here with you, each carrying a lantern, and greet them with gestures and preset phrases.</p>
 
   <section class="panel lobby" aria-labelledby="lobby-h">
     <h2 id="lobby-h">Join a lantern</h2>
@@ -114,7 +121,15 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <h2 id="room-h"><span id="roomname">Lantern</span></h2>
       <button class="ghost" id="leave" type="button">Leave</button>
     </div>
-    <canvas id="view" tabindex="0" aria-label="The island seen from above, centred on your lantern. Move with arrow keys or WASD, or press and drag on the map."></canvas>
+    <div class="stage">
+      <canvas id="view" tabindex="0" aria-label="The island seen from above, centred on your lantern. Move with arrow keys or WASD, or press and drag on the map."></canvas>
+      <canvas id="minimap" role="img" aria-label="Minimap of the whole island with the old beacons, the lighthouse, the jetty, the well and every player." hidden></canvas>
+    </div>
+    <p class="small where" id="where" aria-live="off"></p>
+    <div class="tools">
+      <button class="ghost" id="maptoggle" type="button" aria-pressed="true">Map <kbd>M</kbd></button>
+      <button class="ghost" id="stepstoggle" type="button" aria-pressed="false">Footsteps: off</button>
+    </div>
     <div class="talk">
       <button class="ghost" id="talktoggle" type="button" aria-expanded="false" aria-controls="talkbox">Talk <kbd>T</kbd></button>
       <div id="talkbox" hidden>
@@ -127,7 +142,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <ul class="peers" id="peers" aria-label="Players in this lantern"></ul>
-    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles.</p>
+    <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles. <kbd>M</kbd> shows or hides the minimap. Footsteps are off until you turn them on. The light changes through an eight-hour night that repeats every 48 minutes of the clock (UTC), the same for everyone.</p>
   </section>
 
   <!-- PATCHNOTES:START (written by tools/game_patchnotes.py from CHANGELOG.md) -->
@@ -135,6 +150,12 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.3</b> · milestone 2 (the island worth walking) <span class="when">2026-10-15</span></summary>
+    <p><span class="tag t-new">New</span> find seven landmarks on the island: four old beacons on the headlands (one in each quarter), a ruined lighthouse, a jetty out over the shallows and a well not far from where everyone arrives. Their names show when you get close, and the beacons, lighthouse and well are solid, so you walk around them. A minimap in the corner shows the whole island, the landmarks and every player in their lantern colour (button or <code>M</code> to hide it). A line under the map names the hour and the nearest landmark with its distance and direction. The night now has eight hours (Dusk, First watch, Deep night, Midnight, Small hours, Late watch, Grey before dawn, Dawn); the light gets darker toward midnight and your lantern reaches further when it is darkest. A night lasts 48 minutes of the clock (UTC) and then repeats, the same for everyone. Footsteps are available but off until you press Footsteps; when on, you hear your own steps (sand, grass, stone, shallow water and the jetty's planks all sound different) and, more quietly, players walking within about 8 tiles.</p>
+    <p><span class="tag t-fixed">Fixed</span> the little walking bob of avatars (and the jump, wave and pointing movements of gestures) now stops when your device asks for reduced motion. Incoming messages that are too large are now ignored.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play of this milestone in particular (the sandbox's proxy refuses the public relays; the owner's separate test, noted below, covered basic play on the earlier version); the sound of the footsteps (Claude cannot hear them, and no audio output was checked, only that steps are scheduled); how the landmarks, light and minimap look on a real phone and in bright daylight; screen readers; the jetty is only two planks long on this island; the message cap does not stop decoding of a huge message.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.2</b> · milestone 1 (gestures, preset phrases, edge arrows) <span class="when">2026-10-15</span></summary>
     <p><span class="tag t-new">New</span> open Talk (button or <code>T</code>) and send one of 5 gestures (wave, bow, point, cheer, sit) or one of 16 preset phrases ("Over here!", "Follow me", "Thank you", "Need light", "Goodnight", and 11 more). Others see a bubble over the avatar with a thin bar that runs down as it fades (4.5 s), or the gesture drawn on the avatar; the words also appear in a screen-reader line. Phrases cool down for 3 s and gestures for 1.5 s (buttons show it); sitting ends when you walk. Players who are off screen get an arrow at the edge of the map in their lantern colour with their distance in tiles.</p>
     <p><span class="tag t-fixed">Fixed</span> <code>index.html</code> had no Content-Security-Policy (the design requires one); it now has one (scripts from 'self' and the import map's hash, no eval, <code>object-src 'none'</code>, connections only to wss: and local test relays).</p>
@@ -170,7 +191,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 1 (gestures and phrases). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 2 (the island worth walking). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

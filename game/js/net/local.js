@@ -1,13 +1,13 @@
 // Local transport: BroadcastChannel between pages of the same browser. Used by the tests (?net=local)
 // and for trying the game without the internet. It imitates Trystero's room semantics: peers announce
 // themselves, get a join event for each other, and may address one peer or everyone.
-import { emitter } from "./transport.js";
+import { emitter, capped } from "./transport.js";
 
 export function createLocalTransport(room) {
   const selfId = Math.random().toString(36).slice(2, 12);
   const ch = new BroadcastChannel(`vigil-long-watch:${room}`);
   const peers = new Set();
-  const onMsg = emitter(), onJoin = emitter(), onLeave = emitter();
+  const onMsg = capped(emitter()), onJoin = emitter(), onLeave = emitter();
   let open = true;
 
   const post = (o) => { if (open) ch.postMessage({ ...o, from: selfId }); };
@@ -31,7 +31,7 @@ export function createLocalTransport(room) {
     selfId,
     send(msg, peerId) { post(peerId ? { k: "data", d: msg, to: peerId } : { k: "data", d: msg }); },
     onMessage: onMsg.add, onPeerJoin: onJoin.add, onPeerLeave: onLeave.add,
-    status: () => ({ relays: 1, relaysOpen: 1 }),
+    status: () => ({ relays: 1, relaysOpen: 1, dropped: onMsg.dropped() }),
     leave() { bye(); open = false; removeEventListener("pagehide", bye); ch.close(); peers.clear(); },
   };
 }

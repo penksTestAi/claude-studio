@@ -62,7 +62,111 @@ export function generateWorld(seed = WORLD_SEED) {
   }
   const world = { seed, w: W, h: H, tiles, shade };
   world.spawn = findSpawn(world);
+  world.landmarks = placeLandmarks(world);
+  world.solid = new Set(); // landmark tiles that block walking (key = y * w + x)
+  for (const l of world.landmarks) if (l.solid) world.solid.add(Math.floor(l.y) * world.w + Math.floor(l.x));
   return world;
+}
+
+// ---- landmarks: placed from the seed, the same in every browser ----
+// Kinds and the fixed words shown for them (a peer never supplies any text).
+export const LANDMARK_KINDS = ["beacon", "lighthouse", "jetty", "well"];
+export const LANDMARK_NAMES = { beacon: "Old beacon", lighthouse: "Ruined lighthouse", jetty: "Jetty", well: "Well" };
+export const BEACON_SIDES = ["north-west", "north-east", "south-west", "south-east"];
+
+// Open ground a player can walk to from the spawn (flood fill over tiles that do not block).
+function reachable(world) {
+  const { w, h } = world, seen = new Uint8Array(w * h), q = [];
+  const sx = Math.floor(world.spawn.x), sy = Math.floor(world.spawn.y);
+  seen[sy * w + sx] = 1; q.push(sx, sy);
+  for (let i = 0; i < q.length; i += 2) {
+    const x = q[i], y = q[i + 1];
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h || seen[ny * w + nx] || isBlocked(world, nx, ny)) continue;
+      seen[ny * w + nx] = 1; q.push(nx, ny);
+    }
+  }
+  return seen;
+}
+
+const isLand = (t) => t === T.SAND || t === T.GRASS || t === T.MEADOW;
+// Is there water (shallow or deep) within `r` tiles?
+function waterNear(world, x, y, r) {
+  for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    const t = tileAt(world, x + dx, y + dy);
+    if (t === T.DEEP || t === T.SHALLOW) return true;
+  }
+  return false;
+}
+
+function placeLandmarks(world) {
+  const { w, h, seed } = world;
+  const seen = reachable(world);
+  const cx = w / 2, cy = h / 2;
+  const out = [];
+  const far = (x, y, min) => out.every(l => Math.abs(l.x - x - 0.5) + Math.abs(l.y - y - 0.5) >= min);
+  // Best candidate = highest seeded score among tiles passing `ok`; ties impossible in practice, scan order breaks them.
+  const pick = (salt, ok) => {
+    let best = null, bs = -1;
+    for (let y = 2; y < h - 2; y++) for (let x = 2; x < w - 2; x++) {
+      if (!seen[y * w + x] || !ok(x, y)) continue;
+      const sc = hash3(x, y, seed + salt);
+      if (sc > bs) { bs = sc; best = { x, y }; }
+    }
+    return best;
+  };
+  const d2 = (x, y) => (x - cx) * (x - cx) + (y - cy) * (y - cy);
+
+  // Four old beacons on headlands: one per quarter of the island, on land near water, well away from the middle.
+  for (let q = 0; q < 4; q++) {
+    const right = q % 2 === 1, down = q >= 2;
+    for (const [minD2, gap] of [[26 * 26, 18], [20 * 20, 12], [12 * 12, 6]]) {
+      const c = pick(31 + q, (x, y) => (x + 0.5 >= cx) === right && (y + 0.5 >= cy) === down
+        && isLand(tileAt(world, x, y)) && d2(x, y) >= minD2 && waterNear(world, x, y, 3) && far(x, y, gap));
+      if (c) { out.push({ kind: "beacon", side: q, x: c.x + 0.5, y: c.y + 0.5, solid: true }); break; }
+    }
+  }
+  // The ruined lighthouse: on rock or open ground far out, away from the beacons.
+  for (const gap of [24, 14, 8]) {
+    const c = pick(41, (x, y) => (isLand(tileAt(world, x, y)) || tileAt(world, x, y) === T.GRASS) && d2(x, y) >= 18 * 18 && waterNear(world, x, y, 4) && far(x, y, gap));
+    if (c) { out.push({ kind: "lighthouse", x: c.x + 0.5, y: c.y + 0.5, solid: true }); break; }
+  }
+  // The jetty: from a sand tile at the shore, planks run out over shallow water in the direction with the most of it (2 to 4 tiles).
+  const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const run = (x, y, [dx, dy]) => { let n = 0; while (n < 4 && tileAt(world, x + dx * (n + 1), y + dy * (n + 1)) === T.SHALLOW) n++; return n; };
+  for (const gap of [14, 8, 3]) {
+    const c = pick(51, (x, y) => tileAt(world, x, y) === T.SAND && far(x, y, gap) && DIRS.some(d => run(x, y, d) >= 2));
+    if (!c) continue;
+    let bd = DIRS[0], bn = -1;
+    for (const d of DIRS) { const n = run(c.x, c.y, d); if (n > bn) { bn = n; bd = d; } }
+    const planks = [];
+    for (let i = 1; i <= bn; i++) planks.push([c.x + bd[0] * i, c.y + bd[1] * i]);
+    out.push({ kind: "jetty", x: c.x + 0.5 + bd[0] * (bn / 2 + 0.5), y: c.y + 0.5 + bd[1] * (bn / 2 + 0.5), planks, dir: bd, solid: false });
+    break;
+  }
+  // The well: open ground a short walk from where everyone arrives.
+  for (const [lo, hi] of [[6, 14], [4, 22], [3, 40]]) {
+    const c = pick(61, (x, y) => (tileAt(world, x, y) === T.GRASS || tileAt(world, x, y) === T.MEADOW) && openAround(world, x, y)
+      && Math.abs(x + 0.5 - world.spawn.x) + Math.abs(y + 0.5 - world.spawn.y) >= lo && Math.abs(x + 0.5 - world.spawn.x) + Math.abs(y + 0.5 - world.spawn.y) <= hi && far(x, y, 4));
+    if (c) { out.push({ kind: "well", x: c.x + 0.5, y: c.y + 0.5, solid: true }); break; }
+  }
+  return out;
+}
+
+// What the ground under a point is made of, for footstep sounds: wood on the jetty, otherwise by tile.
+export function surfaceAt(world, x, y) {
+  const tx = Math.floor(x), ty = Math.floor(y);
+  for (const l of world.landmarks) if (l.planks && l.planks.some(([px, py]) => px === tx && py === ty)) return "wood";
+  const t = tileAt(world, x, y);
+  return t === T.SHALLOW || t === T.DEEP ? "water" : t === T.SAND ? "sand" : t === T.ROCK ? "stone" : "grass";
+}
+
+// A short fingerprint of the landmark list; the tests compare it between browsers.
+export function landmarkFingerprint(world) {
+  let h = 2166136261;
+  for (const l of world.landmarks) for (const v of [LANDMARK_KINDS.indexOf(l.kind), Math.round(l.x * 2), Math.round(l.y * 2)]) { h ^= v; h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(16);
 }
 
 export function tileAt(world, x, y) {
@@ -71,7 +175,10 @@ export function tileAt(world, x, y) {
   return world.tiles[ty * world.w + tx];
 }
 
-export function isBlocked(world, x, y) { return BLOCKING.has(tileAt(world, x, y)); }
+export function isBlocked(world, x, y) {
+  if (BLOCKING.has(tileAt(world, x, y))) return true;
+  return !!world.solid && world.solid.has(Math.floor(y) * world.w + Math.floor(x));
+}
 
 // The nearest open grass or meadow tile to the middle of the map, found by a square spiral.
 function findSpawn(world) {

@@ -13,11 +13,12 @@ working features.
   integer ids only (unknown ids dropped), bubbles with a fading timer, cooldowns enforced on both sides, edge arrows
   to off-screen players, per-peer rate limit, peer cap, Content-Security-Policy. (2026-10-15)
 
-## Next
+- **2. The island worth walking.** Seven landmarks from the seed (four old beacons, a ruined lighthouse, a jetty, a
+  well), a minimap with every player, footsteps off by default (own and nearby players'), light that follows a shared
+  eight-hour night, reduced-motion respected, a byte-size cap on incoming messages. (2026-10-15)
+
 ## Later (in rough order, each one run)
-2. **NEXT: The island worth walking.** Landmarks from the seed (old beacons on headlands, a ruined lighthouse, a
-   jetty, a well), a minimap, footstep sounds off by default, light that varies by night hour.
-3. **Gathering, shared.** Driftwood, reeds and oil berries at seeded spots; picking one hides it for everyone
+3. **NEXT: Gathering, shared.** Driftwood, reeds and oil berries at seeded spots; picking one hides it for everyone
    in the room until its seeded respawn. First use of the shared-state rules in DESIGN.md (arbiter for
    contested picks, snapshot for late joiners).
 4. **Inventory and giving.** A saved local inventory; hand an item to a nearby player (a two-step offer and

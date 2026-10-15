@@ -115,13 +115,16 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
 game/
   index.html            landing, lobby, game panel, honest notes, import map for the vendored modules
   js/main.js            boot: identity and save, room choice, game loop, movement and collision, status line
-  js/world.js           seeded island generation, tile queries, spawn points, fingerprint
+  js/world.js           seeded island generation, landmarks (beacons, lighthouse, jetty, well), tile queries, surfaces, fingerprints
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
   js/talk.js            gestures and preset phrases: lists, send, validated receive, cooldowns
   js/arrows.js          edge arrows toward off-screen players (pure maths)
   js/guard.js           per-peer rate limiter (token bucket)
   js/input.js           keyboard and drag-joystick input
+  js/nightclock.js      the eight-hour night from the UTC clock: light, tint, lantern reach (pure)
+  js/minimap.js         minimap drawing, compass words, nearest-landmark text
+  js/sound.js           footsteps: stride counting, earshot gain, synthesised sounds (off by default)
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -129,14 +132,15 @@ game/
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
+  tests/world.test.mjs     node checks plus two local pages: landmarks, minimap, footsteps, light, reduced motion, size cap
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
+URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs` and `node game/tests/talk.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

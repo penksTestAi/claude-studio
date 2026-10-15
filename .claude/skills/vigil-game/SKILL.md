@@ -24,6 +24,11 @@ The owner asked for a multiplayer online RPG, built piece by piece and evolving 
   servers it uses; the game itself collects nothing (never write "nothing is collected" without that qualifier).
   The world is generated from a seed, so everyone sees the same world. It also says plainly whether online play over
   the real relays has been tested, and every limit it states (players per room, range) comes from a constant in code.
+- **Secure against other players.** Every message from a peer is hostile until validated: known kind, expected
+  fields, numbers finite and clamped, no free strings. Cap message size, peers per room and messages per second per
+  peer; drop the excess. Never build HTML from peer data, never navigate, fetch, import or open anything a peer named.
+  game/index.html keeps a Content-Security-Policy meta tag (scripts from 'self', no unsafe-eval, object-src 'none').
+  The vigil-security skill checks all of this every run.
 - **Testable without the internet.** Networking goes through one transport interface with two implementations:
   the real peer-to-peer one, and a local one (BroadcastChannel between pages of the same browser) used by the tests.
   Pick it with a URL flag such as `?net=local`.

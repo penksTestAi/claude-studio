@@ -89,6 +89,7 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
+- 2026-10-15: security guard added (owner's request): vigil-security skill and tools/security_check.py run every run before commits; first full scan of all three repositories found 0 blocking issues.
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.

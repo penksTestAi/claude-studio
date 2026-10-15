@@ -61,7 +61,11 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
 3. Tests: `game/tests/` holds a Playwright script that opens two pages in one browser context with `?net=local`,
    joins both to the same room and checks they see each other (and, from then on, whatever the new feature shares
    between players). Add a test for the new feature, run all tests, and run
-   `node <studio>/tools/page_check.mjs game/`. Fix everything that fails.
+   `node <studio>/tools/page_check.mjs game/`. Fix everything that fails. Run each test file 5 times in a row
+   (background loop) and report the pass count per file ("world 5/5"); one green run is not a pass. A check that
+   reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or
+   waits until it settles, never one exact pixel (world.test read one minimap pixel at the reported position while
+   the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run).
 4. Update ROADMAP.md (mark the item done, choose and mark the next) and add a CHANGELOG.md entry headed
    `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
    **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,

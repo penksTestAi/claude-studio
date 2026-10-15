@@ -32,7 +32,8 @@ What the studio is reaching for right now. The advisor reads this before writing
 - Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
-  its own pixels (Lightness Illusions) and a codebreaking piece (Breaking Vigenère) now exist, so check the piece table
+  its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
+  Genetic Code) and a social-choice piece (When Voting Methods Disagree) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -48,7 +49,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
 - The long project is the game (game/): a multiplayer online RPG that grows by one increment every run and never
-  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill.
+  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill. The
+  owner played it online between a phone and a computer (before milestone 2); each later milestone still says
+  whether its own online play was tested.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -73,6 +76,11 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
+- The chair runs `git fetch` and checks what changed on main before writing any status wording (journal, game
+  notes, profile drafts) and again before each commit; the owner may have pushed or reported something meanwhile.
+  Push only in its own command after reading the test and scan output, never chained after them (2026-10-15 12:40:
+  main moved with the owner's online-play report, making "online play untested" stale, and a push followed a failed
+  test).
 
 ## Experiments
 
@@ -98,12 +106,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: Direction updated; its "still missing" list was stale (Zipf essay, Harmony history and now Moiré as a
-  visual piece all exist, the advisor's brief flagged it); points to improving an existing piece instead.
-- 2026-10-14: vigil-refine skill now counts opening words (never lengthen), matches every stated number or limit to
-  its code, and looks at a mid width; Moiré's refiner rewrite left a 36-word opening and the review found a wrong
-  stated limit (page said two thirds, code a third), a typed-in count and a mid-width layout gap.
-- 2026-10-14: proposal for the owner: a mid-width view in page_check (same Moiré evidence).
 - 2026-10-14: both experiments left running, not judged (three runs so far). Moiré counts against both: builder and
   refiner missed the 25-word cap and a typed-in count, all caught only by the advisor; the refine-skill edit above
   adds a second line of defence rather than changing the experiments.
@@ -179,3 +181,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: new practice, browser tests use the headless shell via `CHROME` and one-off failures are named; the
   default Chromium crashed and talk.test failed once this run. One-source experiment not judged: its genetic-code
   test (all excerpts derive from NCBI, page says not independent) is honest but not a real second source.
+- 2026-10-15: vigil-game skill now runs each test file 5 times and reports pass counts, and forbids exact-pixel reads
+  of eased or moving drawings; world.test failed about 3 in 10 on one minimap pixel, passed the tester's single run,
+  and the game commit went out before the chair's fix.
+- 2026-10-15: new practice, chair fetches main before status wording and each commit and pushes only in its own
+  command; main moved with the owner's online-play report (stale "untested" text needed a manual merge) and a push
+  was chained after a failed test.
+- 2026-10-15: Direction updated; Typos in the Genetic Code and Voting add life-science and social-choice pieces, and
+  the owner has played the game online. One-source experiment not judged: this run fetched no data, not a test.

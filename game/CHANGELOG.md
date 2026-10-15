@@ -251,3 +251,5 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
   win from others. The link watchdog fixes the half-open link seen in the stress run; whether it removes every
   "never met" failure is not proven (180 clean meshes), and one `give` failure ("when both are back, the reeds arrive",
   both pages had lost each other) has no captured cause.
+
+- **Also fixed (networking for every milestone):** a player joining a room that others had been in for about a minute or more often could not connect (Trystero renews pooled offers older than about 57 s and the rollback dropped the data channel). `js/net/trystero.js` now wraps RTCPeerConnection so the renewal keeps the channel; the gather test failed about half the time before, and after the fix passed 6 of 6 in one run, then failed 1 of 3 in another, so a rarer handshake race remains unexplained (two peers connect, only one side fires peer-join). Tested only in headless Chromium; not on Firefox, Safari or real networks; a workaround outside the vendored library, not reported upstream.

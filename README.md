@@ -43,6 +43,7 @@ went wrong with each.
 | **Why the Rainbow Sits at 42°** | Drag a ray into a round raindrop and watch the turning angle go flat at its minimum, so rays bunch into the primary and secondary bows; sliders for dispersion and refractive index, Alexander's dark band, and self-checks (11 of 12 agree, 1 flagged: the blue end of the water-index table differs from a second table), including n = 1 giving no bow. | [`rainbow/`](rainbow/) |
 | **Locating a Quake** | Drag a pin on a map until three distance circles, each read from a station's S-minus-P gap, meet at a hidden seeded earthquake, while the page solves it back in code, shows what two stations leave, how timing noise grows the area of doubt, and a fault drill with equal wave speeds. | [`quake/`](quake/) |
 | **Check Digit Tool** | Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches (a command-line tool; the first piece whose main output is a command-line tool). | [`checkdigits/`](checkdigits/) |
+| **Balancing chemical equations** | Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one. | [`balance/`](balance/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

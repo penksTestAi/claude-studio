@@ -212,3 +212,5 @@ import map and the hash must be recomputed). `window.__longWatch` exposes read-o
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.
+
+Note on vendoring: the vendored Trystero stays byte-identical but runs with an `rtcPolyfill` wrapper (`warmRenewals` in `js/net/trystero.js`) so that renewing an old pooled offer keeps its data channel; without it, late joiners after about a minute of idle often never connected. A rarer peer-join race remains unexplained.

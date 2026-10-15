@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Balancing chemical equations · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one.">
+<link rel="canonical" href="https://vigilstudio.github.io/balance/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Balancing chemical equations · Vigil">
+<meta property="og:description" content="Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one.">
+<meta property="og:url" content="https://vigilstudio.github.io/balance/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Balancing chemical equations · Vigil">
+<meta name="twitter:description" content="Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;--warnbg:#f8ecd0;--okbg:#e1f1e3;--badbg:#f7dedb;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:780px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+h3{font-size:1rem;margin:0 0 4px}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lede{font-size:1.05rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+label{display:block;margin:0 0 4px}
+input[type=text]{width:100%;font:1.05rem var(--mono);padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+button,select{font:inherit;padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;min-height:40px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.chips button{padding:5px 10px;min-height:34px;font-size:.9rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:14px 0}
+.eq{font-size:1.25rem;line-height:1.9;overflow-wrap:anywhere}
+.eq .c{font-weight:bold;color:var(--accent)}
+.verdict{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.9rem;font-weight:bold;margin-bottom:8px}
+.v-ok{background:var(--okbg);color:var(--ok)}
+.v-warn{background:var(--warnbg);color:var(--warn)}
+.v-bad{background:var(--badbg);color:var(--bad)}
+ul.checks{list-style:none;padding:0;margin:8px 0}
+ul.checks li{padding:3px 0 3px 26px;position:relative}
+ul.checks li:before{position:absolute;left:0;font-weight:bold}
+ul.checks li.pass:before{content:"\2713";color:var(--ok)}
+ul.checks li.fail:before{content:"\2717";color:var(--bad)}
+ul.checks li.skip:before{content:"\2013";color:var(--muted)}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;font-size:.95rem}
+th,td{border:1px solid var(--line);padding:3px 9px;text-align:center}
+th{background:var(--bg);font-weight:normal}
+td.l,th.l{text-align:left}
+td.mono,.mono{font-family:var(--mono)}
+.bad{color:var(--bad)}
+.cases{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:640px){.cases{grid-template-columns:1fr 1fr}}
+.case{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.case .src{font-family:var(--mono);font-size:.9rem;overflow-wrap:anywhere;margin:4px 0}
+.case .out{font-size:.92rem;margin:6px 0 8px;padding:6px 8px;border-left:3px solid var(--line)}
+details{margin:8px 0}
+summary{cursor:pointer}
+code{font-family:var(--mono);font-size:.92em}
+ol.eqs{padding-left:22px;margin:6px 0}
+ol.eqs li{margin:2px 0}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Balancing chemical equations</h1>
+<p class="lede">Type a reaction and this page finds whole-number coefficients that make the atoms (and the charge) match on both sides. It does it with exact integer linear algebra, then recounts the atoms to check itself. It does not know whether the reaction can happen: it only checks the bookkeeping. Where the method gives no answer, or more than one, it says so. Made by Claude, an AI model.</p>
+
+<form id="form" class="panel" autocomplete="off">
+  <label for="eq">Reaction (reactants -&gt; products)</label>
+  <input type="text" id="eq" value="C3H8 + O2 -> CO2 + H2O" spellcheck="false" autocapitalize="off" autocorrect="off" aria-describedby="fmt">
+  <div class="row">
+    <button type="submit" class="primary">Balance it</button>
+    <label for="pick" style="margin:0" class="muted small">or pick one</label>
+    <select id="pick" aria-label="Pick an example reaction"></select>
+  </div>
+  <p id="fmt" class="small muted" style="margin:10px 0 0">Write each species once, with no coefficients: <code>Ca(OH)2</code>, <code>CuSO4.5H2O</code>, <code>MnO4^-</code>, <code>Fe^3+</code>, <code>e^-</code>. Arrows: <code>-&gt;</code>, <code>=</code> or the arrow character. Up to <span id="maxsp">14</span> species.</p>
+</form>
+
+<div id="result" aria-live="polite"></div>
+
+<h2>How it balances</h2>
+<p>Give every species an unknown whole-number coefficient. Each element must have the same total on both sides, and so must the charge. That is one linear equation per element: the sum over species of (atoms of that element in the species) times (its coefficient), with reactants counted as plus and products as minus, must be zero. Stacking those equations gives a matrix <em>A</em> with one row per element (and one for charge) and one column per species, and the balancings are the vectors <em>x</em> with <em>A x = 0</em>: the <strong>null space</strong> of <em>A</em>.</p>
+<p>The page row-reduces <em>A</em> using exact fractions (BigInt, no decimals, so no rounding), reads off a basis of the null space, and scales each basis vector to the smallest whole numbers. The dimension of the null space (the number of species minus the rank of <em>A</em>) decides what kind of answer there is:</p>
+<ul>
+<li><strong>0</strong>: the only solution is all zeros. No balancing exists.</li>
+<li><strong>1</strong>: every solution is a multiple of one vector. If its entries all have the same sign, that is the answer, and dividing out the common factor makes it the smallest.</li>
+<li><strong>2 or more</strong>: there are infinitely many balancings. There is no single &ldquo;smallest&rdquo;; the page lists the elementary ones (those using as few species as possible) and one that uses everything.</li>
+</ul>
+<p>A positive answer also needs every coefficient to come out the same sign, so a solution can exist for the matrix and still not be a valid reading of the equation as written.</p>
+
+<h2>Where the method fails, or says too much</h2>
+<p class="muted">Each card runs the same code as the box above. The outcome line is computed by the page when it loads.</p>
+<div class="cases" id="cases"></div>
+
+<h2>Self-test</h2>
+<details id="selftest"><summary id="stsum">Running</summary>
+<div id="stbody" class="small"></div>
+<p class="small muted">The reference coefficients below were typed in by hand from standard textbook answers and from the matching atom counts; they are not produced by the page's own algorithm. The parser is shared by the solver and the atom recount, so a mistake in reading a formula would not be caught by the recount alone; the parser was checked separately against hand-counted formulas in the README's test run.</p>
+</details>
+
+<h2>What this does not do</h2>
+<ul>
+<li>It does not judge chemistry. <code>Na + Cl2 -&gt; NaCl2</code> balances perfectly and is not a real compound; the arithmetic cannot tell.</li>
+<li>It does not know which species are really present, which side an ion belongs on, or whether the reaction runs at all.</li>
+<li>It reads one step with each species once. It does not use oxidation numbers or half-reactions; for redox, charge is balanced because charge is one more row of the matrix.</li>
+<li>Formulas are read by a small parser: elements are checked against the <span id="nsym">118</span> symbols, brackets and a hydrate dot are handled, and anything else is rejected with a message. Isotopes, states (aq, s) and structural formulas are not supported.</li>
+<li>No atomic masses are used or needed. Nothing is fetched; everything runs in your browser.</li>
+</ul>
+<p class="small muted"><a href="README.md">README</a> · <a href="../">Vigil</a></p>
+</main>
+<script src="balance.js"></script>
+<script>
+(function(){
+"use strict";
+var B = window.Balance;
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* species text -> HTML with subscripts and a superscript charge */
+function fmt(t){
+  var m = /\^(\d*)([+-])$/.exec(t), body = t, sup = "";
+  if (m){ body = t.slice(0, m.index); sup = "<sup>" + (m[1] || "") + (m[2] === "-" ? "−" : "+") + "</sup>"; }
+  else if ((m = /\^([+-])(\d*)$/.exec(t))){ body = t.slice(0, m.index); sup = "<sup>" + (m[2] || "") + (m[1] === "-" ? "−" : "+") + "</sup>"; }
+  var out = "", i, ch, j;
+  for (i = 0; i < body.length; i++){
+    ch = body[i];
+    if (ch >= "0" && ch <= "9"){
+      j = i; while (j < body.length && body[j] >= "0" && body[j] <= "9") j++;
+      var prev = body[i-1];
+      out += (prev && prev !== "·") ? "<sub>" + body.slice(i, j) + "</sub>" : body.slice(i, j);
+      i = j - 1;
+    } else out += esc(ch);
+  }
+  return out + sup;
+}
+function term(sp, c){
+  var cs = (c === 1n) ? "" : '<span class="c">' + c + "</span> ";
+  return cs + fmt(sp.text);
+}
+/* items: [{sp, c, side}] -> equation HTML */
+function eqHTML(items){
+  var L = [], R = [];
+  items.forEach(function(it){ if (it.c === 0n) return; (it.side === "R" ? L : R).push(term(it.sp, it.c)); });
+  return L.join(" + ") + ' → ' + R.join(" + ");
+}
+function plain(sps, v){ return eqHTML(sps.map(function(sp, i){ return { sp: sp, c: v[i], side: sp.side }; })); }
+function names(sps, idxs){ return idxs.map(function(i){ return fmt(sps[i].text); }).join(", "); }
+function plural(n, one, many){ return n + " " + (n === 1 ? one : many); }
+
+function matrixHTML(r){
+  var h = '<div class="scroll"><table><thead><tr><th class="l"></th>';
+  r.species.forEach(function(sp){ h += "<th>" + fmt(sp.text) + "<br><span class='muted small'>" + (sp.side === "R" ? "reactant" : "product") + "</span></th>"; });
+  h += "</tr></thead><tbody>";
+  r.matrix.forEach(function(row, i){
+    h += '<tr><th class="l">' + esc(r.labels[i]) + "</th>";
+    row.forEach(function(x){ h += '<td class="mono">' + (x > 0n ? "+" : x < 0n ? "−" : "") + (x === 0n ? "0" : (x < 0n ? -x : x)) + "</td>"; });
+    h += "</tr>";
+  });
+  return h + "</tbody></table></div>";
+}
+function tableHTML(t){
+  var h = '<div class="scroll"><table><thead><tr><th class="l">Counted from the formulas</th><th>left</th><th>right</th><th></th></tr></thead><tbody>';
+  t.forEach(function(x){ h += '<tr><th class="l">' + esc(x.label) + '</th><td class="mono">' + x.left + '</td><td class="mono">' + x.right + '</td><td>' + (x.ok ? "✓" : '<span class="bad">✗</span>') + "</td></tr>"; });
+  return h + "</tbody></table></div>";
+}
+function vecHTML(sps, v){
+  return "(" + v.map(function(x){ return String(x); }).join(", ") + ")";
+}
+function basisHTML(r){
+  var h = '<details><summary>Matrix and null space</summary><p class="small muted">Columns are species, rows are elements' + (r.labels.indexOf("charge") >= 0 ? " and charge" : "") + '; reactants count plus, products minus.</p>' + matrixHTML(r);
+  h += '<p class="small">Rank ' + r.rank + ", " + plural(r.species.length, "species", "species") + ", so the null space has dimension " + r.species.length + " − " + r.rank + " = " + r.nullity + ".";
+  if (r.nullity > 0){
+    h += " Species order: " + r.species.map(function(sp){ return fmt(sp.text); }).join(", ") + ". Basis vector" + (r.nullity === 1 ? "" : "s") + " scaled to whole numbers (a minus sign means that species would have to change sides):</p><ul class='small mono'>";
+    r.basis.forEach(function(v){ h += "<li>" + vecHTML(r.species, v) + "</li>"; });
+    h += "</ul>";
+  } else h += "</p>";
+  return h + "</details>";
+}
+function checksHTML(cs){
+  return '<ul class="checks">' + cs.map(function(c){ return '<li class="' + (c.ok === true ? "pass" : c.ok === false ? "fail" : "skip") + '">' + esc(c.text) + "</li>"; }).join("") + "</ul>";
+}
+function oneSided(r){
+  var res = [];
+  r.labels.forEach(function(lab, i){
+    if (lab === "charge") return;
+    var L = false, R = false;
+    r.species.forEach(function(sp, j){ if (r.matrix[i][j] > 0n) L = true; if (r.matrix[i][j] < 0n) R = true; });
+    if (L !== R) res.push(lab + " (" + (L ? "left side only" : "right side only") + ")");
+  });
+  return res;
+}
+
+function render(r){
+  var h = "", sps = r.species, i;
+  if (r.error){
+    return '<div class="panel"><span class="verdict v-bad">Cannot read it</span><p style="margin:0">' + esc(r.error) + "</p></div>";
+  }
+  if (r.kind === "unique"){
+    h += '<div class="panel"><span class="verdict v-ok">One balancing, the smallest whole numbers</span><div class="eq">' + plain(sps, r.coef) + "</div>" + checksHTML(r.checks) + tableHTML(r.table) + basisHTML(r) + "</div>";
+  } else if (r.kind === "multiple"){
+    h += '<div class="panel"><span class="verdict v-warn">More than one balancing: ' + r.nullity + ' independent</span>';
+    h += '<p>The null space has dimension ' + r.nullity + ', so there are infinitely many ways to balance this, and no single smallest one. Here is one that uses every species (the sum of the elementary balancings listed below, divided by its common factor; the choice is arbitrary):</p>';
+    h += '<div class="eq">' + plain(sps, r.coef) + "</div>" + checksHTML(r.checks) + tableHTML(r.table);
+    h += "<h3>Elementary balancings</h3><p class='small muted'>Each uses as few species as possible and has no common factor. Any whole-number mix of them with positive total use of every species balances too. Some species may be absent (coefficient 0, left out).</p><ol class='eqs'>";
+    r.feasible.forEach(function(v){ h += "<li>" + plain(sps, v) + "</li>"; });
+    h += "</ol>";
+    if (r.bruteSorted && r.bruteSorted.length){
+      var shown = r.bruteSorted.slice(0, 6);
+      h += "<h3>Smallest by exhaustive search</h3><p class='small muted'>Of the " + r.brute.count + " balancings that use every species with coefficients up to " + r.brute.B + ", the " + (shown.length === 1 ? "one with" : shown.length + " with") + " the smallest total, in order (ties are possible):</p><ol class='eqs'>";
+      shown.forEach(function(v){ h += "<li>" + plain(sps, v.map(BigInt)) + " <span class='muted small'>(total " + v.reduce(function(s, x){ return s + x; }, 0) + ")</span></li>"; });
+      h += "</ol>";
+    }
+    h += basisHTML(r) + "</div>";
+  } else if (r.kind === "impossible"){
+    var os = oneSided(r);
+    h += '<div class="panel"><span class="verdict v-bad">No balancing exists</span><p>The null space is just the zero vector (rank ' + r.rank + " equals the number of species, " + sps.length + "), so the only way to make every element match is to use none of any species." + (os.length ? " Look at " + os.join(", ") + ": an element that is on one side only can never be matched." : " No single element is the culprit; the constraints disagree together.") + "</p>" + basisHTML(r) + "</div>";
+  } else if (r.kind === "wrongside"){
+    var items = sps.map(function(sp, j){ var x = r.vector[j]; return { sp: sp, c: x < 0n ? -x : x, side: x < 0n ? (sp.side === "R" ? "P" : "R") : sp.side }; });
+    var moved = []; r.vector.forEach(function(x, j){ if (x < 0n) moved.push(j); });
+    h += '<div class="panel"><span class="verdict v-bad">Not as written</span><p>The null space has dimension 1, so there is exactly one balancing up to scale, but its entries do not all have the same sign: ' + names(sps, moved) + " would need" + " to be on the other side of the arrow. As you wrote it, no positive coefficients exist. Moving " + (moved.length === 1 ? "it" : "them") + " gives:</p><div class='eq'>" + eqHTML(items) + "</div><p class='small muted'>That is a different equation from the one you typed. Whether it describes a real reaction is for you to say.</p>" + basisHTML(r) + "</div>";
+  } else if (r.kind === "zero"){
+    var absent = []; r.vector.forEach(function(x, j){ if (x === 0n) absent.push(j); });
+    h += '<div class="panel"><span class="verdict v-bad">Some species cannot take part</span><p>The null space has dimension 1 and its vector has coefficient 0 for ' + names(sps, absent) + ". Every species you list must appear with a positive coefficient, and that is impossible here. Without " + (absent.length === 1 ? "it" : "them") + ", the rest balance as:</p><div class='eq'>" + plain(sps, r.vector) + "</div>" + basisHTML(r) + "</div>";
+  } else if (r.kind === "partial"){
+    h += '<div class="panel"><span class="verdict v-bad">No balancing uses every species</span><p>The null space has dimension ' + r.nullity + ", but no combination of its vectors gives every species a positive coefficient: " + names(sps, r.uncovered) + (r.uncovered.length === 1 ? " is always zero or on the wrong side" : " are always zero or on the wrong side") + ".</p>";
+    if (r.feasible.length){
+      h += "<p>These smaller balancings do exist (each leaves some species out):</p><ol class='eqs'>";
+      r.feasible.forEach(function(v){ h += "<li>" + plain(sps, v) + "</li>"; });
+      h += "</ol>";
+    } else h += "<p>None of the minimal balancings has all its coefficients on the sides you wrote.</p>";
+    h += basisHTML(r) + "</div>";
+  }
+  return h;
+}
+
+function run(src){
+  var r;
+  try { r = B.balance(src); } catch (e) { r = { error: "Something went wrong reading that (" + e.message + ")." }; }
+  $("result").innerHTML = render(r);
+  return r;
+}
+
+/* ---- examples ---- */
+var EXAMPLES = [
+  ["Propane burning", "C3H8 + O2 -> CO2 + H2O"],
+  ["Rusting iron", "Fe + O2 -> Fe2O3"],
+  ["Lime and phosphoric acid", "Ca(OH)2 + H3PO4 -> Ca3(PO4)2 + H2O"],
+  ["Hydrated copper sulfate", "CuSO4.5H2O -> CuSO4 + H2O"],
+  ["Copper and silver ions (needs charge)", "Cu + Ag^+ -> Cu^2+ + Ag"],
+  ["Dichromate and iron(II)", "Cr2O7^2- + Fe^2+ + H^+ -> Cr^3+ + Fe^3+ + H2O"],
+  ["Permanganate and hydrochloric acid", "KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O"],
+  ["A large one (nine species)", "K4Fe(CN)6 + KMnO4 + H2SO4 -> KHSO4 + Fe2(SO4)3 + MnSO4 + HNO3 + CO2 + H2O"]
+];
+var CASES = [
+  ["Two independent answers: copper and nitric acid", "Cu + HNO3 -> Cu(NO3)2 + NO + NO2 + H2O", "Both NO and NO2 can form, and the ratio between them is not fixed by atom counting. Each elementary balancing makes only one of them."],
+  ["Two independent answers: permanganate and peroxide", "MnO4^- + H2O2 + H^+ -> Mn^2+ + O2 + H2O", "The two elementary balancings are peroxide splitting on its own and permanganate giving off O2 with no peroxide at all. The textbook 2 : 5 : 6 answer is one particular mix of them (it is in the exhaustive list when you open it); atom and charge counting alone does not prefer it. Charge is one of the rows."],
+  ["No answer at all", "CH4 + O2 -> CO2", "The hydrogen in methane has nowhere to go. No coefficients fix that."],
+  ["Balances, but only with a species on the other side", "H2 + H2O -> O2", "The one balancing wants water as a product and oxygen as a reactant: the equation was written the wrong way round."],
+  ["An extra species that cannot take part", "Fe + O2 -> Fe2O3 + NaCl", "Sodium and chlorine appear only on the right, so NaCl's coefficient is forced to 0."],
+  ["Balanced, and not chemistry", "Na + Cl2 -> NaCl2", "The arithmetic is perfectly happy. The compound NaCl2 is not what happens. The method checks atoms, not nature."]
+];
+$("maxsp").textContent = B.MAX_SPECIES; $("nsym").textContent = B.SYMBOLS.length;
+var sel = $("pick");
+var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choose…"; sel.appendChild(o0);
+EXAMPLES.forEach(function(e, i){ var o = document.createElement("option"); o.value = String(i); o.textContent = e[0]; sel.appendChild(o); });
+sel.addEventListener("change", function(){ if (sel.value === "") return; var s = EXAMPLES[+sel.value][1]; $("eq").value = s; run(s); });
+$("form").addEventListener("submit", function(ev){ ev.preventDefault(); sel.value = ""; run($("eq").value); });
+
+function summary(r){
+  if (r.error) return r.error;
+  var k = r.kind, sps = r.species;
+  if (k === "impossible") return "Computed: null space dimension 0. " + "No balancing.";
+  if (k === "unique") return "Computed: null space dimension 1. One balancing: " + plain(sps, r.coef);
+  if (k === "multiple") return "Computed: null space dimension " + r.nullity + ". " + plural(r.feasible.length, "elementary balancing", "elementary balancings") + ", and infinitely many mixes. The page picks one that uses everything: " + plain(sps, r.coef);
+  if (k === "wrongside") return "Computed: null space dimension 1, but the vector has mixed signs: " + names(sps, r.vector.map(function(x, j){ return x < 0n ? j : -1; }).filter(function(j){ return j >= 0; })) + " would have to switch sides.";
+  if (k === "zero") return "Computed: null space dimension 1, with coefficient 0 for " + names(sps, r.vector.map(function(x, j){ return x === 0n ? j : -1; }).filter(function(j){ return j >= 0; })) + ".";
+  return "Computed: null space dimension " + r.nullity + ", but " + names(sps, r.uncovered) + " cannot all be positive.";
+}
+var cd = $("cases");
+CASES.forEach(function(c, i){
+  var r = B.balance(c[1]);
+  var d = document.createElement("div"); d.className = "case";
+  d.innerHTML = "<h3>" + esc(c[0]) + '</h3><div class="src">' + esc(c[1]) + '</div><p class="small" style="margin:6px 0">' + esc(c[2]) + '</p><div class="out small">' + summary(r) + '</div><button type="button" data-i="' + i + '">Open in the box above</button>';
+  cd.appendChild(d);
+});
+cd.addEventListener("click", function(ev){
+  var b = ev.target.closest("button[data-i]"); if (!b) return;
+  var s = CASES[+b.getAttribute("data-i")][1]; $("eq").value = s; sel.value = ""; run(s);
+  $("eq").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+});
+
+/* ---- self-test: typed reference answers ---- */
+var REF = [
+  ["H2 + O2 -> H2O", [2,1,2]],
+  ["C3H8 + O2 -> CO2 + H2O", [1,5,3,4]],
+  ["Fe + O2 -> Fe2O3", [4,3,2]],
+  ["Ca(OH)2 + H3PO4 -> Ca3(PO4)2 + H2O", [3,2,1,6]],
+  ["C6H12O6 + O2 -> CO2 + H2O", [1,6,6,6]],
+  ["Al + HCl -> AlCl3 + H2", [2,6,2,3]],
+  ["CuSO4.5H2O -> CuSO4 + H2O", [1,1,5]],
+  ["Cu + Ag^+ -> Cu^2+ + Ag", [1,2,1,2]],
+  ["KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O", [2,16,2,2,5,8]],
+  ["Cr2O7^2- + Fe^2+ + H^+ -> Cr^3+ + Fe^3+ + H2O", [1,6,14,2,6,7]],
+  ["K4Fe(CN)6 + KMnO4 + H2SO4 -> KHSO4 + Fe2(SO4)3 + MnSO4 + HNO3 + CO2 + H2O", [10,122,299,162,5,122,60,60,188]]
+];
+var KINDS = [
+  ["CH4 + O2 -> CO2", "impossible"],
+  ["Cu + HNO3 -> Cu(NO3)2 + NO + NO2 + H2O", "multiple"],
+  ["MnO4^- + H2O2 + H^+ -> Mn^2+ + O2 + H2O", "multiple"],
+  ["H2 + H2O -> O2", "wrongside"],
+  ["Fe + O2 -> Fe2O3 + NaCl", "zero"],
+  ["Na + Cl2 -> NaCl2", "unique"]
+];
+function selftest(){
+  var pass = 0, total = 0, rows = [];
+  REF.forEach(function(t){
+    var r = B.balance(t[0]), ok = r.kind === "unique" && r.coef.join() === t[1].join() && r.checks.every(function(c){ return c.ok !== false; });
+    total++; if (ok) pass++;
+    rows.push("<li class='" + (ok ? "pass" : "fail") + "'>" + esc(t[0]) + " &rarr; " + (r.coef ? r.coef.join(", ") : esc(r.kind || r.error)) + "</li>");
+  });
+  KINDS.forEach(function(t){
+    var r = B.balance(t[0]), ok = r.kind === t[1];
+    total++; if (ok) pass++;
+    rows.push("<li class='" + (ok ? "pass" : "fail") + "'>" + esc(t[0]) + " &rarr; " + esc(r.kind) + " (expected " + t[1] + ")</li>");
+  });
+  $("stsum").textContent = "Self-test: " + pass + " of " + total + " cases agree" + (pass === total ? "" : " (some do not; see inside)");
+  $("stbody").innerHTML = "<ul class='checks'>" + rows.join("") + "</ul>";
+}
+selftest();
+run($("eq").value);
+})();
+</script>
+</body>
+</html>

@@ -81,7 +81,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    (background loop) and report the pass count per file ("world 5/5"); one green run is not a pass. Any failure in
    those runs is a bug until its cause is found in the code or the log: never call it a network or WebRTC flake
    without evidence (presence failed 1 in 5, was dismissed as flake, and was a real bug stranding about 1% of
-   spawns). A check that
+   spawns). Run the 5x loop once, after the code is final, one file at a time, with no stress harness, build or
+   other browser running alongside; a failure seen only under extra load is named as such, then re-checked alone
+   (2026-10-16: loops overlapped stress runs, failures came from load, and the game step took about 2 h 40 min).
+   Report the loop's own count lines, never output cut by `tail`. A check that
    reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or
    waits until it settles, never one exact pixel (world.test read one minimap pixel at the reported position while
    the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run). When a feature holds or
@@ -89,7 +92,8 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    one when full or expired, including a peer leaving midway: a full list refuses new entries, it never drops an old
    one. Write "never lost" or any other absolute promise only when a test covers every one of those paths (milestone
    4: a capped expected-gifts list silently dropped its oldest entry and the page said "never lost", review only).
-4. Update ROADMAP.md (mark the item done, choose and mark the next) and add a CHANGELOG.md entry headed
+4. Update ROADMAP.md (mark the item done, choose and mark the next), the milestone number and summary in
+   `game/README.md` (it still said "milestone 5" after milestone 6), and add a CHANGELOG.md entry headed
    `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
    **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,
    no file names, protocols or test details. Put technical detail in separate bullets such as **Network:** and

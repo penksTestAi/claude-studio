@@ -1,7 +1,7 @@
 # The Long Watch
 
 A multiplayer game that grows one small piece per run: an island at night and the people who keep its
-lanterns. Right now (milestone 5) players pick one of six lantern rooms, walk the seeded island with its seven landmarks
+lanterns. Right now (milestone 6) players pick one of six lantern rooms, walk the seeded island with its seven landmarks
 (old beacons, a ruined lighthouse, a jetty, a well) and a minimap, in light that changes through an eight-hour night,
 see everyone else in the same room move (footsteps are available and off by default), and talk with 5 gestures and 16 preset phrases (ids only, never typed text), with arrows
 at the screen edge pointing to players who are off screen. They gather driftwood, reeds and oil berries, give them to each other, and craft wicks and amber, jade or azure lanterns whose light reaches further for everyone nearby. Peer to peer over WebRTC (Trystero, signalling through public Nostr relays; the owner has played it online on an earlier version; this milestone is

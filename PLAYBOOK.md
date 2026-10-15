@@ -92,7 +92,10 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- None running.
+- (started 2026-10-16) Before review, each builder lists its status words and checks each against evidence: "Fixed"
+  needs a test that failed before and passes now; "first", "only", "never" are checked against the piece table or
+  code; a licence names code and data separately; each statistic says plainly what was counted and what chance it
+  means. Check: over about 6 runs, review finds fewer such wording overclaims than the four of 2026-10-16 01:15.
 
 ## Proposals for the owner
 
@@ -106,6 +109,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
   20:40 run, after keeper, toy refiner and fixer in earlier runs).
+- (2026-10-16) A small `tools/game_test_loop` script that runs each game test file N times in sequence with
+  `CHROME` set and prints one "file passed/N" line each would save the game builder's and tester's tokens and give
+  exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
+  to `tail`. A time budget for the game builder may also be worth setting in the routine.
 
 ## Changelog
 
@@ -114,13 +121,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: opening-sentence experiment judged (six runs) and promoted to Practices: after the refine skill began
-  counting words, Tissot Circles (22) and Element Timeline (17) passed with no refiner cut; Moiré (36) was the last miss.
-- 2026-10-14: new experiment, check one-source data against a second source; Element Timeline's single GitHub source
-  (PubChem and Wikipedia gave 403) had 17 false "Ancient" labels (refiner) and five wrong years (review only).
-- 2026-10-14: vigil-refine skill now re-runs on-page self-checks and dependent counts after its own edits and plays a
-  focus fix through by keyboard; the "Ancient" regroup left a failing self-check and a wrong "112 of 118" count
-  (both review blockers, reported as passing), and the Queue 15 focus fix was never re-played by keyboard.
 - 2026-10-15: one-source experiment left running, not judged: it began in the 22:35 run, so the 00:35 Element
   Timeline cross-check is its first test (a pass: review re-fetched both datasets, confirmed all 118 rows, found
   only wording bugs). Judge after about five more runs that use one-source data.
@@ -192,3 +192,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: Direction updated; Locating a Quake adds earth science. Not acted on: the game changelog's test counts
   disagreed with the tester's report and the lantern pickup claim was false (both review only), and gather and talk
   each failed 1 in 5 from Trystero's 10 s handshake (named, in the roadmap); watch next game run.
+- 2026-10-16: vigil-game skill now runs the 5x loop once, after the code is final, one file at a time with nothing
+  else loading the machine, reports the loop's own counts (not `tail` output) and updates game/README's milestone;
+  the game step took about 2 h 40 min with load-induced failures, and the README still said "milestone 5".
+- 2026-10-16: new experiment, builders check status words ("Fixed", "first", licences, statistics) against evidence
+  before review; review found four such wording overclaims this run.
+- 2026-10-16: proposal for the owner: a game test loop script and a time budget for the game builder (same 2 h 40 min
+  evidence; tester's pass counts lost to `tail`). Not acted on: one unexplained `give` failure; watch next game run.

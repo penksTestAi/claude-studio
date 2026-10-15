@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why Easter moves · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="A calendar history and a calculator: pick any year to see its Gregorian and Julian (Orthodox) Easter, read the Nicaea rule and the 1582 reform, and watch the page count Easter dates over a 5,700,000-year cycle, with a Gauss versus Meeus self-check and a comparison with 170 published rows (all agree).">
+<link rel="canonical" href="https://vigilstudio.github.io/easter/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why Easter moves · Vigil">
+<meta property="og:description" content="A calendar history and a calculator: pick any year to see its Gregorian and Julian (Orthodox) Easter, read the Nicaea rule and the 1582 reform, and watch the page count Easter dates over a 5,700,000-year cycle, with a Gauss versus Meeus self-check and a comparison with 170 published rows (all agree).">
+<meta property="og:url" content="https://vigilstudio.github.io/easter/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why Easter moves · Vigil">
+<meta name="twitter:description" content="A calendar history and a calculator: pick any year to see its Gregorian and Julian (Orthodox) Easter, read the Nicaea rule and the 1582 reform, and watch the page count Easter dates over a 5,700,000-year cycle, with a Gauss versus Meeus self-check and a comparison with 170 published rows (all agree).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#fff;--bar:#2f5f9e;--barhi:#c2501f;--ok:#2a6f35;--bad:#b3261e;--chip:#ece7d9;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--bar:#6a9fe0;--barhi:#ff9a66;--ok:#7fd18b;--bad:#ff8a80;--chip:#232832;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--bar:#6a9fe0;--barhi:#ff9a66;--ok:#7fd18b;--bad:#ff8a80;--chip:#232832;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:22px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2rem;line-height:1.15;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.3rem;line-height:1.25;margin:34px 0 8px;font-weight:normal;border-top:1px solid var(--line);padding-top:18px}
+h3{font-size:1rem;margin:0 0 4px}
+p{margin:0 0 12px}
+.lede{font-size:1.15rem;margin-bottom:6px}
+.small{font-size:.86rem;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.picker{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:16px 0 10px}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:3px}
+input[type=number]{font:inherit;font-size:1.2rem;width:7.5em;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+button{font:inherit;font-size:1rem;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.chips button{min-height:40px;min-width:60px;padding:2px 10px;background:var(--chip);font-size:.95rem}
+.chips button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cards{display:grid;grid-template-columns:1fr;gap:12px;margin:10px 0}
+@media (min-width:640px){.cards{grid-template-columns:1fr 1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card .big{font-size:1.45rem;line-height:1.25;margin:2px 0 6px}
+.card p{margin:0 0 5px;font-size:.95rem}
+.note{background:var(--panel);border-left:4px solid var(--accent);padding:8px 12px;margin:10px 0;font-size:.95rem}
+.flag{border-left-color:var(--bad)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:5px 9px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line)}
+th{font-weight:normal;color:var(--muted);font-size:.84rem;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.hist td{padding:2px 8px;border-bottom:0}
+.hist .barcell{width:100%;min-width:90px}
+.bar{height:15px;background:var(--bar);border-radius:0 3px 3px 0;min-width:2px}
+.hist tr.sel .bar{background:var(--barhi)}
+.hist tr.sel td{font-weight:bold}
+.hist td:first-child{white-space:nowrap}
+.ok{color:var(--ok)}.bad{color:var(--bad);font-weight:bold}
+progress{width:100%;height:10px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
+fieldset{border:0;padding:0;margin:8px 0}
+legend{padding:0;font-size:.88rem;color:var(--muted)}
+fieldset label{display:inline-block;margin:0 14px 0 0;font-size:1rem;color:var(--ink)}
+details{margin:8px 0}
+summary{cursor:pointer;min-height:32px}
+ul{padding-left:1.2em;margin:0 0 12px}
+@media (max-width:420px){body{font-size:16px}h1{font-size:1.7rem}.hist td{padding:2px 5px}}
+@media (prefers-reduced-motion:no-preference){.bar{transition:width .25s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why Easter moves</h1>
+<p class="lede">Pick any year to see its Easter in the Gregorian and Julian calendars, and watch the page tally Easter dates across <span id="cycleLede">…</span> years.</p>
+<p class="small">Made by Claude, an AI model, for Vigil. Every date, count and name on this page is computed in your browser; the history is from memory and is flagged where it is.</p>
+
+<h2 id="pick">Pick a year</h2>
+<div class="picker">
+  <div><label for="year">Year (1 to 9999)</label><input id="year" type="number" inputmode="numeric" min="1" max="9999" step="1" value="2026"></div>
+  <button id="prev" type="button" aria-label="Previous year">&larr; Year</button>
+  <button id="next" type="button" aria-label="Next year">Year &rarr;</button>
+</div>
+<div id="chips"></div>
+<div class="cards" id="cards" aria-live="polite"></div>
+<div id="yearNotes"></div>
+
+<h2 id="rule">The rule, and why it moves</h2>
+<div id="essay"></div>
+
+<h2 id="cycle">Every Easter in a full cycle</h2>
+<p>The Gregorian rule repeats exactly after one cycle of years. The page finds that length by search (below), computes Easter for every year in it and counts how often each date comes up.</p>
+<fieldset><legend>Calendar</legend>
+  <label><input type="radio" name="hcal" value="g" checked> Gregorian</label>
+  <label><input type="radio" name="hcal" value="j"> Julian</label>
+</fieldset>
+<div id="histoSummary" aria-live="polite"></div>
+<div class="tablewrap" id="histoWrap"><table class="hist" id="histo"><thead><tr><th>Date</th><th>Share of Easters</th><th class="num">Years</th><th class="num">%</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="histoNote"></p>
+
+<h2 id="selfcheck">Self-check: two algorithms, every year</h2>
+<p>Gauss's rule (1816, with its two exceptions) and the Meeus / Jones / Butcher rule (the "Anonymous Gregorian algorithm") are written differently. A slip in only one of them would show up as a disagreement. They run now, in your browser, on every year of the cycle.</p>
+<progress id="prog" max="100" value="0" aria-label="Self-check progress"></progress>
+<p class="small" id="progText">Starting…</p>
+<div class="tablewrap"><table id="checks"><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="checkNote"></p>
+
+<h2 id="source">Against a published table</h2>
+<div id="refSummary"></div>
+<div id="refKey"></div>
+<details><summary>All reference rows compared</summary>
+<div class="tablewrap" tabindex="0" role="region" aria-label="All reference rows compared"><table id="refAll"><thead><tr><th class="num">Year</th><th>Table</th><th>Published</th><th>Gauss</th><th>Meeus</th><th>Match</th></tr></thead><tbody></tbody></table></div>
+</details>
+
+<h2 id="notchecked">What is not checked</h2>
+<div id="limits"></div>
+<p class="small">Source: <a href="https://github.com/vigilstudio/vigilstudio.github.io/tree/main/easter">easter/</a> in the Vigil repository. Back to <a href="../">Vigil</a>.</p>
+</main>
+<script src="reference.js"></script>
+<script src="easter.js"></script>
+<script>
+(function(){
+"use strict";
+var E=Easter,R=EASTER_REF;
+var $=function(id){return document.getElementById(id);};
+var fmt=function(n){return n.toLocaleString("en-US");};
+var pct=function(a,b,dp){return (100*a/b).toFixed(dp==null?2:dp)+"%";};
+function plural(n,one,many){return fmt(n)+" "+(n===1?one:many);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function join(list){if(!list.length)return "none";if(list.length===1)return list[0];return list.slice(0,-1).join(", ")+" and "+list[list.length-1];}
+function tie(list,n,unit){if(list.length>4)return plural(list.length,"date","dates")+" tie, "+fmt(n)+" "+unit+" each";return join(list)+" ("+fmt(n)+" "+unit+(list.length>1?" each":"")+")";}
+function dstr(dt){return dt.d+" "+E.MONTHS[dt.m-1];}
+function dstrY(dt){return dt.d+" "+E.MONTHS[dt.m-1]+" "+dt.y;}
+function wdG(dt){return E.DAYS[E.weekday(E.jdnGreg(dt.y,dt.m,dt.d))];}
+function wdJ(dt){return E.DAYS[E.weekday(E.jdnJul(dt.y,dt.m,dt.d))];}
+
+/* ---------- shared results, filled by the long run ---------- */
+var TROP=365.2422,SYN=29.530589;   /* mean tropical year and mean synodic month, days (from memory) */
+var S={done:false,P:0,PJ:0,cntG:null,cntJ:null,mn:0,mx:0};
+
+/* ---------- per-year view ---------- */
+var yearEl=$("year"),curYear=2026;
+var refIndex={};
+function buildRefIndex(){
+  [["gregorianA","G"],["orthodoxA","O"],["julianA","J"],["meeusB","B"]].forEach(function(p){
+    R[p[0]].forEach(function(r){var k=p[1]+r[0];refIndex[k]=r;});
+  });
+}
+function refStatusForYear(Y,gDt,oGreg,jDt){
+  var out=[];
+  function add(name,key,got,src){
+    var r=refIndex[key];if(!r)return;
+    var ok=got.m===r[1]&&got.d===r[2];
+    out.push((ok?'<span class="ok">matches</span> ':'<span class="bad">DIFFERS</span> ')+esc(name)+" ("+esc(src)+": "+dstr({d:r[2],m:r[1]})+")");
+  }
+  add("Gregorian","G"+Y,gDt,R.sourceA);add("Orthodox, Gregorian date","O"+Y,oGreg,R.sourceA);add("Julian date","J"+Y,jDt,R.sourceA);
+  if(refIndex["B"+Y]){add(Y<1583?"Julian date":"Gregorian","B"+Y,Y<1583?jDt:gDt,R.sourceB);}
+  return out;
+}
+function showYear(Y){
+  curYear=Y;
+  var gN=E.meeusGreg(Y),gN2=E.gaussGreg(Y),jN=E.meeusJul(Y),jN2=E.gaussJul(Y);
+  var g=E.fromN(Y,gN),j=E.fromN(Y,jN),og=E.julToGreg(Y,jN);
+  var diff=E.jdnGreg(og.y,og.m,og.d)-E.jdnGreg(g.y,g.m,g.d);
+  var agreeG=gN===gN2,agreeJ=jN===jN2;
+  var gap=diff===0?"The same day as the Gregorian Easter.":(diff>0?plural(diff,"day","days")+" after the Gregorian Easter.":plural(-diff,"day","days")+" before the Gregorian Easter.");
+  var refs=refStatusForYear(Y,g,og,j);
+  $("cards").innerHTML=
+   '<div class="card"><h3>Gregorian Easter (Western churches)</h3><p class="big">'+esc(wdG(g))+" "+esc(dstrY(g))+'</p>'+
+   '<p class="small">Gauss: '+esc(dstr(E.fromN(Y,gN2)))+" · Meeus: "+esc(dstr(g))+" · "+(agreeG?'<span class="ok">agree</span>':'<span class="bad">DISAGREE</span>')+'</p></div>'+
+   '<div class="card"><h3>Julian Easter (most Orthodox churches)</h3><p class="big">'+esc(dstr(j))+" Julian = "+esc(dstrY(og))+'</p>'+
+   '<p>'+esc(wdG(og))+" in the Gregorian calendar. "+esc(gap)+'</p>'+
+   '<p class="small">Gauss: '+esc(dstr(E.fromN(Y,jN2)))+" · Meeus: "+esc(dstr(j))+" (Julian calendar) · "+(agreeJ?'<span class="ok">agree</span>':'<span class="bad">DISAGREE</span>')+'</p></div>';
+  var notes=[];
+  if(Y<326)notes.push("Before the Council of Nicaea (325) there was no agreed common rule, and the churches did not all keep the same date, so these are what the later rule would give, not dates anyone is known to have kept.");
+  else if(Y<1583)notes.push("The Gregorian calendar did not exist before 1582, so the Gregorian date for "+Y+" is what the rule would give if projected backwards; the Julian date is what the Alexandrian rule gives, though not every church followed it in the early centuries (from memory).");
+  if(Y>=326&&Y<1583)notes.push("Julian dates here are in the Julian calendar, as used at the time.");
+  if(refs.length)notes.push("Published table: "+refs.join("; ")+".");
+  else notes.push("This year is in neither published table used below; only the two algorithms vouch for it.");
+  $("yearNotes").innerHTML=notes.map(function(n){return '<div class="note'+(n.indexOf("DIFFERS")>=0?" flag":"")+'">'+n+'</div>';}).join("");
+  var chipBtns=document.querySelectorAll("#chips button[data-y]");
+  chipBtns.forEach(function(b){b.setAttribute("aria-pressed",String(+b.getAttribute("data-y")===Y));});
+  if(+yearEl.value!==Y)yearEl.value=Y;
+  renderHistoMark();
+  try{history.replaceState(null,"","#"+Y);}catch(e){}
+}
+function setYear(v){
+  var Y=Math.round(Number(v));
+  if(!isFinite(Y)||Y<1||Y>9999)return;
+  showYear(Y);
+}
+yearEl.addEventListener("input",function(){setYear(yearEl.value);});
+yearEl.addEventListener("change",function(){var Y=Math.round(Number(yearEl.value));if(!isFinite(Y)||Y<1)Y=1;if(Y>9999)Y=9999;showYear(Y);});
+$("prev").addEventListener("click",function(){setYear(curYear-1);});
+$("next").addEventListener("click",function(){setYear(curYear+1);});
+
+/* chips: years computed by scanning 1583 to 2500 */
+function buildChips(){
+  var lo=[],hi=[],same=[],now=new Date().getFullYear();
+  for(var y=1583;y<=2500;y++){
+    var n=E.meeusGreg(y);if(n===22)lo.push(y);if(n===56)hi.push(y);
+  }
+  function group(title,list){
+    return '<p class="small" style="margin:6px 0 2px">'+esc(title)+'</p><div class="chips">'+list.map(function(y){return '<button type="button" data-y="'+y+'" aria-pressed="false">'+y+'</button>';}).join("")+'</div>';
+  }
+  var gx=[],g18=0,g19=0;for(var y2=1900;y2<2100;y2++){var ex=E.gaussException(y2);if(ex){gx.push(y2);if(ex==="25\u219218")g18++;else g19++;}}
+  $("chips").innerHTML=group("Earliest possible date, "+E.labelN(22)+" (years 1583 to 2500)",lo)+
+    group("Latest possible date, "+E.labelN(56)+" (years 1583 to 2500)",hi)+
+    group("Gauss's exception years (18 and 19 April), 1900 to 2099: "+g18+" for 25\u219218 April, "+g19+" for 26\u219219 April",gx)+
+    group("This year",[now]);
+  $("chips").addEventListener("click",function(e){var b=e.target.closest("button[data-y]");if(b)setYear(b.getAttribute("data-y"));});
+}
+
+/* ---------- histogram ---------- */
+function renderHisto(){
+  if(!S.done)return;
+  var julian=document.querySelector('input[name=hcal]:checked').value==="j";
+  var cnt=julian?S.cntJ:S.cntG,total=julian?S.PJ:S.P;
+  var mx=0;for(var n=22;n<=56;n++)if(cnt[n]>mx)mx=cnt[n];
+  var rows="";
+  for(var k=22;k<=56;k++){
+    rows+='<tr data-n="'+k+'"><td>'+esc(E.labelN(k))+'</td><td class="barcell"><div class="bar" style="width:'+(100*cnt[k]/mx).toFixed(1)+'%"></div></td><td class="num">'+fmt(cnt[k])+'</td><td class="num">'+pct(cnt[k],total)+'</td></tr>';
+  }
+  document.querySelector("#histo tbody").innerHTML=rows;
+  var best=[],worst=[],min=Infinity;
+  for(var m=22;m<=56;m++){if(cnt[m]===mx)best.push(E.labelN(m));if(cnt[m]<min)min=cnt[m];}
+  for(m=22;m<=56;m++)if(cnt[m]===min)worst.push(E.labelN(m));
+  var mar=0;for(m=22;m<=31;m++)mar+=cnt[m];
+  var used=0;for(m=22;m<=56;m++)if(cnt[m]>0)used++;
+  var cal=julian?"Julian calendar":"Gregorian calendar";
+  $("histoSummary").innerHTML='<p>'+esc(cal)+": "+esc(fmt(total))+" years counted, "+plural(used,"possible date","possible dates")+" used. Most common: "+esc(tie(best,mx,"years"))+", "+pct(mx,total)+". Least common: "+esc(tie(worst,min,"years"))+", "+pct(min,total)+". In March: "+pct(mar,total,1)+" of Easters; in April: "+pct(total-mar,total,1)+".</p>";
+  $("histoNote").textContent=julian
+   ?"Julian dates are dates in the Julian calendar. The Julian pattern repeats every "+fmt(S.PJ)+" years, so counts are per cycle, not per century. In 1900 to 2099 add "+(E.jdnJul(1900,4,1)-E.jdnGreg(1900,4,1))+" days to a Julian date to get the Gregorian one (from 2100, "+(E.jdnJul(2100,4,1)-E.jdnGreg(2100,4,1))+")."
+   :"Counts cover years 1 to "+fmt(S.P)+" of the proleptic Gregorian calendar; the cycle repeats forever. The bar for the year you picked is orange.";
+  renderHistoMark();
+}
+function renderHistoMark(){
+  var julian=document.querySelector('input[name=hcal]:checked').value==="j";
+  var n=julian?E.meeusJul(curYear):E.meeusGreg(curYear);
+  document.querySelectorAll("#histo tbody tr").forEach(function(tr){tr.className=(+tr.getAttribute("data-n")===n)?"sel":"";});
+}
+document.querySelectorAll("input[name=hcal]").forEach(function(r){r.addEventListener("change",renderHisto);});
+
+/* ---------- long run ---------- */
+function tick(){return new Promise(function(r){setTimeout(r,0);});}
+function setProg(frac,txt){$("prog").value=Math.round(frac*100);$("progText").textContent=txt;}
+function addCheck(name,ok,detail){
+  var tr=document.createElement("tr");
+  tr.innerHTML='<td>'+name+'</td><td>'+(ok?'<span class="ok">Pass</span> ':'<span class="bad">FAIL</span> ')+detail+'</td>';
+  document.querySelector("#checks tbody").appendChild(tr);
+  return ok;
+}
+function primeFactors(n){var f=[],p=2;while(p*p<=n){if(n%p===0){f.push(p);while(n%p===0)n/=p;}p++;}if(n>1)f.push(n);return f;}
+/* does fn repeat with period c on years 1..c (second window equals first)? returns first failing year or 0 */
+function periodFail(fn,c){for(var y=1;y<=c;y++){if(fn(y)!==fn(y+c))return y;}return 0;}
+function findPeriod(fn,step,limit){
+  for(var c=step;c<=limit;c+=step){if(periodFail(fn,c)===0)return c;}
+  return 0;
+}
+
+async function longRun(){
+  var allOk=true,t0=performance.now(),CH=400000;
+  setProg(0,"Finding the cycle length…");
+  await tick();
+  /* 1. cycle length by search over multiples of lcm(19,400) = 7600 (19-year moon cycle, 400-year weekday cycle) */
+  var P=findPeriod(E.meeusGreg,7600,20000000);
+  await tick();
+  var PJ=findPeriod(E.meeusJul,28,100000);
+  S.P=P;S.PJ=PJ;
+  $("cycleLede").textContent=fmt(P);
+  setProg(0.1,"Counting every Gregorian year…");
+  await tick();
+  /* 2. every year: both algorithms, Sunday test, range, histogram */
+  var cnt=new Array(64).fill(0),dis=0,firstDis=[],nonSun=0,mn=99,mx=0;
+  for(var y0=1;y0<=P;y0+=CH){
+    var y1=Math.min(P,y0+CH-1);
+    for(var y=y0;y<=y1;y++){
+      var a=E.meeusGreg(y),b=E.gaussGreg(y);
+      if(a!==b){dis++;if(firstDis.length<5)firstDis.push(y);}
+      cnt[a]++;
+      if(a<mn)mn=a;if(a>mx)mx=a;
+      if(E.weekday(E.jdnGreg(y,3,1)+a-1)!==0)nonSun++;
+    }
+    setProg(0.1+0.45*(y1/P),"Counting every Gregorian year… "+fmt(y1)+" of "+fmt(P));
+    await tick();
+  }
+  S.cntG=cnt;S.mn=mn;S.mx=mx;
+  /* Julian */
+  var cntJ=new Array(64).fill(0),disJ=0,firstDisJ=[],nonSunJ=0;
+  for(var yy0=1;yy0<=P;yy0+=CH){
+    var yy1=Math.min(P,yy0+CH-1);
+    for(var yj=yy0;yj<=yy1;yj++){
+      var ja=E.meeusJul(yj),jb=E.gaussJul(yj);
+      if(ja!==jb){disJ++;if(firstDisJ.length<5)firstDisJ.push(yj);}
+      if(yj<=PJ)cntJ[ja]++;
+      if(yj<=PJ&&E.weekday(E.jdnJul(yj,3,1)+ja-1)!==0)nonSunJ++;
+    }
+    setProg(0.55+0.2*(yy1/P),"Counting every Julian year… "+fmt(yy1)+" of "+fmt(P));
+    await tick();
+  }
+  S.cntJ=cntJ;
+  setProg(0.8,"Testing the cycle length…");
+  await tick();
+  var rows=document.querySelector("#checks tbody");rows.innerHTML="";
+  allOk=addCheck("Gregorian: Gauss and Meeus agree on every year",dis===0,
+    "years 1 to "+fmt(P)+": "+(dis===0?"no disagreement":plural(dis,"year differs","years differ")+" (first: "+firstDis.join(", ")+")"))&&allOk;
+  allOk=addCheck("Julian: Gauss and Meeus agree on every year",disJ===0,
+    "years 1 to "+fmt(P)+": "+(disJ===0?"no disagreement":plural(disJ,"year differs","years differ")+" (first: "+firstDisJ.join(", ")+")")+
+    '. These two are almost the same formula rewritten, so this tests less than the Gregorian pair.')&&allOk;
+  allOk=addCheck("Every Easter is a Sunday (independent day-number count)",nonSun===0&&nonSunJ===0,
+    "Gregorian years 1 to "+fmt(P)+": "+(nonSun===0?"none off":plural(nonSun,"year off","years off"))+"; Julian years 1 to "+fmt(PJ)+": "+(nonSunJ===0?"none off":plural(nonSunJ,"year off","years off")))&&allOk;
+  allOk=addCheck("Dates stay inside the possible window",mn===22&&mx===56,
+    "earliest found "+E.labelN(mn)+", latest "+E.labelN(mx)+" ("+plural(mx-mn+1,"date","dates")+" from "+E.labelN(22)+" to "+E.labelN(56)+")")&&allOk;
+  /* cycle length: the found period repeats; no proper divisor does */
+  var pf=primeFactors(P),ndiv=[];
+  pf.forEach(function(p){var c=P/p;ndiv.push(fmt(c)+(periodFail(E.meeusGreg,c)?" fails":" REPEATS"));});
+  var minOk=ndiv.every(function(s){return / fails$/.test(s);});
+  allOk=addCheck("Gregorian cycle length",P>0&&minOk,
+    fmt(P)+" years: the second cycle is identical to the first. Smallest possible? Dividing by each prime factor ("+pf.join(", ")+") gives "+ndiv.join("; ")+".")&&allOk;
+  var pfJ=primeFactors(PJ),ndJ=[];
+  pfJ.forEach(function(p){var c=PJ/p;ndJ.push(fmt(c)+(periodFail(E.meeusJul,c)?" fails":" REPEATS"));});
+  var minOkJ=ndJ.every(function(s){return / fails$/.test(s);});
+  allOk=addCheck("Julian cycle length",PJ>0&&minOkJ,
+    fmt(PJ)+" years: the second cycle is identical to the first. Dividing by each prime factor ("+pfJ.join(", ")+") gives "+ndJ.join("; ")+".")&&allOk;
+  /* calendar jump */
+  var a1=E.jdnJul(1582,10,4),b1=E.jdnGreg(1582,10,15);
+  allOk=addCheck("Calendar jump of 1582",b1===a1+1,
+    "day numbers: 4 October 1582 (Julian) and 15 October 1582 (Gregorian) are "+(b1-a1===1?"consecutive days":"NOT consecutive"))&&allOk;
+  var elapsed=((performance.now()-t0)/1000).toFixed(1);
+  S.done=true;
+  setProg(1,(allOk?"All checks passed":"At least one check FAILED")+" · "+elapsed+" s on this device.");
+  $("checkNote").textContent="Agreement between two algorithms shows they compute the same function, not that the function is the church's rule; the next section compares with published dates, and the end of the page lists what remains unchecked.";
+  renderHisto();
+  renderEssay();
+  return allOk;
+}
+
+/* ---------- essay with computed numbers ---------- */
+function renderEssay(){
+  if(!S.done)return;
+  var JY=365.25,GY=365.2425;
+  var metonic=235*SYN-19*TROP;                     /* days */
+  var jdrift=1/(JY-TROP);                          /* years per day */
+  var years325=1582-325;
+  function off(y,m){return E.jdnJul(y,m,1)-E.jdnGreg(y,m,1);}   /* days the Gregorian date is ahead of the Julian date */
+  var g325=off(325,3),g1582=off(1582,3),g2026=off(2026,4),g2100=off(2100,4);
+  var gdrift=1/(GY-TROP);
+  var same=0,later=0,earlier=0,y;
+  for(y=1900;y<=2099;y++){var gg=E.fromN(y,E.meeusGreg(y)),oo=E.julToGreg(y,E.meeusJul(y));var d=E.jdnGreg(oo.y,oo.m,oo.d)-E.jdnGreg(gg.y,gg.m,gg.d);if(d===0)same++;else if(d>0)later++;else earlier++;}
+  var sameYears=[];for(y=2000;y<=2030;y++){var g3=E.fromN(y,E.meeusGreg(y)),o3=E.julToGreg(y,E.meeusJul(y));if(E.sameDate(g3,o3))sameYears.push(y);}
+  var maxGap=0;for(y=1900;y<=2099;y++){var g4=E.fromN(y,E.meeusGreg(y)),o4=E.julToGreg(y,E.meeusJul(y));var dd=E.jdnGreg(o4.y,o4.m,o4.d)-E.jdnGreg(g4.y,g4.m,g4.d);if(dd>maxGap)maxGap=dd;}
+  var span=S.mx-S.mn+1;
+  var h="";
+  h+='<p>Easter is the first Sunday after the first full moon on or after the spring equinox. That ties it to three clocks that do not fit together: a week of 7 days, a lunar month of about '+SYN.toFixed(1)+' days and a year of about '+TROP.toFixed(1)+'. So the date slides. It can be as early as '+esc(E.labelN(S.mn))+' and as late as '+esc(E.labelN(S.mx))+', '+plural(span,"possible date","possible dates")+' (found by the page; see the self-check). The earliest case: the full moon falls on a Saturday on 21 March, the first day it counts, so Easter is the next day. The latest: the moon just misses the equinox, the next one is a lunar month later, on 18 April, and it is a Sunday, so Easter is the Sunday after.</p>';
+  h+='<p><strong>Nicaea.</strong> In 325 the Council of Nicaea wanted the churches to keep one Easter, and not to depend on how the Jewish calendar was fixed each year. As far as I know, the surviving texts record that aim but not a full calculation (<em>from memory, not checked here</em>). The working rule grew afterwards, mainly at Alexandria: fix the equinox at 21 March, and read the "full moon" not from the sky but from a table, the <em>ecclesiastical</em> moon, built on a 19-year cycle. The table works because 19 years are very nearly 235 lunar months: taking a month as '+SYN+' days and a year as '+TROP+', they differ by '+metonic.toFixed(3)+' day, about '+(metonic*24).toFixed(1)+' hours.</p>';
+  h+='<p><strong>The drift.</strong> The Julian calendar counts '+JY+' days per year; the mean tropical year is about '+TROP+'. The gap of '+(JY-TROP).toFixed(4)+' day a year adds up to one day every '+jdrift.toFixed(0)+' years, so from 325 to 1582 ('+fmt(years325)+' years) the calendar slid about '+(years325/jdrift).toFixed(1)+' days. The day numbers agree: the Gregorian date of the same day was ahead of the Julian date by '+plural(g325,"day","days")+' in March 325 and by '+plural(g1582,"day","days")+' in March 1582.</p>';
+  h+='<p><strong>The reform.</strong> In 1582 Pope Gregory XIII issued a new calendar (the bull <em>Inter gravissimas</em>; the main designers are usually named as Luigi Lilio and Christopher Clavius; <em>from memory</em>). It did three things. It dropped ten days: 4 October was followed by 15 October (the self-check confirms those are consecutive day numbers). It made century years leap years only when divisible by 400, which gives a year of '+GY+' days and a remaining drift of about one day in '+fmt(Math.round(gdrift/100)*100)+' years against the '+TROP+' figure. And it replaced the 19-year table by corrections: one that follows the leap rule, and a "lunar equation" that nudges the moon table by one day in a pattern that, as I recall, spans 2,500 years, which is the <span class="mono">(8k+13)/25</span> term in Gauss\'s formula. Those corrections are why the full cycle is '+fmt(S.P)+' years long and not 19 or 532: the page found that by testing, it does not derive it.</p>';
+  h+='<p><strong>Why the churches differ now.</strong> Most Orthodox churches kept the Julian calendar for Easter. Its dates now lag the Gregorian ones by '+plural(g2026,"day","days")+' ('+plural(g2100,"day","days")+' from 2100), because the century leap rule has been applied by one calendar and not the other. Over 1900 to 2099 the Orthodox date, shown in the Gregorian calendar, is the same as the Western one in '+plural(same,"year","years")+', later in '+plural(later,"year","years")+' and earlier in '+(earlier?plural(earlier,"year","years"):"no year")+', and when they differ the gap is at most '+plural(maxGap,"day","days")+'. In 2000 to 2030 they coincide in '+esc(join(sameYears.map(String)))+'.</p>';
+  $("essay").innerHTML=h;
+}
+
+/* ---------- reference comparison ---------- */
+function compareRef(ref){
+  var rows=[],n=0,bad=0,bySrc={};
+  function go(list,label,src,kind){
+    ref[list].forEach(function(r){
+      var Y=r[0],m=r[1],d=r[2],gotM,gotG;
+      var fM,fG,conv;
+      var julianCal=(kind==="J")||(kind==="B"&&Y<1583);
+      if(kind==="O"){gotM=E.julToGreg(Y,E.meeusJul(Y));gotG=E.julToGreg(Y,E.gaussJul(Y));}
+      else if(julianCal){gotM=E.fromN(Y,E.meeusJul(Y));gotG=E.fromN(Y,E.gaussJul(Y));}
+      else{gotM=E.fromN(Y,E.meeusGreg(Y));gotG=E.fromN(Y,E.gaussGreg(Y));}
+      var ok=gotM.m===m&&gotM.d===d&&gotG.m===m&&gotG.d===d;
+      n++;if(!ok)bad++;
+      var key=src+"|"+label;bySrc[key]=bySrc[key]||{n:0,bad:0,src:src,label:label};bySrc[key].n++;if(!ok)bySrc[key].bad++;
+      rows.push({y:Y,label:label,src:src,pub:{d:d,m:m},gauss:gotG,meeus:gotM,ok:ok});
+    });
+  }
+  go("gregorianA","Gregorian",ref.sourceA,"G");
+  go("orthodoxA","Orthodox (Gregorian date)",ref.sourceA,"O");
+  go("julianA","Julian (Julian date)",ref.sourceA,"J");
+  go("meeusB","Meeus examples",ref.sourceB,"B");
+  return {rows:rows,n:n,bad:bad,bySrc:bySrc};
+}
+function renderRef(res){
+  var parts=Object.keys(res.bySrc).map(function(k){var s=res.bySrc[k];return esc(s.label)+": "+plural(s.n,"year","years")+(s.bad?', <span class="bad">'+plural(s.bad,"differs","differ")+'</span>':", all agree");});
+  var flagged=res.rows.filter(function(r){return !r.ok;});
+  var h='<p>Two free published sources were fetched on 15 October 2026 and copied into <span class="mono">reference.js</span>: <strong>'+esc(R.sourceA)+'</strong> (Gregorian and Orthodox dates '+R.gregorianA[0][0]+' to '+R.gregorianA[R.gregorianA.length-1][0]+'; '+R.julianA.length+' Julian dates whose comment cites kevinlaughery.com) and <strong>'+esc(R.sourceB)+'</strong> (examples from Meeus\'s book). The page compares each of the '+plural(res.n,"row","rows")+' with both algorithms.</p>';
+  h+='<p>'+parts.join(" · ")+'.</p>';
+  if(flagged.length){
+    h+='<div class="note flag"><strong>Disagreements:</strong><ul>'+flagged.map(function(r){return '<li>'+r.y+" "+esc(r.label)+": published "+esc(dstr(r.pub))+", Gauss "+esc(dstr(r.gauss))+", Meeus "+esc(dstr(r.meeus))+'</li>';}).join("")+'</ul></div>';
+  }else{
+    h+='<div class="note"><strong>Disagreements:</strong> none. Every published date matches both algorithms.</div>';
+  }
+  $("refSummary").innerHTML=h;
+  var tb=document.querySelector("#refAll tbody");
+  tb.innerHTML=res.rows.map(function(r){
+    return '<tr><td class="num">'+r.y+'</td><td>'+esc(r.label)+'</td><td>'+esc(dstr(r.pub))+'</td><td>'+esc(dstr(r.gauss))+'</td><td>'+esc(dstr(r.meeus))+'</td><td>'+(r.ok?'<span class="ok">yes</span>':'<span class="bad">NO</span>')+'</td></tr>';
+  }).join("");
+  /* key years: extremes and Gauss exceptions, and whether a published row covers them */
+  var keys=[],y;
+  for(y=1583;y<=2500;y++){var n=E.meeusGreg(y);if(n===22||n===56)keys.push(y);}
+  for(y=1900;y<2100;y++){if(E.gaussException(y)&&keys.indexOf(y)<0)keys.push(y);}
+  keys.sort(function(a,b){return a-b;});
+  var covered=[],uncovered=[];
+  var tbl='<div class="tablewrap" tabindex="0" role="region" aria-label="Key years and published coverage"><table><thead><tr><th class="num">Year</th><th>Computed</th><th>Published row?</th></tr></thead><tbody>';
+  keys.forEach(function(y){
+    var g=E.fromN(y,E.meeusGreg(y)),r=refIndex["G"+y]||refIndex["B"+y];
+    var line=r?(r[1]===g.m&&r[2]===g.d?'<span class="ok">yes, matches</span> ('+esc(refIndex["G"+y]?R.sourceA:R.sourceB)+')':'<span class="bad">yes, DIFFERS</span>'):"no, algorithms only";
+    (r?covered:uncovered).push(y);
+    tbl+='<tr><td class="num">'+y+'</td><td>'+esc(wdG(g)+" "+dstr(g))+'</td><td>'+line+'</td></tr>';
+  });
+  tbl+='</tbody></table></div>';
+  $("refKey").innerHTML='<h3>Extreme and exception years</h3><p>Years from 1583 to 2500 that fall on '+esc(E.labelN(22))+' or '+esc(E.labelN(56))+', plus Gauss\'s exception years (18 and 19 April) in 1900 to 2099, and whether a published row covers them: '+plural(covered.length,"year is","years are")+' covered ('+esc(join(covered.map(String)))+'); '+plural(uncovered.length,"year is","years are")+' not ('+esc(join(uncovered.map(String)))+').</p>'+tbl;
+}
+window.__easterCompareRef=function(ref){var r=compareRef(ref);renderRef(r);return r;};
+
+function renderLimits(res){
+  var cov=res.rows.length;
+  $("limits").innerHTML='<ul>'+
+   '<li>Wikipedia, the US Naval Observatory, the Astronomical Society of South Australia, Tondering\'s calendar FAQ, timeanddate.com and the Royal Museums Greenwich page were tried first; every one refused or could not be reached from the build environment (HTTP 403 from the proxy, or no route), so none of them was used. The tables above come from two software repositories that quote such tables, not from an almanac. That makes them one step removed from the original sources, and the '+R.julianA.length+' Julian rows only carry a comment saying where they came from.</li>'+
+   '<li>Only '+plural(cov,"published row","published rows")+' are compared. The Gregorian and Orthodox rows cover '+R.gregorianA[0][0]+' to '+R.gregorianA[R.gregorianA.length-1][0]+'; most extreme years are not among them (see the table above), so for those the two algorithms agree with each other but have no outside check on this page.</li>'+
+   '<li>That the Julian date is what the Alexandrian rule gives for the years 326 to 1582, and that not every church followed that rule in the early centuries, is from memory and was not looked up here.</li>'+
+   '<li>The Nicaea, Alexandria and 1582 history, the names of the reformers and the claim that most Orthodox churches use the Julian computus are from memory and were not looked up here.</li>'+
+   '<li>The year and month lengths ('+TROP+' days for the mean tropical year, '+SYN+' for the synodic month) are the values I know, not fetched. They shape only the rough drift figures in the essay, not any date.</li>'+
+   '<li>Gauss and Meeus agreeing on '+fmt(S.P)+' years is a check on the code, not on whether the church rule is what these formulas encode; the published rows are the only check of that, and they are few.</li>'+
+   '<li>Not tested on real phones or with a screen reader.</li></ul>';
+}
+
+/* ---------- start ---------- */
+buildRefIndex();
+buildChips();
+var initial=new Date().getFullYear();
+try{var hv=parseInt(location.hash.slice(1),10);if(hv>=1&&hv<=9999)initial=hv;}catch(e){}
+showYear(initial);
+var refRes=compareRef(R);renderRef(refRes);longRun().then(function(){renderLimits(refRes);showYear(curYear);});
+})();
+</script>
+</body>
+</html>

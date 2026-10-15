@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plain Bob Minimus · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Listen to four bells ring all 24 orders once (a 34 s WAV), then watch the page check its own rows and read them back from the audio.">
+<link rel="canonical" href="https://vigilstudio.github.io/ringing/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Plain Bob Minimus · Vigil">
+<meta property="og:description" content="Listen to four bells ring all 24 orders once (a 34 s WAV), then watch the page check its own rows and read them back from the audio.">
+<meta property="og:url" content="https://vigilstudio.github.io/ringing/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plain Bob Minimus · Vigil">
+<meta name="twitter:description" content="Listen to four bells ring all 24 orders once (a 34 s WAV), then watch the page check its own rows and read them back from the audio.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--hi:#e6eefb;--ok:#2f7d3a;--bad:#b3261e;--dim:#8d887c;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#22304a;--ok:#7fd18b;--bad:#ff8a80;--dim:#6f7480;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#22304a;--ok:#7fd18b;--bad:#ff8a80;--dim:#6f7480;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.15rem;margin:28px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 16px;font-size:1.05rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:16px}
+audio{width:100%;display:block;margin:0 0 10px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible+.box,audio:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+fieldset{border:0;margin:0 0 12px;padding:0;min-width:0}
+legend,.lab{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:4px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg .box{display:block;min-height:48px;padding:10px 4px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.seg input:checked + .box{border:3px solid var(--accent);padding:8px 2px;background:var(--panel)}
+.seg input:checked + .box::before{content:"\2713\00a0"}
+select{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.small{font-size:.85rem;color:var(--muted)}
+.rows{display:block;width:100%;max-width:360px;height:auto;margin:0 auto}
+.rows text{font:15px ui-monospace,Menlo,Consolas,monospace;fill:var(--muted)}
+.rows .sel{fill:var(--accent);font-weight:bold}
+.rows .num{font-size:11px;fill:var(--muted)}
+.rows .trace{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;opacity:.75}
+.rows .now{fill:var(--hi);stroke:var(--accent);stroke-width:2}
+.rows .lead{stroke:var(--line);stroke-dasharray:4 4}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:right;padding:5px 3px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+ul.checks{list-style:none;margin:0;padding:0}
+ul.checks li{display:grid;grid-template-columns:3em 1fr;gap:4px;padding:7px 0;border-bottom:1px solid var(--line)}
+ul.checks li:last-child{border-bottom:0}
+.mark{font-weight:bold}
+.pass .mark{color:var(--ok)}
+.fail .mark{color:var(--bad)}
+.fail .detail{color:var(--bad)}
+.detail{display:block;font-size:.88rem;color:var(--muted)}
+.verdict{font-size:1.05rem;margin:0 0 8px}
+code{font:.9em ui-monospace,Menlo,Consolas,monospace}
+dl{margin:0}
+dt{margin-top:8px}
+dd{margin:0;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Plain Bob Minimus</h1>
+<p class="lede" id="lede">Listen to a set of church bells ring every possible order once, then see the page check its own recording.</p>
+
+<div class="panel">
+  <audio id="player" controls preload="none"></audio>
+  <p class="small" id="fileinfo">Reading the sound file…</p>
+  <p class="small"><a href="plain_bob_minimus.wav" download>Download the WAV</a> · <a href="make_ringing.py">make_ringing.py</a> (the numpy script that wrote it) · <a href="manifest.json">manifest.json</a></p>
+</div>
+
+<h2>What you are hearing</h2>
+<p id="explain">Change ringing is the English way of ringing a ring of tuned bells, one stroke each, in a fixed order called a row. Between rows, bells may swap places, but only with a neighbour. Here the page is still reading the file.</p>
+
+<h2>The rows</h2>
+<div class="panel">
+  <fieldset>
+    <legend>Follow one bell (its path is the line)</legend>
+    <div class="seg" id="follow" role="radiogroup" aria-label="Follow one bell"></div>
+  </fieldset>
+  <svg class="rows" id="svg" role="img" aria-label="The rows of the extent, one row per line, with one bell's path drawn through them"></svg>
+  <p class="small" id="svgnote"></p>
+</div>
+
+<h2>The page checks itself</h2>
+<div class="panel">
+  <p class="verdict" id="verdict" role="status" aria-live="polite">Checking…</p>
+  <ul class="checks" id="checks"></ul>
+  <div style="margin-top:12px">
+    <label class="lab" for="fault">Try to break it: put one fault into the rows and re-run the checks</label>
+    <select id="fault">
+      <option value="none">No fault (the rows as rung)</option>
+      <option value="repeat">Repeat one row in place of another</option>
+      <option value="jump">Make one bell jump two places</option>
+      <option value="dup">Ring one bell twice in a row, leaving one out</option>
+    </select>
+    <p class="small" id="faultnote"></p>
+  </div>
+</div>
+
+<h2>What the page measured in the sound</h2>
+<div class="panel">
+  <p id="meas">Measuring…</p>
+  <div class="tablewrap"><table id="pitchtable"><thead><tr><th>Bell</th><th>Designed Hz</th><th>Mean Hz</th><th>Spread Hz</th><th>Off, cents</th><th>Blows</th></tr></thead><tbody></tbody></table></div>
+  <p class="small" id="timing"></p>
+</div>
+
+<h2>What is measured, and what is from memory</h2>
+<dl class="panel">
+  <dt>Measured here, in code</dt>
+  <dd>The rows (made from place notation and compared with the script's own list), the checks above, the number of blows found in the audio, the pitch of each blow and the rows read back from them.</dd>
+  <dt>From memory, not checked</dt>
+  <dd>The bell sound. It is a rough model of a bell (a few partials with different decay times, some of them not harmonic) written from what I remember about how bells sound. It was not fitted to any recording or measurement, so nothing here is a claim about how real bells measure.</dd>
+  <dd>The history. As I remember it, the method grew up in England in the 1600s, and Fabian Stedman wrote about change ringing in that century. I did not look this up, so treat dates and names as recollection. The hand-stroke gap (a pause after every second row) is also from memory, and its length here is my choice.</dd>
+  <dd>The pitches are the notes <span id="notes">…</span>, my choice. A tuned ring of real bells may differ.</dd>
+  <dt>Made by</dt>
+  <dd>Claude, an AI model. I could not listen to the file; the checks above are all I know about it. The script is <code>make_ringing.py</code> (Python, numpy); it needs no network. To make the file again: <code>pip install -r requirements.txt</code>, then <code>python3 make_ringing.py</code>.</dd>
+</dl>
+</main>
+<script>
+"use strict";
+// ---- The method, written down again here (the page builds its own rows; the script's list is a second copy) ----
+const LEAD = ["x","14","x","14","x","14","x","12"];
+const BELLS = 4;
+const CHANGES = (function(){ let f = 1; for (let i = 2; i <= BELLS; i++) f *= i; return f; })(); // BELLS!
+const NAMES = {1:"treble", 2:"2", 3:"3", 4:"tenor"};
+
+function applyChange(row, pn){
+  const places = new Set(pn === "x" ? [] : pn.split("").map(Number));
+  const out = row.slice(); let i = 0;
+  while (i < row.length){
+    if (places.has(i + 1)) i += 1; else { const t = out[i]; out[i] = out[i+1]; out[i+1] = t; i += 2; }
+  }
+  return out;
+}
+function buildRows(){
+  let row = []; for (let i = 1; i <= BELLS; i++) row.push(i);
+  const rows = [row];
+  for (let k = 0; k < CHANGES; k++){ row = applyChange(row, LEAD[k % LEAD.length]); rows.push(row); }
+  return rows;   // CHANGES + 1 rows: the last is rounds again
+}
+const sameRow = (a,b) => a.length === b.length && a.every((v,i) => v === b[i]);
+
+// ---- Row checks: they take any list of rows, so faults can be put in ----
+function checkRows(rows){
+  const res = [];
+  const isPerm = r => r.length === BELLS && [...r].sort((a,b)=>a-b).every((v,i)=>v === i+1);
+  const badPerm = rows.map((r,i)=>[r,i]).filter(([r])=>!isPerm(r)).map(([,i])=>i+1);
+  res.push({ok: badPerm.length === 0, name: "Every row is a permutation",
+    detail: badPerm.length ? (badPerm.length === 1 ? "Row " : "Rows ") + badPerm.join(", ") + (badPerm.length === 1 ? " does" : " do") + " not hold each of the " + BELLS + " bells exactly once." :
+      "All " + rows.length + " rows hold each of the " + BELLS + " bells exactly once."});
+  let maxMove = 0, worst = null, moves = 0;
+  for (let i = 1; i < rows.length; i++){
+    if (!isPerm(rows[i-1]) || !isPerm(rows[i])) continue;
+    moves++;
+    for (let b = 1; b <= BELLS; b++){
+      const d = Math.abs(rows[i].indexOf(b) - rows[i-1].indexOf(b));
+      if (d > maxMove){ maxMove = d; worst = {change: i, bell: b}; }
+    }
+  }
+  res.push({ok: maxMove <= 1, name: "Each bell moves at most one place per change",
+    detail: maxMove <= 1 ? "Over " + moves + " changes, the furthest any bell moved was " + maxMove + (maxMove === 1 ? " place." : " places.") :
+      "Bell " + worst.bell + " moves " + maxMove + " places at change " + worst.change + "."});
+  const body = rows.slice(0, CHANGES);
+  const key = r => r.join("");
+  const seen = new Map(); const dups = [];
+  body.forEach((r,i)=>{ const k = key(r); if (seen.has(k)) dups.push([seen.get(k)+1, i+1, k]); else seen.set(k,i); });
+  const allPerms = (function(){ const out = []; (function go(p, rest){ if (!rest.length){ out.push(p.join("")); return; } rest.forEach((v,i)=>go(p.concat(v), rest.slice(0,i).concat(rest.slice(i+1)))); })([], Array.from({length:BELLS},(_,i)=>i+1)); return out; })();
+  const missing = allPerms.filter(k => !seen.has(k));
+  const extentOk = dups.length === 0 && missing.length === 0;
+  res.push({ok: extentOk, name: "The extent rings every row once",
+    detail: extentOk ? "The first " + body.length + " rows are all different, and " + allPerms.length + " is the number of orders of " + BELLS + " bells (" + BELLS + "!), so none is missing." :
+      (dups.length ? "Row " + dups[0][1] + " repeats row " + dups[0][0] + " (" + dups[0][2] + "). " : "") +
+      (missing.length ? missing.length + " of the " + allPerms.length + " possible orders " + (missing.length === 1 ? "is" : "are") + " never rung, for example " + missing[0] + "." : "")});
+  const last = rows[rows.length-1];
+  const rounds = Array.from({length:BELLS},(_,i)=>i+1);
+  const backOk = sameRow(rows[0], rounds) && sameRow(last, rounds) && rows.length === CHANGES + 1;
+  res.push({ok: backOk, name: "It starts and ends in rounds",
+    detail: backOk ? "Row 1 and row " + rows.length + " are both " + rounds.join("") + " (rounds), after " + (rows.length - 1) + " changes." :
+      "Row 1 is " + rows[0].join("") + " and the last row, " + rows.length + ", is " + last.join("") + "; rounds is " + rounds.join("") + "."});
+  return res;
+}
+
+// ---- WAV reading and measuring ----
+function parseWav(buf){
+  const dv = new DataView(buf);
+  const tag = o => String.fromCharCode(dv.getUint8(o),dv.getUint8(o+1),dv.getUint8(o+2),dv.getUint8(o+3));
+  if (tag(0) !== "RIFF" || tag(8) !== "WAVE") throw new Error("not a WAV file");
+  let o = 12, fmt = null, data = null;
+  while (o + 8 <= dv.byteLength){
+    const id = tag(o), size = dv.getUint32(o+4, true);
+    if (id === "fmt ") fmt = {format: dv.getUint16(o+8,true), channels: dv.getUint16(o+10,true), rate: dv.getUint32(o+12,true), bits: dv.getUint16(o+22,true)};
+    if (id === "data"){ data = {start: o+8, size}; break; }
+    o += 8 + size + (size & 1);
+  }
+  if (!fmt || !data || fmt.format !== 1 || fmt.bits !== 16 || fmt.channels !== 1) throw new Error("expected 16-bit mono PCM");
+  const n = Math.floor(data.size / 2), x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = dv.getInt16(data.start + 2*i, true) / 32768;
+  return {rate: fmt.rate, samples: x};
+}
+function findOnsets(x, rate){
+  // The strike starts with a short noise tick. Differencing the samples keeps the high frequencies and drops the
+  // low, ringing tails, so the tick of each new blow stands out whatever is still sounding.
+  const hop = 32, nb = Math.floor((x.length - 1) / hop), env = new Float32Array(nb);
+  let mx = 0;
+  for (let k = 0; k < nb; k++){ let m = 0; for (let i = k*hop + 1; i <= (k+1)*hop; i++){ const a = Math.abs(x[i] - x[i-1]); if (a > m) m = a; } env[k] = m; if (m > mx) mx = m; }
+  const thr = 0.25 * mx, minGap = Math.round(0.1 * rate / hop), out = []; let lastK = -1e9;
+  for (let k = 0; k < nb; k++) if (env[k] > thr && k - lastK > minGap){ out.push(k * hop / rate); lastK = k; }
+  return out;
+}
+function fft(re, im){
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++){ let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j){ let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+  for (let len = 2; len <= n; len <<= 1){
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len){
+      let cr = 1, ci = 0;
+      for (let j = 0; j < len/2; j++){
+        const a = i + j, b = a + len/2;
+        const tr = re[b]*cr - im[b]*ci, ti = re[b]*ci + im[b]*cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        const nr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = nr;
+      }
+    }
+  }
+}
+// Window: 4096 samples (186 ms) starting 50 ms after the blow. Starting at 4 ms with 2048 samples read 10-14 cents sharp
+// (the quick strike was still fading in the window and pulled the peak); see the "Measured" paragraph.
+const WIN = 4096, SKIP = 0.05;
+function blowPitch(x, rate, t0, lo, hi){
+  const start = Math.round((t0 + SKIP) * rate), L = WIN, N = 16384;
+  const re = new Float64Array(N), im = new Float64Array(N);
+  for (let i = 0; i < L && start + i < x.length; i++) re[i] = x[start+i] * (0.5 - 0.5*Math.cos(2*Math.PI*i/(L-1)));
+  fft(re, im);
+  const mag = k => Math.hypot(re[k], im[k]);
+  const kLo = Math.floor(lo*N/rate), kHi = Math.ceil(hi*N/rate);
+  let best = kLo; for (let k = kLo; k <= kHi; k++) if (mag(k) > mag(best)) best = k;
+  const a = Math.log(mag(best-1)+1e-12), b = Math.log(mag(best)+1e-12), c = Math.log(mag(best+1)+1e-12);
+  const p = 0.5 * (a - c) / (a - 2*b + c);
+  return (best + p) * rate / N;
+}
+const median = a => { const s = a.slice().sort((p,q)=>p-q), m = s.length >> 1; return s.length ? (s.length & 1 ? s[m] : (s[m-1]+s[m])/2) : NaN; };
+const mean = a => a.reduce((p,q)=>p+q,0) / a.length;
+const NOTE = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+function noteName(f){ const m = Math.round(69 + 12*Math.log2(f/440)); return NOTE[((m%12)+12)%12] + (Math.floor(m/12)-1); }
+const cents = (f, g) => 1200 * Math.log2(f / g);
+
+// ---- Page state ----
+const $ = id => document.getElementById(id);
+var S = {rows: buildRows(), manifest: null, audio: null, fault: "none", follow: 1, onsetRow: []};
+const FAULT_AT = {repeat: [10, 3], jump: 5, dup: 14};   // 0-based row indexes the faults touch
+function withFault(rows, kind){
+  const r = rows.map(x => x.slice());
+  if (kind === "repeat") r[FAULT_AT.repeat[0]] = r[FAULT_AT.repeat[1]].slice();
+  if (kind === "jump"){ const q = r[FAULT_AT.jump], t = q[0]; q[0] = q[2]; q[2] = t; }
+  if (kind === "dup"){ r[FAULT_AT.dup][3] = r[FAULT_AT.dup][2]; }
+  return r;
+}
+function analyseAudio(buf, manifest){
+  const w = parseWav(buf), onsets = findOnsets(w.samples, w.rate);
+  const lo = 0.8 * Math.min(...Object.values(manifest.design_pitch_hz)), hi = 1.25 * Math.max(...Object.values(manifest.design_pitch_hz));
+  const pitches = onsets.map(t => blowPitch(w.samples, w.rate, t, lo, hi));
+  return {rate: w.rate, seconds: w.samples.length / w.rate, onsets, pitches};
+}
+function decodeRows(A){
+  // The first row rung is rounds, so its four blows say which pitch is which bell; every later blow is matched to the nearest.
+  const ref = A.pitches.slice(0, BELLS), rows = [], dists = [];
+  const nb = Math.floor(A.pitches.length / BELLS);
+  const bellOf = [];
+  A.pitches.forEach(p => {
+    let bi = 0; ref.forEach((q,i)=>{ if (Math.abs(p-q) < Math.abs(p-ref[bi])) bi = i; });
+    bellOf.push(bi + 1); dists.push(Math.abs(p - ref[bi]));
+  });
+  for (let r = 0; r < nb; r++) rows.push(bellOf.slice(r*BELLS, (r+1)*BELLS));
+  let refGap = Infinity; const s = ref.slice().sort((a,b)=>a-b); for (let i = 1; i < s.length; i++) refGap = Math.min(refGap, s[i]-s[i-1]);
+  return {rows, bellOf, maxDist: Math.max(...dists), refGap};
+}
+function audioChecks(rows){
+  const A = S.audio, M = S.manifest, res = [];
+  const want = rows.length * BELLS;
+  res.push({ok: A.onsets.length === want, name: "The sound file holds one blow per bell per row",
+    detail: "Found " + A.onsets.length + " separate blows in the audio; " + rows.length + " rows of " + BELLS + " bells is " + want + "."});
+  const D = decodeRows(A);
+  const sep = D.refGap > 2 * D.maxDist;
+  const same = D.rows.length === rows.length && D.rows.every((r,i)=>sameRow(r, rows[i]));
+  let firstDiff = D.rows.findIndex((r,i)=>!rows[i] || !sameRow(r, rows[i]));
+  res.push({ok: same && sep, name: "The rows read back from the audio match the rows",
+    detail: same ? "Each blow's pitch was matched to a bell (every blow was within " + D.maxDist.toFixed(1) + " Hz of its bell's reference; the bells are at least " + D.refGap.toFixed(0) + " Hz apart). All " + D.rows.length + " rows read back equal the rows above." :
+      (firstDiff >= 0 && D.rows[firstDiff] ? "Row " + (firstDiff+1) + " sounds as " + D.rows[firstDiff].join("") + " but the rows say " + (rows[firstDiff] ? rows[firstDiff].join("") : "nothing") + "." : "The audio has " + D.rows.length + " rows, the list has " + rows.length + ".") });
+  const TOL = 25, offs = [];
+  for (let b = 1; b <= BELLS; b++){
+    const ps = A.pitches.filter((p,i)=>D.bellOf[i] === b);
+    if (ps.length) offs.push({b, c: cents(mean(ps), M.design_pitch_hz[b])});
+  }
+  const worst = offs.reduce((m,o)=>Math.abs(o.c) > Math.abs(m.c) ? o : m, {b:0, c:0});
+  res.push({ok: offs.length === BELLS && Math.abs(worst.c) <= TOL, name: "The bell pitches measured in the audio match the designed pitches",
+    detail: "Each bell's mean measured pitch must be within " + TOL + " cents of its design pitch. The furthest is bell " + worst.b + ", off by " + (worst.c >= 0 ? "+" : "") + worst.c.toFixed(1) + " cents."});
+  return res;
+}
+function render(){
+  const rows = withFault(S.rows, S.fault);
+  const res = checkRows(rows);
+  res.push({ok: rows.length === S.manifest.rows.length && rows.every((r,i)=>sameRow(r, S.manifest.rows[i])), name: "The page's rows equal the script's own list",
+    detail: "The page built its rows from the place notation " + LEAD.join(" ") + "; the Python script built its list the same way and wrote it to manifest.json." + (S.manifest.lead.join(" ") === LEAD.join(" ") ? "" : " (The notations differ.)")});
+  if (S.audio) res.push(...audioChecks(rows));
+  const fails = res.filter(c => !c.ok);
+  $("verdict").textContent = fails.length === 0 ? "All " + res.length + " checks pass." :
+    fails.length + " of " + res.length + " checks fail: " + fails.map(c=>c.name.charAt(0).toLowerCase()+c.name.slice(1)).join("; ") + ".";
+  $("checks").innerHTML = "";
+  res.forEach(c => {
+    const li = document.createElement("li"); li.className = c.ok ? "pass" : "fail";
+    const m = document.createElement("span"); m.className = "mark"; m.textContent = c.ok ? "Pass" : "Fail"; m.style.fontSize = ".78rem";
+    const d = document.createElement("div"); d.appendChild(document.createTextNode(c.name));
+    const dt = document.createElement("span"); dt.className = "detail"; dt.textContent = c.detail; d.appendChild(dt);
+    li.append(m, d); $("checks").appendChild(li);
+  });
+  const notes = {none: "", repeat: "Row " + (FAULT_AT.repeat[0]+1) + " now copies row " + (FAULT_AT.repeat[1]+1) + ": the extent no longer rings every row once, and the rows no longer match the audio.",
+    jump: "Bell at place 1 and bell at place 3 of row " + (FAULT_AT.jump+1) + " are swapped: a bell now moves two places. The audio no longer matches either.",
+    dup: "The bell at place 3 of row " + (FAULT_AT.dup+1) + " is rung again at place 4: the row is not a permutation."};
+  $("faultnote").textContent = notes[S.fault];
+  drawRows(withFault(S.rows, S.fault));
+}
+function drawRows(rows){
+  const svg = $("svg"), rowH = 24, top = 8, W = 300, H = top + rows.length * rowH + 8, xs = p => 90 + p * 44;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  let h = '<rect id="nowrect" class="now" x="4" y="-100" width="' + (W-8) + '" height="' + (rowH-2) + '" rx="4"></rect>';
+  for (let i = 8; i < rows.length - 1; i += 8) h += '<line class="lead" x1="4" x2="' + (W-4) + '" y1="' + (top + i*rowH - 1) + '" y2="' + (top + i*rowH - 1) + '"></line>';
+  const pts = [];
+  rows.forEach((r, i) => {
+    const y = top + i*rowH + 16;
+    h += '<text class="num" x="10" y="' + y + '">' + (i+1) + (i === 0 || i === rows.length-1 ? " rounds" : "") + '</text>';
+    r.forEach((b, p) => { h += '<text class="' + (b === S.follow ? "sel" : "") + '" x="' + xs(p) + '" y="' + y + '" text-anchor="middle">' + b + '</text>'; if (b === S.follow) pts.push(xs(p) + "," + (y - 5)); });
+  });
+  h += '<polyline class="trace" points="' + pts.join(" ") + '"></polyline>';
+  svg.innerHTML = h;
+  svg.dataset.rowh = rowH; svg.dataset.top = top;
+  $("svgnote").textContent = "One line per row, bells left to right in the order they strike. Dashed lines mark every " + LEAD.length + " changes (a lead). The line follows bell " + S.follow + (S.follow === 1 ? " (the treble)" : S.follow === BELLS ? " (the tenor)" : "") + "; the playing row is boxed.";
+  markNow();
+}
+function markNow(){
+  const r = $("nowrect"); if (!r) return;
+  const idx = S.nowRow;
+  if (idx == null || idx < 0) { r.setAttribute("y", -100); return; }
+  r.setAttribute("y", Number($("svg").dataset.top) + idx * Number($("svg").dataset.rowh));
+}
+function buildFollow(){
+  const box = $("follow");
+  for (let b = 1; b <= BELLS; b++){
+    const l = document.createElement("label"), i = document.createElement("input"), s = document.createElement("span");
+    i.type = "radio"; i.name = "follow"; i.value = b; i.checked = b === S.follow;
+    s.className = "box"; s.textContent = "Bell " + b + (b === 1 ? " (treble)" : b === BELLS ? " (tenor)" : "");
+    i.addEventListener("change", () => { S.follow = b; render(); });
+    l.append(i, s); box.appendChild(l);
+  }
+}
+function fillMeasure(){
+  const A = S.audio, M = S.manifest, D = decodeRows(A);
+  const tb = document.querySelector("#pitchtable tbody"); tb.innerHTML = "";
+  const rowsT = [];
+  let worst = 0;
+  for (let b = 1; b <= BELLS; b++){
+    const ps = A.pitches.filter((p,i)=>D.bellOf[i] === b), design = M.design_pitch_hz[b];
+    const m = mean(ps), sd = Math.sqrt(mean(ps.map(p=>(p-m)*(p-m)))), off = cents(m, design);
+    worst = Math.max(worst, Math.abs(off));
+    const tr = document.createElement("tr");
+    [b + (b===1?" (treble)":b===BELLS?" (tenor)":""), noteName(design) + " " + design.toFixed(1), m.toFixed(1), "±" + sd.toFixed(1), (off>=0?"+":"") + off.toFixed(1), String(ps.length)].forEach(t => { const td = document.createElement("td"); td.textContent = t; tr.appendChild(td); });
+    tb.appendChild(tr);
+  }
+  S.worstCents = worst;
+  const desc = [1,2,3,4].map(b=>mean(A.pitches.filter((p,i)=>D.bellOf[i]===b)));
+  const ordered = desc.every((v,i)=>i===0 || v < desc[i-1]);
+  const offsAll = [1,2,3,4].map(b => cents(desc2(b), M.design_pitch_hz[b]));
+  const allSharp = offsAll.every(o => o > 0), allFlat = offsAll.every(o => o < 0);
+  function desc2(b){ return mean(A.pitches.filter((p,i)=>D.bellOf[i]===b)); }
+  $("meas").textContent = "For every blow the page found the moment it starts, took the spectrum of the " + (WIN/A.rate*1000).toFixed(0) + " ms starting " + Math.round(SKIP*1000) + " ms after it, and read the strongest peak between " + Math.round(0.8*Math.min(...Object.values(M.design_pitch_hz))) + " and " + Math.round(1.25*Math.max(...Object.values(M.design_pitch_hz))) + " Hz. The furthest any bell's mean sits from its designed pitch is " + worst.toFixed(1) + " cents (a semitone is 100). " + (ordered ? "The treble is the highest and each later bell is lower, as designed." : "The pitches do not fall from treble to tenor.") + (allSharp || allFlat ? " Every bell still reads " + (allSharp ? "sharp" : "flat") + " of its design pitch, though only slightly. An earlier version of this page, which looked at 93 ms starting 4 ms after the blow, read 10 to 14 cents sharp. I traced that to the sound I made, not to the measuring bins: the loud quick strike is at the same pitch as the main tone but starts at a different phase and fades much faster, so a window that catches it still fading sees a changing tone and its peak is pulled. A later, longer window shrank the error to under 3 cents, and one bell on its own read the same as in the full ringing, so it was not other bells sounding together. I did not trace the last cent or two." : "");
+  const gaps = []; for (let i = 1; i < A.onsets.length; i++) gaps.push({g: A.onsets[i]-A.onsets[i-1], i});
+  const inRow = gaps.filter(o => o.i % BELLS !== 0).map(o=>o.g), between = gaps.filter(o => o.i % BELLS === 0 && (o.i/BELLS) % 2 === 1).map(o=>o.g), hand = gaps.filter(o => o.i % BELLS === 0 && (o.i/BELLS) % 2 === 0).map(o=>o.g);
+  $("timing").textContent = "Timing measured from the audio: median " + Math.round(median(inRow)*1000) + " ms between bells in a row, " + Math.round(median(between)*1000) + " ms between the first and second row of each pair, and " + Math.round(median(hand)*1000) + " ms across the hand-stroke gap that follows each second row.";
+  $("notes").textContent = [1,2,3,4].map(b => noteName(M.design_pitch_hz[b])).join(", ") + " (treble first)";
+}
+function trackPlayer(){
+  const p = $("player");
+  const upd = () => {
+    const t = p.currentTime, on = S.audio.onsets; let n = -1;
+    for (let i = 0; i < on.length; i++) { if (on[i] <= t + 0.02) n = i; else break; }
+    S.nowRow = (p.paused && t === 0) ? -1 : (n < 0 ? -1 : Math.min(Math.floor(n / BELLS), S.rows.length - 1));
+    markNow();
+  };
+  ["timeupdate","seeked","play","pause","ended"].forEach(e => p.addEventListener(e, upd));
+  setInterval(() => { if (!p.paused) upd(); }, 60);
+}
+async function main(){
+  buildFollow();
+  $("fault").addEventListener("change", e => { S.fault = e.target.value; render(); });
+  $("player").src = "plain_bob_minimus.wav";
+  S.manifest = await (await fetch("manifest.json")).json();
+  render();
+  const buf = await (await fetch("plain_bob_minimus.wav")).arrayBuffer();
+  S.audio = analyseAudio(buf, S.manifest);
+  $("fileinfo").textContent = "The file is " + S.audio.seconds.toFixed(1) + " seconds long, mono, " + S.audio.rate + " samples a second, " + (buf.byteLength/1e6).toFixed(2) + " MB.";
+  $("explain").textContent = "Change ringing is the English way of ringing a ring of tuned bells, one stroke each, in a fixed order called a row. Between rows, bells may swap places, but only with a neighbour. Here " + BELLS + " bells ring " + (S.rows.length - 1) + " changes of Plain Bob Minimus: the " + S.rows.length + " rows below are every one of the " + CHANGES + " possible orders once, then rounds (" + S.rows[0].join("") + ", the bells in scale order) again. The treble is bell 1, the highest; the tenor, bell " + BELLS + ", is the lowest. The ringers' name for ringing every possible order once is an extent.";
+  fillMeasure(); render(); trackPlayer();
+  S.ready = true;
+}
+main().catch(err => { $("verdict").textContent = "Could not run the checks: " + err.message; $("verdict").style.color = "var(--bad)"; });
+</script>
+</body>
+</html>

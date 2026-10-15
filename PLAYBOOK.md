@@ -38,6 +38,13 @@ What the studio is reaching for right now. The advisor reads this before writing
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
   source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
   wording fixes in review.
+- Not everything has to be an interactive web page. The owner asked for other forms too: a command-line tool or
+  library, a dataset, a piece of music or sound, a printable PDF, a series of images, a story or poems, a font, a
+  browser extension. Each still gets a small landing page so people can find it. So far every piece is a web page;
+  try another form soon.
+- Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
+  p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
+  Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -89,6 +96,7 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
+- 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
 - 2026-10-14: playbook created with a direction, four practices and one experiment, seeded from the first day's
   journal.
 - 2026-10-14: experiment "one plain sentence" now capped at 25 words; Star Hop's 47-word opening only landed after

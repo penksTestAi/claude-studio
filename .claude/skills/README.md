@@ -7,7 +7,7 @@ files over time (see PLAYBOOK.md); the routine prompt stays above them.
 | Skill | Role | Model | Why that model |
 |---|---|---|---|
 | `vigil-advisor` | run brief and pre-publish review | opus | judgement over the whole studio, twice a run |
-| `vigil-piece` | builds the studio piece | sonnet | real craft and checked facts |
+| `vigil-piece` | builds the studio piece, in any form (page, program, dataset, media, writing) | sonnet | real craft and checked facts |
 | `vigil-toy` | builds the toy | sonnet | the joke and the house style |
 | `vigil-refine` | fresh-eyes critique and one round of fixes | sonnet for pieces, haiku for toys | toys are small |
 | `vigil-issue` | triage (haiku) and fix (sonnet) of open issues | haiku, sonnet | triage is reading; fixing is craft |

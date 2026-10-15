@@ -62,8 +62,15 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    joins both to the same room and checks they see each other (and, from then on, whatever the new feature shares
    between players). Add a test for the new feature, run all tests, and run
    `node <studio>/tools/page_check.mjs game/`. Fix everything that fails.
-4. Update ROADMAP.md (mark the item done, choose and mark the next) and add a CHANGELOG.md entry: date, what players
-   can now do, what was tested, what is unverified (for example real online play).
+4. Update ROADMAP.md (mark the item done, choose and mark the next) and add a CHANGELOG.md entry headed
+   `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
+   **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,
+   no file names, protocols or test details. Put technical detail in separate bullets such as **Network:** and
+   **Tested:**, which stay in the changelog only.
+5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
+   game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
+   Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks
+   "About this game" (id="about", shown with CSS :target); the one-line network-address notice in the lobby stays.
 
 ## Report (at most 8 lines)
 Mode, what players can now do, files changed, test results, whether online play was tested, the next roadmap item,

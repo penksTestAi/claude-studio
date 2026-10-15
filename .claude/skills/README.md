@@ -21,5 +21,5 @@ files over time (see PLAYBOOK.md); the routine prompt stays above them.
 Zero-token tools in `tools/` do the mechanical work so no model has to:
 `digest.py` (state of all three repositories in one page), `keeper_check.py` (Workbench and page checks, `--fix`),
 `page_check.mjs` (headless Chromium at 375px and 1100px, light and dark: console errors, sideways scroll,
-screenshots) and `site_meta.py` (share tags, feed, sitemap) and `security_check.py` (secrets, risky code, untrusted input,
+screenshots) and `site_meta.py` (share tags, feed, sitemap), `game_patchnotes.py` (the game's patch notes from its changelog) and `security_check.py` (secrets, risky code, untrusted input,
 supply chain, workflows).

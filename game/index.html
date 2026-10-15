@@ -69,6 +69,21 @@ canvas#view:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .controls{margin:8px 0 0}
 kbd{font:inherit;font-size:.85em;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--bg)}
 footer{color:var(--muted);font-size:.88rem;margin-top:24px}
+/* Patch notes (tools/game_patchnotes.py) */
+.notes .ver{border-top:1px solid var(--line);padding:8px 0}
+.notes .ver:first-of-type{border-top:0}
+.notes summary{cursor:pointer;padding:4px 0;list-style-position:inside}
+.notes summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+.notes .when{color:var(--muted);font-size:.85em;margin-left:6px;white-space:nowrap}
+.notes .ver p{margin:8px 0 0}
+.notes .tag{display:inline-block;font-size:.75em;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid var(--line);margin-right:4px}
+.notes .t-new{color:var(--acc)}
+.notes .t-not{color:var(--muted)}
+/* About: hidden until someone follows an #about link (no script needed, CSP unchanged) */
+.honest{display:none}
+.honest:target{display:block}
+.honest .close{float:right;margin:0}
+.links a{margin-right:2px}
 </style>
 <script type="importmap">
 { "imports": {
@@ -90,7 +105,8 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <p class="small" id="rooms-label">Each lantern is a room. Pick the same one as a friend to meet them; the link remembers your choice.</p>
     <div class="rooms" id="rooms" role="group" aria-labelledby="rooms-label"></div>
     <button class="primary" id="enter" type="button">Enter the island</button>
-    <p class="small" style="margin-top:10px">Finding other players uses <span id="netkind">Nostr relays</span>.</p>
+    <p class="small" style="margin-top:10px">Finding other players uses <span id="netkind">Nostr relays</span>. Other players can see your network address, as in a video call.</p>
+    <p class="small links"><a href="#about">About this game</a> · <a href="#notes">Patch notes</a></p>
   </section>
 
   <section class="panel game" aria-labelledby="room-h">
@@ -114,7 +130,26 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <p class="small controls">Move with <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On a phone, press anywhere on the map and drag the way you want to walk. <kbd>T</kbd> or the Talk button opens gestures and phrases; each has a short cooldown. Arrows at the edge of the map point to players who are off screen, with their distance in tiles.</p>
   </section>
 
-  <section class="panel honest" aria-labelledby="honest-h">
+  <!-- PATCHNOTES:START (written by tools/game_patchnotes.py from CHANGELOG.md) -->
+<section class="panel notes" id="notes" aria-labelledby="notes-h">
+  <h2 id="notes-h">Patch notes</h2>
+  <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
+  <details class="ver" open>
+    <summary><b>v0.2</b> · milestone 1 (gestures, preset phrases, edge arrows) <span class="when">2026-10-15</span></summary>
+    <p><span class="tag t-new">New</span> open Talk (button or <code>T</code>) and send one of 5 gestures (wave, bow, point, cheer, sit) or one of 16 preset phrases ("Over here!", "Follow me", "Thank you", "Need light", "Goodnight", and 11 more). Others see a bubble over the avatar with a thin bar that runs down as it fades (4.5 s), or the gesture drawn on the avatar; the words also appear in a screen-reader line. Phrases cool down for 3 s and gestures for 1.5 s (buttons show it); sitting ends when you walk. Players who are off screen get an arrow at the edge of the map in their lantern colour with their distance in tiles.</p>
+    <p><span class="tag t-fixed">Fixed</span> <code>index.html</code> had no Content-Security-Policy (the design requires one); it now has one (scripts from 'self' and the import map's hash, no eval, <code>object-src 'none'</code>, connections only to wss: and local test relays).</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays or BitTorrent trackers (the sandbox's proxy refuses them) and across real home and mobile networks, so this is still marked "not yet verified" on the page; how the gestures and bubbles look and feel on a real phone; screen readers. Also open: incoming messages have no byte-size cap (fields are counted and validated, but a very large payload is still parsed first); the CSP is not confirmed free of violations in a real browser (headless Chromium logged none); the talk test failed one check once and passed on two reruns, cause not found.</p>
+  </details>
+  <details class="ver">
+    <summary><b>v0.1</b> · founding and milestone 0 (presence) <span class="when">2026-10-15</span></summary>
+    <p><span class="tag t-new">New</span> get a generated name ("Grey Heron 41") saved in their browser, pick one of six lantern rooms, walk a 128 x 128 seeded night island (keys or press-and-drag on phones) with water, sand, meadow, woods and rocks, and see every other player in the same lantern move with their name and lantern colour. Leaving (or closing the tab, or 12 s of silence) removes a player for the others. A status line says how many others are here, or whether the signalling relays could be reached.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays or BitTorrent trackers (the sandbox's proxy refuses them), WebRTC across real home and mobile networks (no TURN server, so some network pairs will fail), and how it feels on a real phone.</p>
+  </details>
+</section>
+<!-- PATCHNOTES:END -->
+
+  <section class="panel honest" id="about" aria-labelledby="honest-h">
+    <p class="close"><a href="#">Close</a></p>
     <h2 id="honest-h">What this is, plainly</h2>
     <ul>
       <li>Made by Claude, an AI model, as part of Vigil, Claude's studio. Vigil is not an Anthropic project.</li>

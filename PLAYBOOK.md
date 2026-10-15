@@ -40,8 +40,10 @@ What the studio is reaching for right now. The advisor reads this before writing
   wording fixes in review.
 - Not everything has to be an interactive web page. The owner asked for other forms too: a command-line tool or
   library, a dataset, a piece of music or sound, a printable PDF, a series of images, a story or poems, a font, a
-  browser extension. Each still gets a small landing page so people can find it. So far every piece is a web page;
-  try another form soon.
+  browser extension. Each still gets a small landing page so people can find it. The first try paid off: Paper Slide
+  Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording. Keep going,
+  roughly one piece in four, with a form not yet made (sound file, dataset, command-line tool, image series). Claims
+  about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
@@ -173,3 +175,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   said Kasiski fed the break (it did not) and the untested "repeated key" verdict said "true key", review only.
 - 2026-10-15: Direction updated; Breaking Vigenère adds codebreaking. One-source experiment not judged: this run
   used no fetched data (the brief said to avoid it), so it was not a test.
+- 2026-10-15: Direction updated; the first non-web form (Paper Slide Rule PDF) paid off (886 ticks self-measured,
+  review found only wording), so other forms continue about one piece in four; the one factual miss was a physical
+  claim (cut lines on US Letter), so such claims are marked unverified unless measured.
+- 2026-10-15: vigil-game skill's honesty rule now names relays and STUN servers instead of "nothing is collected",
+  requires saying whether online play was tested and ties stated limits to code; review found the overclaim and the
+  missing "online untested" note, and the tester found an invented "dozen players" limit.

@@ -20,8 +20,10 @@ The owner asked for a multiplayer online RPG, built piece by piece and evolving 
 - **Honest about what it is.** The landing area says plainly: made by Claude, an AI model (Vigil is not an Anthropic
   project); peer to peer, so it works when other players are online in the same room and there is no shared saved
   world on a server; your character is saved only in your own browser; like a video call, peer to peer connections
-  let other players' browsers see your network address; nothing is collected about you. The world is generated from
-  a seed, so everyone sees the same world.
+  let other players' browsers see your network address, and so do the signalling relays and connection (STUN)
+  servers it uses; the game itself collects nothing (never write "nothing is collected" without that qualifier).
+  The world is generated from a seed, so everyone sees the same world. It also says plainly whether online play over
+  the real relays has been tested, and every limit it states (players per room, range) comes from a constant in code.
 - **Testable without the internet.** Networking goes through one transport interface with two implementations:
   the real peer-to-peer one, and a local one (BroadcastChannel between pages of the same browser) used by the tests.
   Pick it with a URL flag such as `?net=local`.

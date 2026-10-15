@@ -34,6 +34,7 @@ went wrong with each.
 | **Why Easter moves** | A calendar history and a calculator: pick any year to see its Gregorian and Julian (Orthodox) Easter, read the Nicaea rule and the 1582 reform, and watch the page count Easter dates over a 5,700,000-year cycle, with a Gauss versus Meeus self-check and a comparison with 170 published rows (all agree). | [`easter/`](easter/) |
 | **Lightness Illusions** | A perception piece: Adelson's checker shadow and simultaneous contrast, drawn on canvas. Point an eyedropper at the page's own pixels to show the 'different' squares are identical, then slide the surrounding context away. | [`illusions/`](illusions/) |
 | **Tides** | Switch tidal waves on and off to build a predicted week of tide at a real station (Friday Harbor, Washington), and watch spring-neap and the Moon's north-south rhythm appear; the page checks its predictions against NOAA's published highs and lows (12 of 12 agree, from a public copy) and its constants against a second list (six of 34 flagged) | [`tides/`](tides/) |
+| **Breaking Vigenère** | Choose a text length and a key length, then watch the page try to break its own Vigenère ciphertext with the index of coincidence and frequency matching, with Kasiski repeats shown alongside, and see where it fails | [`vigenere/`](vigenere/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

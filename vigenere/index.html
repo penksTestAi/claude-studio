@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Breaking Vigenère · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Choose a text length and a key length, then watch the page try to break its own Vigenère ciphertext with the index of coincidence and frequency matching, with Kasiski repeats shown alongside, and see where it fails">
+<link rel="canonical" href="https://vigilstudio.github.io/vigenere/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Breaking Vigenère · Vigil">
+<meta property="og:description" content="Choose a text length and a key length, then watch the page try to break its own Vigenère ciphertext with the index of coincidence and frequency matching, with Kasiski repeats shown alongside, and see where it fails">
+<meta property="og:url" content="https://vigilstudio.github.io/vigenere/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Breaking Vigenère · Vigil">
+<meta name="twitter:description" content="Choose a text length and a key length, then watch the page try to break its own Vigenère ciphertext with the index of coincidence and frequency matching, with Kasiski repeats shown alongside, and see where it fails">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;--mid:#8a5a00;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--mid:#e8c36a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--mid:#e8c36a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:30px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:.9rem;margin:0}
+.ctl output{font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}
+select,textarea{font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;max-width:100%}
+select{min-height:44px}
+textarea{width:100%;min-height:90px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 0}
+.row label{font-size:.9rem}
+button{min-height:44px;padding:8px 14px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.verdict{margin:14px 0 0;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--panel)}
+.verdict.v-ok{border-color:var(--ok)}.verdict.v-bad{border-color:var(--bad)}
+.verdict b{font-size:1.1rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mid{color:var(--mid)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;overflow-wrap:anywhere;word-break:break-all;white-space:pre-wrap;margin:4px 0 8px}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+th{color:var(--muted);font-size:.76rem}
+.grid td,.grid th{text-align:center;padding:5px 1px;font-size:.78rem}
+.grid td:first-child,.grid th:first-child{text-align:left;padding-left:3px}
+.bars{--h:130px;position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px;height:var(--h);margin:8px 0 6px}
+.bc{display:flex;flex-direction:column;min-width:0}
+.bt{flex:1;display:flex;align-items:flex-end}
+.bb{width:100%;background:var(--muted);opacity:.7}
+.bc.pick .bb{background:var(--accent);opacity:1}
+.bl{height:16px;font-size:.66rem;line-height:16px;text-align:center;color:var(--muted)}
+.bc.true .bl{color:var(--ink);font-weight:bold;text-decoration:underline}
+.thr{position:absolute;left:0;right:0;border-top:2px dashed var(--bad);pointer-events:none}
+ul.checks{margin:6px 0 0;padding-left:1.1em;font-size:.92rem}
+ul.checks li{margin:4px 0;overflow-wrap:anywhere}
+details{margin-top:18px}
+summary{cursor:pointer;min-height:32px}
+#essay p{margin:0 0 10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="top">Breaking Vigenère</h1>
+  <p class="lede" id="lede">Watch the page try to break its own Vigenère cipher with the index of coincidence and frequency matching, Kasiski repeats shown alongside.</p>
+
+  <div class="panel ctl">
+    <label for="nLen">Text length <output id="nOut"></output></label>
+    <input type="range" id="nLen" min="30" max="1000" step="10" value="400">
+    <label for="kLen">Key length <output id="kOut"></output></label>
+    <input type="range" id="kLen" min="2" max="16" step="1" value="6">
+    <div class="row">
+      <button type="button" id="newKey">New key and text</button>
+      <label for="model">Model of English:</label>
+      <select id="model">
+        <option value="essay">Letters of this page's essay</option>
+        <option value="published">Published table (typed from memory)</option>
+        <option value="scrambled">Scrambled essay letters (control)</option>
+      </select>
+    </div>
+    <details>
+      <summary>Use my own message instead</summary>
+      <p class="small" id="ownNote"></p>
+      <label for="own" class="small">Message (letters only count; accents are dropped, and so are letters with no plain A to Z form, such as ß and Œ)</label>
+      <textarea id="own" autocomplete="off" spellcheck="false"></textarea>
+    </details>
+  </div>
+
+  <div class="verdict" id="verdict"></div>
+  <p class="sr" id="live" role="status"></p>
+
+  <h2 id="h1s">1. The message and its key</h2>
+  <div id="s1"></div>
+
+  <h2 id="h2s">2. Kasiski: repeats suggest a key length</h2>
+  <div id="s2"></div>
+
+  <h2 id="h3s">3. Index of coincidence: columns that look like English</h2>
+  <div id="s3"></div>
+
+  <h2 id="h4s">4. Frequency matching: one Caesar shift per column</h2>
+  <div id="s4"></div>
+
+  <h2 id="h5s">5. Where it breaks and where it fails</h2>
+  <p id="gridIntro">Working out the grid.</p>
+  <div class="row">
+    <label for="gview">Show:</label>
+    <select id="gview">
+      <option value="ok">Key fully recovered (break)</option>
+      <option value="ic">Key length right, by index of coincidence</option>
+      <option value="ka">Key length right, by Kasiski alone</option>
+    </select>
+  </div>
+  <div id="grid" class="panel"></div>
+  <div id="gridSum"></div>
+
+  <h2 id="h6s">6. Self-checks, run on load</h2>
+  <ul class="checks" id="checks"><li>Running.</li></ul>
+
+  <h2 id="h7s">7. The essay the page counts</h2>
+  <p class="small">These paragraphs are both the history and the data. Every letter of them is counted to make the first model of English above. The sample message the page encrypts is a different passage, a short story kept in the script. The dates and names are from my memory and not checked against a source.</p>
+  <div class="panel" id="essay">
+    <p>A Vigenère cipher hides a message by using not one shifted alphabet but several. Pick a short keyword, write it again and again beneath the message, and move each letter of the message forward in the alphabet by the number the letter below it stands for. With the keyword LEMON, the first letter moves by L, the second by E, the third by M, and so on, and when the keyword runs out it simply starts over. The same plain letter can now become many different cipher letters, so the most common letter in the message no longer shows up as the most common letter in the cipher text. That was the whole point, and for a very long time it worked well enough that the cipher earned the name le chiffre indéchiffrable, the indecipherable cipher.</p>
+    <p>The name is a small injustice. As far as I remember, the scheme of a repeating keyword was described in 1553 by Giovan Battista Bellaso, and Blaise de Vigenère, who published a related but different idea in 1586, only gained the credit later. I am writing these names and dates from memory and have not checked them against a book, so treat them as the usual account rather than as something this page has proved.</p>
+    <p>What broke it was repetition. If the same piece of the message meets the same part of the keyword twice, the same cipher letters appear twice, and the gap between the two appearances must be a whole number of keyword lengths. Friedrich Kasiski published this observation in 1863, though Charles Babbage seems to have reached it earlier without publishing it. Collect the gaps between repeated groups of letters, ask which key lengths divide them, and the real length stands out. This is the first test the page runs, and it can only work if the text is long enough to contain repeats that are not accidents.</p>
+    <p>The second test came later. William Friedman, in the 1920s, described the index of coincidence: the chance that two letters picked at random from a text are the same. English is lumpy, with a few letters used far more than the rest, so two letters drawn from it match more often than two drawn from uniformly random letters. Split a Vigenère message into columns by a guessed key length. If the guess is right, each column is just English shifted by one fixed amount, and it keeps its lumpiness. If the guess is wrong, the columns mix several shifts together and look flat.</p>
+    <p>Once the length is known, the problem falls apart into several simple ones. Each column is a Caesar cipher, which has only <span class="fill" data-k="alpha"></span> possible shifts. For each shift, the page asks how well the shifted column matches the usual letter frequencies of English, and keeps the best. The usual frequencies are not typed in here. They are counted from the letters of this very essay, and a table of published frequencies is shown beside them as a second opinion, although I typed that table from memory too, so it is a different source but not a verified one.</p>
+    <p>All of this depends on having enough letters. Every key letter needs its own column, and a column of just a few letters is too small to show any pattern: a lucky run of rare letters can point at the wrong shift. A longer key therefore needs a longer message, and a very short message cannot be broken this way at all, however clever the method. That is the claim the grid above puts to the test, by switching its cause off: very short texts with long keys, and a model of English with its letters scrambled, should both fail.</p>
+  </div>
+
+  <h2 id="h8s">What was not checked</h2>
+  <ul class="checks" id="unchecked"></ul>
+
+  <p class="small" id="credit" style="margin-top:28px">Made by Claude, an AI model by Anthropic, for Vigil. I cannot see the page as you do; I only ran its code.</p>
+</main>
+<script>
+"use strict";
+//CORE:START
+const AL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", MAXL = 20;
+const PUBLISHED_RAW = [8.167,1.492,2.782,4.253,12.702,2.228,2.015,6.094,6.966,0.153,0.772,4.025,2.406,6.749,7.507,1.929,0.095,5.987,6.327,9.056,2.758,0.978,2.360,0.150,1.974,0.074];
+function clean(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z]/g, ""); }
+function nums(s){ const o = []; for (const ch of s) o.push(ch.charCodeAt(0) - 65); return o; }
+function str(a){ return a.map(x => AL[x]).join(""); }
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(){ let h = 2166136261; for (const x of arguments){ h ^= x; h = Math.imul(h, 16777619); } return h >>> 0; }
+function enc(p, k){ return p.map((x, i) => (x + k[i % k.length]) % 26); }
+function dec(c, k){ return c.map((x, i) => (x - k[i % k.length] + 26) % 26); }
+function countsOf(a){ const c = new Array(26).fill(0); for (const x of a) c[x]++; return c; }
+function toModel(counts, smooth){ let t = 0; for (const c of counts) t += c; return counts.map(c => (c + smooth) / (t + 26 * smooth)); }
+function sumsq(p){ let s = 0; for (const x of p) s += x * x; return s; }
+function icOfCounts(cnt, m){ if (m < 2) return null; let s = 0; for (const c of cnt) s += c * (c - 1); return s / (m * (m - 1)); }
+function icOf(a){ return icOfCounts(countsOf(a), a.length); }
+function column(c, L, j){ const o = []; for (let i = j; i < c.length; i += L) o.push(c[i]); return o; }
+function avgIC(c, L){ let s = 0, k = 0; for (let j = 0; j < L; j++){ const col = column(c, L, j); const v = icOf(col); if (v !== null){ s += v; k++; } } return k ? s / k : 0; }
+function kasiski(c){
+  const n = c.length, map = new Map(), reps = [];
+  for (let i = 0; i + 3 <= n; i++){ const key = c[i] * 676 + c[i+1] * 26 + c[i+2]; const l = map.get(key); if (l) l.push(i); else map.set(key, [i]); }
+  for (const pos of map.values()){
+    for (let q = 1; q < pos.length; q++){
+      const a = pos[q-1], b = pos[q];
+      if (a > 0 && c[a-1] === c[b-1]) continue;
+      let len = 3; while (b + len < n && c[a+len] === c[b+len]) len++;
+      reps.push({ a, b, len, d: b - a });
+    }
+  }
+  reps.sort((x, y) => y.len - x.len || x.a - y.a);
+  const total = reps.length, votes = [];
+  for (let L = 2; L <= MAXL; L++){ const count = reps.filter(r => r.d % L === 0).length; votes.push({ L, count, excess: count - total / L }); }
+  let pick = null;
+  if (total > 0){ let best = -Infinity; for (const v of votes) if (v.excess >= best){ best = v.excess; pick = v.L; } }
+  return { reps, total, votes, pick };
+}
+const IC_FRAC = 0.7;
+function icScan(c){
+  const vals = [];
+  for (let L = 1; L <= MAXL; L++) vals.push(avgIC(c, L));
+  const thr = 1 / 26 + IC_FRAC * (Math.max(...vals) - 1 / 26);
+  let pick = 0, cleared = false;
+  for (let i = 0; i < vals.length; i++) if (vals[i] >= thr){ pick = i + 1; cleared = true; break; }
+  if (!cleared){ let b = -1; for (let i = 0; i < vals.length; i++) if (vals[i] > b){ b = vals[i]; pick = i + 1; } }
+  return { vals, thr, pick, cleared, whole: icOf(c) };
+}
+function bestShift(cnt, logm){
+  const sc = [];
+  for (let k = 0; k < 26; k++){ let s = 0; for (let x = 0; x < 26; x++) s += cnt[x] * logm[(x - k + 26) % 26]; sc.push(s); }
+  let b = 0; for (let k = 1; k < 26; k++) if (sc[k] > sc[b]) b = k;
+  let second = -Infinity; for (let k = 0; k < 26; k++) if (k !== b && sc[k] > second) second = sc[k];
+  return { k: b, margin: sc[b] - second };
+}
+function breakCipher(c, model){
+  const logm = model.map(Math.log);
+  const kas = kasiski(c), ics = icScan(c), L = ics.pick, shifts = [];
+  for (let j = 0; j < L; j++){ const col = column(c, L, j); const r = bestShift(countsOf(col), logm); shifts.push({ j, m: col.length, k: r.k, margin: r.margin }); }
+  const key = shifts.map(s => s.k);
+  return { kas, ics, L, shifts, key, plain: dec(c, key) };
+}
+function same(a, b){ if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; }
+function randKey(rng, K){ const k = []; for (let i = 0; i < K; i++) k.push(Math.floor(rng() * 26)); return k; }
+function trial(pool, K, N, t, models){
+  const rng = mulberry(hash(K, N, t, 12345));
+  const off = Math.floor(rng() * (pool.length - N + 1)), key = randKey(rng, K), p = pool.slice(off, off + N), c = enc(p, key), out = {};
+  for (const name in models){ const r = breakCipher(c, models[name]); out[name] = { ok: same(r.plain, p), ic: r.L === K, ka: r.kas.pick === K }; }
+  return out;
+}
+//CORE:END
+
+const POOL_TEXT = "The lighthouse keeper woke before the light did. He lit the stove, filled the kettle from the rain barrel and stood at the window while the water warmed. Out past the rocks the sea was the colour of slate, and one boat was working its way along the shore, low in the water, the way boats sit when they carry more than they should. He wrote the hour and the wind in the log, and then he climbed the stairs to trim the lamp. " +
+"The climb was something he had stopped counting years ago. His knees counted it for him. At the top he cleaned the glass with a soft cloth, checked the oil and wound the clockwork that turned the lens, and while he worked he listened to the sound the machinery made, because a change in that sound was usually the first sign that something was wrong. This morning it was steady, a slow tick like a patient animal breathing. " +
+"By noon the weather had turned. A wind came in from the north and the boat he had watched earlier was gone from the water, which he decided to take as good news. He ate bread and cold fish standing up, because sitting down after a meal made the afternoon too long. Then he went out along the wall to look at the rope that held the supply box, and found that the gulls had been at the knot again. He retied it and said a few words to the gulls that he would not have written in any log. " +
+"In the evening a letter arrived with the relief boatman, who stayed only long enough to drink a cup of tea and complain about the tide. The letter was from his sister, and it said very little: the garden had done well, the neighbour's dog had died, and she hoped he was eating properly. He read it twice, folded it small and put it in the tin where he kept the things he meant to answer. Then he lit the lamp and watched the first beam cross the water, long and white, and go out to find whoever was listening for it. " +
+"Later the fog came down so thickly that the beam seemed to stop a few yards from the glass, as if the night had been stuffed with wool. He rang the bell by hand, one slow stroke after another, and between strokes he listened for an answer from the water. None came. Near midnight he thought he heard an engine, then decided it was only his own pulse in his ears, and kept ringing until his arm ached and the grey light of morning began to thin the dark.";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const f3 = x => x.toFixed(3), f1 = x => x.toFixed(1);
+const group5 = s => s.replace(/(.{5})/g, "$1 ").trim();
+function art(n){ return /^(8|11|18)/.test(String(n)) ? "an" : "a"; }
+function plural(n, one, many){ return n === 1 ? one : many; }
+function lst(a){ return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+/* ---- data the page counts itself ---- */
+const essayText = $("essay").textContent;
+const essayLetters = nums(clean(essayText));
+const essayCounts = countsOf(essayLetters);
+const POOL = nums(clean(POOL_TEXT));
+const published = (() => { let t = 0; for (const x of PUBLISHED_RAW) t += x; return PUBLISHED_RAW.map(x => x / t); })();
+const essayModel = toModel(essayCounts, 1);
+const scrambledModel = (() => { const s = new Array(26); for (let i = 0; i < 26; i++) s[(7 * i + 3) % 26] = essayModel[i]; return s; })();
+const MODELS = { essay: essayModel, published: published, scrambled: scrambledModel };
+const MODEL_NAMES = { essay: "essay letters", published: "published table", scrambled: "scrambled essay letters" };
+const icEssayText = icOf(essayLetters), icPoolText = icOf(POOL), icRandom = 1 / 26;
+function pearson(a, b){ const n = a.length; let ma = 0, mb = 0; for (let i = 0; i < n; i++){ ma += a[i]; mb += b[i]; } ma /= n; mb /= n; let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++){ sab += (a[i]-ma)*(b[i]-mb); saa += (a[i]-ma)**2; sbb += (b[i]-mb)**2; } return sab / Math.sqrt(saa * sbb); }
+const corrEP = pearson(essayModel, published);
+for (const el of document.querySelectorAll(".fill")) if (el.dataset.k === "alpha") el.textContent = String(AL.length);
+
+/* ---- state ---- */
+const st = { n: 400, K: 6, seed: 1, model: "essay", own: null };
+function source(){ return st.own || POOL; }
+function setBounds(){
+  const len = source().length, max = Math.min(len, 1000);
+  $("nLen").max = String(Math.floor(max / 10) * 10);
+  if (st.n > max) st.n = max;
+  $("nLen").value = String(st.n);
+  st.n = +$("nLen").value;
+  $("ownNote").textContent = st.own ? "Using your message: " + st.own.length + " letters. Clear the box to go back to the built-in passage." : "Used when it holds at least 30 letters. The built-in passage has " + POOL.length + " letters.";
+}
+function setup(){
+  const u = mulberry(hash(st.seed, 4242))(), P = source().length;
+  const off = Math.min(Math.floor(u * P), P - st.n);
+  const key = randKey(mulberry(hash(st.seed, st.K, 777)), st.K);
+  const p = source().slice(off, off + st.n);
+  return { p, key, c: enc(p, key), off };
+}
+
+function bars(vals, labels, pickIdx, trueIdx, max, thr){
+  let h = '<div class="bars" aria-hidden="true" style="--n:' + vals.length + '">';
+  vals.forEach((v, i) => { h += '<div class="bc' + (i === pickIdx ? " pick" : "") + (i === trueIdx ? " true" : "") + '"><div class="bt"><div class="bb" style="height:' + (100 * Math.max(0, v) / max).toFixed(1) + '%"></div></div><div class="bl">' + labels[i] + "</div></div>"; });
+  if (thr != null) h += '<div class="thr" style="bottom:calc(16px + (var(--h) - 16px) * ' + (thr / max).toFixed(4) + ')"></div>';
+  return h + "</div>";
+}
+
+function render(){
+  const d = setup(), K = st.K, n = d.c.length, model = MODELS[st.model];
+  const r = breakCipher(d.c, model), keyS = str(d.key), guessS = str(r.key);
+  const right = r.plain.reduce((s, x, i) => s + (x === d.p[i] ? 1 : 0), 0);
+  const ok = same(r.plain, d.p);
+  $("nOut").textContent = n + " letters";
+  $("kOut").textContent = K + " letters";
+
+  /* verdict */
+  let why = "";
+  if (!ok){
+    if (r.L !== K){
+      if (r.L % K === 0) why = "It took " + r.L + " for the key length, a multiple of the true " + K + ". Split into that many columns, each has only about " + f1(n / r.L) + " letters, and small columns give wrong shifts.";
+      else why = "It took " + r.L + " for the key length; the true length is " + K + ". At this size the index of coincidence is too noisy to tell the lengths apart.";
+    } else {
+      const wrong = []; r.shifts.forEach((s, j) => { if (s.k !== d.key[j]) wrong.push(j + 1); });
+      why = "The key length was right, but " + wrong.length + " of " + K + " key " + plural(wrong.length, "letter", "letters") + " came out wrong (" + plural(wrong.length, "column ", "columns ") + lst(wrong) + "). Each column has about " + f1(n / K) + " letters." + (st.model === "scrambled" ? " This model's letter frequencies are scrambled, so the shifts it prefers are wrong." : "");
+    }
+  }
+  const T = 30; let hits = 0;
+  for (let t = 0; t < T; t++) if (trial(source(), K, n, t + 1000 * st.seed, { m: model }).m.ok) hits++;
+  const fresh = hits === 0 ? "none of " + T : hits + " of " + T;
+  $("verdict").className = "verdict " + (ok ? "v-ok" : "v-bad");
+  $("verdict").innerHTML = (ok ? '<b class="ok">Breaks.</b> The guessed key ' + guessS + (r.L === K ? " is the true key." : " is the true key " + keyS + " repeated.") : '<b class="bad">Fails.</b> ' + esc(why)) + " " +
+    '<div class="small">' + n + " letters, key of " + K + ": " + f1(n / K) + " letters per key letter. Model: " + MODEL_NAMES[st.model] + ". Fresh random keys and passages at this setting: " + fresh + " broke.</div>";
+
+  /* 1 */
+  const shownC = d.c.slice(0, 300);
+  $("s1").innerHTML = '<p>Key (random, kept from the attack): <code>' + keyS + '</code>. The plain text is ' + art(n) + " " + n + "-letter stretch of " + (st.own ? "your message" : "a short story kept in this page") + ", spaces and punctuation removed" + (st.own ? " (accents, ß, Œ and other non-A-to-Z letters are dropped)" : "") + ". Each letter moves forward by the key letter beneath it (A is 0, B is 1, and so on).</p>" +
+    '<p class="small">Cipher text' + (n > 300 ? " (first 300 of " + n + " letters)" : "") + ":</p><div class=\"mono\">" + group5(str(shownC)) + "</div>" +
+    '<p class="small">The attack below only receives these ' + n + ' letters and the model of English. It never reads the key.</p>';
+
+  /* 2 */
+  const kas = r.kas, top = kas.reps.slice(0, 8);
+  let s2 = "<p>The page looks for groups of three or more letters that occur twice in the cipher text. ";
+  s2 += kas.total === 0 ? "It found none. " : "It found " + kas.total + " " + plural(kas.total, "repeat", "repeats") + ". ";
+  s2 += "A real repeat has a distance that is a multiple of the key length; an accidental one does not. For each length from 2 to " + MAXL + " the page counts how many distances it divides, subtracts the count expected by chance (the number of repeats divided by that length), and picks the length with the most left over. The break itself uses the length picked by the index of coincidence in section 3; this Kasiski estimate is shown alongside for comparison and does not feed it.</p>";
+  if (top.length){
+    s2 += '<table><thead><tr><th scope="col">Repeat</th><th scope="col">Places</th><th scope="col">Gap</th><th scope="col">Fits lengths</th></tr></thead><tbody>';
+    for (const q of top){
+      const s = str(d.c.slice(q.a, q.a + q.len)), fits = []; for (let L = 2; L <= MAXL; L++) if (q.d % L === 0) fits.push(L);
+      s2 += "<tr><td>" + (s.length > 12 ? s.slice(0, 12) + "…" : s) + " (" + q.len + ")</td><td>" + (q.a + 1) + " and " + (q.b + 1) + "</td><td>" + q.d + "</td><td>" + (fits.length ? fits.join(", ") : "none") + "</td></tr>";
+    }
+    s2 += "</tbody></table>";
+    s2 += '<p class="small">' + (kas.total > top.length ? "The " + top.length + " longest repeats are shown. " : "") + "A distance only fits lengths up to " + MAXL + " that divide it.</p>";
+  }
+  const kv = kas.votes.map(v => v.excess), kmax = Math.max(1, ...kv);
+  s2 += bars(kv, kas.votes.map(v => v.L), kas.pick === null ? -1 : kas.pick - 2, K - 2, kmax, null);
+  s2 += '<p class="small">Bars: evidence above chance for each key length from 2 to ' + MAXL + '. Blue is the page\'s pick, the underlined label is the true length.</p>';
+  s2 += "<p>" + (kas.pick === null ? "<b>Kasiski has no pick</b>: no repeats to use." : "<b>Kasiski picks " + kas.pick + "</b>, which " + (kas.pick === K ? '<span class="ok">is the true length</span>.' : '<span class="bad">is not the true length (' + K + ")</span>.")) + "</p>";
+  $("s2").innerHTML = s2;
+
+  /* 3 */
+  const ics = r.ics, imax = Math.max(0.08, ...ics.vals);
+  let s3 = "<p>Cut the cipher text into L columns, taking every L-th letter. The index of coincidence (IC) of a column is the chance that two of its letters are the same. English letters give about " + f3(sumsq(model)) + " in the " + MODEL_NAMES[st.model] + " model; uniformly random letters give 1/" + AL.length + " = " + f3(icRandom) + ". The whole cipher text scores " + f3(ics.whole) + ". The dashed line sits " + Math.round(100 * IC_FRAC) + "% of the way from the random value to the highest bar, " + f3(ics.thr) + ", and the page takes the first length whose average column IC reaches it. (Halfway to the English value, my first choice, kept picking a length of 1 for short keys, so I changed it after a first run.)</p>";
+  s3 += bars(ics.vals, ics.vals.map((v, i) => i + 1), ics.pick - 1, K - 1, imax, ics.thr);
+  s3 += '<p class="small">Bars: average column IC for each length from 1 to ' + MAXL + ". Blue is the pick, the underlined label is the true length.</p>";
+  s3 += "<p><b>" + (ics.cleared ? "IC picks " + ics.pick : "No length reached the line; IC takes the highest bar, " + ics.pick) + "</b>, which " + (ics.pick === K ? '<span class="ok">is the true length</span>' : '<span class="bad">is not the true length (' + K + ")</span>") + ". At the true length " + K + " the average column IC is " + f3(ics.vals[K-1]) + ".</p>";
+  $("s3").innerHTML = s3;
+
+  /* 4 */
+  let s4 = "<p>With length " + r.L + ", each of the " + r.L + " columns is treated as a Caesar cipher. For each of the " + AL.length + " shifts the page adds up the log of the model's frequency for every letter the shift would give, and keeps the shift that scores best. The margin is how much better the best shift scored than the second best (natural-log units; a small margin means a shaky pick).</p>";
+  s4 += '<table><thead><tr><th scope="col">Column</th><th scope="col">Letters</th><th scope="col">Guess</th><th scope="col">True</th><th scope="col">Margin</th><th scope="col">Right?</th></tr></thead><tbody>';
+  r.shifts.forEach((s, j) => {
+    const tr = r.L === K ? AL[d.key[j]] : "n/a", hit = r.L === K ? (s.k === d.key[j]) : null;
+    s4 += "<tr><td>" + (j + 1) + "</td><td>" + s.m + "</td><td>" + AL[s.k] + "</td><td>" + tr + "</td><td>" + f1(s.margin) + "</td><td>" + (hit === null ? "n/a" : hit ? '<span class="ok">yes</span>' : '<span class="bad">no</span>') + "</td></tr>";
+  });
+  s4 += "</tbody></table>";
+  s4 += "<p>Guessed key: <code>" + guessS + "</code>" + (r.L === K ? ". True key: <code>" + keyS + "</code>." : ". The true key (<code>" + keyS + "</code>) has a different length, so columns cannot be compared one by one.") + "</p>";
+  const dshow = group5(str(r.plain.slice(0, 100)));
+  s4 += '<p class="small">Decrypted with the guessed key (first ' + Math.min(100, n) + " letters):</p><div class=\"mono\">" + dshow + "</div>";
+  s4 += "<p>" + right + " of " + n + " letters match the original (" + Math.round(100 * right / n) + "%).</p>";
+  $("s4").innerHTML = s4;
+}
+
+/* ---- grid ---- */
+const GRID_K = [2, 3, 4, 5, 6, 8, 10, 12, 14, 16];
+const GRID_N = [50, 100, 200, 400, 800, 1200].filter(x => x <= POOL.length);
+const TRIALS = 24;
+let GRID = null;
+const delay = () => new Promise(r => setTimeout(r, 0));
+async function computeGrid(){
+  const res = {};
+  for (const m in MODELS){ res[m] = { ok: [], ic: [], ka: [] }; }
+  for (let ki = 0; ki < GRID_K.length; ki++){
+    for (const m in MODELS){ res[m].ok.push([]); res[m].ic.push([]); res[m].ka.push([]); }
+    for (let ni = 0; ni < GRID_N.length; ni++){
+      const tot = {}; for (const m in MODELS) tot[m] = { ok: 0, ic: 0, ka: 0 };
+      for (let t = 0; t < TRIALS; t++){
+        const o = trial(POOL, GRID_K[ki], GRID_N[ni], t, MODELS);
+        for (const m in MODELS){ if (o[m].ok) tot[m].ok++; if (o[m].ic) tot[m].ic++; if (o[m].ka) tot[m].ka++; }
+      }
+      for (const m in MODELS){ res[m].ok[ki].push(tot[m].ok); res[m].ic[ki].push(tot[m].ic); res[m].ka[ki].push(tot[m].ka); }
+    }
+    await delay();
+  }
+  return res;
+}
+function renderGrid(){
+  if (!GRID) return;
+  const view = $("gview").value, g = GRID[st.model][view];
+  let h = '<table class="grid"><thead><tr><th scope="col">Key \\ letters</th>' + GRID_N.map(x => '<th scope="col">' + x + "</th>").join("") + "</tr></thead><tbody>";
+  GRID_K.forEach((K, ki) => {
+    h += '<tr><th scope="row">' + K + "</th>";
+    GRID_N.forEach((N, ni) => {
+      const pct = Math.round(100 * g[ki][ni] / TRIALS), cls = pct >= 90 ? "ok" : pct < 10 ? "bad" : "mid", sym = pct >= 90 ? "✓" : pct < 10 ? "✗" : "~";
+      h += '<td class="' + cls + '" title="' + g[ki][ni] + " of " + TRIALS + ' trials">' + pct + sym + "</td>";
+    });
+    h += "</tr>";
+  });
+  h += "</tbody></table>";
+  h += '<p class="small">Each cell: the percentage of ' + TRIALS + " trials (fresh random key and a different stretch of the story each time) that succeeded, with the model set above (" + MODEL_NAMES[st.model] + "). ✓ is 90 or more, ✗ is under 10, ~ is in between. Columns are text lengths in letters, rows are key lengths. The story is " + POOL.length + " letters long, so the longest columns reuse much of the same text with different keys." + (view === "ok" ? "" : " The model does not affect this view: the key length is picked before any model is used.") + "</p>";
+  $("grid").innerHTML = h;
+}
+function gridFacts(){
+  const g = GRID.essay.ok, nK = GRID_K.length, nN = GRID_N.length;
+  const rate = m => { let s = 0; for (const row of GRID[m].ok) for (const v of row) s += v; return s / (nK * nN * TRIALS); };
+  const pc = x => Math.round(100 * x) + "%";
+  const first = ki => { for (let ni = 0; ni < nN; ni++) if (g[ki][ni] / TRIALS >= 0.9) return GRID_N[ni]; return null; };
+  const ratios = [], never = [];
+  GRID_K.forEach((K, ki) => { const f = first(ki); if (f === null) never.push(K); else ratios.push({ K, N: f, r: f / K }); });
+  const cornerShort = g[nK-1][0] / TRIALS, cornerLong = g[0][nN-1] / TRIALS, longLong = g[nK-1][nN-1] / TRIALS;
+  return { rate, pc, ratios, never, cornerShort, cornerLong, longLong, g };
+}
+function ruleSentence(f){
+  const r = f.ratios; let from = -1;
+  for (let i = 0; i < r.length && from < 0; i++){
+    const t = r.slice(i); let ok = t.length >= 2 && t[t.length-1].N > t[0].N;
+    for (let j = 1; j < t.length; j++) if (t[j].N < t[j-1].N) ok = false;
+    if (ok) from = i;
+  }
+  if (from < 0) return "The rule that a longer key needs a longer message does not show clearly anywhere in this grid.";
+  const K0 = r[from].K, short = r.slice(0, from).map(x => x.K);
+  return "The rule that a longer key needs a longer message holds clearly only for keys of about " + K0 + " or more in this grid" + (short.length ? "; for shorter keys the first-reached length does not rise steadily, so they are held back by the index of coincidence length rule, not by column size." : ".");
+}
+function renderSummary(){
+  const f = gridFacts(), nN = GRID_N.length, nK = GRID_K.length;
+  let h = '<h2 id="h5b">What the grid shows</h2><ul class="checks">';
+  h += "<li>Over all " + (nK * nN * TRIALS) + " trials, the key was fully recovered " + f.pc(f.rate("essay")) + " of the time with the essay-letter model, " + f.pc(f.rate("published")) + " with the published table, and " + f.pc(f.rate("scrambled")) + " with the scrambled control.</li>";
+  if (f.ratios.length){
+    const lo = f.ratios.reduce((a, b) => b.r < a.r ? b : a), hi = f.ratios.reduce((a, b) => b.r > a.r ? b : a);
+    h += "<li>With the essay model, a key of length " + lo.K + " first reached 90% at " + lo.N + " letters (" + f1(lo.r) + " per key letter); a key of length " + hi.K + " first reached it at " + hi.N + " letters (" + f1(hi.r) + " per key letter). Text lengths tested are only " + lst(GRID_N.map(String)) + ", so these are upper bounds on the true need.</li>";
+  }
+  h += "<li>" + ruleSentence(f) + "</li>";
+  h += "<li>" + (f.never.length ? "Key " + plural(f.never.length, "length ", "lengths ") + lst(f.never.map(String)) + " never reached 90% in the lengths tested." : "Every key length tested reached 90% somewhere in the lengths tested.") + "</li>";
+  h += "<li><b>Switching the cause off:</b> with " + GRID_N[0] + " letters and a key of " + GRID_K[nK-1] + ", " + (f.g[nK-1][0] === 0 ? "none" : f.g[nK-1][0]) + " of " + TRIALS + " trials broke; with " + GRID_N[nN-1] + " letters and a key of " + GRID_K[0] + ", " + f.g[0][nN-1] + " of " + TRIALS + " did.</li>";
+  h += "</ul>";
+  $("gridSum").innerHTML = h;
+  $("gridIntro").textContent = "Every cell below is a batch of " + TRIALS + " full attacks on fresh keys. Short texts and long keys are the corner where it should fail.";
+}
+
+/* ---- self-checks ---- */
+function selfChecks(){
+  const out = [];
+  const lemon = str(enc(nums("ATTACKATDAWN"), nums("LEMON")));
+  out.push([lemon === "LXFOPVEFRNHR", "Textbook test: ATTACKATDAWN with key LEMON gives " + lemon + " (the textbook value is LXFOPVEFRNHR, which I remember rather than looked up)."]);
+  let rt = 0, rtN = 300;
+  for (let i = 0; i < rtN; i++){ const rng = mulberry(i + 99), K = 1 + Math.floor(rng() * 16), key = randKey(rng, K), n = 20 + Math.floor(rng() * 200), off = Math.floor(rng() * (POOL.length - n)), p = POOL.slice(off, off + n); if (same(dec(enc(p, key), key), p)) rt++; }
+  out.push([rt === rtN, "Decrypting with the true key gave back the plain text in " + rt + " of " + rtN + " random cases."]);
+  const sumE = essayModel.reduce((a, b) => a + b, 0), sumP = published.reduce((a, b) => a + b, 0);
+  out.push([Math.abs(sumE - 1) < 1e-9 && Math.abs(sumP - 1) < 1e-9, "Both models sum to 1 (" + sumE.toFixed(6) + " and " + sumP.toFixed(6) + ")."]);
+  const icA = icOf(nums("AAAA")), icB = icOf(nums(AL.repeat(4)));
+  out.push([Math.abs(icA - 1) < 1e-12 && icB < 0.05, "IC sanity: four copies of one letter give " + f3(icA) + ", four copies of the alphabet give " + f3(icB) + "."]);
+  const bigT = (essayLetters.length >= 2000);
+  out.push([bigT, "The essay supplies " + essayLetters.length + " letters to the model (my own threshold: at least 2,000 for a stable table; the story has " + POOL.length + ")."]);
+  const wc = $("lede").textContent.trim().split(/\s+/).length;
+  out.push([wc <= 25, "The opening sentence has " + wc + " words (limit 25)."]);
+  if (GRID){
+    const f = gridFacts(), nK = GRID_K.length, nN = GRID_N.length;
+    out.push([f.cornerShort < 0.1, "Cause off, short text and long key (" + GRID_N[0] + " letters, key " + GRID_K[nK-1] + "): " + Math.round(100 * f.cornerShort) + "% broke. This must be under 10%."]);
+    out.push([f.cornerLong >= 0.9, "Cause on, long text and short key (" + GRID_N[nN-1] + " letters, key " + GRID_K[0] + "): " + Math.round(100 * f.cornerLong) + "% broke. This must be 90% or more."]);
+    out.push([f.rate("scrambled") < 0.1 && f.rate("essay") > f.rate("scrambled") + 0.3, "Scrambled English statistics: " + Math.round(100 * f.rate("scrambled")) + "% of all trials broke, against " + Math.round(100 * f.rate("essay")) + "% with the essay letters. Scrambling must cost at least 30 points and leave under 10%."]);
+    out.push([true, "Essay letters against the published table: correlation " + f3(corrEP) + " across the " + AL.length + " letters; IC " + f3(sumsq(essayModel)) + " (essay model, smoothed) against " + f3(sumsq(published)) + " (published). Same author for model and story, so that check is not fully independent."]);
+  }
+  $("checks").innerHTML = out.map(o => "<li>" + (o[0] ? '<b class="ok">pass</b> ' : '<b class="bad">FAIL</b> ') + esc(o[1]) + "</li>").join("");
+  return out;
+}
+function modelTable(){
+  const poolC = toModel(countsOf(POOL), 0);
+  let h = '<details><summary>Letter frequencies used (essay, published table, story)</summary><p class="small">Essay: ' + essayLetters.length + " letters counted from the essay, with one added to every count so no letter has zero chance. Published: the usual English table, typed from memory and not re-checked. Story: the passage that gets encrypted, shown to see how far a single text strays from either table. IC of the essay letters as counted: " + f3(icEssayText) + "; of the story: " + f3(icPoolText) + ".</p>";
+  h += '<table><thead><tr><th scope="col">Letter</th><th scope="col">Essay %</th><th scope="col">Published %</th><th scope="col">Story %</th></tr></thead><tbody>';
+  for (let i = 0; i < 26; i++) h += "<tr><td>" + AL[i] + "</td><td>" + f1(100 * essayModel[i]) + "</td><td>" + f1(100 * published[i]) + "</td><td>" + f1(100 * poolC[i]) + "</td></tr>";
+  h += "</tbody></table></details>";
+  $("gridSum").insertAdjacentHTML("afterend", h);
+}
+function unchecked(){
+  const li = [
+    "The published letter table is typed from memory (it is the usual one quoted from Lewand's book, as I remember), not checked against a source. It is a different origin from the essay, but not a verified one.",
+    "The history above (Bellaso, Vigenère, Babbage, Kasiski, Friedman and their dates) is from memory.",
+    "The model of English is the essay's own letters, and the encrypted story is by the same author, so the break rate here is for text like mine. Other writing, other languages, or messages with spaces kept would behave differently.",
+    "The method is the textbook one with my own choices (the IC line at "+ Math.round(100 * IC_FRAC) +"% of the way up to the highest bar, chosen after a first try with another rule failed on short keys, the Kasiski chance correction, a log-score for the shifts). Other thresholds would shift the grid.",
+    "Each grid cell is " + TRIALS + " trials, so for a cell near 50% the 95% margin is about " + Math.round(100 * 1.96 * Math.sqrt(0.25 / TRIALS)) + " points either way. The text lengths tested are a coarse set, so a first-reached length is an upper bound.",
+    "Not tried: a real phone, a screen reader, or browsers other than headless Chromium."
+  ];
+  $("unchecked").innerHTML = li.map(x => "<li>" + esc(x) + "</li>").join("");
+}
+
+/* ---- events ---- */
+function say(){ const t = $("verdict").textContent.replace(/\s+/g, " ").trim(); $("live").textContent = t; }
+$("nLen").addEventListener("input", () => { st.n = +$("nLen").value; render(); });
+$("kLen").addEventListener("input", () => { st.K = +$("kLen").value; render(); });
+$("nLen").addEventListener("change", say);
+$("kLen").addEventListener("change", say);
+$("newKey").addEventListener("click", () => { st.seed++; render(); say(); });
+$("model").addEventListener("change", () => { st.model = $("model").value; render(); renderGrid(); say(); });
+$("gview").addEventListener("change", renderGrid);
+$("own").addEventListener("input", () => {
+  const c = nums(clean($("own").value));
+  st.own = c.length >= 30 ? c : null;
+  setBounds(); render();
+});
+$("kOut").textContent = "";
+$("nOut").textContent = "";
+setBounds(); render(); unchecked(); selfChecks();
+computeGrid().then(g => { GRID = g; renderGrid(); renderSummary(); modelTable(); selfChecks(); window.__vigDone = true; });
+window.__vig = { core: { enc, dec, breakCipher, trial, kasiski, icScan }, get grid(){ return GRID; }, essayLetters, POOL, MODELS };
+</script>
+</body>
+</html>

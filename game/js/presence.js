@@ -8,29 +8,37 @@
 // Everything received is validated: unknown kinds are ignored, numbers are checked and clamped. There is
 // no text field anywhere; a name is rebuilt locally from the seed.
 import { nameFor, colourFor, isSeed } from "./names.js";
+import { createGuard } from "./guard.js";
 
 export const PROTOCOL = 1;
 const SEND_MOVING_MS = 100, SEND_IDLE_MS = 2000, TIMEOUT_MS = 12000;
+export const MAX_PEERS = 11; // others in one room; more are ignored (a full mesh gets heavy)
+const MAX_KEYS = 8; // a presence message never has more fields than this
 
 const num = (v, lo, hi) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : null);
 
 export function createPresence(net, world, me, onChange = () => {}) {
   const peers = new Map(); // peerId -> { id, seed, name, colour, x, y, d, tx, ty, moving, seen }
   let lastSent = 0, lastSentMoving = false;
+  const guard = createGuard(30, 60); // messages per second per peer; the rest are dropped
 
   const hi = () => ({ k: "hi", v: PROTOCOL, s: me.seed, x: round(me.x), y: round(me.y), d: round(me.d) });
 
   net.onPeerJoin((id) => { net.send(hi(), id); });
-  net.onPeerLeave((id) => { if (peers.delete(id)) onChange(); });
+  net.onPeerLeave((id) => { guard.forget(id); if (peers.delete(id)) onChange(); });
   net.onMessage((msg, id) => {
     if (!msg || typeof msg !== "object" || typeof id !== "string") return;
+    if (msg.k !== "hi" && msg.k !== "st" && msg.k !== "by") return; // other kinds belong to other modules
+    if (Object.keys(msg).length > MAX_KEYS) return;
     const now = performance.now();
+    if (!guard.allow(id, now)) return;
     if (msg.k === "hi") {
       if (msg.v !== PROTOCOL || !isSeed(msg.s)) return;
       const x = num(msg.x, 0, world.w), y = num(msg.y, 0, world.h);
       if (x === null || y === null) return;
       const known = peers.get(id);
-      const p = known || { id, x, y };
+      if (!known && peers.size >= MAX_PEERS) return;
+      const p = known || { id, x, y, say: null, emote: null };
       Object.assign(p, { seed: msg.s, name: nameFor(msg.s), colour: colourFor(msg.s), tx: x, ty: y, d: num(msg.d, -4, 4) ?? 0, moving: false, seen: now });
       if (!known) { peers.set(id, p); onChange(); }
     } else if (msg.k === "st") {

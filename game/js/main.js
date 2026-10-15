@@ -4,6 +4,7 @@ import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
 import { createTransport, pickKind, pickTestRelay } from "./net/transport.js";
 import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
+import { createTalk, PHRASES, EMOTES } from "./talk.js";
 import { createRenderer } from "./render.js";
 
 const ROOMS = 6;
@@ -28,7 +29,7 @@ function save() {
 }
 const saved = loadSave();
 const start = (Number.isFinite(saved.x) && Number.isFinite(saved.y) && !isBlocked(world, saved.x, saved.y)) ? { x: saved.x, y: saved.y } : spawnFor(world, saved.seed);
-const me = { id: "me", seed: saved.seed, name: nameFor(saved.seed), colour: colourFor(saved.seed), x: start.x, y: start.y, d: 0, moving: false };
+const me = { id: "me", seed: saved.seed, name: nameFor(saved.seed), colour: colourFor(saved.seed), x: start.x, y: start.y, d: 0, moving: false, say: null, emote: null };
 save();
 
 // ---- room choice ----
@@ -54,7 +55,7 @@ $("netkind").textContent = netKind === "local" ? "local test mode (tabs of this 
 // ---- the game ----
 const canvas = $("view");
 const renderer = createRenderer(canvas, world);
-let net = null, presence = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -69,6 +70,8 @@ async function enter() {
     return;
   }
   presence = createPresence(net, world, me, updatePeers);
+  talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
+  me.say = null; me.emote = null;
   playing = true; joinedAt = performance.now();
   document.body.classList.add("playing");
   $("roomname").textContent = `Lantern ${roomNo}`;
@@ -82,7 +85,8 @@ async function enter() {
 function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
-  playing = false; net = null; presence = null;
+  playing = false; net = null; presence = null; talk = null;
+  setTalkOpen(false); $("heard").textContent = "";
   document.body.classList.remove("playing");
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
@@ -109,10 +113,50 @@ function frame(t) {
   const dt = Math.min(0.1, (t - lastT) / 1000); lastT = t;
   step(dt);
   presence.tick(t, dt);
+  talk.tick(t);
+  paintCooldowns(t);
   renderer.draw(me, presence.peers, input.stick, t);
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
   requestAnimationFrame(frame);
 }
+
+// ---- talk: gestures and preset phrases (buttons and the T key) ----
+const GESTURE_NAMES = { wave: "Wave", bow: "Bow", point: "Point", cheer: "Cheer", sit: "Sit" };
+function makeButtons(host, labels, kind, fn) {
+  labels.forEach((label, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tb"; b.textContent = label; b.dataset.kind = kind; b.dataset.id = i;
+    b.addEventListener("click", () => fn(i));
+    host.append(b);
+  });
+}
+makeButtons($("gestures"), EMOTES.map(e => GESTURE_NAMES[e]), "em", (i) => { if (talk) talk.emote(i); });
+makeButtons($("phrases"), PHRASES, "say", (i) => { if (talk) talk.say(i); });
+let lastCool = "";
+function paintCooldowns(t) {
+  const c = talk.cooldowns(t);
+  const key = `${Math.round(c.say * 20)}/${Math.round(c.emote * 20)}`;
+  if (key === lastCool) return;
+  lastCool = key;
+  for (const b of $("talkbox").querySelectorAll(".tb")) {
+    const v = b.dataset.kind === "say" ? c.say : c.emote;
+    b.style.setProperty("--cd", `${Math.round(v * 100)}%`);
+    b.classList.toggle("cool", v > 0);
+    b.setAttribute("aria-disabled", String(v > 0));
+  }
+}
+function setTalkOpen(open) {
+  $("talkbox").hidden = !open;
+  $("talktoggle").setAttribute("aria-expanded", String(open));
+}
+$("talktoggle").addEventListener("click", () => setTalkOpen($("talkbox").hidden));
+addEventListener("keydown", (e) => {
+  if (!playing || e.code !== "KeyT" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+  const open = $("talkbox").hidden;
+  setTalkOpen(open);
+  if (open) $("talkbox").querySelector(".tb").focus(); else canvas.focus({ preventScroll: true });
+});
 
 function updatePeers() {
   if (!presence) return;
@@ -149,6 +193,11 @@ addEventListener("hashchange", () => { if (!playing) { roomNo = roomFromHash(); 
 // Read-only view for the tests (and the curious): plain copies, no handles into the game.
 window.__longWatch = {
   world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world) }),
-  self: () => ({ name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
-  peers: () => presence ? [...presence.peers.values()].map(p => ({ name: p.name, seed: p.seed, x: p.tx, y: p.ty })) : [],
+  self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
+  peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
+  mine: () => ({ say: me.say ? me.say.id : null, emote: me.emote ? me.emote.id : null }),
+  say: (i) => !!talk && talk.say(i),
+  emote: (i) => !!talk && talk.emote(i),
+  arrows: () => renderer.arrows(),
+  phrases: PHRASES.length,
 };

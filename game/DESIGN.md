@@ -73,6 +73,12 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
 - **Presence protocol v1** (`js/presence.js`): `hi` (seed, position, facing; to every new peer), `st` (position,
   facing, moving flag; 10 Hz while moving, every 2 s standing still), `by` (leaving). A peer that is silent for
   12 s is dropped. All fields are validated and clamped; movement from a peer that has not said `hi` is ignored.
+  Every peer is also limited to 30 presence messages per second (`js/guard.js`), at most 8 fields per message, and
+  `MAX_PEERS` = 11 others per room.
+- **Talk protocol v1** (`js/talk.js`): `say` (`{k:"say",p:id}`, one of 16 preset phrases) and `em` (`{k:"em",e:id}`,
+  one of 5 gestures). Ids are integers; the words live in each browser's code. A message with any other field, a
+  non-integer or out-of-range id, or from a peer that has not said `hi`, is dropped. Cooldowns (3 s phrases, 1.5 s
+  gestures) are enforced by the sender and again by every receiver (with 20% slack), plus a 6/s rate limit per peer.
 - **Shared world state (from milestone 3 on).** Things that belong to the room, not to a player (a gathered
   bush, a beacon's progress), are kept as a replicated map of small records, each with a version
   `(lamport, peerId)`. Rules: highest version wins (last writer wins with a deterministic tie-break); counters
@@ -109,6 +115,9 @@ game/
   js/world.js           seeded island generation, tile queries, spawn points, fingerprint
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
+  js/talk.js            gestures and preset phrases: lists, send, validated receive, cooldowns
+  js/arrows.js          edge arrows toward off-screen players (pure maths)
+  js/guard.js           per-peer rate limiter (token bucket)
   js/input.js           keyboard and drag-joystick input
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
@@ -116,12 +125,15 @@ game/
   js/net/trystero.js    Trystero transport (nostr, torrent)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
+  tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
-`window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
+`index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
+import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs` (add `--local` to skip the WebRTC part, `SHOTS=dir` for screenshots), then
+`node game/tests/presence.test.mjs` and `node game/tests/talk.test.mjs` (add `--local` to skip the WebRTC part,
+`SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

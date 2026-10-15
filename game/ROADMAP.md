@@ -9,15 +9,13 @@ working features.
 - **0. Presence.** Seeded island, generated names, six lantern rooms, walk with keys or a drag joystick, see
   everyone in the same room move, leave and timeout handling, local and real (Trystero/Nostr) transports.
   (2026-10-15)
+- **1. Gestures and preset phrases.** Five gestures (wave, bow, point, cheer, sit) and 16 preset phrases, sent as
+  integer ids only (unknown ids dropped), bubbles with a fading timer, cooldowns enforced on both sides, edge arrows
+  to off-screen players, per-peer rate limit, peer cap, Content-Security-Policy. (2026-10-15)
 
 ## Next
-1. **NEXT: Gestures and preset phrases.** A small wheel of emotes (wave, bow, point, cheer, sit) and about 16
-   preset phrases ("Over here!", "Follow me", "Thank you", "Need light", "Goodnight") sent as ids, shown as
-   bubbles over the avatar for a few seconds, with a short cooldown. No text ever crosses the network.
-   Also: a mini "who is near" indicator (arrows at the screen edge pointing to players off screen).
-
 ## Later (in rough order, each one run)
-2. **The island worth walking.** Landmarks from the seed (old beacons on headlands, a ruined lighthouse, a
+2. **NEXT: The island worth walking.** Landmarks from the seed (old beacons on headlands, a ruined lighthouse, a
    jetty, a well), a minimap, footstep sounds off by default, light that varies by night hour.
 3. **Gathering, shared.** Driftwood, reeds and oil berries at seeded spots; picking one hides it for everyone
    in the room until its seeded respawn. First use of the shared-state rules in DESIGN.md (arbiter for

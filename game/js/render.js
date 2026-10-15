@@ -2,6 +2,8 @@
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
 import { T } from "./world.js";
+import { PHRASES, EMOTES } from "./talk.js";
+import { edgeArrows } from "./arrows.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -44,7 +46,7 @@ export function createRenderer(canvas, world) {
   const map = paintWorld(world);
   const dark = document.createElement("canvas");
   const dg = dark.getContext("2d");
-  let dpr = 1, cw = 0, ch = 0;
+  let dpr = 1, cw = 0, ch = 0, lastArrows = [];
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -90,6 +92,16 @@ export function createRenderer(canvas, world) {
       g.strokeText(p.name, sx, sy); g.fillText(p.name, sx, sy);
     }
 
+    // Speech bubbles (preset phrases, words from our own list), over the names.
+    for (const p of all) {
+      if (!p.say || t >= p.say.until) continue;
+      drawBubble(g, PHRASES[p.say.id], p.say, p.x * tile - camX, p.y * tile - camY - tile * 0.62 - fontPx * 1.5, fontPx, dpr, t, W);
+    }
+
+    // Arrows at the screen edge toward players who are off screen.
+    lastArrows = edgeArrows(me, peers.values(), tile, W, H, 22 * dpr);
+    for (const a of lastArrows) drawArrow(g, a, fontPx, dpr);
+
     if (stick.on) {
       g.strokeStyle = "rgba(255,243,214,0.5)"; g.lineWidth = 2 * dpr;
       g.beginPath(); g.arc(stick.ox * dpr, stick.oy * dpr, 48 * dpr, 0, Math.PI * 2); g.stroke();
@@ -98,24 +110,88 @@ export function createRenderer(canvas, world) {
     }
   }
 
-  return { draw, resize };
+  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })) };
 }
 
 function drawAvatar(g, p, sx, sy, tile, isMe, t) {
-  const r = tile * 0.33;
-  const bob = p.moving ? Math.sin(t / 90) * tile * 0.03 : 0;
+  const r0 = tile * 0.33;
+  const e = p.emote && t < p.emote.until ? p.emote : null;
+  const name = e ? EMOTES[e.id] : "";
+  const k = e ? (t - e.start) / (e.until - e.start) : 0; // 0..1 through the gesture
+  let r = r0, bob = p.moving ? Math.sin(t / 90) * tile * 0.03 : 0, dip = 0;
+  if (name === "bow") dip = Math.sin(Math.PI * Math.min(1, k * 1.4)) * tile * 0.16;
+  if (name === "cheer") bob -= Math.abs(Math.sin(k * Math.PI * 3)) * tile * 0.22;
+  if (name === "sit") { r = r0 * 0.82; dip = r0 * 0.25; }
   g.fillStyle = "rgba(0,0,0,0.35)";
-  g.beginPath(); g.ellipse(sx, sy + r * 0.9, r * 0.9, r * 0.35, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(sx, sy + r0 * 0.9, r0 * 0.9, r0 * 0.35, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = "#1c2233";
-  g.beginPath(); g.arc(sx, sy + bob, r, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(sx, sy + bob + dip, r, 0, Math.PI * 2); g.fill();
   g.lineWidth = Math.max(2, tile * 0.07); g.strokeStyle = p.colour;
   g.stroke();
-  // The lantern, held toward the facing direction.
-  const lx = sx + Math.cos(p.d) * r * 1.15, ly = sy + bob + Math.sin(p.d) * r * 1.15;
+  // The lantern, held toward the facing direction (set down in front when sitting).
+  let lx = sx + Math.cos(p.d) * r * 1.15, ly = sy + bob + dip + Math.sin(p.d) * r * 1.15;
+  if (name === "sit") { lx = sx + Math.cos(p.d) * r * 1.5; ly = sy + r0 * 0.75 + Math.sin(p.d) * r * 0.6; }
   g.fillStyle = p.colour;
   g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();
+  if (name === "wave") { // a raised hand swinging side to side
+    const hx = sx + r * 1.1 + Math.sin(t / 80) * r * 0.5, hy = sy - r * 1.35;
+    g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);
+    g.beginPath(); g.moveTo(sx + r * 0.8, sy - r * 0.3); g.lineTo(hx, hy); g.stroke();
+    g.fillStyle = "#e8d3b0"; g.beginPath(); g.arc(hx, hy, r * 0.22, 0, Math.PI * 2); g.fill();
+  } else if (name === "point") { // an arm and arrow head along the facing direction
+    const len = r * (2.5 + Math.sin(t / 120) * 0.2), ax = sx + Math.cos(p.d) * len, ay = sy + bob + Math.sin(p.d) * len;
+    g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);
+    g.beginPath(); g.moveTo(sx + Math.cos(p.d) * r, sy + bob + Math.sin(p.d) * r); g.lineTo(ax, ay); g.stroke();
+    g.fillStyle = "#e8d3b0"; g.beginPath();
+    g.moveTo(ax + Math.cos(p.d) * r * 0.5, ay + Math.sin(p.d) * r * 0.5);
+    g.lineTo(ax + Math.cos(p.d + 2.4) * r * 0.45, ay + Math.sin(p.d + 2.4) * r * 0.45);
+    g.lineTo(ax + Math.cos(p.d - 2.4) * r * 0.45, ay + Math.sin(p.d - 2.4) * r * 0.45); g.closePath(); g.fill();
+  } else if (name === "cheer") { // little sparks
+    g.fillStyle = "#ffe9a8";
+    for (let i = 0; i < 6; i++) {
+      const a = i * 1.047 + k * 3, d = r * (1.6 + k * 1.2);
+      g.fillRect(sx + Math.cos(a) * d - 1.5, sy + bob + Math.sin(a) * d - 1.5, 3, 3);
+    }
+  }
   if (isMe) {
     g.strokeStyle = "rgba(255,243,214,0.55)"; g.lineWidth = 1.5;
-    g.beginPath(); g.arc(sx, sy + bob, r * 1.45, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.arc(sx, sy + bob + dip, r * 1.45, 0, Math.PI * 2); g.stroke();
   }
+}
+
+// A bubble with a thin bar that runs down as the phrase is about to fade. Text comes from our own list only.
+function drawBubble(g, text, say, cx, bottom, fontPx, dpr, t, W) {
+  if (typeof text !== "string") return;
+  g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
+  const padX = 8 * dpr, h = fontPx * 1.7;
+  const w = g.measureText(text).width + padX * 2;
+  const x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, cx)), y = bottom - h;
+  const left = Math.min(1, Math.max(0, (say.until - t) / (say.until - say.start)));
+  const fade = Math.min(1, (say.until - t) / 400);
+  g.globalAlpha = fade;
+  g.fillStyle = "rgba(255,248,230,0.95)"; g.strokeStyle = "rgba(5,8,18,0.8)"; g.lineWidth = 1.5 * dpr;
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x - w / 2, y, w, h, 6 * dpr); else g.rect(x - w / 2, y, w, h);
+  g.fill(); g.stroke();
+  g.fillStyle = "#16120c"; g.textBaseline = "middle";
+  g.fillText(text, x, y + h * 0.5 - dpr);
+  g.fillStyle = "rgba(168,86,28,0.85)"; g.fillRect(x - w / 2 + 3 * dpr, y + h - 4 * dpr, (w - 6 * dpr) * left, 2 * dpr);
+  g.textBaseline = "alphabetic"; g.globalAlpha = 1;
+}
+
+function drawArrow(g, a, fontPx, dpr) {
+  g.save();
+  g.translate(a.x, a.y); g.rotate(a.ang);
+  const s = 9 * dpr;
+  g.fillStyle = a.colour; g.strokeStyle = "rgba(5,8,18,0.9)"; g.lineWidth = 2 * dpr;
+  g.beginPath(); g.moveTo(s, 0); g.lineTo(-s * 0.8, -s * 0.8); g.lineTo(-s * 0.4, 0); g.lineTo(-s * 0.8, s * 0.8); g.closePath();
+  g.stroke(); g.fill();
+  g.restore();
+  // distance, tucked inward from the arrow
+  const lab = `${Math.round(a.dist)}`;
+  g.font = `${Math.round(fontPx * 0.9)}px Georgia, serif`; g.textAlign = "center"; g.textBaseline = "middle";
+  const lx = a.x - Math.cos(a.ang) * 20 * dpr, ly = a.y - Math.sin(a.ang) * 20 * dpr;
+  g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#e6e9f2";
+  g.strokeText(lab, lx, ly); g.fillText(lab, lx, ly);
+  g.textBaseline = "alphabetic";
 }

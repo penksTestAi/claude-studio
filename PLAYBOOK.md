@@ -49,7 +49,7 @@ What the studio is reaching for right now. The advisor reads this before writing
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
 - The long project is the game (game/): a multiplayer online RPG that grows by one increment every run and never
-  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill. The
+  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill The look evolves too, with no limit: about one increment in three improves the graphics. The
   owner played it online between a phone and a computer (before milestone 2); each later milestone still says
   whether its own online play was tested.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
@@ -102,6 +102,7 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
+- 2026-10-15: the owner opened the game's graphics to unlimited evolution; vigil-game skill now keeps visual items in the roadmap (about one in three increments).
 - 2026-10-15: security guard added (owner's request): vigil-security skill and tools/security_check.py run every run before commits; first full scan of all three repositories found 0 blocking issues.
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.

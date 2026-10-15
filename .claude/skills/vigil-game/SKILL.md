@@ -36,6 +36,22 @@ The owner asked for a multiplayer online RPG, built piece by piece and evolving 
   vendored with their licence). Works on phones (touch controls) and desktops (keyboard), light and dark page
   chrome, no console errors. Performance matters: aim for smooth play on an ordinary phone.
 
+## The look evolves too (the owner's wish)
+There is no limit on the graphics. The game's look should grow over time as much as its gameplay: better tiles and
+terrain, lighting and shadows, animation (walking, water, foliage, lantern flicker), particles and weather, a sky
+and a day-night turn, character art, effects for gestures and actions, sound if it fits. A big step is allowed too:
+a move to WebGL, three.js or 3D, a new art direction, when a roadmap review decides it serves the game.
+- **Keep the roadmap mixed.** ROADMAP.md always holds visual items next to gameplay items, roughly one in three
+  increments being mainly about the look. If it has none, the next run adds some.
+- **One step at a time.** Each visual increment is a clear improvement that still works on an ordinary phone (aim
+  for 60 fps, never below 30) and keeps the night-island mood readable: players, lanterns and paths always easy to
+  see, enough contrast, `prefers-reduced-motion` turns big motion down.
+- **Own or free art only.** Draw it in code (procedural, canvas, shaders, SVG), make it with free tools, or use assets
+  with a free licence (CC0 or similar) whose source and licence are written in DESIGN.md. Never copy art from another
+  game. Keep downloads small; the game should still start quickly on mobile data.
+- **Show it.** Save before-and-after screenshots at 375px and 1100px in the tests' output, look at them, and say in the
+  patch note what players will see differently.
+
 ## Founding mode
 Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 increments since the last roadmap review.
 1. Research (web search is allowed; some sites may be blocked in the sandbox, note what failed). Compare options for:

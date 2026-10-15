@@ -48,3 +48,6 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
   Also open: incoming messages have no byte-size cap (fields are counted and validated, but a very large payload is still
   parsed first); the CSP is not confirmed free of violations in a real browser (headless Chromium logged none); the
   talk test failed one check once and passed on two reruns, cause not found.
+
+> 2026-10-15, owner test (not a new version): the owner joined from a phone and from another computer, on different
+> networks, through the public Nostr relays, and multiplayer worked. Basic online play is now verified.

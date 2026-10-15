@@ -100,8 +100,11 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   BitTorrent trackers (tracker.openwebtorrent.com, tracker.webtorrent.dev, tracker.btorrent.xyz) were **not
   reachable**: the sandbox's egress proxy refuses the connection (HTTP 403 to CONNECT). jsdelivr is refused too;
   npm is allowed (that is how the libraries were fetched).
-- So **real online play between two machines over public relays is unverified** from the sandbox and must be
-  marked so in every CHANGELOG entry until someone confirms it.
+- So real online play could not be tested from the sandbox. **Confirmed by the owner on 2026-10-15 (milestone 1):**
+  a phone and a separate computer joined the same lantern over the public Nostr relays and saw each other and
+  played together. Later entries need not mark basic online play as unverified; still unverified are networks that
+  need TURN (some strict mobile or corporate networks) and each new feature over the real network until a person
+  tries it.
 - What *is* tested: the full real code path (vendored Trystero, Nostr signalling messages, WebRTC data channels
   in Chromium) between two separate browser contexts, with signalling through `tests/nostr-relay.mjs`, a tiny
   Nostr relay the test starts on 127.0.0.1 (the page accepts `?relay=` only for 127.0.0.1/localhost). Only the

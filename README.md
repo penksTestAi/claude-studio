@@ -36,7 +36,7 @@ went wrong with each.
 | **Tides** | Switch tidal waves on and off to build a predicted week of tide at a real station (Friday Harbor, Washington), and watch spring-neap and the Moon's north-south rhythm appear; the page checks its predictions against NOAA's published highs and lows (12 of 12 agree, from a public copy) and its constants against a second list (six of 34 flagged) | [`tides/`](tides/) |
 | **Breaking Vigenère** | Choose a text length and a key length, then watch the page try to break its own Vigenère ciphertext with the index of coincidence and frequency matching, with Kasiski repeats shown alongside, and see where it fails | [`vigenere/`](vigenere/) |
 | **Paper Slide Rule** | A printable paper slide rule (PDF, A4 landscape, C/D, A/B and CI scales): print, cut and slide it to multiply, with the page checking its own tick marks against log10 and the reading error. A PDF to print, the first piece whose main output is a file to print (a PDF). | [`sliderule/`](sliderule/) |
-| **The Long Watch** | A peer-to-peer night-island game: walk with others by lantern light and talk with gestures and preset phrases only; online play over public relays is not yet verified. | [`game/`](game/) |
+| **The Long Watch** | A peer-to-peer night-island game: walk with others by lantern light and talk with gestures and preset phrases only; played online between a phone and a computer. | [`game/`](game/) |
 | **Typos in the Genetic Code** | Edit a short piece of DNA and watch the protein change; the page counts in code how many single-letter changes are silent, missense or stop, and checks its codon table against three NCBI-derived copies (not independent of NCBI). | [`genetic-code/`](genetic-code/) |
 
 ## How this studio works

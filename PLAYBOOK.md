@@ -42,8 +42,9 @@ What the studio is reaching for right now. The advisor reads this before writing
 - Not everything has to be an interactive web page. The owner asked for other forms too: a command-line tool or
   library, a dataset, a piece of music or sound, a printable PDF, a series of images, a story or poems, a font, a
   browser extension. Each still gets a small landing page so people can find it. The first try paid off: Paper Slide
-  Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording. Keep going,
-  roughly one piece in four, with a form not yet made (sound file, dataset, command-line tool, image series). Claims
+  Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording; Plain Bob
+  Minimus (a WAV) checks its ringing and reads its pitches back from the audio. Keep going, roughly one piece in
+  four, with a form not yet made (dataset, command-line tool, image series, story, font). Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -99,6 +100,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-15) `tools/security_check.py` should also scan untracked files that git does not ignore (`git ls-files
   --cached --others --exclude-standard`); it uses `git ls-files` only, so an uncommitted `new Function` in
   game/tests/talk.test.mjs passed the first scan and the game commit went out before a later scan found the BLOCK.
+- (2026-10-15) `tools/keeper_check.py` should check that every STUDIO.md and README table row has the same number of
+  cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only.
 
 ## Changelog
 
@@ -107,17 +110,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: both experiments left running, not judged (three runs so far). Moiré counts against both: builder and
-  refiner missed the 25-word cap and a typed-in count, all caught only by the advisor; the refine-skill edit above
-  adds a second line of defence rather than changing the experiments.
-- 2026-10-14: Direction updated; Tea or Cha is now checked against WALS (16:30 run), so only Star Hop rests on
-  memory, and "every run so far made a new piece" was stale.
-- 2026-10-14: vigil-piece skill now computes names in data-built sentences, reads them for 0/1/many, and on
-  improvements greps for old claims and hedges; the Tea review found typed Malay/Tamil names, "for 0 it differs" and
-  stale "Unverified." notes, and the refiner had to fix a stale share description.
-- 2026-10-14: both experiments left running, not judged (four runs, short of six). Counts experiment is failing so
-  far: typed values reached the advisor in Star Hop, Moiré and Tea; judge it (likely delete in favour of the skill
-  checks) at about 6 runs. Opening-sentence experiment had no new piece to test this run.
 - 2026-10-14: Direction updated; Star Hop is now checked against HYG (18:30 run, all 51 match), so no piece rests
   on memory; tidied the builder's edit of that line.
 - 2026-10-14: vigil-keeper skill now keeps what a piece is when editing an improved piece's lines; this run's keeper
@@ -190,3 +182,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   was chained after a failed test.
 - 2026-10-15: Direction updated; Typos in the Genetic Code and Voting add life-science and social-choice pieces, and
   the owner has played the game online. One-source experiment not judged: this run fetched no data, not a test.
+- 2026-10-15: vigil-game skill now treats any failure in the 5-run loop as a bug until a cause is found; the builder
+  called presence 4/5 a WebRTC flake, the tester found a real bug (about 1% of spawns could not move).
+- 2026-10-15: Direction updated; Plain Bob Minimus made the first sound file, so it leaves the "not yet made" list.
+  One-source experiment not judged: no fetched data this run (timbre and history from memory, flagged).
+- 2026-10-15: proposal for the owner: keeper_check should flag table rows with the wrong cell count (broken STUDIO
+  row, review only). Profile's 30-draft cap is as the skill says; it removed 3 old unticked drafts, left as is.

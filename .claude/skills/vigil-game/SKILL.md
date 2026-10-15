@@ -78,7 +78,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    joins both to the same room and checks they see each other (and, from then on, whatever the new feature shares
    between players). Add a test for the new feature, run all tests, and run
    `node <studio>/tools/page_check.mjs game/`. Fix everything that fails. Run each test file 5 times in a row
-   (background loop) and report the pass count per file ("world 5/5"); one green run is not a pass. A check that
+   (background loop) and report the pass count per file ("world 5/5"); one green run is not a pass. Any failure in
+   those runs is a bug until its cause is found in the code or the log: never call it a network or WebRTC flake
+   without evidence (presence failed 1 in 5, was dismissed as flake, and was a real bug stranding about 1% of
+   spawns). A check that
    reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or
    waits until it settles, never one exact pixel (world.test read one minimap pixel at the reported position while
    the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run).

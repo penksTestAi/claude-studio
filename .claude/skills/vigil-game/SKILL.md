@@ -84,7 +84,11 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    spawns). A check that
    reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or
    waits until it settles, never one exact pixel (world.test read one minimap pixel at the reported position while
-   the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run).
+   the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run). When a feature holds or
+   moves something a player owns (items, gifts, progress), list every cap, queue and timeout it uses and test each
+   one when full or expired, including a peer leaving midway: a full list refuses new entries, it never drops an old
+   one. Write "never lost" or any other absolute promise only when a test covers every one of those paths (milestone
+   4: a capped expected-gifts list silently dropped its oldest entry and the page said "never lost", review only).
 4. Update ROADMAP.md (mark the item done, choose and mark the next) and add a CHANGELOG.md entry headed
    `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
    **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,

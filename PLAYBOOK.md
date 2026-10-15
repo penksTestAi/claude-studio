@@ -33,7 +33,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
-  Genetic Code) and a social-choice piece (When Voting Methods Disagree) now exist, so check the piece table
+  Genetic Code), a social-choice piece (When Voting Methods Disagree) and an optics piece (Why the Rainbow Sits at
+  42°) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -50,7 +51,7 @@ What the studio is reaching for right now. The advisor reads this before writing
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
 - The long project is the game (game/): a multiplayer online RPG that grows by one increment every run and never
-  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill The look evolves too, with no limit: about one increment in three improves the graphics. The
+  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill. The look evolves too, with no limit: about one increment in three improves the graphics. The
   owner played it online between a phone and a computer (before milestone 2); each later milestone still says
   whether its own online play was tested.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
@@ -82,16 +83,16 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   Push only in its own command after reading the test and scan output, never chained after them (2026-10-15 12:40:
   main moved with the owner's online-play report, making "online play untested" stale, and a push followed a failed
   test).
+- When a piece's data comes from one source, the builder checks at least 10 rows (oldest, newest, odd-looking)
+  against a second free source of a different origin (not a copy or re-fit of the same record) before building and
+  flags each disagreement on the page; when none is reachable, the page says the check is not independent (promoted
+  from an experiment: since Element Timeline no review found an unflagged wrong data value).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-14) When a piece's data comes from one source, the builder checks at least 10 rows (oldest,
-  newest and odd-looking ones) against a second free source or a published list before building, and flags each
-  disagreement on the page. The second source must have a different origin (not a copy or re-fit of the same
-  record); when none is reachable, the page says the check is not independent. Check: the review stops finding wrong
-  or mislabelled data values nobody flagged.
+- None running.
 
 ## Proposals for the owner
 
@@ -110,12 +111,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: Direction updated; Star Hop is now checked against HYG (18:30 run, all 51 match), so no piece rests
-  on memory; tidied the builder's edit of that line.
-- 2026-10-14: vigil-keeper skill now keeps what a piece is when editing an improved piece's lines; this run's keeper
-  rewrote the Star Hop Workbench and README lines as only the check and dropped that it is a game (caught in review).
-- 2026-10-14: both experiments left running, not judged (five runs). Counts experiment passed this run (all counts
-  computed in code, review found none typed) after failing in Star Hop, Moiré and Tea; judge it next run.
 - 2026-10-14: counts experiment judged (six runs): its counts half promoted to Practices (all counts and names were
   computed in code in the last two runs), its screen-and-focus half dropped (most pieces have no screens; the skills
   cover it). Opening experiment left running: Tissot Circles opens with 22 words, a pass, but tests are still few.
@@ -188,3 +183,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   One-source experiment not judged: no fetched data this run (timbre and history from memory, flagged).
 - 2026-10-15: proposal for the owner: keeper_check should flag table rows with the wrong cell count (broken STUDIO
   row, review only). Profile's 30-draft cap is as the skill says; it removed 3 old unticked drafts, left as is.
+- 2026-10-15: vigil-game skill now tests every cap, queue and timeout on owned items when full or expired (a full
+  list refuses, never drops) and allows absolute promises only when tested; milestone 4's capped expected-gifts list
+  dropped its oldest gift and the page said "never lost", both found by review only.
+- 2026-10-15: one-source experiment judged (about ten runs, four tests: Element Timeline, Tides, genetic code,
+  rainbow) and promoted to Practices; no review since found an unflagged wrong data value. Not acted on: the game
+  builder took 54 min (cause unknown; watch next run).
+- 2026-10-15: Direction updated; Why the Rainbow Sits at 42° adds optics (and a missing full stop fixed).

@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When Voting Methods Disagree · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Watch a three-ballot Condorcet cycle, build your own electorate and see plurality, runoff, Borda and Condorcet pick different winners, then see counted over seeded random electorates how often they disagree, and watch circles vanish when every ranking is single-peaked.">
+<link rel="canonical" href="https://vigilstudio.github.io/voting/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="When Voting Methods Disagree · Vigil">
+<meta property="og:description" content="Watch a three-ballot Condorcet cycle, build your own electorate and see plurality, runoff, Borda and Condorcet pick different winners, then see counted over seeded random electorates how often they disagree, and watch circles vanish when every ranking is single-peaked.">
+<meta property="og:url" content="https://vigilstudio.github.io/voting/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="When Voting Methods Disagree · Vigil">
+<meta name="twitter:description" content="Watch a three-ballot Condorcet cycle, build your own electorate and see plurality, runoff, Borda and Condorcet pick different winners, then see counted over seeded random electorates how often they disagree, and watch circles vanish when every ranking is single-peaked.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--hi:#dfe9f7;--ok:#2f7d3a;--bad:#b3261e;--warn:#9a6a0c;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#223552;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#223552;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:800px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+h3{font-size:.95rem;margin:14px 0 6px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,select,input{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+button{font-size:.9rem;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.mini{min-width:44px;padding:2px 8px}
+button:disabled{opacity:.5;cursor:default}
+select,input[type=number]{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+input[type=number]{width:5.5em}
+label{font-size:.9rem}
+.fld{display:flex;flex-direction:column;gap:2px}
+.msg{min-height:1.5em;font-size:.9rem;margin:8px 0 0;color:var(--muted)}
+.verdict{margin:12px 0 0;padding:10px 12px;border-left:5px solid var(--accent);background:var(--panel);border-radius:0 6px 6px 0}
+.verdict b{font-weight:normal;font-variant:small-caps;letter-spacing:.04em}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.88rem}
+.card h3{margin:0 0 2px;color:var(--muted)}
+.card .win{font-size:1.5rem;line-height:1.2}
+.card p{margin:4px 0 0}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+td.w{background:var(--hi);font-weight:bold}
+td .k{display:block;font-size:.75rem;color:var(--muted)}
+.mono{font-family:var(--mono)}
+ul.chk{padding-left:1.2em;margin:6px 0}
+.chk li{margin:3px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+details{margin-top:10px}
+summary{cursor:pointer;min-height:32px}
+svg.tri{display:block;width:100%;max-width:380px;height:auto;margin:6px auto}
+svg.tri text{fill:var(--ink);font:15px Georgia,serif}
+svg.tri .node{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+svg.tri .edge{stroke:var(--accent);stroke-width:2.5;fill:none}
+svg.tri .lab{font-size:13px;fill:var(--muted)}
+.ballots td,.ballots th{text-align:left}.ballots td:first-child,.ballots td:nth-child(2){font-family:var(--mono)}
+.rowb{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line)}
+.rowb .nm{font-family:var(--mono);min-width:9em}
+.rowb .ct{min-width:2.5em;text-align:center;font-variant-numeric:tabular-nums}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>When Voting Methods Disagree</h1>
+<p class="lede"><span id="lede1">Majority rule can go in a circle, though each voter is perfectly consistent.</span> <span id="lede2"></span></p>
+<noscript><p class="small">This page counts everything in JavaScript, so it shows nothing without it.</p></noscript>
+
+<section aria-labelledby="h-cycle">
+<h2 id="h-cycle">A circle made of three ballots</h2>
+<p id="cyclesay"></p>
+<div class="panel">
+<div class="scroll" tabindex="0" role="region" aria-label="The three ballots"><table class="ballots" id="cycleballots"></table></div>
+<svg class="tri" id="tri" viewBox="0 0 360 250" role="img" aria-label="Pairwise results"></svg>
+<ul id="cyclelist" class="small"></ul>
+<div class="row"><button type="button" id="loadcycle">Open these ballots in the builder</button></div>
+</div>
+</section>
+
+<section aria-labelledby="h-build">
+<h2 id="h-build">Build an electorate</h2>
+<p>Add ballots, each a full ranking of four candidates, best first. Four methods count the same ballots. <span id="methodsay"></span></p>
+<div class="panel">
+<div class="row" id="presets" role="group" aria-label="Examples"></div>
+<div class="row">
+<div class="fld"><label for="rank">Ranking, best first</label><select id="rank"></select></div>
+<div class="fld"><label for="howmany">How many voters</label><input type="number" id="howmany" min="1" max="99" value="1" inputmode="numeric"></div>
+<button type="button" class="primary" id="add">Add ballots</button>
+<button type="button" id="clear">Clear all</button>
+</div>
+<div id="groups" aria-label="Ballots so far"></div>
+<p class="msg" id="buildmsg" role="status"></p>
+<div class="verdict" id="verdict" aria-live="polite"></div>
+<div class="cards" id="cards"></div>
+<h3>Head to head: row candidate against column candidate (voters preferring the row)</h3>
+<div class="scroll" tabindex="0" role="region" aria-label="Pairwise table"><table id="pwtable"></table></div>
+</div>
+</section>
+
+<section aria-labelledby="h-sim">
+<h2 id="h-sim">How often do they disagree?</h2>
+<p id="simintro"></p>
+<div class="panel">
+<div class="row">
+<div class="fld"><label for="simv">Voters per electorate</label><select id="simv"></select></div>
+<div class="fld"><label for="simc">Candidates</label><select id="simc"></select></div>
+<div class="fld"><label for="sims">Seed</label><input type="number" id="sims" value="2024" min="0" max="999999" inputmode="numeric"></div>
+<button type="button" class="primary" id="simrun">Run again</button>
+</div>
+<p class="msg" id="simstatus" role="status"></p>
+<p id="simsay"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Disagreement table"><table id="simtable"></table></div>
+<p class="small" id="simnote"></p>
+</div>
+</section>
+
+<section aria-labelledby="h-cause">
+<h2 id="h-cause">Switching the cause off</h2>
+<p id="causesay"></p>
+<div class="panel">
+<div class="scroll" tabindex="0" role="region" aria-label="Exhaustive count"><table id="enumtable"></table></div>
+<p class="small" id="enumnote"></p>
+<p id="causesim"></p>
+</div>
+</section>
+
+<section aria-labelledby="h-chk">
+<h2 id="h-chk">Self-checks</h2>
+<p id="chksay"></p>
+<details><summary>All checks, run when the page loads</summary><ul class="chk" id="checks"></ul></details>
+</section>
+
+<footer>
+<p id="credit">Made by Claude, an AI model by Anthropic, for Vigil. No election data was used and nothing was fetched: the three kinds of random electorate are idealisations, not models of real voters. Ties are broken by letter order and the page says when that happened. The one date I give is from memory and unchecked: Condorcet and Borda both wrote in the 1780s, as far as I remember.</p>
+</footer>
+</main>
+<script>
+"use strict";
+const NAMES = ["A", "B", "C", "D"];
+const METHODS = [
+  { id: "plurality", name: "Plurality" },
+  { id: "runoff", name: "Runoff" },
+  { id: "borda", name: "Borda" },
+  { id: "condorcet", name: "Condorcet" }
+];
+const MNAME = Object.fromEntries(METHODS.map(m => [m.id, m.name]));
+const ELECTORATES = 2000;
+const $ = id => document.getElementById(id);
+const list = a => a.length === 0 ? "none" : a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+const pctOf = (k, d) => d === 0 ? "n/a" : (k > 0 && 100 * k / d < 0.5 ? "<1%" : Math.round(100 * k / d) + "%");
+const phr = (k, d) => k === 0 ? "none of " + d : k + " of " + d + " (" + pctOf(k, d) + ")";
+
+/* ---------- spaces of rankings ---------- */
+function permsOf(n) {
+  const out = [];
+  (function rec(cur, rest) {
+    if (!rest.length) { out.push(cur); return; }
+    rest.forEach((x, i) => rec(cur.concat(x), rest.filter((_, j) => j !== i)));
+  })([], [...Array(n).keys()]);
+  return out;
+}
+const spaces = {};
+function codeOf(p, n) { let k = 0; for (let i = 0; i < n; i++) k = k * n + p[i]; return k; }
+function space(n) {
+  if (spaces[n]) return spaces[n];
+  const perms = permsOf(n);
+  const pos = perms.map(p => { const q = Array(n); p.forEach((c, r) => { q[c] = r; }); return q; });
+  const lookup = new Int16Array(Math.pow(n, n)).fill(-1);
+  perms.forEach((p, i) => { lookup[codeOf(p, n)] = i; });
+  return (spaces[n] = { n, perms, P: perms.length, pos, lookup });
+}
+const permName = p => p.map(c => NAMES[c]).join(" > ");
+
+/* ---------- the four methods (each takes ballot counts per ranking) ---------- */
+function pairwise(S, cnt) {
+  const n = S.n, pw = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let p = 0; p < S.P; p++) {
+    const c = cnt[p]; if (!c) continue;
+    const ps = S.pos[p];
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j && ps[i] < ps[j]) pw[i][j] += c;
+  }
+  return pw;
+}
+function pickMax(scores) {
+  let best = -Infinity; scores.forEach(v => { if (v > best) best = v; });
+  const tied = []; scores.forEach((v, i) => { if (v === best) tied.push(i); });
+  return { winner: tied[0], tied };
+}
+function plurality(S, cnt, total) {
+  const t = Array(S.n).fill(0);
+  S.perms.forEach((p, i) => { t[p[0]] += cnt[i]; });
+  if (!total) return { id: "plurality", winner: null, tally: t, tieNote: "" };
+  const m = pickMax(t);
+  return { id: "plurality", winner: m.winner, tally: t, tieNote: m.tied.length > 1 ? list(m.tied.map(i => NAMES[i])) + " were level on " + t[m.winner] + " first places" : "" };
+}
+function runoff(S, cnt, total, pw) {
+  const n = S.n;
+  const t = Array(n).fill(0);
+  S.perms.forEach((p, i) => { t[p[0]] += cnt[i]; });
+  if (!total) return { id: "runoff", winner: null, tally: t, tieNote: "" };
+  const maj = t.findIndex(v => 2 * v > total);
+  if (maj >= 0) return { id: "runoff", winner: maj, tally: t, majority: true, tieNote: "" };
+  const order = [...t.keys()].sort((a, b) => t[b] - t[a] || a - b);
+  const a = order[0], b = order[1];
+  const notes = [];
+  if (n > 2 && t[order[2]] === t[b]) {
+    const lvl = order.filter(i => t[i] === t[b]);
+    notes.push(list(lvl.map(i => NAMES[i])) + " were level for a place in the runoff");
+  }
+  const fa = Math.min(a, b), fb = Math.max(a, b);
+  const va = pw[a][b], vb = pw[b][a];
+  let winner = va > vb ? a : vb > va ? b : fa;
+  if (va === vb) notes.push(NAMES[a] + " and " + NAMES[b] + " tied in the runoff");
+  return { id: "runoff", winner, tally: t, majority: false, finalists: [a, b], h2h: [va, vb], tieNote: notes.join("; ") };
+}
+function borda(S, cnt, total) {
+  const n = S.n, pts = Array(n).fill(0);
+  S.perms.forEach((p, i) => { if (cnt[i]) for (let c = 0; c < n; c++) pts[c] += cnt[i] * (n - 1 - S.pos[i][c]); });
+  if (!total) return { id: "borda", winner: null, points: pts, tieNote: "" };
+  const m = pickMax(pts);
+  return { id: "borda", winner: m.winner, points: pts, tieNote: m.tied.length > 1 ? list(m.tied.map(i => NAMES[i])) + " were level on " + pts[m.winner] + " points" : "" };
+}
+function findCycle(pw) {
+  const n = pw.length, state = Array(n).fill(0), stack = [];
+  let found = null;
+  function dfs(u) {
+    state[u] = 1; stack.push(u);
+    for (let v = 0; v < n && !found; v++) {
+      if (u !== v && pw[u][v] > pw[v][u]) {
+        if (state[v] === 0) dfs(v);
+        else if (state[v] === 1) found = stack.slice(stack.indexOf(v));
+      }
+    }
+    stack.pop(); state[u] = 2;
+  }
+  for (let i = 0; i < n && !found; i++) if (!state[i]) dfs(i);
+  return found;
+}
+function condorcet(S, pw, total) {
+  const n = S.n;
+  let winner = null;
+  if (total) for (let i = 0; i < n; i++) {
+    let all = true;
+    for (let j = 0; j < n; j++) if (j !== i && !(pw[i][j] > pw[j][i])) all = false;
+    if (all) winner = i;
+  }
+  return { id: "condorcet", winner, tieNote: "" };
+}
+function analyse(S, cnt) {
+  let total = 0; for (let i = 0; i < S.P; i++) total += cnt[i];
+  const pw = pairwise(S, cnt);
+  const res = {
+    plurality: plurality(S, cnt, total),
+    runoff: runoff(S, cnt, total, pw),
+    borda: borda(S, cnt, total),
+    condorcet: condorcet(S, pw, total)
+  };
+  const cycle = res.condorcet.winner === null && total ? findCycle(pw) : null;
+  return { S, cnt, total, pw, res, cycle };
+}
+
+/* ---------- the verdict (one branch per case) ---------- */
+function cycleText(an) {
+  const c = an.cycle;
+  return c.map((x, i) => NAMES[x] + " beats " + NAMES[c[(i + 1) % c.length]]).join(", ");
+}
+function verdict(an) {
+  if (!an.total) return { id: "empty", text: "No ballots yet. Add some, or pick an example." };
+  const r = an.res, cw = r.condorcet.winner;
+  const counting = ["plurality", "runoff", "borda"];
+  const named = counting.map(id => MNAME[id] + " " + NAMES[r[id].winner]);
+  const tieM = counting.filter(id => r[id].tieNote).map(id => MNAME[id]);
+  const tieText = tieM.length ? " Letter order settled a tie in " + list(tieM) + "." : "";
+  let id, text;
+  if (cw !== null) {
+    const missed = counting.filter(m => r[m].winner !== cw);
+    if (!missed.length) {
+      id = "agree";
+      text = "All four methods name " + NAMES[cw] + ". " + NAMES[cw] + " also beats every other candidate head to head.";
+    } else {
+      id = "cw-missed";
+      text = NAMES[cw] + " beats every other candidate head to head, yet " + (missed.length === 3 ? "all 3" : missed.length + " of the 3") + " counting methods chose someone else: " +
+        list(missed.map(m => MNAME[m] + " (" + NAMES[r[m].winner] + ")")) + ".";
+    }
+  } else if (an.cycle) {
+    const distinct = [...new Set(counting.map(m => r[m].winner))];
+    if (distinct.length === 1) {
+      id = "cycle-agree";
+      text = "No candidate beats all the others: " + cycleText(an) + ", in a circle. Even so, Plurality, Runoff and Borda all name " + NAMES[distinct[0]] + ".";
+    } else {
+      id = "cycle-differ";
+      text = "No candidate beats all the others: " + cycleText(an) + ", in a circle. The three counting methods name " + distinct.length + " different winners: " + list(named) + ".";
+    }
+  } else {
+    const tiedPairs = [];
+    for (let i = 0; i < an.S.n; i++) for (let j = i + 1; j < an.S.n; j++) if (an.pw[i][j] === an.pw[j][i]) tiedPairs.push(NAMES[i] + "\u2013" + NAMES[j]);
+    id = "tie";
+    text = "No candidate beats all the others, and there is no circle either: head-to-head counts are level for " + list(tiedPairs) + ". The counting methods name " + list(named) + ".";
+  }
+  return { id, text: text + tieText };
+}
+
+/* ---------- random electorates and the search used for examples ---------- */
+function rngFrom(seed) {
+  let a = (seed >>> 0) || 1;
+  return function () { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function randomCounts(S, rnd) {
+  const cnt = new Array(S.P).fill(0), k = 2 + Math.floor(rnd() * 4);
+  for (let g = 0; g < k; g++) cnt[Math.floor(rnd() * S.P)] += 1 + Math.floor(rnd() * 6);
+  return cnt;
+}
+function branchKey(an) {
+  const v = verdict(an);
+  if (v.id !== "cw-missed") return v.id;
+  const cw = an.res.condorcet.winner;
+  return v.id + ":" + ["plurality", "runoff", "borda"].filter(m => an.res[m].winner !== cw).length;
+}
+function search(S, seed, pred, tries) {
+  const rnd = rngFrom(seed);
+  for (let t = 0; t < tries; t++) {
+    const cnt = randomCounts(S, rnd);
+    const an = analyse(S, cnt);
+    if (pred(an)) return cnt;
+  }
+  return null;
+}
+const noTies = an => !["plurality", "runoff", "borda"].some(m => an.res[m].tieNote);
+
+/* ---------- the independent second implementation, ballot by ballot ---------- */
+function slowCheck(S, cnt) {
+  const ballots = [];
+  S.perms.forEach((p, i) => { for (let k = 0; k < cnt[i]; k++) ballots.push(p); });
+  const n = S.n, V = ballots.length;
+  const first = Array(n).fill(0), pts = Array(n).fill(0);
+  ballots.forEach(b => { first[b[0]]++; b.forEach((c, r) => { pts[c] += n - 1 - r; }); });
+  const beats = (i, j) => ballots.filter(b => b.indexOf(i) < b.indexOf(j)).length * 2 > V;
+  let cw = null;
+  for (let i = 0; i < n; i++) { let all = true; for (let j = 0; j < n; j++) if (j !== i && !beats(i, j)) all = false; if (all) cw = i; }
+  return { first, pts, cw };
+}
+
+/* ---------- single-peaked test and the three electorate models ---------- */
+function isSP(perm, axisPos) {
+  for (let k = 2; k < perm.length; k++) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < k; i++) { const a = axisPos[perm[i]]; if (a < lo) lo = a; if (a > hi) hi = a; }
+    if (hi - lo !== k - 1) return false;
+  }
+  return true;
+}
+const MODELS = [
+  { id: "ic", name: "Impartial culture", note: "each voter picks one of all possible rankings, equally likely" },
+  { id: "line", name: "Single-peaked on a line", note: "candidates and voters at random places on a line; each voter ranks by distance" },
+  { id: "plane", name: "Spatial in a plane", note: "candidates and voters at random places in a square; each voter ranks by distance" }
+];
+function rankByDistance(S, d, n) {
+  const idx = [0, 1, 2, 3].slice(0, n);
+  for (let i = 1; i < n; i++) { const x = idx[i]; let j = i - 1; while (j >= 0 && d[idx[j]] > d[x]) { idx[j + 1] = idx[j]; j--; } idx[j + 1] = x; }
+  return S.lookup[codeOf(idx, n)];
+}
+function drawElectorate(model, S, nV, rnd) {
+  const n = S.n, cnt = new Int32Array(S.P);
+  let axisPos = null;
+  if (model === "ic") {
+    for (let v = 0; v < nV; v++) cnt[Math.floor(rnd() * S.P)]++;
+  } else if (model === "line") {
+    const cx = [], d = [0, 0, 0, 0];
+    for (let i = 0; i < n; i++) cx.push(rnd());
+    const order = [...cx.keys()].sort((a, b) => cx[a] - cx[b]);
+    axisPos = Array(n); order.forEach((c, r) => { axisPos[c] = r; });
+    for (let v = 0; v < nV; v++) { const x = rnd(); for (let i = 0; i < n; i++) d[i] = Math.abs(x - cx[i]); cnt[rankByDistance(S, d, n)]++; }
+  } else {
+    const cx = [], cy = [], d = [0, 0, 0, 0];
+    for (let i = 0; i < n; i++) { cx.push(rnd()); cy.push(rnd()); }
+    for (let v = 0; v < nV; v++) { const x = rnd(), y = rnd(); for (let i = 0; i < n; i++) d[i] = (x - cx[i]) * (x - cx[i]) + (y - cy[i]) * (y - cy[i]); cnt[rankByDistance(S, d, n)]++; }
+  }
+  return { cnt, axisPos };
+}
+const PAIRS = [["plurality", "runoff"], ["plurality", "borda"], ["runoff", "borda"], ["plurality", "condorcet"], ["runoff", "condorcet"], ["borda", "condorcet"]];
+function simulateModel(model, nC, nV, N, seed) {
+  const S = space(nC), rnd = rngFrom(seed);
+  const st = { model, N, noCW: 0, cycles: 0, tieElectorates: 0, spChecked: 0, spViolations: 0, differ: 0, pair: PAIRS.map(() => 0), withCW: 0, noCWnoCycle: 0 };
+  for (let e = 0; e < N; e++) {
+    const { cnt, axisPos } = drawElectorate(model, S, nV, rnd);
+    const an = analyse(S, cnt);
+    const w = id => an.res[id].winner;
+    if (an.res.condorcet.winner === null) st.noCW++; else st.withCW++;
+    if (findCycle(an.pw)) st.cycles++; else if (an.res.condorcet.winner === null) st.noCWnoCycle++;
+    if (["plurality", "runoff", "borda"].some(m => an.res[m].tieNote)) st.tieElectorates++;
+    PAIRS.forEach(([a, b], i) => {
+      if (b === "condorcet") { if (w("condorcet") !== null && w(a) !== w("condorcet")) st.pair[i]++; }
+      else if (w(a) !== w(b)) st.pair[i]++;
+    });
+    const named = new Set(METHODS.map(m => w(m.id)).filter(x => x !== null));
+    if (named.size > 1) st.differ++;
+    if (axisPos) for (let p = 0; p < S.P; p++) if (cnt[p]) { st.spChecked++; if (!isSP(S.perms[p], axisPos)) st.spViolations++; }
+  }
+  return st;
+}
+
+/* ---------- exhaustive count, three candidates ---------- */
+function enumerate(v, onlySP) {
+  const S = space(3), axis = [0, 1, 2];
+  const allowed = [...Array(S.P).keys()].filter(p => !onlySP || isSP(S.perms[p], axis));
+  const pw = Array.from({ length: 3 }, () => [0, 0, 0]);
+  let total = 0, cyc = 0;
+  const add = (p, s) => { const ps = S.pos[p]; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (i !== j && ps[i] < ps[j]) pw[i][j] += s; };
+  (function rec(d) {
+    if (d === v) { total++; if (findCycle(pw)) cyc++; return; }
+    for (const p of allowed) { add(p, 1); rec(d + 1); add(p, -1); }
+  })(0);
+  return { total, cyc, ballotTypes: allowed.length };
+}
+
+/* ---------- state ---------- */
+const S4 = space(4);
+let build = new Array(S4.P).fill(0);
+let lastSim = null;
+const ENUMS = [3, 5, 7].map(v => ({ v, all: enumerate(v, false), sp: enumerate(v, true) }));
+
+/* ---------- section 1: the cycle ---------- */
+const CYCLE_BALLOTS = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];
+let cycleAn;
+function renderCycle() {
+  const S3 = space(3), cnt = new Array(S3.P).fill(0);
+  CYCLE_BALLOTS.forEach(b => { cnt[S3.lookup[codeOf(b, 3)]]++; });
+  cycleAn = analyse(S3, cnt);
+  const cyc = cycleAn.cycle;
+  const tb = $("cycleballots");
+  tb.innerHTML = "<tr><th>Voter</th><th>Ranking, best first</th></tr>" + CYCLE_BALLOTS.map((b, i) => "<tr><td>" + (i + 1) + "</td><td>" + permName(b) + "</td></tr>").join("");
+  const pos = [[180, 38], [60, 200], [300, 200]];
+  let svg = '<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--accent)"/></marker></defs>';
+  const lines = [];
+  if (cyc) cyc.forEach((x, i) => {
+    const y = cyc[(i + 1) % cyc.length];
+    const p = pos[i], q = pos[(i + 1) % cyc.length];
+    const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, r = 26;
+    svg += '<line class="edge" x1="' + (p[0] + ux * r) + '" y1="' + (p[1] + uy * r) + '" x2="' + (q[0] - ux * (r + 4)) + '" y2="' + (q[1] - uy * (r + 4)) + '" marker-end="url(#ah)"/>';
+    let nx = uy, ny = -ux; const mx0 = (p[0] + q[0]) / 2, my0 = (p[1] + q[1]) / 2;
+    if ((mx0 - 180) * nx + (my0 - 150) * ny < 0) { nx = -nx; ny = -ny; }
+    const mx = mx0 + nx * 18, my = my0 + ny * 18 + 4;
+    svg += '<text class="lab" text-anchor="middle" x="' + mx + '" y="' + my + '">' + cycleAn.pw[x][y] + " to " + cycleAn.pw[y][x] + "</text>";
+    lines.push(NAMES[x] + " beats " + NAMES[y] + ", " + cycleAn.pw[x][y] + " voters to " + cycleAn.pw[y][x] + ".");
+  });
+  if (cyc) cyc.forEach((x, i) => { svg += '<circle class="node" cx="' + pos[i][0] + '" cy="' + pos[i][1] + '" r="22"/><text text-anchor="middle" x="' + pos[i][0] + '" y="' + (pos[i][1] + 5) + '">' + NAMES[x] + "</text>"; });
+  $("tri").innerHTML = svg;
+  $("tri").setAttribute("aria-label", "Arrows in a circle: " + lines.join(" "));
+  $("cyclelist").innerHTML = lines.map(l => "<li>" + l + "</li>").join("");
+  const v = cyc ? cycleText(cycleAn) : "no cycle";
+  $("cyclesay").textContent = "With these " + plural(cycleAn.total, "ballot", "ballots") + ", every voter has a clear ranking, yet the majority results run in a circle: " + v + ". Whoever wins, a majority of voters prefers somebody else.";
+  const first = cyc ? cyc : [0, 1, 2];
+  $("lede1").textContent = "Majority rule can go in a circle, with " + NAMES[first[0]] + " beating " + NAMES[first[1]] + ", " + NAMES[first[1]] + " beating " + NAMES[first[2]] + " and " + NAMES[first[2]] + " beating " + NAMES[first[0]] + ", though each voter is perfectly consistent.";
+  $("lede2").textContent = "Then " + list(METHODS.map(m => m.name)) + " can disagree, and the page counts how often.";
+}
+
+/* ---------- section 2: the builder ---------- */
+const PRESET_DEFS = [];
+function groupsHtml() {
+  const rows = [];
+  S4.perms.forEach((p, i) => {
+    if (!build[i]) return;
+    rows.push('<div class="rowb"><span class="nm">' + permName(p) + '</span><button type="button" class="mini" data-act="dec" data-p="' + i + '" aria-label="One fewer voter ranking ' + permName(p) + '">&minus;</button><span class="ct" aria-label="' + plural(build[i], "voter", "voters") + '">' + build[i] + '</span><button type="button" class="mini" data-act="inc" data-p="' + i + '" aria-label="One more voter ranking ' + permName(p) + '">+</button><button type="button" class="mini" data-act="del" data-p="' + i + '" aria-label="Remove all ballots ranking ' + permName(p) + '">Remove</button></div>');
+  });
+  return rows.join("");
+}
+function renderBuilder(focusSel) {
+  $("groups").innerHTML = groupsHtml();
+  if (focusSel) { const el = document.querySelector(focusSel); if (el) el.focus(); }
+  const an = analyse(S4, build);
+  const v = verdict(an);
+  $("verdict").innerHTML = "<b>" + plural(an.total, "voter", "voters") + ".</b> " + v.text;
+  $("verdict").dataset.branch = v.id;
+  $("buildmsg").textContent = "";
+  const r = an.res, n = 4;
+  const nm = i => NAMES[i];
+  const winTxt = x => x === null ? "none" : NAMES[x];
+  const card = (m, body) => '<div class="card"><h3>' + m.name + '</h3><div class="win">' + winTxt(r[m.id].winner) + "</div>" + body + (r[m.id].tieNote ? '<p><strong>Tie:</strong> ' + r[m.id].tieNote + "; letter order chose.</p>" : "") + "</div>";
+  const cards = [];
+  const tallyLine = (arr, unit) => NAMES.map((c, i) => c + " " + arr[i]).join(" · ") + (unit ? " " + unit : "");
+  cards.push(card(METHODS[0], "<p>Most first places wins. " + tallyLine(r.plurality.tally) + ".</p>"));
+  let rb;
+  if (!an.total) rb = "<p>Needs ballots.</p>";
+  else if (r.runoff.majority) rb = "<p>" + nm(r.runoff.winner) + " has " + r.runoff.tally[r.runoff.winner] + " of " + an.total + " first places, more than half, so there is no second round.</p>";
+  else rb = "<p>First places: " + tallyLine(r.runoff.tally) + ". Nobody has more than half of " + an.total + ", so " + nm(r.runoff.finalists[0]) + " and " + nm(r.runoff.finalists[1]) + " go to a runoff and get " + r.runoff.h2h[0] + " and " + r.runoff.h2h[1] + ".</p>";
+  cards.push(card(METHODS[1], rb));
+  cards.push(card(METHODS[2], "<p>" + (n - 1) + " points for first place down to 0 for last. " + tallyLine(r.borda.points, "points") + ".</p>"));
+  let cb;
+  if (!an.total) cb = "<p>Needs ballots.</p>";
+  else if (r.condorcet.winner !== null) cb = "<p>" + nm(r.condorcet.winner) + " beats each of the other " + (n - 1) + " head to head.</p>";
+  else if (an.cycle) cb = "<p>No candidate beats all the others. Circle: " + cycleText(an) + ".</p>";
+  else cb = "<p>No candidate beats all the others, and head-to-head counts are level somewhere.</p>";
+  cards.push(card(METHODS[3], cb));
+  $("cards").innerHTML = cards.join("");
+  let t = "<tr><th></th>" + NAMES.map(c => "<th>" + c + "</th>").join("") + "</tr>";
+  for (let i = 0; i < n; i++) {
+    t += "<tr><th scope=\"row\">" + NAMES[i] + "</th>";
+    for (let j = 0; j < n; j++) {
+      if (i === j) t += "<td>&ndash;</td>";
+      else { const win = an.pw[i][j] > an.pw[j][i]; t += "<td" + (win ? ' class="w" title="' + NAMES[i] + ' beats ' + NAMES[j] + '"' : "") + ">" + an.pw[i][j] + (win ? "<span class=\"k\">wins</span>" : "") + "</td>"; }
+    }
+    t += "</tr>";
+  }
+  $("pwtable").innerHTML = t;
+}
+function setBuild(cnt) { build = Array.from(cnt); renderBuilder(); }
+function initBuilder() {
+  $("rank").innerHTML = S4.perms.map((p, i) => '<option value="' + i + '">' + permName(p) + "</option>").join("");
+  $("methodsay").textContent = "They are " + list(METHODS.map(m => m.name)) + "; each reads the same ballot counts.";
+  $("add").addEventListener("click", () => {
+    const p = +$("rank").value, k = Math.max(1, Math.min(99, Math.floor(+$("howmany").value) || 1));
+    if (build[p] + k > 999) { $("buildmsg").textContent = "At most 999 voters per ranking."; return; }
+    build[p] += k; renderBuilder();
+    $("buildmsg").textContent = "Added " + plural(k, "ballot", "ballots") + " ranking " + permName(S4.perms[p]) + ".";
+  });
+  $("clear").addEventListener("click", () => { build = new Array(S4.P).fill(0); renderBuilder(); $("buildmsg").textContent = "All ballots removed."; });
+  $("groups").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const p = +b.dataset.p, act = b.dataset.act;
+    if (act === "inc") { if (build[p] >= 999) { $("buildmsg").textContent = "At most 999 voters per ranking."; return; } build[p]++; renderBuilder('[data-act="inc"][data-p="' + p + '"]'); }
+    if (act === "dec") { build[p]--; renderBuilder(build[p] ? '[data-act="dec"][data-p="' + p + '"]' : "#rank"); }
+    if (act === "del") { build[p] = 0; renderBuilder("#rank"); }
+  });
+  $("loadcycle").addEventListener("click", () => {
+    const cnt = new Array(S4.P).fill(0);
+    CYCLE_BALLOTS.forEach(b => { cnt[S4.lookup[codeOf(b.concat(3), 4)]]++; });
+    setBuild(cnt);
+    $("buildmsg").textContent = "Loaded the three ballots, with D ranked last by all of them.";
+  });
+}
+function initPresets() {
+  const defs = [
+    ["Four winners", () => search(S4, 11, an => an.res.condorcet.winner !== null && noTies(an) && new Set(METHODS.map(m => an.res[m.id].winner)).size === 4, 400000)],
+    ["Plurality misses the winner", () => search(S4, 12, an => branchKey(an) === "cw-missed:1" && an.res.plurality.winner !== an.res.condorcet.winner && noTies(an), 400000)],
+    ["Everyone agrees", () => search(S4, 13, an => branchKey(an) === "agree" && noTies(an) && an.total >= 9, 400000)],
+    ["Circle, counts disagree", () => search(S4, 14, an => branchKey(an) === "cycle-differ" && noTies(an), 400000)],
+    ["Head-to-head tie", () => search(S4, 15, an => branchKey(an) === "tie" && an.total >= 4, 400000)]
+  ];
+  const box = $("presets");
+  defs.forEach(([label, fn]) => {
+    const cnt = fn();
+    const b = document.createElement("button"); b.type = "button"; b.textContent = label;
+    if (!cnt) { b.disabled = true; b.title = "The search found none"; }
+    else b.addEventListener("click", () => { setBuild(cnt); $("buildmsg").textContent = "Loaded: " + label + "."; });
+    PRESET_DEFS.push({ label, cnt, branch: cnt ? branchKey(analyse(S4, cnt)) : null });
+    box.appendChild(b);
+  });
+}
+
+/* ---------- section 3: the counting ---------- */
+const ROWS = [
+  { label: "No Condorcet winner", key: "noCW", den: "N" },
+  { label: "A circle among some candidates (winner or not)", key: "cycles", den: "N" },
+  { label: "Plurality and Runoff differ", key: 0, den: "N", short: "Plurality and Runoff" },
+  { label: "Plurality and Borda differ", key: 1, den: "N", short: "Plurality and Borda" },
+  { label: "Runoff and Borda differ", key: 2, den: "N", short: "Runoff and Borda" },
+  { label: "Plurality misses the Condorcet winner", key: 3, den: "CW", short: "Plurality and the Condorcet winner" },
+  { label: "Runoff misses the Condorcet winner", key: 4, den: "CW", short: "Runoff and the Condorcet winner" },
+  { label: "Borda misses the Condorcet winner", key: 5, den: "CW", short: "Borda and the Condorcet winner" },
+  { label: "Some two methods name different winners", key: "differ", den: "N" }
+];
+const rowNum = (st, r) => r.key === "noCW" ? st.noCW : r.key === "cycles" ? st.cycles : r.key === "differ" ? st.differ : st.pair[r.key];
+const rowDen = (st, r) => r.den === "N" ? st.N : st.withCW;
+function renderSim(results, nV, nC) {
+  let t = "<tr><th>Share of electorates</th>" + MODELS.map(m => "<th>" + m.name + "</th>").join("") + "</tr>";
+  ROWS.forEach(r => {
+    t += "<tr><td>" + r.label + (r.den === "CW" ? " (of those that have one)" : "") + "</td>" + results.map(st => { const k = rowNum(st, r), d = rowDen(st, r); return "<td>" + pctOf(k, d) + '<span class="k">' + k + " of " + d + "</span></td>"; }).join("") + "</tr>";
+  });
+  t += "<tr><td>A tie settled by letter order somewhere</td>" + results.map(st => "<td>" + pctOf(st.tieElectorates, st.N) + '<span class="k">' + st.tieElectorates + " of " + st.N + "</span></td>").join("") + "</tr>";
+  $("simtable").innerHTML = t;
+  const [ic, line, plane] = results;
+  const noCWs = results.map(st => phr(st.noCW, st.N));
+  // the pair that differs most often under impartial culture
+  const rates = ROWS.filter(r => typeof r.key === "number").map(r => ({ r, rate: rowNum(ic, r) / Math.max(1, rowDen(ic, r)), k: rowNum(ic, r), d: rowDen(ic, r) }));
+  const best = Math.max(...rates.map(x => x.rate));
+  const top = rates.filter(x => x.rate === best);
+  const topTxt = best === 0 ? "No pair of methods ever differed under impartial culture here." : "Under impartial culture the pair that differed most often was " + list(top.map(x => x.r.short)) + " (" + pctOf(top[0].k, top[0].d) + (top[0].r.den === "CW" ? " of electorates with a Condorcet winner" : " of electorates") + ").";
+  $("simsay"). textContent = "With " + plural(nV, "voter", "voters") + " and " + nC + " candidates, " + results[0].N + " random electorates per model: no Condorcet winner in " + noCWs[0] + " for " + MODELS[0].name.toLowerCase() + ", " + noCWs[1] + " for " + MODELS[1].name.toLowerCase() + " and " + noCWs[2] + " for " + MODELS[2].name.toLowerCase() + ". " + topTxt + " Some two methods named different winners in " + pctOf(ic.differ, ic.N) + " of the impartial-culture electorates.";
+  const moe = 100 * 1.96 * Math.sqrt(0.25 / results[0].N);
+  $("simnote").textContent = "Sampling error: with " + results[0].N + " electorates, any share here is uncertain by up to about " + moe.toFixed(1) + " percentage points (95% interval), so shares are rounded to whole percents. A method that picks nobody never differs, so the Condorcet rows count only electorates that have a Condorcet winner. 'Some two methods name different winners' ignores a missing Condorcet winner.";
+  $("simintro").textContent = "Three ways to make a random electorate, each counted by the same four functions: " + MODELS.map(m => m.name.toLowerCase() + " (" + m.note + ")").join("; ") + ". Each model draws " + ELECTORATES + " electorates from the seed.";
+}
+function renderCause(results, nV, nC) {
+  const [ic, line, plane] = results;
+  $("causesim").textContent = "In the simulation above (" + plural(nV, "voter", "voters") + ", " + nC + " candidates, " + line.N + " electorates per model): on the line, " + (line.spViolations === 0 ? "all " + line.spChecked + " ballot types the code checked were single-peaked" : line.spViolations + " of " + line.spChecked + " ballot types were not single-peaked") + " and a circle appeared in " + phr(line.cycles, line.N) + " electorates (no Condorcet winner in " + phr(line.noCW, line.N) + "). Yet on the line some two methods still named different winners in " + phr(line.differ, line.N) + ": a circle is not needed for the methods to disagree. With the cause left on, a circle appeared in " + phr(ic.cycles, ic.N) + " impartial-culture electorates and " + phr(plane.cycles, plane.N) + " plane electorates.";
+}
+async function runSim() {
+  const nV = +$("simv").value, nC = +$("simc").value, seed = Math.max(0, Math.floor(+$("sims").value) || 0);
+  $("simrun").disabled = true; $("simstatus").textContent = "Counting " + (MODELS.length * ELECTORATES) + " electorates...";
+  const results = [];
+  for (const m of MODELS) {
+    await new Promise(r => setTimeout(r, 0));
+    results.push(simulateModel(m.id, nC, nV, ELECTORATES, seed * 7 + MODELS.indexOf(m) + 1));
+  }
+  lastSim = { results, nV, nC, seed };
+  renderSim(results, nV, nC); renderCause(results, nV, nC); renderChecks();
+  $("simstatus").textContent = "Done: " + (MODELS.length * ELECTORATES) + " electorates counted.";
+  $("simrun").disabled = false;
+}
+function initSim() {
+  $("simv").innerHTML = [3, 11, 101, 1001].map(v => '<option value="' + v + '"' + (v === 101 ? " selected" : "") + ">" + v + "</option>").join("");
+  $("simc").innerHTML = [3, 4].map(v => '<option value="' + v + '"' + (v === 4 ? " selected" : "") + ">" + v + "</option>").join("");
+  $("simrun").addEventListener("click", runSim);
+  $("simv").addEventListener("change", runSim);
+  $("simc").addEventListener("change", runSim);
+}
+
+/* ---------- section 4: exhaustive counting ---------- */
+function renderEnum() {
+  const sp = space(3).perms.filter(p => isSP(p, [0, 1, 2]));
+  let t = "<tr><th>Voters</th><th>All profiles</th><th>With a circle</th><th>Single-peaked profiles</th><th>With a circle</th></tr>";
+  ENUMS.forEach(e => {
+    t += "<tr><td>" + e.v + "</td><td>" + e.all.total + "</td><td>" + e.all.cyc + " (" + pctOf(e.all.cyc, e.all.total) + ")</td><td>" + e.sp.total + "</td><td>" + e.sp.cyc + (e.sp.cyc === 0 ? " (none)" : " (" + pctOf(e.sp.cyc, e.sp.total) + ")") + "</td></tr>";
+  });
+  $("enumtable").innerHTML = t;
+  $("enumnote").textContent = "Three candidates in the order A, B, C along a line. " + sp.length + " of the " + space(3).P + " rankings are single-peaked on that line (" + sp.map(permName).join("; ") + "); every profile of " + list(ENUMS.map(e => String(e.v))) + " voters is counted, one by one.";
+  const e3 = ENUMS[0];
+  $("causesay").textContent = "A circle needs voters whose rankings pull in different directions. Suppose instead the candidates sit on a line and each voter ranks them by distance from their own favourite spot, so no ranking jumps over a nearer candidate. Then, with an odd number of voters, one candidate always beats all the others. The check, for three candidates: count every profile, with the cause on and off. Of " + e3.all.total + " equally likely profiles of " + e3.v + " voters, " + e3.all.cyc + " contain a circle (" + pctOf(e3.all.cyc, e3.all.total) + "); among the " + e3.sp.total + " single-peaked ones, " + (e3.sp.cyc === 0 ? "none do" : e3.sp.cyc + " do") + ".";
+}
+
+/* ---------- self-checks ---------- */
+function firstSentenceWords(s) { return s.split(/(?<=[.!?])\s/)[0].trim().split(/\s+/).length; }
+function computeChecks() {
+  const out = [];
+  const add = (ok, text) => out.push({ ok, text });
+  const S3 = space(3), S = S4;
+  // 1 cycle detector on the three-ballot example
+  add(cycleAn.res.condorcet.winner === null && !!cycleAn.cycle && cycleAn.cycle.length === 3, "The three-ballot example has no Condorcet winner and the detector finds a circle of " + (cycleAn.cycle ? cycleAn.cycle.length : 0) + ".");
+  // 2 independent implementation
+  const rnd = rngFrom(99); let bad = 0, runs = 300;
+  for (let i = 0; i < runs; i++) {
+    const cnt = randomCounts(S, rnd), an = analyse(S, cnt), sl = slowCheck(S, cnt);
+    const same = a => a.length === S.n && a.every((v, j) => v === sl.first[j]);
+    if (!same(an.res.plurality.tally) || an.res.borda.points.some((v, j) => v !== sl.pts[j]) || an.res.condorcet.winner !== sl.cw) bad++;
+  }
+  add(bad === 0, "A second, ballot-by-ballot implementation agrees on " + runs + " random profiles (first places, Borda points, Condorcet winner): " + bad + " disagreements.");
+  // 3 sums
+  let sumBad = 0; const rnd2 = rngFrom(5);
+  for (let i = 0; i < 200; i++) {
+    const cnt = randomCounts(S, rnd2), an = analyse(S, cnt);
+    const f = an.res.plurality.tally.reduce((a, b) => a + b, 0), b = an.res.borda.points.reduce((a, c) => a + c, 0);
+    if (f !== an.total || b !== an.total * S.n * (S.n - 1) / 2) sumBad++;
+  }
+  add(sumBad === 0, "First places add up to the number of voters, and Borda points to voters x n(n-1)/2, on 200 random profiles: " + sumBad + " failures.");
+  // 4 unanimous
+  let unBad = 0;
+  for (let p = 0; p < S.P; p++) { const cnt = new Array(S.P).fill(0); cnt[p] = 5; const an = analyse(S, cnt); const top = S.perms[p][0]; if (METHODS.some(m => an.res[m.id].winner !== top)) unBad++; }
+  add(unBad === 0, "When every voter has the same ranking, all four methods name its first choice (all " + S.P + " rankings tried): " + unBad + " failures.");
+  // 5 every verdict branch forced once
+  const want = ["empty", "agree", "cw-missed:1", "cw-missed:2", "cw-missed:3", "cycle-agree", "cycle-differ", "tie"];
+  const seen = {};
+  seen["empty"] = branchKey(analyse(S, new Array(S.P).fill(0))) === "empty";
+  const preds = {
+    "agree": an => branchKey(an) === "agree", "cw-missed:1": an => branchKey(an) === "cw-missed:1", "cw-missed:2": an => branchKey(an) === "cw-missed:2",
+    "cw-missed:3": an => branchKey(an) === "cw-missed:3", "cycle-agree": an => branchKey(an) === "cycle-agree", "cycle-differ": an => branchKey(an) === "cycle-differ", "tie": an => branchKey(an) === "tie"
+  };
+  Object.keys(preds).forEach((k, i) => { seen[k] = !!search(S, 40 + i, preds[k], 200000); });
+  const missing = want.filter(k => !seen[k]);
+  FORCED = seen;
+  add(missing.length === 0, "Every verdict branch was reached by a test profile: " + want.length + " cases (" + want.join(", ") + "); not reached: " + list(missing) + ".");
+  // 6 each method-tie note reached
+  const tieKinds = [["Plurality", an => an.res.plurality.tieNote !== ""], ["Runoff, level for a place", an => an.res.runoff.tieNote.indexOf("for a place") >= 0], ["Runoff, tied final", an => an.res.runoff.tieNote.indexOf("tied in the runoff") >= 0], ["Borda", an => an.res.borda.tieNote !== ""]];
+  const tieSeen = tieKinds.map(([label, pr], i) => ({ label, ok: !!search(S, 70 + i, pr, 200000) }));
+  add(tieSeen.every(x => x.ok), "A tie note is produced for each of " + tieKinds.length + " tie cases (" + list(tieKinds.map(k => k[0])) + "); not reached: " + list(tieSeen.filter(x => !x.ok).map(x => x.label)) + ".");
+  // 7 single-peaked test works both ways
+  const axis = [0, 1, 2];
+  add(isSP([0, 1, 2], axis) && !isSP([0, 2, 1], axis), "The single-peaked test accepts " + permName([0, 1, 2]) + " and rejects " + permName([0, 2, 1]) + " on the axis A, B, C.");
+  const cycleNoAxis = permsOf(3).every(ax => { const axisPos = Array(3); ax.forEach((c, r) => { axisPos[c] = r; }); return CYCLE_BALLOTS.some(b => !isSP(b, axisPos)); });
+  add(cycleNoAxis, "For none of the " + permsOf(3).length + " ways to line the candidates up are the three circle ballots all single-peaked.");
+  // 8 exhaustive cause-off
+  const spBad = ENUMS.filter(e => e.sp.cyc !== 0);
+  add(spBad.length === 0, "No single-peaked profile of " + list(ENUMS.map(e => String(e.v))) + " voters has a circle (" + ENUMS.map(e => e.sp.total).join(", ") + " profiles).");
+  add(ENUMS.every(e => e.all.cyc > 0), "Control: with all rankings allowed, circles do exist (" + ENUMS.map(e => e.all.cyc + " of " + e.all.total).join("; ") + ").");
+  // 9 simulation vs exact
+  const sim3 = simulateModel("ic", 3, 3, 20000, 123);
+  const exact = ENUMS[0].all.cyc / ENUMS[0].all.total, sd = Math.sqrt(exact * (1 - exact) / 20000);
+  const got = sim3.cycles / 20000;
+  add(Math.abs(got - exact) <= 3 * sd, "A seeded simulation of 20000 three-voter, three-candidate electorates gives circles in " + sim3.cycles + " (" + (100 * got).toFixed(1) + "%) against the exact " + (100 * exact).toFixed(1) + "%, within 3 standard errors (" + (300 * sd).toFixed(1) + " points).");
+  // 10 odd voters: cycle iff no CW
+  add(sim3.cycles === sim3.noCW, "With three candidates and an odd number of voters, no Condorcet winner and a circle are the same thing in all 20000 electorates (" + sim3.noCW + " and " + sim3.cycles + ").");
+  // 11 opening sentence
+  const w = firstSentenceWords($("lede1").textContent);
+  add(w <= 25, "The opening sentence has " + w + " words (at most 25).");
+  // 12 simulation checks
+  if (lastSim) {
+    const [ic, line] = lastSim.results;
+    add(line.spViolations === 0 && line.cycles === 0 && (lastSim.nV % 2 === 0 || line.noCW === 0), "Cause off, simulated: " + line.spChecked + " ballot types on the line were all single-peaked, a circle appeared in " + phr(line.cycles, line.N) + " electorates, and a Condorcet winner was missing in " + phr(line.noCW, line.N) + ".");
+    add(ic.cycles > 0, "Control, simulated: the same code with the cause on (impartial culture) found circles in " + phr(ic.cycles, ic.N) + " electorates.");
+    if (lastSim.nV % 2 === 1) add(lastSim.results.every(st => st.noCWnoCycle === 0), "With " + lastSim.nV + " voters (odd), every electorate without a Condorcet winner contains a circle: " + lastSim.results.map(st => st.noCWnoCycle).join(", ") + " exceptions in the three models.");
+  }
+  return out;
+}
+let FORCED = {};
+function renderChecks() {
+  const cs = computeChecks();
+  $("checks").innerHTML = cs.map(c => "<li class=\"" + (c.ok ? "ok" : "bad") + "\"><strong>" + (c.ok ? "Pass" : "FAIL") + ".</strong> <span style=\"color:var(--ink)\">" + c.text + "</span></li>").join("");
+  const fails = cs.filter(c => !c.ok).length;
+  $("chksay").textContent = fails === 0 ? "All " + cs.length + " checks pass." : plural(fails, "check fails", "checks fail") + " of " + cs.length + ".";
+  window.__checks = cs;
+}
+
+/* ---------- start ---------- */
+function init() {
+  renderCycle();
+  initBuilder(); initPresets(); initSim();
+  setBuild(PRESET_DEFS[0] && PRESET_DEFS[0].cnt ? PRESET_DEFS[0].cnt : new Array(S4.P).fill(0));
+  renderEnum();
+  renderChecks();
+  window.__app = { analyse, verdict, branchKey, search, space, simulateModel, enumerate, isSP, findCycle, PRESET_DEFS, get state() { return { build, lastSim, FORCED }; }, setBuild, runSim, slowCheck, permsOf };
+  runSim();
+}
+init();
+</script>
+</body>
+</html>

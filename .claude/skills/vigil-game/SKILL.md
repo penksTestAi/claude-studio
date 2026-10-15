@@ -71,7 +71,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    CHANGELOG.md; it does not throw away working features.
 
 ## Normal mode (every other run)
-1. Read `game/DESIGN.md`, `game/ROADMAP.md` and the last entries of `game/CHANGELOG.md`.
+1. First run `git fetch` and read `game/ROADMAP.md` and `game/CHANGELOG.md` as they are on `origin/main`; if the
+   next item has already landed there, build the next unmarked one on top of main, never a second copy (2026-10-16
+   01:45: another run pushed crafting and beacons while this one built crafting, and all its game work was dropped).
+   Then read `game/DESIGN.md`, `game/ROADMAP.md` and the last entries of `game/CHANGELOG.md`.
 2. Build the next roadmap item completely, as one coherent increment. Keep the code organised in modules so later
    runs can find their way (a short map of the files lives in DESIGN.md).
 3. Tests: `game/tests/` holds a Playwright script that opens two pages in one browser context with `?net=local`,
@@ -84,7 +87,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    spawns). Run the 5x loop once, after the code is final, one file at a time, with no stress harness, build or
    other browser running alongside; a failure seen only under extra load is named as such, then re-checked alone
    (2026-10-16: loops overlapped stress runs, failures came from load, and the game step took about 2 h 40 min).
-   Report the loop's own count lines, never output cut by `tail`. A check that
+   Report the loop's own count lines, never output cut by `tail`. Time-box a failure you cannot explain: after about
+   45 minutes, stop, keep the failing check and its counts in the ROADMAP and report it to the chair as unexplained,
+   instead of chasing it longer (2026-10-16 01:45: one gather/craft handshake race took about 3 h and stayed
+   unexplained). A check that
    reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or
    waits until it settles, never one exact pixel (world.test read one minimap pixel at the reported position while
    the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run). When a feature holds or

@@ -108,17 +108,17 @@ Changes only the owner can make to the routine. The owner can delete a line once
   cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only.
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
-  20:40 run, after keeper, toy refiner and fixer in earlier runs).
+  20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run).
 - (2026-10-16) A small `tools/game_test_loop` script that runs each game test file N times in sequence with
   `CHROME` set and prints one "file passed/N" line each would save the game builder's and tester's tokens and give
   exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
   to `tail`. A time budget for the game builder may also be worth setting in the routine.
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
+  start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
+  meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work.
 
 ## Changelog
 
-- 2026-10-15: the owner opened the game's graphics to unlimited evolution; vigil-game skill now keeps visual items in the roadmap (about one in three increments).
-- 2026-10-15: security guard added (owner's request): vigil-security skill and tools/security_check.py run every run before commits; first full scan of all three repositories found 0 blocking issues.
-- 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
 - 2026-10-15: one-source experiment left running, not judged: it began in the 22:35 run, so the 00:35 Element
@@ -199,3 +199,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   before review; review found four such wording overclaims this run.
 - 2026-10-16: proposal for the owner: a game test loop script and a time budget for the game builder (same 2 h 40 min
   evidence; tester's pass counts lost to `tail`). Not acted on: one unexplained `give` failure; watch next game run.
+- 2026-10-16: vigil-game skill now fetches main and checks ROADMAP/CHANGELOG there before building, and time-boxes an
+  unexplained failure to about 45 min; the 01:45 run built crafting while another run pushed it, and a gather/craft
+  handshake race took about 3 h and stayed unexplained (game work dropped, only balance and the Trystero fix shipped).
+- 2026-10-16: proposal for the owner: prevent overlapping runs and cap wall-clock (same evidence: about 5 h, rebase
+  conflict, salvage branch).
+- 2026-10-16: CLAUDE.md proposal now also names the profile agent, which wrote its own STUDIO entry this run.
+  Status-words experiment not judged (one run old).

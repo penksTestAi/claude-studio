@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lightness Illusions · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="A perception piece: Adelson&#x27;s checker shadow and simultaneous contrast, drawn on canvas. Point an eyedropper at the page&#x27;s own pixels to show the &#x27;different&#x27; squares are identical, then slide the surrounding context away.">
+<link rel="canonical" href="https://vigilstudio.github.io/illusions/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Lightness Illusions · Vigil">
+<meta property="og:description" content="A perception piece: Adelson&#x27;s checker shadow and simultaneous contrast, drawn on canvas. Point an eyedropper at the page&#x27;s own pixels to show the &#x27;different&#x27; squares are identical, then slide the surrounding context away.">
+<meta property="og:url" content="https://vigilstudio.github.io/illusions/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lightness Illusions · Vigil">
+<meta name="twitter:description" content="A perception piece: Adelson&#x27;s checker shadow and simultaneous contrast, drawn on canvas. Point an eyedropper at the page&#x27;s own pixels to show the &#x27;different&#x27; squares are identical, then slide the surrounding context away.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--mark:#d4331f;--ok:#2f7d3a;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--mark:#ff7a66;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--mark:#ff7a66;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:30px 0 8px;font-weight:normal}
+h3{font-size:.95rem;margin:0 0 2px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.stage{position:relative;width:100%;max-width:476px;margin:0 auto;line-height:0}
+.view{position:relative;display:block;border:1px solid var(--line);border-radius:6px;overflow:hidden;touch-action:pan-y;cursor:crosshair;outline:none;background:#808080}
+.view:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+canvas{display:block;width:100%;height:auto}
+.badge{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#fff;color:#000;border:2px solid #000;font:700 13px/18px Georgia,serif;text-align:center;pointer-events:none}
+.probe{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px solid var(--mark);box-shadow:0 0 0 2px #fff,inset 0 0 0 1px #fff;pointer-events:none;display:none}
+.probe::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;background:var(--mark)}
+.cap{margin:8px auto 0;max-width:476px;font-size:.88rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:.9rem;margin:0}
+.ctl output{font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}
+input[type=range]:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 4px}
+button{min-height:44px;padding:8px 14px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+td{white-space:nowrap}@media (max-width:479px){td{white-space:normal}th,td{padding:6px 3px}table{font-size:.82rem}}th,td{text-align:left;padding:6px 5px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal;font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:.78rem}
+.sw{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.2em;margin-right:.35em;border:1px solid var(--ink);border-radius:2px}
+.verdict{margin:10px 0 0;font-size:.95rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.formula{font-size:.9rem;overflow-wrap:anywhere}
+ul.checks{margin:6px 0 0;padding-left:1.1em;font-size:.92rem}
+ul.checks li{margin:4px 0;overflow-wrap:anywhere}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+details{margin-top:18px}
+summary{cursor:pointer;min-height:32px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="top">Lightness Illusions</h1>
+  <p class="lede" id="lede">Two squares that look clearly different are the same grey; point an eyedropper at the page's own pixels, then slide the context away.</p>
+
+  <h2 id="h-chk">1. The checker shadow</h2>
+  <p>Squares <b>A</b> and <b>B</b> sit on one checkerboard. A looks dark and B looks light. Use the eyedropper, then drag the slider.</p>
+  <div id="demo-chk"></div>
+
+  <h2 id="h-sc">2. Simultaneous contrast</h2>
+  <p>The same square is drawn on a dark and on a light background. Most people see the one on the dark side as lighter.</p>
+  <div id="demo-sc"></div>
+
+  <h2 id="h-how">How the readings are made</h2>
+  <div class="panel">
+    <p>Each picture is drawn on a canvas by this page, then its pixels are read back with <code>getImageData</code>. Nothing is loaded from elsewhere. The luminance column uses the relative luminance formula:</p>
+    <p class="formula" id="formula"></p>
+    <p class="formula" id="worked"></p>
+    <p class="small" id="srcnote"></p>
+  </div>
+
+  <h2 id="h-self">The page checks itself</h2>
+  <div class="panel">
+    <p class="small" style="margin-top:0">These run when the page loads, on the pixels it just drew.</p>
+    <ul class="checks" id="checks"></ul>
+  </div>
+
+  <h2 id="h-why">Why it works, and what is not checked</h2>
+  <div class="panel">
+    <p>A common account: the eye does not report how much light comes from a square. It estimates the square's shade from how it compares with what surrounds it, because shadows and lighting change the light but not the paint. The ratio column shows that comparison. With the slider at 0%, in the first table A is darker than its surroundings (<span id="r-a1"></span>) and B is lighter than its own (<span id="r-b1"></span>); in the second, A is lighter than its dark surround (<span id="r-a2"></span>) and B darker than its light one (<span id="r-b2"></span>).</p>
+    <p class="small">History, from memory and not checked on this page: the checker shadow picture is credited to Edward Adelson (MIT), 1995; the study of simultaneous contrast in colour is credited to Michel Eug&egrave;ne Chevreul in the 1830s.</p>
+    <p class="small">Not checked: how the squares look to you (this page can only measure pixels), screens with unusual colour profiles, screen readers, and browsers other than Chromium. The "surround" average is my own simple definition (a ring of pixels around each square), not a standard model of vision.</p>
+  </div>
+
+  <p class="small" id="credit" style="margin-top:28px">Made by Claude, an AI model by Anthropic, for Vigil. I cannot see the page as you do; I only measured its pixels.</p>
+</main>
+<script>
+"use strict";
+(function(){
+/* ---------- colour maths (formula shown on the page is built from these constants) ---------- */
+var COEF = {r:0.2126, g:0.7152, b:0.0722};
+var K = {thresh:0.04045, wcagThresh:0.03928, div:12.92, off:0.055, scale:1.055, gamma:2.4};
+function lin(c8, th){ var c=c8/255; th = th||K.thresh; return c<=th ? c/K.div : Math.pow((c+K.off)/K.scale, K.gamma); }
+var LUT = new Float64Array(256); for (var i=0;i<256;i++) LUT[i]=lin(i);
+function enc(l){ var v = l<=0.0031308 ? 12.92*l : 1.055*Math.pow(l,1/2.4)-0.055; return Math.max(0,Math.min(255,Math.round(v*255))); }
+function relLum(r,g,b){ return COEF.r*LUT[r]+COEF.g*LUT[g]+COEF.b*LUT[b]; }
+function hex(r,g,b){ return "#"+[r,g,b].map(function(v){return (v<16?"0":"")+v.toString(16);}).join(""); }
+function fmt(x){ return x>=10 ? String(Math.round(x)) : x.toFixed(x>=1?1:2); }
+function L3(x){ return x.toFixed(3); }
+function smooth(e0,e1,x){ var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return t*t*(3-2*t); }
+
+/* ---------- scene 1: checker shadow ---------- */
+var T=68, N=7, W1=T*N, H1=T*N;
+var G=120, LIGHT=200;                         /* A and B both end up at G */
+var linG=lin(G), linLight=lin(LIGHT), linDark=linG;
+var kShadow = linG/linLight;                   /* shadow multiplies linear light by this */
+var segA={x:1.6*T,y:2.9*T}, segB={x:4.5*T,y:4.5*T}, SR=0.9*T, SP=0.7*T;
+function segDist(px,py){ var dx=segB.x-segA.x, dy=segB.y-segA.y; var t=((px-segA.x)*dx+(py-segA.y)*dy)/(dx*dx+dy*dy); t=Math.max(0,Math.min(1,t)); var cx=segA.x+t*dx, cy=segA.y+t*dy; return Math.hypot(px-cx,py-cy); }
+var tileA={c:6,r:3}, tileB={c:4,r:4};         /* A: dark tile in light; B: light tile in shadow */
+function rectOf(t){ return {x:t.c*T,y:t.r*T,w:T,h:T}; }
+var rectA1=rectOf(tileA), rectB1=rectOf(tileB);
+var FIELD1=165;
+
+function buildBase1(){
+  var cv=document.createElement("canvas"); cv.width=W1; cv.height=H1;
+  var cx=cv.getContext("2d",{willReadFrequently:true});
+  var img=cx.createImageData(W1,H1), d=img.data;
+  for (var y=0;y<H1;y++) for (var x=0;x<W1;x++){
+    var c=Math.floor(x/T), r=Math.floor(y/T), light=((c+r)%2===0);
+    var v = light?linLight:linDark;
+    var m = 1-smooth(SR,SR+SP,segDist(x+0.5,y+0.5));
+    v *= 1-(1-kShadow)*m;
+    var b=enc(v), o=(y*W1+x)*4; d[o]=d[o+1]=d[o+2]=b; d[o+3]=255;
+  }
+  cx.putImageData(img,0,0);
+  /* the cylinder that casts the shadow */
+  var x0=1.05*T, x1=2.15*T, yt=0.75*T, yb=2.9*T, ry=0.22*T;
+  var g=cx.createLinearGradient(x0,0,x1,0); g.addColorStop(0,"#5d7e63"); g.addColorStop(0.35,"#a9c9ae"); g.addColorStop(1,"#3f5a45");
+  cx.fillStyle=g; cx.beginPath(); cx.moveTo(x0,yt); cx.lineTo(x0,yb); cx.ellipse((x0+x1)/2,yb,(x1-x0)/2,ry,0,Math.PI,0,true); cx.lineTo(x1,yt); cx.closePath(); cx.fill();
+  cx.fillStyle="#bcd7c0"; cx.beginPath(); cx.ellipse((x0+x1)/2,yt,(x1-x0)/2,ry,0,0,Math.PI*2); cx.fill();
+  return cx.getImageData(0,0,W1,H1);
+}
+
+/* ---------- scene 2: simultaneous contrast ---------- */
+var W2=476, H2=280, BGD=20, BGL=235, PV=128, PS=100, FIELD2=190;
+var rectA2={x:69,y:90,w:PS,h:PS}, rectB2={x:238+69,y:90,w:PS,h:PS};
+function buildBase2(){
+  var d=new Uint8ClampedArray(W2*H2*4);
+  for (var y=0;y<H2;y++) for (var x=0;x<W2;x++){
+    var o=(y*W2+x)*4, v = x<W2/2?BGD:BGL;
+    if (inRect(rectA2,x,y)||inRect(rectB2,x,y)) v=PV;
+    d[o]=d[o+1]=d[o+2]=v; d[o+3]=255;
+  }
+  return new ImageData(d,W2,H2);
+}
+function inRect(r,x,y){ return x>=r.x&&x<r.x+r.w&&y>=r.y&&y<r.y+r.h; }
+
+/* ---------- stats over an ImageData ---------- */
+function tileStats(img,rect){
+  var d=img.data,w=img.width,n=0,min=[255,255,255],max=[0,0,0],sum=0;
+  for (var y=rect.y;y<rect.y+rect.h;y++) for (var x=rect.x;x<rect.x+rect.w;x++){
+    var o=(y*w+x)*4; n++;
+    for (var k=0;k<3;k++){ if(d[o+k]<min[k])min[k]=d[o+k]; if(d[o+k]>max[k])max[k]=d[o+k]; }
+  }
+  var uniform = min[0]===max[0]&&min[1]===max[1]&&min[2]===max[2]&&min[0]===min[1]&&min[1]===min[2];
+  var o0=(rect.y*w+rect.x)*4;
+  var rgb=[d[o0],d[o0+1],d[o0+2]];
+  return {n:n,uniform:uniform,min:min,max:max,rgb:rgb,lum:relLum(rgb[0],rgb[1],rgb[2])};
+}
+function ringMean(img,rect,other,pad){
+  var d=img.data,w=img.width,h=img.height,s=0,n=0;
+  var x0=Math.max(0,rect.x-pad),x1=Math.min(w,rect.x+rect.w+pad),y0=Math.max(0,rect.y-pad),y1=Math.min(h,rect.y+rect.h+pad);
+  for (var y=y0;y<y1;y++) for (var x=x0;x<x1;x++){
+    if (inRect(rect,x,y)||inRect(other,x,y)) continue;
+    var o=(y*w+x)*4; s+=relLum(d[o],d[o+1],d[o+2]); n++;
+  }
+  return s/n;
+}
+function fade(base,rectA,rectB,field,t){
+  var out=new ImageData(new Uint8ClampedArray(base.data),base.width,base.height), d=out.data, w=base.width, h=base.height;
+  if (t===0) return out;
+  for (var y=0;y<h;y++) for (var x=0;x<w;x++){
+    if (inRect(rectA,x,y)||inRect(rectB,x,y)) continue;
+    var o=(y*w+x)*4;
+    for (var k=0;k<3;k++) d[o+k]=Math.round(d[o+k]+(field-d[o+k])*t);
+  }
+  return out;
+}
+
+/* ---------- one demo (canvas, eyedropper, slider, readouts) ---------- */
+function makeDemo(cfg){
+  var p=cfg.p, host=document.getElementById(cfg.host);
+  host.innerHTML =
+   '<div class="stage"><div class="view" id="'+p+'-view" tabindex="0" role="group" aria-label="'+cfg.aria+' Eyedropper: click or touch the picture, or use the arrow keys (Shift for bigger steps)." aria-describedby="'+p+'-cap">'+
+   '<canvas id="'+p+'-cv" width="'+cfg.w+'" height="'+cfg.h+'" aria-hidden="true"></canvas>'+
+   '<span class="badge" id="'+p+'-bA">A</span><span class="badge" id="'+p+'-bB">B</span><span class="probe" id="'+p+'-probe"></span></div></div>'+
+   '<p class="cap" id="'+p+'-cap">Eyedropper: click or touch the picture, or focus it and use the arrow keys. It reads one pixel from the canvas.</p>'+
+   '<div class="panel">'+
+   '<div class="ctl"><label for="'+p+'-sl">Context removed <output id="'+p+'-out" for="'+p+'-sl"></output></label>'+
+   '<input id="'+p+'-sl" type="range" min="0" max="100" step="1" value="0" autocomplete="off"></div>'+
+   '<p class="small" id="'+p+'-left" style="margin:0 0 8px"></p>'+
+   '<div class="btns"><button type="button" id="'+p+'-goA">Eyedropper on A</button><button type="button" id="'+p+'-goB">Eyedropper on B</button></div>'+
+   '<div class="tw" tabindex="0" role="region" aria-label="Readings table"><table><thead><tr><th scope="col">Reading</th><th scope="col">R, G, B</th><th scope="col">Hex</th><th scope="col">Luminance</th><th scope="col">&divide; surround</th></tr></thead><tbody id="'+p+'-rows"></tbody></table></div>'+
+   '<p class="verdict" id="'+p+'-verdict" role="status"></p>'+
+   '<p class="verdict" id="'+p+'-surr"></p>'+
+   '</div>';
+  var $=function(s){return document.getElementById(p+"-"+s);};
+  var cv=$("cv"), cx=cv.getContext("2d",{willReadFrequently:true});
+  var view=$("view"), probe=$("probe"), sl=$("sl");
+  var base=cfg.base();
+  var probePos=null, t=0, baseGap=0;
+
+  function place(el,rect,dx,dy){ el.style.left=((rect.x+dx)/cfg.w*100)+"%"; el.style.top=((rect.y+dy)/cfg.h*100)+"%"; }
+  place($("bA"),cfg.rectA,cfg.rectA.w/2,cfg.rectA.h/2); place($("bB"),cfg.rectB,cfg.rectB.w/2,cfg.rectB.h/2);
+
+  function ring(img,r,o){ return ringMean(img,r,o,cfg.pad); }
+  baseGap=Math.abs(ring(base,cfg.rectA,cfg.rectB)-ring(base,cfg.rectB,cfg.rectA));
+
+  function row(name,sw,rgb,lumi,ratio,extra){
+    var h=hex(rgb[0],rgb[1],rgb[2]);
+    return '<tr><th scope="row">'+name+'</th><td><span class="sw" style="background:'+h+'"></span>'+(extra||rgb.join(", "))+'</td><td>'+h+'</td><td>'+L3(lumi)+'</td><td>'+(ratio==null?"&ndash;":fmt(ratio))+'</td></tr>';
+  }
+  function tileRow(name,s,rr){
+    if (s.uniform) return row(name,0,s.rgb,s.lum,s.lum/rr);
+    return row(name,0,s.rgb,s.lum,s.lum/rr,"varies "+s.min.join(",")+" to "+s.max.join(","));
+  }
+  function readProbe(){
+    if (!probePos) return '<tr><th scope="row">Eyedropper</th><td colspan="4" class="small">Point at the picture.</td></tr>';
+    var px=cx.getImageData(probePos.x,probePos.y,1,1).data;
+    return row("Pixel "+probePos.x+", "+probePos.y,0,[px[0],px[1],px[2]],relLum(px[0],px[1],px[2]),null);
+  }
+  function render(){
+    var img=fade(base,cfg.rectA,cfg.rectB,cfg.field,t);
+    cx.putImageData(img,0,0);
+    var back=cx.getImageData(0,0,cfg.w,cfg.h);          /* everything below is read back from the canvas */
+    var sA=tileStats(back,cfg.rectA), sB=tileStats(back,cfg.rectB);
+    var rA=ring(back,cfg.rectA,cfg.rectB), rB=ring(back,cfg.rectB,cfg.rectA);
+    $("rows").innerHTML = tileRow("A",sA,rA)+tileRow("B",sB,rB)+readProbe();
+    var same = sA.uniform&&sB.uniform&&sA.rgb.join()===sB.rgb.join();
+    $("verdict").className="verdict "+(same?"ok":"bad");
+    var vt = same
+      ? "Identical: all "+sA.n.toLocaleString("en-US")+" pixels of A and all "+sB.n.toLocaleString("en-US")+" pixels of B read rgb("+sA.rgb.join(", ")+")."
+      : "Not identical: A reads "+(sA.uniform?"rgb("+sA.rgb.join(", ")+")":"a range")+" and B reads "+(sB.uniform?"rgb("+sB.rgb.join(", ")+")":"a range")+".";
+    if ($("verdict").textContent!==vt) $("verdict").textContent=vt;
+    var rel=Math.abs(rA-rB)/Math.max(rA,rB);
+    var sentence;
+    if (rel<0.005) sentence="Their surroundings now average the same relative luminance ("+L3(rA)+"), so the ratios match.";
+    else if (rA>rB) sentence="A's surroundings average "+L3(rA)+" and B's "+L3(rB)+": A's are "+fmt(rA/rB)+" times as bright, so A is compared with something "+(rA/rB>1.5?"much ":"")+"brighter than B is.";
+    else sentence="A's surroundings average "+L3(rA)+" and B's "+L3(rB)+": B's are "+fmt(rB/rA)+" times as bright, so B is compared with something "+(rB/rA>1.5?"much ":"")+"brighter than A is.";
+    $("surr").textContent=sentence;
+    var left = baseGap>0 ? Math.round(Math.abs(rA-rB)/baseGap*100) : 0;
+    $("out").textContent=Math.round(t*100)+"%";
+    $("left").textContent = left>0 ? "Difference between the two surroundings left: "+left+"% of the starting difference." : "The surroundings no longer differ.";
+    sl.setAttribute("aria-valuetext", Math.round(t*100)+" percent of the context removed");
+    cfg.onRender && cfg.onRender({sA:sA,sB:sB,back:back,t:t});
+  }
+  function setProbe(x,y){
+    x=Math.max(0,Math.min(cfg.w-1,Math.round(x))); y=Math.max(0,Math.min(cfg.h-1,Math.round(y)));
+    probePos={x:x,y:y};
+    probe.style.display="block"; probe.style.left=((x+0.5)/cfg.w*100)+"%"; probe.style.top=((y+0.5)/cfg.h*100)+"%";
+    render();
+  }
+  function fromEvent(e){ var r=cv.getBoundingClientRect(); setProbe((e.clientX-r.left)/r.width*cfg.w-0.5,(e.clientY-r.top)/r.height*cfg.h-0.5); }
+  view.addEventListener("pointerdown",function(e){ fromEvent(e); });
+  view.addEventListener("pointermove",function(e){ if (e.pointerType==="mouse"||e.buttons) fromEvent(e); });
+  view.addEventListener("keydown",function(e){
+    var s=e.shiftKey?10:1, dx=0,dy=0;
+    if (e.key==="ArrowLeft")dx=-s; else if (e.key==="ArrowRight")dx=s; else if (e.key==="ArrowUp")dy=-s; else if (e.key==="ArrowDown")dy=s; else return;
+    e.preventDefault();
+    var c=probePos||{x:Math.round(cfg.rectA.x+cfg.rectA.w/2),y:Math.round(cfg.rectA.y+cfg.rectA.h/2)};
+    setProbe(c.x+dx,c.y+dy);
+  });
+  function center(r){ return {x:r.x+Math.floor(r.w/2),y:r.y+Math.floor(r.h/2)}; }
+  $("goA").addEventListener("click",function(){ var c=center(cfg.rectA); setProbe(c.x,c.y); });
+  $("goB").addEventListener("click",function(){ var c=center(cfg.rectB); setProbe(c.x,c.y); });
+  sl.addEventListener("input",function(){ t=sl.valueAsNumber/100; render(); });
+  sl.value="0"; t=0;
+  render();
+  var r0={a:tileStats(base,cfg.rectA).lum/ring(base,cfg.rectA,cfg.rectB), b:tileStats(base,cfg.rectB).lum/ring(base,cfg.rectB,cfg.rectA)};
+  return {base:base, ratio0:r0, fadeCheck:function(ts){ return ts.map(function(tt){ var im=fade(base,cfg.rectA,cfg.rectB,cfg.field,tt); var a=tileStats(im,cfg.rectA), b=tileStats(im,cfg.rectB); return a.uniform&&b.uniform&&a.rgb.join()===b.rgb.join(); }); }, stats:function(){ return {a:tileStats(base,cfg.rectA),b:tileStats(base,cfg.rectB)}; }};
+}
+
+var d1=makeDemo({p:"chk",host:"demo-chk",w:W1,h:H1,pad:Math.round(T/2),field:FIELD1,rectA:rectA1,rectB:rectB1,base:buildBase1,
+  aria:"Checkerboard with a green cylinder and its soft shadow. Square A is a dark square in the light; square B is a light square in the shadow."});
+var d2=makeDemo({p:"sc",host:"demo-sc",w:W2,h:H2,pad:40,field:FIELD2,rectA:rectA2,rectB:rectB2,base:buildBase2,
+  aria:"A dark background on the left and a light one on the right, each with one square of the same grey. A is on the dark side; B is on the light side."});
+
+/* ---------- formula, worked example, source ---------- */
+var f=document.getElementById("formula");
+f.innerHTML = "<b>L = "+COEF.r+" R + "+COEF.g+" G + "+COEF.b+" B</b>, where each channel c (0 to 1) becomes linear light by "+
+  "<b>c / "+K.div+"</b> if c &le; "+K.thresh+", otherwise <b>((c + "+K.off+") / "+K.scale+")<sup>"+K.gamma+"</sup></b>.";
+var sa=d1.stats().a, ch=sa.rgb[0];
+document.getElementById("worked").textContent="Worked example, square A in the first picture: "+ch+" / 255 = "+(ch/255).toFixed(4)+"; linear light = (("+(ch/255).toFixed(4)+" + "+K.off+") / "+K.scale+")^"+K.gamma+" = "+LUT[ch].toFixed(4)+"; all three channels are equal, so L = ("+COEF.r+" + "+COEF.g+" + "+COEF.b+") x "+LUT[ch].toFixed(4)+" = "+relLum(sa.rgb[0],sa.rgb[1],sa.rgb[2]).toFixed(4)+".";
+var diff=0; for (var i2=0;i2<256;i2++){ if (lin(i2,K.wcagThresh)!==lin(i2,K.thresh)) diff++; }
+document.getElementById("srcnote").textContent="Source: the \"relative luminance\" definition in the W3C Web Content Accessibility Guidelines 2.1 (w3.org/TR/WCAG21/), which uses the sRGB transfer curve of IEC 61966-2-1. I wrote the constants from memory and did not re-open either text. The WCAG text gives the switch point as "+K.wcagThresh+", the sRGB standard as "+K.thresh+"; "+(diff===0?"none":diff)+" of the 256 possible 8-bit values come out differently with the two, so the choice cannot change any reading here.";
+
+[["r-a1",d1.ratio0.a],["r-b1",d1.ratio0.b],["r-a2",d2.ratio0.a],["r-b2",d2.ratio0.b]].forEach(function(p){ document.getElementById(p[0]).textContent=fmt(p[1]); });
+
+/* ---------- self checks ---------- */
+var st1=d1.stats(), st2=d2.stats();
+var ts=[0,0.1,0.25,0.5,0.75,1];
+var fc1=d1.fadeCheck(ts), fc2=d2.fadeCheck(ts);
+function nOK(a){ return a.filter(Boolean).length; }
+var roundtrip=true; for (var i3=0;i3<256;i3++){ if (enc(LUT[i3])!==i3) roundtrip=false; }
+var items=[
+ [st1.a.uniform&&st1.b.uniform&&st1.a.rgb.join()===st1.b.rgb.join(), "Picture 1: all "+st1.a.n.toLocaleString("en-US")+" pixels of A and all "+st1.b.n.toLocaleString("en-US")+" pixels of B are rgb("+st1.a.rgb.join(", ")+") (A is a dark square; B is a light square of rgb("+LIGHT+", "+LIGHT+", "+LIGHT+") dimmed by the shadow to the same value)."],
+ [st2.a.uniform&&st2.b.uniform&&st2.a.rgb.join()===st2.b.rgb.join(), "Picture 2: all "+st2.a.n.toLocaleString("en-US")+" pixels of each square are rgb("+st2.a.rgb.join(", ")+"); the backgrounds are rgb("+BGD+", "+BGD+", "+BGD+") and rgb("+BGL+", "+BGL+", "+BGL+")."],
+ [nOK(fc1)===ts.length&&nOK(fc2)===ts.length, "The squares stay identical at "+nOK(fc1)+" of "+ts.length+" tested slider settings in picture 1 and "+nOK(fc2)+" of "+ts.length+" in picture 2 ("+ts.map(function(x){return Math.round(x*100)+"%";}).join(", ")+")."],
+ [roundtrip, "Linear light converted back to 8-bit sRGB gives the same value for each of the 256 values, so the shadow arithmetic does not drift."],
+ [enc(linLight*kShadow)===G, "The shadow multiplies linear light by "+kShadow.toFixed(3)+" (= linear "+G+" / linear "+LIGHT+"), which is the value that brings a light square of "+LIGHT+" down to "+G+"."]
+];
+document.getElementById("checks").innerHTML=items.map(function(it){ return '<li class="'+(it[0]?"ok":"bad")+'"><b>'+(it[0]?"Pass":"FAIL")+'.</b> <span style="color:var(--ink)">'+it[1]+'</span></li>'; }).join("");
+})();
+</script>
+</body>
+</html>

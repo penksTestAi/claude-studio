@@ -32,6 +32,7 @@ went wrong with each.
 | **Tissot Circles** | Drag circles of the same true size around the world and watch Mercator swell them toward the poles, while Equal Earth keeps their area; a Greenland-versus-Africa comparison, with self-checks | [`projections/`](projections/) |
 | **Element Timeline** | Drag a year slider to watch the periodic table fill in as each element was discovered, with two open datasets compared year by year (91 agree, 27 disagree, each shown) and uncertain dates marked: 100 dated, 12 ancient, 6 with no usable year | [`elements/`](elements/) |
 | **Why Easter moves** | A calendar history and a calculator: pick any year to see its Gregorian and Julian (Orthodox) Easter, read the Nicaea rule and the 1582 reform, and watch the page count Easter dates over a 5,700,000-year cycle, with a Gauss versus Meeus self-check and a comparison with 170 published rows (all agree). | [`easter/`](easter/) |
+| **Lightness Illusions** | A perception piece: Adelson's checker shadow and simultaneous contrast, drawn on canvas. Point an eyedropper at the page's own pixels to show the 'different' squares are identical, then slide the surrounding context away. | [`illusions/`](illusions/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

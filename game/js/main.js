@@ -13,7 +13,8 @@ import { surfaceAt, landmarkFingerprint } from "./world.js";
 import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.js";
 import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
-import { cleanSave, adoptSave, SOFT_STACK } from "./inventory.js";
+import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventory.js";
+import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText } from "./craft.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -37,10 +38,11 @@ function loadSave() {
 }
 // The pack and the giving lists are saved with the character; every change to them is saved at once, not on a timer.
 function save() {
-  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y, inv, out: ledger.out, exp: ledger.exp, got: ledger.got })); } catch { /* storage blocked: the pack then lasts only while the page stays open */ }
+  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y, inv, cr, lamp: held.lamp, out: ledger.out, exp: ledger.exp, got: ledger.got })); } catch { /* storage blocked: the pack then lasts only while the page stays open */ }
 }
 const saved = loadSave();
-const { inv, out, exp, got } = cleanSave(saved);
+const { inv, out, exp, got, cr, lamp } = cleanSave(saved);
+const held = { lamp }; // the lantern in hand: 0 plain, 1 amber, 2 jade, 3 azure
 const ledger = { out, exp, got };
 const start = (Number.isFinite(saved.x) && Number.isFinite(saved.y) && !isBlocked(world, saved.x, saved.y)) ? { x: saved.x, y: saved.y } : spawnFor(world, saved.seed);
 const me = { id: "me", seed: saved.seed, name: nameFor(saved.seed), colour: colourFor(saved.seed), x: start.x, y: start.y, d: 0, moving: false, say: null, emote: null };
@@ -77,7 +79,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, give = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, give = null, craft = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -95,8 +97,9 @@ async function enter() {
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
   gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
   give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save });
+  craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   me.say = null; me.emote = null;
-  paintPack(); paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
+  paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
   document.body.classList.add("playing");
@@ -112,7 +115,7 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null;
   setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -143,6 +146,7 @@ function frame(t) {
   talk.tick(t);
   gather.tick();
   give.tick();
+  craft.tick();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
@@ -174,7 +178,41 @@ function gatherEvent(type, kind) {
 }
 function paintPack() {
   const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${KIND_NAMES[KINDS[e.i]].toLowerCase()} for ${nameFor(e.s)}`).join(", ")}` : "";
-  $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).join(", ") + away;
+  const made = CRAFTED.filter(k => cr[k] > 0).map(k => `${CRAFT_NAMES[k]} ${cr[k]}`);
+  $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).concat(made).join(", ") + away;
+}
+// ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
+const craftBox = $("craftbtns"), holdBox = $("holdbtns");
+CRAFTED.forEach((name) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ghost"; b.dataset.recipe = name; b.textContent = `Make ${CRAFT_NAMES[name].toLowerCase()}`;
+  b.title = `Uses ${recipeText(name)}`;
+  b.addEventListener("click", () => { if (craft) craft.craft(name); canvas.focus({ preventScroll: true }); });
+  craftBox.append(b);
+});
+LAMPS.forEach((l, n) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ghost"; b.dataset.lamp = n; b.textContent = n ? `Hold ${l.name.toLowerCase()}` : "Hold plain lantern";
+  b.addEventListener("click", () => { if (craft) craft.hold(n); canvas.focus({ preventScroll: true }); });
+  holdBox.append(b);
+});
+$("recipes").textContent = CRAFTED.map(k => `${CRAFT_NAMES[k]}: ${recipeText(k)}`).join(". ") + ".";
+function craftEvent(type, what, r, holding) {
+  let say = "";
+  if (type === "made") say = `You made one ${ITEM_NAMES[what]}. The ingredients are used up.` + (LAMP_KEYS.includes(what) && holding ? " You hold it now." : "");
+  else if (type === "refused") say = r && r.why === "full" ? `Your ${ITEM_NAMES[what]} stack is full, so nothing was made and nothing was used.` : `Not enough ${r && r.item ? ITEM_NAMES[r.item] : "ingredients"} for a ${ITEM_NAMES[what]}. Nothing was used.`;
+  else if (type === "hold") say = what ? `You now hold the ${LAMPS[what].name.toLowerCase()}. Everyone near you sees its light.` : "You hold the plain lantern again.";
+  if (type === "made" || type === "hold") { paintPack(); lastGiveKey = ""; }
+  if (say) $("craftinfo").textContent = say;
+  paintCraft();
+}
+function paintCraft() {
+  $("craft").hidden = !craft;
+  for (const b of craftBox.children) b.disabled = !craft;
+  for (const b of holdBox.children) {
+    const n = Number(b.dataset.lamp), owned = n === 0 || cr[LAMP_KEYS[n - 1]] > 0;
+    b.disabled = !craft || !owned; b.setAttribute("aria-pressed", String(held.lamp === n)); b.hidden = !owned;
+  }
 }
 // ---- giving: offer to the nearest player, they accept, then the item moves ----
 const giveBox = $("givebtns");
@@ -223,7 +261,7 @@ paintPack();
 // Another tab of this browser may have saved a newer pack (same character): adopt it instead of overwriting it.
 addEventListener("storage", (e) => {
   if (netKind === "local" || e.key !== STORE || !e.newValue) return;
-  try { adoptSave(inv, ledger, JSON.parse(e.newValue)); paintPack(); lastGiveKey = ""; } catch { /* ignore */ }
+  try { adoptSave(inv, ledger, JSON.parse(e.newValue), { cr, held }); me.lamp = held.lamp; paintPack(); paintCraft(); lastGiveKey = ""; } catch { /* ignore */ }
 });
 function doGather() { if (playing) gather.pick(); }
 $("gather").addEventListener("click", () => { doGather(); canvas.focus({ preventScroll: true }); });
@@ -337,6 +375,10 @@ window.__longWatch = {
   nodes: () => nodes.map(n => ({ id: n.id, kind: n.kind, x: n.x, y: n.y, respawn: n.respawn })),
   nodeFingerprint: () => nodeFingerprint(nodes),
   give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
+  craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
+  makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },
+  holdLamp: (n) => !!craft && craft.hold(n),
+  lights: () => renderer.lights(),
   offer: (i) => !!give && give.offer(i),
   accept: () => !!give && give.accept(),
   decline: () => !!give && give.decline(),

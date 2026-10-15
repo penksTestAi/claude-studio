@@ -5,6 +5,7 @@ import { T, LANDMARK_NAMES } from "./world.js";
 import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
+import { lampOf } from "./craft.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -82,7 +83,7 @@ export function createRenderer(canvas, world, opts = {}) {
   const map = paintWorld(world);
   const dark = document.createElement("canvas");
   const dg = dark.getContext("2d");
-  let dpr = 1, cw = 0, ch = 0, lastArrows = [];
+  let dpr = 1, cw = 0, ch = 0, lastArrows = [], lastLights = [];
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -117,13 +118,28 @@ export function createRenderer(canvas, world, opts = {}) {
     const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2 };
     dg.fillStyle = `rgba(${lt.tint[0]},${lt.tint[1]},${lt.tint[2]},${lt.dark.toFixed(3)})`; dg.fillRect(0, 0, W, H);
     dg.globalCompositeOperation = "destination-out";
+    lastLights = [];
     for (const p of all) {
-      const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach;
+      const sx = p.x * tile - camX, sy = p.y * tile - camY, lamp = lampOf(p.lamp);
+      const flick = reduce || !lamp.glow ? 1 : 1 + Math.sin(t / 140 + (p.seed || 0) % 7) * 0.012; // coloured lanterns flicker a very little
+      const tiles = lt.reach * lamp.mult * flick, r = tile * tiles;
+      lastLights.push({ id: p.id === "me" || p === me ? "me" : p.id, tiles: Math.round(tiles * 100) / 100, lamp: p.lamp | 0 });
       const grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
       grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)");
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
     g.drawImage(dark, 0, 0);
+    // The glow of a coloured lantern: a soft pool of its colour on the ground, for everyone who can see it.
+    g.globalCompositeOperation = "lighter";
+    for (const p of all) {
+      const lamp = lampOf(p.lamp);
+      if (!lamp.glow) continue;
+      const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach * lamp.mult * 0.85, [cr, cg, cb] = lamp.glow;
+      const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+      grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.30)`); grad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`); grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = "source-over";
 
     // Landmark names when one is close (words from our own list).
     g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
@@ -169,7 +185,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })) };
+  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })) };
 }
 
 // Gatherables: a pale log, a tuft of reeds, a cluster of berries. A ring marks the one within reach.
@@ -215,7 +231,9 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   // The lantern, held toward the facing direction (set down in front when sitting).
   let lx = sx + Math.cos(p.d) * r * 1.15, ly = sy + bob + dip + Math.sin(p.d) * r * 1.15;
   if (name === "sit") { lx = sx + Math.cos(p.d) * r * 1.5; ly = sy + r0 * 0.75 + Math.sin(p.d) * r * 0.6; }
-  g.fillStyle = p.colour;
+  const glow = lampOf(p.lamp).glow;
+  if (glow) { g.fillStyle = `rgba(${glow[0]},${glow[1]},${glow[2]},0.35)`; g.beginPath(); g.arc(lx, ly, r * 0.75, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = glow ? `rgb(${glow[0]},${glow[1]},${glow[2]})` : p.colour;
   g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();
   if (name === "wave") { // a raised hand swinging side to side
     const hx = sx + r * 1.1 + (reduce ? 0 : Math.sin(t / 80) * r * 0.5), hy = sy - r * 1.35;

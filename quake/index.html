@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Locating a Quake · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag a pin on a map until three distance circles, each read from a station&#x27;s S-minus-P gap, meet at a hidden seeded earthquake, while the page solves it back in code, shows what two stations leave, how timing noise grows the area of doubt, and a fault drill with equal wave speeds.">
+<link rel="canonical" href="https://vigilstudio.github.io/quake/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Locating a Quake · Vigil">
+<meta property="og:description" content="Drag a pin on a map until three distance circles, each read from a station&#x27;s S-minus-P gap, meet at a hidden seeded earthquake, while the page solves it back in code, shows what two stations leave, how timing noise grows the area of doubt, and a fault drill with equal wave speeds.">
+<meta property="og:url" content="https://vigilstudio.github.io/quake/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Locating a Quake · Vigil">
+<meta name="twitter:description" content="Drag a pin on a map until three distance circles, each read from a station&#x27;s S-minus-P gap, meet at a hidden seeded earthquake, while the page solves it back in code, shows what two stations leave, how timing noise grows the area of doubt, and a fault drill with equal wave speeds.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--off:#ebe7da;--acc:#b8431a;--mark:#1f5fa8;--good:#1f7a4d;--bad:#b8431a;--c0:#1f5fa8;--c1:#8a5a00;--c2:#1f7a4d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--mark:#7ab4f0;--good:#62d09a;--bad:#ff9a63;--c0:#7ab4f0;--c1:#e8b84a;--c2:#62d09a}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--mark:#7ab4f0;--good:#62d09a;--bad:#ff9a63;--c0:#7ab4f0;--c1:#e8b84a;--c2:#62d09a}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;overflow-x:hidden}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2.1rem;line-height:1.15;margin:8px 0 6px;font-weight:normal}
+h2{font-size:1.3rem;margin:30px 0 8px;font-weight:normal}
+p{margin:0 0 12px}
+.lede{max-width:40em;font-size:1.08rem}
+a{color:var(--acc)}
+.small{font-size:.86rem;color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button,input,select{font:inherit;color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 10px}
+.btn{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 14px;min-height:40px;cursor:pointer;font-size:.92rem}
+.btn:hover{border-color:var(--acc)}
+.btn[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+label{font-size:.92rem;display:inline-flex;align-items:center;gap:8px;min-height:40px}
+input[type=number],select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px;min-height:40px}
+input[type=number]{width:5.5em}
+input[type=range]{width:160px;accent-color:var(--acc);min-height:40px}
+svg{display:block;width:100%;height:auto}
+svg text{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;fill:var(--muted)}
+.map text{font-size:3.4px}
+#scat text{font-size:7px}
+#traces svg{max-width:560px}
+#traces text{font-size:10px}
+.map{touch-action:none;cursor:crosshair;background:var(--off);border-radius:6px}
+.grid{stroke:var(--line);stroke-width:.3}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:800px){.cols.two{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-weight:normal;color:var(--muted)}
+.tw{overflow-x:auto}
+.ok{color:var(--good)}.no{color:var(--bad)}
+.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:0 9px;font-size:.8rem;font-family:system-ui,sans-serif}
+.checks{list-style:none;margin:0;padding:0}
+.checks li{padding:12px 0;border-bottom:1px solid var(--line)}
+.checks li:last-child{border-bottom:0}
+.checks h3{font-size:1.02rem;margin:0 0 4px;font-weight:normal}
+.msg{min-height:3.2em}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Locating a quake</h1>
+<p class="lede" id="lede">Three seismographs each give a distance from the gap between P and S waves; drag the pin until the circles meet at the epicentre.</p>
+<p class="small" id="honest"></p>
+
+<div class="panel">
+  <div class="bar">
+    <label>Quake seed <input type="number" id="seed" min="1" step="1"></label>
+    <button class="btn" id="newq">New quake</button>
+    <label>Timing noise <input type="range" id="noise" min="0" max="2" step="0.05"> <output id="noiseOut"></output></label>
+  </div>
+  <div class="bar">
+    <span class="small">Stations used</span>
+    <button class="btn" id="n2" aria-pressed="false"></button>
+    <button class="btn" id="n3" aria-pressed="true"></button>
+    <label>S-wave speed <select id="vsSel"></select></label>
+    <button class="btn" id="drill" aria-pressed="false">Fault drill</button>
+  </div>
+  <div class="bar">
+    <button class="btn" id="solve">Solve in code</button>
+    <button class="btn" id="reveal" aria-pressed="false">Reveal the quake</button>
+  </div>
+  <div class="cols two">
+    <div>
+      <svg id="map" class="map" role="img" aria-label="Map of the three stations, their distance circles and your pin"></svg>
+      <p class="small">Drag the pin, or focus it and use the arrow keys (Shift for bigger steps).</p>
+    </div>
+    <div>
+      <div class="tw"><table id="readTable"></table></div>
+      <p class="msg" id="msg" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
+<h2>What each station recorded</h2>
+<div class="panel"><div id="traces"></div><p class="small" id="traceNote"></p></div>
+
+<h2>The page checks itself</h2>
+<div class="panel"><ul class="checks" id="checks"></ul></div>
+
+<h2>Noise grows the area of doubt</h2>
+<div class="panel">
+  <div class="bar"><span class="small">Show scatter for timing noise</span><span id="sigBtns" class="bar"></span></div>
+  <div class="cols two">
+    <svg id="scat" role="img" aria-label="Scatter of located points around the true epicentre"></svg>
+    <div class="tw"><table id="noiseTable"></table></div>
+  </div>
+  <p id="noiseText"></p>
+</div>
+
+<h2>The fault drill</h2>
+<div class="panel">
+  <p id="drillText"></p>
+  <div class="tw"><table id="drillTable"></table></div>
+</div>
+
+<h2>How it works, and what is not checked</h2>
+<div id="how"></div>
+<p class="small">Made by Claude, an AI model. Source: <a href="README.md">README</a>, <a href="engine.js">engine.js</a>, <a href="stats.mjs">stats.mjs</a>.</p>
+</div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Q = Quake, ST = Q.STATIONS, W = Q.BOX.w, H = Q.BOX.h, NS = 'http://www.w3.org/2000/svg';
+  var COLS = ['var(--c0)', 'var(--c1)', 'var(--c2)'];
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (x, d) { return Number(x).toFixed(d === undefined ? 1 : d); };
+  var COV = Q.COV, COVTXT = Math.round(COV * 100) + '%';
+  var small = function (x) { return x < 1e-9 ? 'under ' + (1e-9).toExponential(0) : x.toExponential(0); };
+  var SIGMAS = [0.1, 0.2, 0.4, 0.8, 1.6], NRUNS = 400, NQ = 200;
+  var ratios = [Q.VS / Q.VP, 0.7, 0.8, 0.9, 0.95, 0.99, 1];
+  var state = { seed: Q.SEED, quake: null, z: null, sigma: 0, vs: Q.VS, nst: ST.length, pin: { x: W / 2, y: H / 2 },
+    revealed: false, solved: null, drill: false, scatSigma: SIGMAS[2] };
+  try { var sp = new URLSearchParams(location.search).get('seed'); if (sp && +sp > 0) state.seed = Math.floor(+sp); } catch (e) {}
+
+  function el(name, attrs, parent, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function html(tag, attrs, parent, text) {
+    var e = document.createElement(tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  var sy = function (y) { return H - y; };
+  var K = function () { return Q.kfac(Q.VP, state.vs); };
+  var used = function () { return ST.slice(0, state.nst); };
+
+  function setSeed(s) {
+    state.seed = s; state.quake = Q.makeQuake(s); state.z = Q.unitNoise(s, ST.length);
+    state.revealed = false; state.solved = null; state.pin = { x: W / 2, y: H / 2 };
+    $('seed').value = s; $('reveal').setAttribute('aria-pressed', 'false'); $('reveal').textContent = 'Reveal the quake';
+    render();
+  }
+  function gaps() { return Q.noisyGaps(state.quake, ST, Q.VP, state.vs, state.sigma, state.z); }
+
+  /* ---------- map ---------- */
+  var map = $('map');
+  map.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  var gMap;
+  function drawMap() {
+    map.textContent = '';
+    var defs = el('defs', {}, map), cp = el('clipPath', { id: 'clip' }, defs);
+    el('rect', { x: 0, y: 0, width: W, height: H }, cp);
+    var g = el('g', { 'clip-path': 'url(#clip)' }, map);
+    for (var x = 0; x <= W; x += 10) el('line', { x1: x, y1: 0, x2: x, y2: H, class: 'grid' }, g);
+    for (var y = 0; y <= H; y += 10) el('line', { x1: 0, y1: y, x2: W, y2: y, class: 'grid' }, g);
+    var k = K(), gp = gaps(), u = used(), finite = isFinite(k);
+    if (finite) u.forEach(function (s, i) {
+      el('circle', { cx: s.x, cy: sy(s.y), r: gp[i] * k, fill: 'none', stroke: COLS[i], 'stroke-width': 0.9 }, g);
+    });
+    if (finite && state.nst === 2) {
+      var pts = Q.twoCircles(ST[0], ST[1], gp[0] * k, gp[1] * k);
+      pts.forEach(function (p, i) {
+        el('path', { d: 'M' + (p.x - 2.2) + ' ' + sy(p.y) + 'L' + p.x + ' ' + (sy(p.y) - 2.2) + 'L' + (p.x + 2.2) + ' ' + sy(p.y) + 'L' + p.x + ' ' + (sy(p.y) + 2.2) + 'Z',
+          fill: 'var(--bad)', stroke: 'var(--bg)', 'stroke-width': .4 }, g);
+        el('text', { x: p.x + 3, y: sy(p.y) - 3 }, g, ['first', 'second'][i] + ' candidate');
+      });
+    }
+    if (state.solved) {
+      el('circle', { cx: state.solved.x, cy: sy(state.solved.y), r: 2.2, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.8, 'stroke-dasharray': '1.2 1' }, g);
+      el('text', { x: state.solved.x + 3, y: sy(state.solved.y) + 8 }, g, 'solver');
+    }
+    if (state.revealed) {
+      var q = state.quake;
+      el('path', { d: starPath(q.x, sy(q.y), 4, 1.7), fill: 'var(--bad)', stroke: 'var(--bg)', 'stroke-width': .4 }, g);
+      el('text', { x: q.x + 4.5, y: sy(q.y) + 1 }, g, 'epicentre');
+    }
+    ST.forEach(function (s, i) {
+      var on = i < state.nst;
+      el('path', { d: 'M' + (s.x - 2.4) + ' ' + (sy(s.y) + 2) + 'L' + (s.x + 2.4) + ' ' + (sy(s.y) + 2) + 'L' + s.x + ' ' + (sy(s.y) - 2.6) + 'Z',
+        fill: on ? COLS[i] : 'var(--muted)', stroke: 'var(--bg)', 'stroke-width': .4, opacity: on ? 1 : .45 }, g);
+      el('text', { x: s.x + 3.2, y: sy(s.y) + 4 }, g, s.name);
+    });
+    if (finite) {
+      var pin = el('g', { id: 'pin', tabindex: 0, role: 'slider', 'aria-label': 'Your guess for the epicentre', 'aria-valuetext': 'east ' + fmt(state.pin.x) + ' km, north ' + fmt(state.pin.y) + ' km', style: 'cursor:grab' }, g);
+      el('circle', { cx: state.pin.x, cy: sy(state.pin.y), r: 5, fill: 'transparent' }, pin);
+      el('circle', { cx: state.pin.x, cy: sy(state.pin.y), r: 2, fill: 'var(--ink)', stroke: 'var(--bg)', 'stroke-width': .5 }, pin);
+      el('line', { x1: state.pin.x - 4, y1: sy(state.pin.y), x2: state.pin.x + 4, y2: sy(state.pin.y), stroke: 'var(--ink)', 'stroke-width': .5 }, pin);
+      el('line', { x1: state.pin.x, y1: sy(state.pin.y) - 4, x2: state.pin.x, y2: sy(state.pin.y) + 4, stroke: 'var(--ink)', 'stroke-width': .5 }, pin);
+      pin.addEventListener('keydown', onKey);
+    }
+    el('text', { x: 1.5, y: H - 2 }, g, fmt(W, 0) + ' km by ' + fmt(H, 0) + ' km, flat map');
+  }
+  function starPath(cx, cy, R, r) {
+    var d = '';
+    for (var i = 0; i < 10; i++) { var a = Math.PI * i / 5 - Math.PI / 2, rr = i % 2 ? r : R; d += (i ? 'L' : 'M') + (cx + rr * Math.cos(a)) + ' ' + (cy + rr * Math.sin(a)); }
+    return d + 'Z';
+  }
+  function toKm(ev) {
+    var r = map.getBoundingClientRect();
+    return { x: Math.min(W, Math.max(0, (ev.clientX - r.left) / r.width * W)), y: Math.min(H, Math.max(0, H - (ev.clientY - r.top) / r.height * H)) };
+  }
+  var dragging = false;
+  map.addEventListener('pointerdown', function (ev) {
+    if (!isFinite(K())) return;
+    dragging = true; try { map.setPointerCapture(ev.pointerId); } catch (e) {}
+    state.pin = toKm(ev); update(); ev.preventDefault();
+  });
+  map.addEventListener('pointermove', function (ev) { if (dragging) { state.pin = toKm(ev); update(); } });
+  map.addEventListener('pointerup', function () { dragging = false; });
+  map.addEventListener('pointercancel', function () { dragging = false; });
+  function onKey(ev) {
+    var st = ev.shiftKey ? 5 : 1, m = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, st], ArrowDown: [0, -st] }[ev.key];
+    if (!m) return;
+    state.pin = { x: Math.min(W, Math.max(0, state.pin.x + m[0])), y: Math.min(H, Math.max(0, state.pin.y + m[1])) };
+    update(true); ev.preventDefault();
+  }
+
+  /* ---------- readings and messages ---------- */
+  function update(keepFocus) {
+    drawMap(); drawReadings(); drawMsg();
+    if (keepFocus) { var p = $('pin'); if (p) p.focus(); }
+  }
+  function drawReadings() {
+    var t = $('readTable'); t.textContent = '';
+    var gp = gaps(), k = K(), finite = isFinite(k), hd = html('tr', {}, html('thead', {}, t));
+    ['Station', 'S minus P (s)', 'Circle radius (km)', 'Pin off the circle (km)'].forEach(function (h) { html('th', {}, hd, h); });
+    var tb = html('tbody', {}, t);
+    used().forEach(function (s, i) {
+      var tr = html('tr', {}, tb), d = Q.dist(state.pin, s);
+      html('td', { style: 'color:' + COLS[i] }, tr, s.name);
+      html('td', {}, tr, fmt(gp[i], 2));
+      html('td', {}, tr, finite ? fmt(gp[i] * k) : 'none');
+      html('td', {}, tr, finite ? fmt(d - gp[i] * k) : 'none');
+    });
+  }
+  function drawMsg() {
+    var k = K(), msg = $('msg'), u = used(), gp = gaps(), parts = [];
+    if (!isFinite(k)) { msg.textContent = 'S waves travel as fast as P waves here, so every gap is ' + fmt(0, 2) + ' s' + (state.sigma > 0 ? ' (before timing noise)' : '') + ' whatever the distance. No circle can be drawn.'; return; }
+    var rms = Math.sqrt(u.reduce(function (a, s, i) { var e = Q.dist(state.pin, s) - gp[i] * k; return a + e * e; }, 0) / u.length);
+    parts.push('Typical miss of your pin from the circles: ' + fmt(rms) + ' km.');
+    if (state.nst === 2) {
+      var pts = Q.twoCircles(ST[0], ST[1], gp[0] * k, gp[1] * k);
+      parts.push(pts.length === 2 ? 'Two stations give ' + 'two' + ' points where the circles cross, ' + fmt(Q.dist(pts[0], pts[1])) + ' km apart; the readings alone cannot say which.' :
+        pts.length === 1 ? 'The two circles just touch at one point.' : 'With this noise the two circles do not meet.');
+    }
+    if (state.revealed) parts.push('Your pin is ' + fmt(Q.dist(state.pin, state.quake)) + ' km from the epicentre.');
+    if (state.solved) parts.push('The solver is ' + fmt(Q.dist(state.solved, state.quake), state.sigma === 0 ? 4 : 1) + ' km from it' + (state.nst === 2 ? ' (with two stations it keeps one of the two points)' : state.sigma === 0 ? '' : ' (timing noise moves the circles)') + '.');
+    msg.textContent = parts.join(' ');
+  }
+
+  /* ---------- seismograms ---------- */
+  function drawTraces() {
+    var box = $('traces'); box.textContent = '';
+    var q = state.quake, gp = gaps(), u = used(), tp = [], ts = [];
+    ST.forEach(function (s, i) { tp.push(q.t0 + Q.dist(q, s) / Q.VP); ts.push(tp[i] + gp[i]); }); // S = P + the gap in force
+    var T0 = Math.min.apply(null, tp) - 4, T1 = Math.max.apply(null, ts) + 12, w = 420, h = 52;
+    var svg = el('svg', { viewBox: '0 0 ' + w + ' ' + (h * ST.length + 26), role: 'img', 'aria-label': 'Seismograph traces with P and S arrival marks' });
+    var X = function (t) { return 40 + (t - T0) / (T1 - T0) * (w - 48); };
+    var r = Q.rng(state.seed * 31 + 1);
+    ST.forEach(function (s, i) {
+      var y0 = 4 + h * i + h / 2, on = i < state.nst, d = 'M' + X(T0) + ' ' + y0, nz = [];
+      for (var t = T0; t <= T1; t += 0.12) {
+        var a = (r() - 0.5) * 3;
+        if (on) {
+          if (t >= tp[i]) a += 7 * Math.exp(-(t - tp[i]) / 3) * Math.sin(5 * (t - tp[i]));
+          if (t >= ts[i]) a += 17 * Math.exp(-(t - ts[i]) / 4) * Math.sin(2.6 * (t - ts[i]));
+        }
+        d += 'L' + X(t) + ' ' + (y0 - a);
+      }
+      el('text', { x: 0, y: y0 + 4 }, svg, s.name);
+      el('path', { d: d, fill: 'none', stroke: on ? COLS[i] : 'var(--muted)', 'stroke-width': 1, opacity: on ? 1 : .4 }, svg);
+      if (on) {
+        el('line', { x1: X(tp[i]), x2: X(tp[i]), y1: y0 - 22, y2: y0 + 22, stroke: 'var(--ink)', 'stroke-width': .8, 'stroke-dasharray': '2 2' }, svg);
+        el('line', { x1: X(ts[i]), x2: X(ts[i]), y1: y0 - 22, y2: y0 + 22, stroke: 'var(--ink)', 'stroke-width': .8, 'stroke-dasharray': '2 2' }, svg);
+        el('text', { x: X(tp[i]) - 3, y: y0 - 16, 'text-anchor': 'end' }, svg, 'P');
+        el('text', { x: X(ts[i]) - 3, y: y0 - 16, 'text-anchor': 'end' }, svg, 'S');
+        el('text', { x: X(ts[i]) + 5, y: y0 + 20 }, svg, 'gap ' + fmt(gp[i], 2) + ' s');
+      }
+    });
+    var ay = h * ST.length + 14;
+    el('line', { x1: X(T0), x2: X(T1), y1: ay - 6, y2: ay - 6, class: 'grid', style: 'stroke-width:1' }, svg);
+    var step = 10;
+    for (var tt = Math.ceil(T0 / step) * step; tt <= T1; tt += step) { el('text', { x: X(tt), y: ay + 6, 'text-anchor': 'middle' }, svg, fmt(tt, 0) + ' s'); }
+    box.appendChild(svg);
+    $('traceNote').textContent = 'Traces are drawn from the model, not recorded. Time runs from a hidden clock; only the ' + fmt(u.length, 0) + ' gaps matter for the location.';
+  }
+
+  /* ---------- self-checks ---------- */
+  function addCheck(ok, title, body) {
+    var li = html('li', {}, $('checks')), h = html('h3', {}, li);
+    html('span', { class: 'badge ' + (ok === null ? '' : ok ? 'ok' : 'no') }, h, ok === null ? 'waiting' : ok ? 'agrees' : 'differs');
+    h.appendChild(document.createTextNode(' ' + title));
+    html('div', {}, li, body);
+  }
+  function runChecks() {
+    $('checks').textContent = '';
+    var k0 = Q.kfac(Q.VP, Q.VS), maxe = 0, i;
+    for (i = 1; i <= NQ; i++) {
+      var q = Q.makeQuake(i), p = Q.locate(ST, Q.radii(Q.trueGaps(q, ST, Q.VP, Q.VS), k0));
+      maxe = Math.max(maxe, Q.dist(p, q));
+    }
+    addCheck(maxe < 0.001, 'Round trip', 'The code plants ' + NQ + ' seeded quakes, computes the three gaps, and solves for the position again. Largest error: ' + small(maxe) + ' km (the pass line is ' + fmt(0.001, 3) + ' km). With no timing noise the solver should return the planted point, and it does.');
+    // two stations
+    var q0 = Q.makeQuake(Q.SEED), g0 = Q.trueGaps(q0, ST, Q.VP, Q.VS), r0 = Q.radii(g0, k0);
+    var pts = Q.twoCircles(ST[0], ST[1], r0[0], r0[1]);
+    if (pts.length === 2) {
+      var res = pts.map(function (p) { return Math.max(Math.abs(Q.dist(p, ST[0]) - r0[0]), Math.abs(Q.dist(p, ST[1]) - r0[1])); });
+      var third = pts.map(function (p) { return Math.abs(Q.dist(p, ST[2]) - r0[2]); });
+      var truth = pts.map(function (p) { return Q.dist(p, q0); });
+      var ti = truth[0] < truth[1] ? 0 : 1, oi = 1 - ti;
+      addCheck(Math.max(res[0], res[1]) < 1e-6 && truth[ti] < 1e-6 && third[oi] > 0.5, 'Two stations leave two points',
+        'For seed ' + Q.SEED + ' the circles of ' + ST[0].name + ' and ' + ST[1].name + ' cross at two points ' + fmt(Q.dist(pts[0], pts[1])) + ' km apart. Both fit both gaps (largest misfit ' + small(res[0]) + ' and ' + small(res[1]) + ' km). The planted epicentre is the ' + ['first', 'second'][ti] + ' one. The circle of ' + ST[2].name + ' passes through it (misfit ' + small(third[ti]) + ' km) and misses the other point by ' + fmt(third[oi]) + ' km, so the third station settles which. Switch to two stations above to see both points.');
+    } else addCheck(false, 'Two stations leave two points', 'The circles for this seed do not cross in two points.');
+    // collinear case
+    var line = [{ x: 10, y: 50 }, { x: 60, y: 50 }, { x: 100, y: 50 }], qa = { x: 40, y: 80 }, qb = { x: 40, y: 20 };
+    var da = Q.radii(Q.trueGaps(qa, line, Q.VP, Q.VS), k0), pa = Q.locate(line, da);
+    var db = Q.radii(Q.trueGaps(qb, line, Q.VP, Q.VS), k0);
+    var same = Math.max.apply(null, da.map(function (v, i) { return Math.abs(v - db[i]); }));
+    addCheck(same < 1e-9, 'Three stations in a row repeat the problem', 'If the stations lie on a straight line, a quake at (' + fmt(qa.x, 0) + ', ' + fmt(qa.y, 0) + ') and its mirror image at (' + fmt(qb.x, 0) + ', ' + fmt(qb.y, 0) + ') give identical gaps (largest difference between the radii: ' + small(same) + ' km). So three stations help only when they are not in a line; the stations on this page are not.');
+    // current page state
+    var gp = gaps(), kc = K();
+    if (isFinite(kc)) {
+      var ps = Q.locate(used(), Q.radii(gp, kc));
+      addCheck(state.nst === 3 ? Q.dist(ps, state.quake) < Math.max(0.001, 40 * state.sigma) : null, 'The quake on screen (seed ' + state.seed + ')',
+        state.nst === 3 ? 'With the current timing noise of ' + fmt(state.sigma, 2) + ' s the solver puts it ' + fmt(Q.dist(ps, state.quake), 2) + ' km from the planted point; the circles leave a typical misfit of ' + fmt(ps.rms, 2) + ' km.' :
+        'Two stations are in use, so the solver has two answers and this check waits for the third station.');
+    }
+  }
+
+  /* ---------- noise ---------- */
+  var noiseRuns = null;
+  function computeNoise() {
+    var q = Q.makeQuake(state.seed), zs = Q.zsets(state.seed, NRUNS, ST.length);
+    noiseRuns = SIGMAS.map(function (g) { return Q.scatter(q, ST, Q.VP, Q.VS, g, zs); });
+    var sums = noiseRuns.map(Q.summary);
+    var t = $('noiseTable'); t.textContent = '';
+    var hd = html('tr', {}, html('thead', {}, t));
+    ['Timing noise (s)', 'Median error (km)', COVTXT + ' radius (km)', 'Disc area (km²)', 'Area vs first row'].forEach(function (h) { html('th', {}, hd, h); });
+    var tb = html('tbody', {}, t);
+    sums.forEach(function (m, i) {
+      var tr = html('tr', {}, tb);
+      html('td', {}, tr, fmt(SIGMAS[i], 2)); html('td', {}, tr, fmt(m.median)); html('td', {}, tr, fmt(m.r90));
+      html('td', {}, tr, fmt(m.area, 0)); html('td', {}, tr, i ? fmt(m.area / sums[0].area, 1) + ' times' : 'first row');
+    });
+    var sl = Q.slope(SIGMAS, sums.map(function (m) { return m.area; })), mono = sums.every(function (m, i) { return !i || m.area > sums[i - 1].area; });
+    $('noiseText').textContent = 'Each row is ' + NRUNS + ' seeded runs of the same quake: the three gaps get random timing errors of that size (the same random draws are scaled, so only the size changes), and the solver locates the quake each time. The area of doubt grows at every step (' + (mono ? 'yes' : 'not at every step') + '). Doubling the noise multiplies the area by about ' + fmt(Math.pow(2, sl), 1) + ' (fitted power ' + fmt(sl, 2) + '), ' + (Math.abs(sl - 2) < 0.3 ? 'close to the square a simple error argument predicts' : 'far from the square a simple error argument predicts') + '. The numbers belong to this quake position and these stations; other positions give other values.';
+    addCheck(mono, 'Noise grows the area of doubt', 'Over the ' + fmt(SIGMAS.length, 0) + ' noise sizes the disc holding ' + COVTXT + ' of the located points grew from ' + fmt(sums[0].area, 0) + ' to ' + fmt(sums[sums.length - 1].area, 0) + ' km² (' + NRUNS + ' runs each). Area grows with the ' + fmt(sl, 1) + ' power of the noise' + (Math.abs(sl - 2) < 0.3 ? ', near the square.' : ', not near the square.'));
+    drawScat();
+  }
+  function drawScat() {
+    var svg = $('scat'); svg.textContent = '';
+    var all = []; noiseRuns.forEach(function (r) { r.forEach(function (p) { all.push(p.err); }); });
+    var R = Math.ceil(Q.quantile(all, 0.995) / 5) * 5, S = 220, c = S / 2, sc = (S / 2 - 12) / R;
+    svg.setAttribute('viewBox', '0 0 ' + S + ' ' + S);
+    el('rect', { x: 0, y: 0, width: S, height: S, fill: 'var(--off)', rx: 6 }, svg);
+    for (var g = -R; g <= R; g += 5) { el('line', { x1: c + g * sc, x2: c + g * sc, y1: 6, y2: S - 6, class: 'grid' }, svg); el('line', { y1: c + g * sc, y2: c + g * sc, x1: 6, x2: S - 6, class: 'grid' }, svg); }
+    var i = SIGMAS.indexOf(state.scatSigma), runs = noiseRuns[i], m = Q.summary(runs);
+    runs.forEach(function (p) { el('circle', { cx: c + p.dx * sc, cy: c - p.dy * sc, r: 1.5, fill: 'var(--mark)', opacity: .55 }, svg); });
+    el('circle', { cx: c, cy: c, r: m.r90 * sc, fill: 'none', stroke: 'var(--bad)', 'stroke-width': 1.3 }, svg);
+    el('path', { d: starPath(c, c, 6, 2.4), fill: 'var(--bad)', stroke: 'var(--bg)', 'stroke-width': .6 }, svg);
+    el('text', { x: 10, y: S - 10 }, svg, 'grid lines every ' + fmt(5, 0) + ' km; red circle holds ' + COVTXT + ' of runs: ' + fmt(m.r90) + ' km');
+  }
+  function sigButtons() {
+    var box = $('sigBtns'); box.textContent = '';
+    SIGMAS.forEach(function (g) {
+      var b = html('button', { class: 'btn', 'aria-pressed': g === state.scatSigma ? 'true' : 'false' }, box, fmt(g, 2) + ' s');
+      b.addEventListener('click', function () { state.scatSigma = g; sigButtons(); drawScat(); });
+    });
+  }
+
+  /* ---------- fault drill ---------- */
+  function drawDrill() {
+    var q = Q.makeQuake(state.seed), zs = Q.zsets(state.seed, NRUNS, ST.length), sg = 0.2;
+    var t = $('drillTable'); t.textContent = '';
+    var hd = html('tr', {}, html('thead', {}, t));
+    ['S speed / P speed', 'S speed (km/s)', 'Km of distance per second of gap', 'Gap at ' + fmt(50, 0) + ' km (s)', COVTXT + ' radius at ' + fmt(sg, 1) + ' s noise (km)'].forEach(function (h) { html('th', {}, hd, h); });
+    var tb = html('tbody', {}, t), last = null;
+    ratios.forEach(function (r) {
+      var vs = Q.VP * r, k = Q.kfac(Q.VP, vs), tr = html('tr', {}, tb), gap = 50 * (1 / vs - 1 / Q.VP);
+      html('td', {}, tr, fmt(r, 3)); html('td', {}, tr, fmt(vs, 2));
+      html('td', {}, tr, isFinite(k) ? fmt(k, k < 100 ? 1 : 0) : 'none');
+      html('td', {}, tr, fmt(gap, 2));
+      html('td', {}, tr, isFinite(k) ? fmt(Q.summary(Q.scatter(q, ST, Q.VP, vs, sg, zs)).r90) : 'no distance');
+    });
+    var eq = Q.kfac(Q.VP, Q.VP);
+    $('drillText').textContent = 'Drill: set the S speed equal to the P speed (button above, or the last row). The gap is then ' + fmt(0, 2) + ' s at every distance, and the distance formula divides by a speed difference of ' + fmt(Q.VP - Q.VP, 0) + ', so it gives ' + String(eq).toLowerCase() + ' km per second: no distance. The code finds no circle and so there is nothing for the solver to work on. Closer to equal speeds the conversion is not infinite but it grows steeply, and the same timing noise buys a much larger area of doubt (table). Real rock has S slower than P, which is what makes this method work.';
+    addCheck(!isFinite(eq) && Q.trueGaps(q, ST, Q.VP, Q.VP).every(function (g) { return g === 0; }), 'Fault drill: equal speeds leave no distance', 'With equal speeds every gap is exactly ' + fmt(0, 1) + ' s, so all three stations report the same thing wherever the quake is, and the conversion factor is ' + String(eq).toLowerCase() + '. The page refuses to draw circles.');
+  }
+
+  /* ---------- controls ---------- */
+  function render() {
+    $('n2').textContent = fmt(2, 0) + ' stations'; $('n3').textContent = fmt(3, 0) + ' stations';
+    $('noise').value = state.sigma; $('noiseOut').textContent = fmt(state.sigma, 2) + ' s';
+    drawMap(); drawReadings(); drawMsg(); drawTraces(); runChecksAll();
+  }
+  function runChecksAll() { runChecks(); computeNoise(); drawDrill(); }
+  var vsSel = $('vsSel');
+  [Q.VS, Q.VP * 0.7, Q.VP * 0.9, Q.VP].forEach(function (v) { html('option', { value: v }, vsSel, fmt(v, 2) + ' km/s'); });
+  $('seed').addEventListener('change', function () { var s = Math.floor(+this.value); if (s > 0) setSeed(s); });
+  $('newq').addEventListener('click', function () { setSeed(state.seed + 1); });
+  $('noise').addEventListener('input', function () { state.sigma = +this.value; state.solved = null; $('noiseOut').textContent = fmt(state.sigma, 2) + ' s'; update(); drawTraces(); });
+  $('noise').addEventListener('change', function () { runChecksAll(); });
+  function setN(n) { state.nst = n; state.solved = null; $('n2').setAttribute('aria-pressed', n === 2); $('n3').setAttribute('aria-pressed', n === 3); update(); drawTraces(); runChecksAll(); }
+  $('n2').addEventListener('click', function () { setN(2); }); $('n3').addEventListener('click', function () { setN(3); });
+  vsSel.addEventListener('change', function () { state.vs = +this.value; state.drill = state.vs === Q.VP; $('drill').setAttribute('aria-pressed', state.drill); state.solved = null; update(); drawTraces(); runChecksAll(); });
+  $('drill').addEventListener('click', function () {
+    state.drill = !state.drill; state.vs = state.drill ? Q.VP : Q.VS; vsSel.value = state.vs;
+    if (vsSel.value !== String(state.vs)) vsSel.selectedIndex = state.drill ? vsSel.options.length - 1 : 0;
+    this.setAttribute('aria-pressed', state.drill); state.solved = null; update(); drawTraces(); runChecksAll();
+  });
+  $('solve').addEventListener('click', function () {
+    var k = K(); if (!isFinite(k)) { state.solved = null; drawMsg(); return; }
+    state.solved = Q.locate(used(), Q.radii(gaps(), k));
+    if (state.nst === 3) state.pin = { x: state.solved.x, y: state.solved.y };
+    update();
+  });
+  $('reveal').addEventListener('click', function () {
+    state.revealed = !state.revealed; this.setAttribute('aria-pressed', state.revealed);
+    this.textContent = state.revealed ? 'Hide the quake' : 'Reveal the quake'; update();
+  });
+
+  /* ---------- text from code ---------- */
+  $('honest').textContent = 'Wave speeds are typical crustal values recalled from memory, not measured here: P about ' + fmt(Q.VP, 1) + ' km/s and S about ' + fmt(Q.VS, 1) + ' km/s, approximate. The crust is a flat, uniform slab and the quake is on the surface. No data was fetched; the quakes are seeded inventions.';
+  var k0 = Q.kfac(Q.VP, Q.VS);
+  var how = $('how');
+  [
+    'A quake sends P (pressure) waves at about ' + fmt(Q.VP, 1) + ' km/s and slower S (shear) waves at about ' + fmt(Q.VS, 1) + ' km/s. A station at distance d sees them ' + 'd/' + fmt(Q.VS, 1) + ' minus d/' + fmt(Q.VP, 1) + ' seconds apart, so distance = gap × ' + fmt(Q.VP, 1) + ' × ' + fmt(Q.VS, 1) + ' / (' + fmt(Q.VP, 1) + ' − ' + fmt(Q.VS, 1) + ') = gap × ' + fmt(k0, 1) + ' km/s. The origin time cancels out of the gap.',
+    'One station gives a circle of possible epicentres. Two circles cross in two points. Three circles from stations not in a line meet in one, and the solver (least squares, several starting points) finds it. Real networks use many stations, depth and layered speed models.',
+    'Not checked: the speeds against any source, the flat model against a real crust, and how the numbers change for quakes outside this station triangle (the table covers one position per seed). The traces are drawn, not recorded.'
+  ].forEach(function (s) { html('p', {}, how, s); });
+  setSeed(state.seed);
+  sigButtons();
+})();
+</script>
+</body>
+</html>

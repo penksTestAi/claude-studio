@@ -152,3 +152,37 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
   tabs of one real browser sharing a saved pack. A modified client can still invent items for itself (nothing to win from
   others). Also limited: if storage is blocked or cleared after the hand-over, the record of a gift on its way is lost; a peer can claim another player's public seed, so a gift meant for one player could be taken by someone using the same seed; a receiver with 32 gifts still expected declines new offers; only the newest 1000 received-gift records are kept.
 
+
+### 2026-10-15 · milestone 5 (crafting)
+- **Players can now:** turn what they gathered into a wick and into amber, jade and azure lanterns. A new Craft panel
+  lists the costs (a wick takes 2 reeds and 1 oil berry; the lanterns take wicks plus driftwood, reeds and oil
+  berries, more for the brighter ones). Making something uses up its ingredients and gives you the one new thing; it
+  never makes extra. If you are missing anything, or the stack you would add to is full (999), nothing is made and
+  nothing is used. The lantern you hold decides how far your light reaches (the plain one as before, amber 1.4 times
+  as far, jade 1.8, azure 2.3) and it glows in its own colour. Everyone standing near you sees that wider pool of light
+  on the ground around you, and sees your lantern's colour in your hand, including players who join later. A
+  lantern brighter than the one you hold is picked up as soon as you make it; the Hold buttons switch between the ones you own, and the plain
+  lantern, which stays in your pack. Wicks and lanterns are saved in your own browser with the rest of your pack.
+  They cannot be given to other players yet.
+- **Network:** one new number-only message, the lantern you hold (0 to 3), sent when it changes, to each newcomer and
+  every 5 seconds. Receivers drop anything that is not exactly that, from a known player, at most 4 a second. Crafting
+  itself stays in the player's own pack and sends nothing. Saved data gains the crafted counts and the held lantern,
+  both checked on load (you cannot hold a lantern you do not own).
+- **Tested** (`node game/tests/craft.test.mjs`, new): in node, every recipe takes exactly its ingredients and makes
+  exactly one thing, each ingredient one short refuses without changing anything, a full stack refuses without using
+  or dropping anything (and one below full still works), unknown recipe names including `__proto__` are refused, 400
+  random crafts use exactly the raw items they cost, saved data is cleaned, and the lantern message is validated on a
+  fake mesh (bad numbers, extra fields, strangers, a flood). Then two pages, on the local transport and again on real
+  Trystero/WebRTC through the local Nostr relay: the crafter makes wicks and the three lanterns with the real
+  buttons and the pack is checked after each step (it ends with exactly 1 of each raw item left and one lantern of
+  each colour); the second player sees the crafter hold each lantern, the light drawn around the crafter at 1.4, 1.8
+  and 2.3 times the plain reach, and the ground 5 tiles from the crafter (outside the plain reach) clearly brighter on
+  the second player's screen (brightness 84 plain, 125 jade, 173 azure), back to dim when the plain lantern is held;
+  the lantern and pack survive a reload and the second player sees it again; a late third player sees it at once and
+  a player with 999 wicks is refused without losing anything; when the crafter leaves its light disappears. Local
+  only: forged lantern messages change nothing. Before and after screenshots at 375 and 1100 px were checked by eye.
+  Browser: `chromium_headless_shell-1194` (set `CHROME`). Runs of each file, 5 in a row: craft, presence, world and give 5/5; talk 4/5 and gather 4/5 (each failed once). The gather failure ("a third player joins and sees both others") is not from this change. Cause found, not fixed: one WebRTC link times out (Trystero's 10 s handshake) on one side, which loses the other side's presence 'hi'. It was observed in about 3 of 27 earlier gather runs (2 of 14 on milestone 4 code, 1 of 5, 0 of 8 extra). While building this test, two early failures of its own were test bugs (reading a page's connection id before it had rejoined; counting an old connection that lingers a few seconds after a reload), fixed by waiting for the new connection; craft then passed 6 of 6 and 5 of 5.
+- **Unverified:** crafting and lantern light over the public Nostr relays and across real home and mobile networks (the
+  sandbox's proxy refuses them; only the local relay was used), how the glow looks and feels on a real phone and
+  whether it still reads well in bright daylight screens, screen readers. A modified client can claim a lantern it
+  never made; that only changes how it looks to others.

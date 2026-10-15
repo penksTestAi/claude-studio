@@ -104,6 +104,19 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   the receiver's saved `exp` list; `got` stops repeats. The giver repeats `cf` every 3 s to the same seed until `rc`.
   A gift whose receiver never returns stays in `out` (never given back, so never copied; it is lost only if storage is blocked or cleared). `exp` is never trimmed: a receiver with `MAX_EXP` (32) entries declines new offers and `accept()` refuses; `got` keeps the newest `MAX_GOT` (1000). Known limits: a peer can claim another player's public seed and so receive gifts meant for them; storage cleared after the hand-over loses the record. Saved key
   `vigil.longwatch.v1` now holds `inv`, `out`, `exp`, `got` next to seed and position, all checked on load.
+- **Crafting protocol v1** (`js/craft.js`, saved fields in `js/inventory.js`, milestone 5): nothing about crafting
+  itself crosses the network, because it only converts items in the player's own pack: `tryCraft` checks every
+  ingredient and the result's stack (`CRAFT_STACK` = 999) first and changes the pack only if all of it can be paid, so
+  a refused craft changes nothing and nothing is ever dropped. Recipes (wick: 2 reeds, 1 oil berry; amber: 1 wick, 2
+  driftwood, 1 berry; jade: 2 wicks, 3 driftwood, 3 reeds, 2 berries; azure: 3 wicks, 4 driftwood, 4 reeds, 4
+  berries) live in `RECIPES`, the lantern reach multipliers (1, 1.4, 1.8, 2.3 times the night's reach) and glow
+  colours in `LAMPS`. The only message is `lt {l}` (the lantern held: 0 plain, 1 amber, 2 jade, 3 azure), sent on change,
+  to each newcomer (after its `hi`) and to everyone every 5 s; a receiver needs the sender to have said hello, exactly
+  two fields, `l` a whole number 0 to 3, and allows 4 a second per sender. Every browser draws each player's pool of
+  light with that player's own reach, so everyone nearby sees the same reach. Saved key gains `cr` (wick, amber,
+  jade, azure) and `lamp` (checked on load; you can only hold a lantern you own). Accepted weakness: a modified client
+  can claim a bigger lantern than it owns, which only changes how it looks to others (no gameplay depends on it yet).
+  Crafted items are not part of giving yet, so they cannot be copied that way.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -136,6 +149,7 @@ game/
   js/names.js           generated names and lantern colours from a seed (no free text, ever)
   js/presence.js        presence protocol v1: hi / st / by, validation, smoothing, timeouts
   js/resources.js       seeded gathering spots (driftwood, reeds, oil berries), respawn times (pure)
+  js/craft.js           crafting recipes, lantern table (reach, glow), the `lt` lantern message (rules are pure)
   js/give.js            giving: offer, accept, commit, receipt; faults never copy or lose an item
   js/inventory.js       saved pack and gift lists: checks, caps, adopting another tab's save (pure)
   js/gather.js          shared gathering: arbiter, hidden-until map, snapshots, validation
@@ -156,6 +170,7 @@ game/
   tests/world.test.mjs     node checks plus two local pages: landmarks, minimap, footsteps, light, reduced motion, size cap
   tests/gather.test.mjs    node checks of nodes and the arbiter on a fake mesh, then local and WebRTC pages: picks, contested picks, respawn, late joiner, arbiter leaving, forged messages
   tests/give.test.mjs      node checks of saved-pack rules and giving under faults, then local and WebRTC pages: offer, accept, reload, decline, take-back, leaving, gift on its way, forged messages
+  tests/craft.test.mjs     node checks of recipes (conversion only, refusals, full stacks, saved data, the lantern message), then local and WebRTC pages: a second player sees the lantern's reach (drawn radius and ground brightness), late joiner, reload, full stack, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
@@ -163,7 +178,7 @@ URL flags: `?net=local|nostr|torrent` (default nostr), `?hour=0..7.99` (pin the 
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

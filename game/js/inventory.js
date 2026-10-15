@@ -9,6 +9,11 @@
 // Everything read back from storage (or from another tab) is checked and clamped; nothing is trusted.
 import { KINDS } from "./resources.js";
 
+// Crafted things live next to the pack: cr { wick, amber, jade, azure } whole numbers, and lamp = which lantern the
+// player holds (0 = the plain starting lantern, 1 amber, 2 jade, 3 azure). Holding one does not use it up.
+export const CRAFTED = ["wick", "amber", "jade", "azure"];
+export const LAMP_KEYS = ["amber", "jade", "azure"]; // lamp number n (1..3) is LAMP_KEYS[n - 1]
+
 export const SOFT_STACK = 999;      // a player with this many of one kind declines more of it
 export const HARD_STACK = 100000;   // nothing above this is ever read back from a save
 export const MAX_OUT = 20, MAX_EXP = 32, MAX_GOT = 1000; // oldest receipts are forgotten past this (a replay of a very old gift could then be added again)
@@ -20,6 +25,7 @@ export const isKindIndex = (i) => isInt(i, 0, KINDS.length - 1);
 export const isSeed32 = (s) => isInt(s, 0, 0xffffffff);
 
 export function emptyPack() { return Object.fromEntries(KINDS.map(k => [k, 0])); }
+export function emptyCraft() { return Object.fromEntries(CRAFTED.map(k => [k, 0])); }
 export function emptyLedger() { return { out: [], exp: [], got: [] }; }
 export function packTotal(inv) { return KINDS.reduce((a, k) => a + inv[k], 0); }
 
@@ -44,13 +50,18 @@ export function cleanSave(raw) {
   const src = raw && typeof raw === "object" && raw.inv && typeof raw.inv === "object" ? raw.inv : {};
   for (const k of KINDS) if (isInt(src[k], 0, HARD_STACK)) inv[k] = src[k];
   const o = raw && typeof raw === "object" ? raw : {};
-  return { inv, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []) };
+  const cr = emptyCraft();
+  const csrc = o.cr && typeof o.cr === "object" ? o.cr : {};
+  for (const k of CRAFTED) if (isInt(csrc[k], 0, HARD_STACK)) cr[k] = csrc[k];
+  const lamp = isInt(o.lamp, 1, LAMP_KEYS.length) && cr[LAMP_KEYS[o.lamp - 1]] > 0 ? o.lamp : 0; // you can only hold a lantern you own
+  return { inv, cr, lamp, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []) };
 }
 
 // Copy a saved state into the live objects in place (another tab of this browser saved a newer one).
-export function adoptSave(live, ledger, raw) {
+export function adoptSave(live, ledger, raw, craft = null) {
   const c = cleanSave(raw);
   for (const k of KINDS) live[k] = c.inv[k];
+  if (craft) { for (const k of CRAFTED) craft.cr[k] = c.cr[k]; craft.held.lamp = c.lamp; }
   ledger.out.splice(0, ledger.out.length, ...c.out);
   ledger.exp.splice(0, ledger.exp.length, ...c.exp);
   ledger.got.splice(0, ledger.got.length, ...c.got);

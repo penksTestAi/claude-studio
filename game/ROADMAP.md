@@ -25,21 +25,33 @@ working features.
   anyone leaves or a page closes it waits "on its way" until the two meet again. (2026-10-15, local relay
   only)
 
+- **5. Crafting.** Wicks and amber, jade and azure lanterns made from gathered items (ingredients are used up, never
+  copied; a full stack refuses the craft and drops nothing); the lantern you hold sets how far your light reaches and
+  glows in its colour, and every nearby player sees that reach drawn around you; the held lantern is told to the room
+  as one number and saved in your own browser. Crafted things cannot be given yet. (2026-10-15, local relay only)
+
 ## Later (in rough order, each one run)
-5. **NEXT: Crafting.** Wicks, lanterns of different colours and reach; a brighter lantern lights more of the map for
-   everyone near you.
-6. **Beacons.** Fuel a beacon together (G-counter of contributions); when lit it stays lit for that room's
+6. **NEXT: Beacons.** Fuel a beacon together (G-counter of contributions); when lit it stays lit for that room's
    session and lights a wide area; a lit beacon needs at least two players to light.
-7. **The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
+7. **The living island (a look step).** Animated water and shore foam, swaying reeds and trees, fireflies near
+   lit lanterns, a moon and stars that follow the night hour, softer light edges for coloured lanterns, still honouring
+   reduced motion and 60 fps on a phone. (Visual items should stay about one in three; this is the next one.)
+8. **The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
    shared by everyone in a room, finished together.
-8. **Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
+9. **Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
    standing together. Co-operative, no player against player harm.
-9. **Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
+10. **Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
    else's lantern counts for more than your own).
-10. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned, consider rendering
+11. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned, consider rendering
     (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
+
+## Known problems
+- `gather.test.mjs` over real WebRTC sometimes fails at "a third player joins and sees both others" (about 3 of 27
+  earlier runs: 2 of 14 on milestone 4 code, 1 of 5, 0 of 8 extra); `talk.test.mjs` also failed once. Cause traced, not
+  fixed: one WebRTC link times out (Trystero's 10 s handshake) on one side, which loses the other side's presence 'hi'.
+  Suggested fix: a presence watchdog that rebuilds the transport when a join gets no hi within about 8 s.
 
 ## Ideas parked (no order)
 Fishing at the jetty; a shared music stone players can play together with preset notes; weather; a
-world-changing event when every beacon in a room is lit; trading with fair offers; seasonal islands (a new
+world-changing event when every beacon in a room is lit; trading with fair offers; giving crafted lanterns (needs the same offer, accept and receipt rules, with kinds added to the saved lists); seasonal islands (a new
 seed each month, the old ones kept as "past islands").

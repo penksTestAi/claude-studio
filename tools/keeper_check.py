@@ -7,7 +7,8 @@
 Checks: every later piece in the README table has exactly one item in the Workbench list (id="later"), with a link
 that exists and the .when/.what spans, oldest first; the LATER-VISITS marker is the last thing in the list; every
 index.html starts with doctype, charset and viewport; no old names or addresses outside the journals; the letter
-still says who is behind Vigil. It never rewrites text; wording is left to the keeper.
+still says who is behind Vigil; no page carries a share tag twice; no placeholder text (TODO, TBD, "X and Y",
+lorem ipsum) in the tables, the Workbench list or any piece. It never rewrites text; wording is left to the keeper.
 """
 import re
 import subprocess
@@ -20,6 +21,16 @@ ROW = re.compile(r"^\|\s*\*\*(?P<title>[^*]+)\*\*\s*\|\s*(?P<what>[^|]+?)\s*\|\s
 OLD = re.compile(r"penksTestAi|penkstestai\.github\.io|claude-studio|funStylePage", re.I)
 HEAD = ('<!doctype html>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n')
+DUPLICATE_TAGS = [
+    ("<title>", r"<title[\s>]"),
+    ('meta name="description"', r'<meta\s+name="description"'),
+    ('link rel="canonical"', r'<link\s+rel="canonical"'),
+    ('meta property="og:title"', r'<meta\s+property="og:title"'),
+    ('meta property="og:description"', r'<meta\s+property="og:description"'),
+    ('meta property="og:image"', r'<meta\s+property="og:image"'),
+    ('meta name="twitter:card"', r'<meta\s+name="twitter:card"'),
+]
+PLACEHOLDER = re.compile(r"\bTODO\b|\bTBD\b|\bFIXME\b|\bXXX\b|lorem ipsum|\bX and Y\b|\[placeholder\]|<placeholder>", re.I)
 MONTHS = {m: i for i, m in enumerate("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split())}
 
 
@@ -85,6 +96,24 @@ def main():
                 fixed.append(f"{page.parent.name}/index.html: added doctype, charset and viewport")
             else:
                 problems.append(f"{page.parent.name}/index.html: missing doctype, charset or viewport at the top")
+
+        # site_meta.py writes these once; a second copy (often hand-written by a builder) confuses link previews.
+        for label, pat in DUPLICATE_TAGS:
+            n = len(re.findall(pat, text, re.I))
+            if n > 1:
+                problems.append(f"{page.parent.name}/index.html: {label} appears {n} times")
+
+    # Placeholder text that slipped through: the tables, the Workbench list and every piece's README and page.
+    places = [(ROOT / "README.md", lambda l: l.startswith("|")),
+              (ROOT / "STUDIO.md", lambda l: l.startswith("|")),
+              (ROOT / "workbench" / "index.html", lambda l: "<li>" in l)]
+    places += [(p, lambda l: True) for p in sorted(ROOT.glob("*/README.md")) + sorted(ROOT.glob("*/index.html"))]
+    for path, keep in places:
+        if not path.exists():
+            continue
+        for n, line in enumerate(path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+            if keep(line) and PLACEHOLDER.search(line):
+                problems.append(f"{path.relative_to(ROOT).as_posix()}:{n}: placeholder text: {line.strip()[:100]}")
 
     skip = {"STUDIO.md", "JOURNAL.md", "PLAYBOOK.md"}
     try:  # only what git publishes; ignored local files are private and never pushed

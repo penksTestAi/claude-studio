@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Open pages in headless Chromium at phone and desktop width, light and dark, and report what a person would notice:
-// console errors, uncaught exceptions, sideways scrolling. Saves a screenshot of each view. No model needed.
+// Open pages in headless Chromium at phone, tablet and desktop width, light and dark, and report what a person would notice:
+// console errors, uncaught exceptions, sideways scrolling, ids used twice, tables or figures cut off. Saves a
+// screenshot of each view. No model needed.
 //
 //   node tools/page_check.mjs [--root DIR] [--out DIR] workbench/ tea/
 //
@@ -59,7 +60,8 @@ const executablePath = await findChrome();
 const browser = await pw.chromium.launch(executablePath ? { executablePath } : {});
 let bad = 0;
 for (const page of pages) {
-  for (const [width, height] of [[375, 812], [1100, 900]]) {
+  // Phone, tablet (layout gaps hide at mid widths) and desktop.
+  for (const [width, height] of [[375, 812], [768, 1024], [1100, 900]]) {
     for (const scheme of ["light", "dark"]) {
       const ctx = await browser.newContext({ viewport: { width, height }, colorScheme: scheme });
       const tab = await ctx.newPage();
@@ -75,6 +77,26 @@ for (const page of pages) {
       const info = await tab.evaluate(() => ({
         sw: document.documentElement.scrollWidth, iw: innerWidth, mode: document.compatMode,
         title: document.title, count: document.getElementById("count")?.textContent || "",
+        // An id used twice makes links and labels find the wrong element.
+        dupIds: (() => {
+          const n = {};
+          for (const el of document.querySelectorAll("[id]")) n[el.id] = (n[el.id] || 0) + 1;
+          return Object.keys(n).filter(k => n[k] > 1);
+        })(),
+        // Wide tables, code and figures that are cut off: wider than their box with no scrolling ancestor,
+        // or running past the right edge of the window.
+        clipped: [...document.querySelectorAll("table, pre, figure, svg, canvas, img")].filter(el => {
+          const r = el.getBoundingClientRect();
+          if (!r.width || getComputedStyle(el).visibility === "hidden") return false;
+          let scrolls = false;
+          for (let a = el; a && a !== document.body; a = a.parentElement) {
+            const ox = getComputedStyle(a).overflowX;
+            if (ox === "auto" || ox === "scroll") { scrolls = true; break; }
+          }
+          if (scrolls) return false;
+          const hiddenInside = el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX === "hidden";
+          return hiddenInside || r.right > innerWidth + 1 || r.left < -1;
+        }).slice(0, 5).map(el => el.tagName.toLowerCase() + (el.id ? "#" + el.id : el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "")),
       })).catch(() => ({}));
       const name = page.replace(/[^\w]+/g, "_").replace(/^_|_$/g, "") || "root";
       const shot = path.join(out, `${name}-${width}-${scheme}.png`);
@@ -82,6 +104,8 @@ for (const page of pages) {
       const issues = [...errors];
       if (info.sw > info.iw + 1) issues.push(`sideways scroll: page is ${info.sw}px wide in a ${info.iw}px window`);
       if (info.mode && info.mode !== "CSS1Compat") issues.push("quirks mode: missing <!doctype html>");
+      if (info.dupIds?.length) issues.push(`id used more than once: ${info.dupIds.join(", ")}`);
+      if (info.clipped?.length) issues.push(`cut off at this width (no scroll box): ${info.clipped.join(", ")}`);
       if (issues.length) bad++;
       console.log(`${issues.length ? "PROBLEM" : "ok     "} ${page} ${width}px ${scheme}${info.count ? ` | count: ${info.count}` : ""} | ${path.basename(shot)}`);
       for (const i of issues) console.log(`        - ${i}`);

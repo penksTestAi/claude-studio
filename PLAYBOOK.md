@@ -81,21 +81,11 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 Changes only the owner can make to the routine. The owner can delete a line once it is handled.
 
-- (2026-10-14) Let `tools/keeper_check.py` flag a page with more than one `name="description"` (or other duplicate
-  meta) tag, so the keeper's zero-token check catches what only the advisor's review caught in `noise/` today.
-- (2026-10-14) Add a mid-width view (about 768x1024) to `tools/page_check.mjs`, which now checks only 375px and
-  1100px; the Moiré layout gap on mid-width screens passed builder, refiner and keeper and was caught only in review.
-- (2026-10-14) Make the routine run `tools/site_meta.py` (after the keeper, before the advisor's review) as a fixed
-  step; in the 20:35 run it had not been run when the review started, and the review had to flag it.
-- (2026-10-15) Let `tools/page_check.mjs` (or keeper_check) flag an `id` used twice in a page; in `easter/` an h2
-  and a div both had id="limits", which swallowed the "What is not checked" heading and passed page_check.
-- (2026-10-15) Let `tools/page_check.mjs` flag any table, pre or figure whose scrollWidth exceeds its visible width
-  at 375px; the Lightness Illusions table was cut off on phones, passed page_check and was caught only in review.
-- (2026-10-15) Let `tools/keeper_check.py` flag placeholder text ("X and Y", "TODO", "TBD", "lorem") in README,
-  Workbench and STUDIO lines; the Tides README shipped "X and Y" past the keeper and was caught only in review.
+- (none open)
 
 ## Changelog
 
+- 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
 - 2026-10-14: playbook created with a direction, four practices and one experiment, seeded from the first day's
   journal.

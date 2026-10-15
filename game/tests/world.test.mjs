@@ -141,8 +141,15 @@ console.log("\n# two pages, local transport, Lantern 5");
   const aSelf = (await get(a)).self, bPeer = (await get(b)).peers[0];
   await sleep(300);
   const want = colourFor(bPeer.seed ?? (await get(a)).peers[0].seed);
-  const rgb = await px(a, "#minimap", Math.round((await get(a)).peers[0].x), Math.round((await get(a)).peers[0].y)) .catch(() => null);
   const hex = (c) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+  // The dot is drawn at B's eased position, which can lag the reported one by a tile or two, so look for the colour in a 9 x 9 window.
+  const pe = (await get(a)).peers[0];
+  const rgb = await a.evaluate(([x, y, want]) => {
+    const d = document.querySelector("#minimap").getContext("2d").getImageData(Math.round(x) - 4, Math.round(y) - 4, 9, 9).data;
+    let best = null, bd = 1e9;
+    for (let i = 0; i < d.length; i += 4) { const e = Math.abs(d[i] - want[0]) + Math.abs(d[i + 1] - want[1]) + Math.abs(d[i + 2] - want[2]); if (e < bd) { bd = e; best = [d[i], d[i + 1], d[i + 2]]; } }
+    return best;
+  }, [pe.x, pe.y, hex(want)]);
   ok(rgb && hex(want).every((v, i) => Math.abs(v - rgb[i]) < 40), `B's dot on A's minimap is B's lantern colour ${want} (read ${rgb && rgb.slice(0, 3)})`);
   await a.keyboard.press("m");
   ok(!(await get(a)).hud.mapOn && !(await a.isVisible("#minimap")) && await a.getAttribute("#maptoggle", "aria-pressed") === "false", "M hides the minimap");

@@ -19,6 +19,10 @@ and the files. That is the point: fresh eyes. You never commit or push.
    the rest for digits; every number left in static text (not a year or citation) is typed by hand and must move
    into code (Illusions shipped "(0.40)" and "(1.5)" typed past builder and refiner). And besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
    `id="..."` used twice in the page (page_check does not; a duplicate swallowed Easter's "What is not checked").
+   Before small things, test the headline claim (title, lede, one-liners): name what the page says causes the main
+   effect, switch that off (or set it to zero) on the page, and measure whether the effect really shrinks; if it
+   barely moves, the claim is wrong. Tides promised "spring and neap" at a mostly once-a-day station where S2 off
+   barely changed the swing; builder and refiner missed it, the review caught it.
 2. **One round of concrete fixes** directly in the files: the most valuable ones first. Keep the maker's idea and
    voice; do not rebuild it. For toys, keep the house style exactly and keep the copy short and dry.
 3. Run the page check again. Then reload fresh and run every on-page self-check, and re-read every count or

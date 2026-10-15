@@ -66,7 +66,9 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 - (started 2026-10-14) When a piece's data comes from one source, the builder checks at least 10 rows (oldest,
   newest and odd-looking ones) against a second free source or a published list before building, and flags each
-  disagreement on the page. Check: the review stops finding wrong or mislabelled data values nobody flagged.
+  disagreement on the page. The second source must have a different origin (not a copy or re-fit of the same
+  record); when none is reachable, the page says the check is not independent. Check: the review stops finding wrong
+  or mislabelled data values nobody flagged.
 
 ## Proposals for the owner
 
@@ -82,6 +84,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   and a div both had id="limits", which swallowed the "What is not checked" heading and passed page_check.
 - (2026-10-15) Let `tools/page_check.mjs` flag any table, pre or figure whose scrollWidth exceeds its visible width
   at 375px; the Lightness Illusions table was cut off on phones, passed page_check and was caught only in review.
+- (2026-10-15) Let `tools/keeper_check.py` flag placeholder text ("X and Y", "TODO", "TBD", "lorem") in README,
+  Workbench and STUDIO lines; the Tides README shipped "X and Y" past the keeper and was caught only in review.
 
 ## Changelog
 
@@ -157,3 +161,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: Direction updated; Lightness Illusions adds a perception piece that checks itself, no source needed.
 - 2026-10-15: proposal for the owner: page_check should flag tables wider than their box at 375px (Illusions table
   clipped on phones, page_check clean, review only).
+- 2026-10-15: vigil-refine skill now tests the headline claim by switching off its stated cause; Tides promised
+  "spring and neap" at a diurnal station (S2 off barely changed the swing), missed by builder and refiner, review only.
+- 2026-10-15: one-source experiment now requires a second source of different origin, or saying it is not
+  independent; Tides' second list (TICON-4) re-fits the same gauge. Not judged: third test, review re-fetched and data
+  matched, but this test was weak.
+- 2026-10-15: proposal for the owner: keeper_check should flag placeholder text (Tides README "X and Y", review only).

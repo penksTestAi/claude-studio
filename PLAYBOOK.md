@@ -33,8 +33,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
-  Genetic Code), a social-choice piece (When Voting Methods Disagree) and an optics piece (Why the Rainbow Sits at
-  42°) now exist, so check the piece table
+  Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
+  42°) and an earth-science piece (Locating a Quake) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -103,6 +103,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   game/tests/talk.test.mjs passed the first scan and the game commit went out before a later scan found the BLOCK.
 - (2026-10-15) `tools/keeper_check.py` should check that every STUDIO.md and README table row has the same number of
   cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only.
+- (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
+  it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
+  20:40 run, after keeper, toy refiner and fixer in earlier runs).
 
 ## Changelog
 
@@ -111,14 +114,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
-- 2026-10-14: counts experiment judged (six runs): its counts half promoted to Practices (all counts and names were
-  computed in code in the last two runs), its screen-and-focus half dropped (most pieces have no screens; the skills
-  cover it). Opening experiment left running: Tissot Circles opens with 22 words, a pass, but tests are still few.
-- 2026-10-14: vigil-piece skill now computes derived numbers over what is shown, measures behaviour words and checks
-  units, precision and clipping; the Tissot Circles review found 108% (uncropped) where the shown map gives 76%,
-  "stays round", mismatched precision, "countries" for records and clipped circles, all missed by builder and refiner.
-- 2026-10-14: proposal for the owner: run site_meta.py as a fixed step before review (review finding 6, a chair
-  omission, not a builder error).
 - 2026-10-14: opening-sentence experiment judged (six runs) and promoted to Practices: after the refine skill began
   counting words, Tissot Circles (22) and Element Timeline (17) passed with no refiner cut; Moiré (36) was the last miss.
 - 2026-10-14: new experiment, check one-source data against a second source; Element Timeline's single GitHub source
@@ -190,3 +185,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   rainbow) and promoted to Practices; no review since found an unflagged wrong data value. Not acted on: the game
   builder took 54 min (cause unknown; watch next run).
 - 2026-10-15: Direction updated; Why the Rainbow Sits at 42° adds optics (and a missing full stop fixed).
+- 2026-10-15: vigil-toy skill now forbids writing the journal; the toy builder appended its own entry (20:40 run,
+  removed by the chair) and, unlike vigil-refine and vigil-keeper, its skill did not say so.
+- 2026-10-15: proposal for the owner: CLAUDE.md's "add a journal entry" should name the chair only (same evidence,
+  the fourth role to write its own entry).
+- 2026-10-15: Direction updated; Locating a Quake adds earth science. Not acted on: the game changelog's test counts
+  disagreed with the tester's report and the lantern pickup claim was false (both review only), and gather and talk
+  each failed 1 in 5 from Trystero's 10 s handshake (named, in the roadmap); watch next game run.

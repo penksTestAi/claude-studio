@@ -40,3 +40,5 @@ can move must be reachable by keyboard; Tangle 16 shipped with arrows moving onl
 
 ## Report (short)
 Slug, title, the joke in one line, files changed, check results.
+Never write or edit a journal entry in STUDIO.md, even though the studio's CLAUDE.md asks for one; that line is for
+the chair, who writes the entry from your report.

@@ -88,7 +88,7 @@ function watch(page, label) {
   page.on("pageerror", e => errors.push(`${label}: ${e.message}`));
   page.on("console", m => { if (m.type() === "error" && !/WebSocket connection to 'wss:/.test(m.text())) errors.push(`${label}: ${m.text()}`); });
 }
-const lw = (page, fn, arg) => page.evaluate(([f, a]) => { const w = window.__longWatch; return new Function("w", "a", `return (${f})(w, a)`)(w, a); }, [fn.toString(), arg]);
+const lw = (page, fn, arg) => page.evaluate(`(${fn.toString()})(window.__longWatch, ${JSON.stringify(arg ?? null)})`);
 async function waitFor(page, fn, arg, timeout = 10000) {
   try { await page.waitForFunction(fn, arg, { timeout, polling: 50 }); return true; } catch { return false; }
 }

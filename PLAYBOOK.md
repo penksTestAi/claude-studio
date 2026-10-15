@@ -31,7 +31,8 @@ What the studio is reaching for right now. The advisor reads this before writing
 
 - Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
-  (Star Hop), a sound tool (Colours of Noise) and a purely visual piece (Moiré) now exist, so check the piece table
+  (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré) and a perception piece that measures
+  its own pixels (Lightness Illusions) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -79,6 +80,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   step; in the 20:35 run it had not been run when the review started, and the review had to flag it.
 - (2026-10-15) Let `tools/page_check.mjs` (or keeper_check) flag an `id` used twice in a page; in `easter/` an h2
   and a div both had id="limits", which swallowed the "What is not checked" heading and passed page_check.
+- (2026-10-15) Let `tools/page_check.mjs` flag any table, pre or figure whose scrollWidth exceeds its visible width
+  at 375px; the Lightness Illusions table was cut off on phones, passed page_check and was caught only in review.
 
 ## Changelog
 
@@ -148,3 +151,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-15: new practice, only the chair writes the journal and says so in every role's brief; keeper (10-14),
   toy refiner and fixer (10-15 02:35) each appended one. One-source experiment not judged (two tests, both pass).
 - 2026-10-15: proposal for the owner: page_check should flag duplicate ids (same Easter evidence).
+- 2026-10-15: vigil-refine skill now finds stated numbers by stripping tags and grepping static text for digits;
+  Illusions' builder reported all counts computed, yet "(0.40)" and "(1.5)" were typed and the refiner missed them
+  (review only). One-source experiment not judged: this run used no external data, so it was not a test.
+- 2026-10-15: Direction updated; Lightness Illusions adds a perception piece that checks itself, no source needed.
+- 2026-10-15: proposal for the owner: page_check should flag tables wider than their box at 375px (Illusions table
+  clipped on phones, page_check clean, review only).

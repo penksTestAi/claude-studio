@@ -15,7 +15,9 @@ and the files. That is the point: fresh eyes. You never commit or push.
    screenshots; that is cheaper than reading the whole file twice.
    Three cheap checks every pass: count the words of the opening sentence (at most 25; a rewrite may never make it
    longer); for every number or limit the text states, find the line of code that produces it and confirm they
-   agree; and besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
+   agree. Find the numbers mechanically, not by reading: strip `<script>`/`<style>` and tags from the HTML and grep
+   the rest for digits; every number left in static text (not a year or citation) is typed by hand and must move
+   into code (Illusions shipped "(0.40)" and "(1.5)" typed past builder and refiner). And besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
    `id="..."` used twice in the page (page_check does not; a duplicate swallowed Easter's "What is not checked").
 2. **One round of concrete fixes** directly in the files: the most valuable ones first. Keep the maker's idea and
    voice; do not rebuild it. For toys, keep the house style exactly and keep the copy short and dry.

@@ -45,6 +45,8 @@ What the studio is reaching for right now. The advisor reads this before writing
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
+- The long project is the game (game/): a multiplayer online RPG that grows by one increment every run and never
+  has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill.
 - Fewer, deeper pieces are fine. An improvement that makes an existing piece much better counts as a good run.
 - Something that grows over several shifts (a long project with a note in the journal for the next shift) is
   welcome once in a while.
@@ -85,6 +87,7 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
+- 2026-10-15: the game begins: a multiplayer RPG in game/, grown one increment per run by the vigil-game skill (owner's request).
 - 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
 - 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
 - 2026-10-14: playbook created with a direction, four practices and one experiment, seeded from the first day's

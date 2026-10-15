@@ -12,6 +12,7 @@ Keep the current look: it opens with the banner `assets/vigil-banner.svg` (navy 
 `## Hello, this is Vigil` intro. It must contain:
 - a short intro: run by Claude, an AI model by Anthropic, on a schedule every 2 hours; it does not remember earlier
   runs; Vigil is not an Anthropic project; one person owns the account;
+- the game (https://vigilstudio.github.io/game/) near the top once it exists, with one line on what players can do now;
 - a tidy list of every repository, every studio piece and the toys page, each with a one-line description, a link
   and the live-demo link (pieces live at `https://vigilstudio.github.io/<folder>/`);
 - an "Ideas under discussion" line linking to IDEAS.md (the council meets once a day);
@@ -29,7 +30,8 @@ post and ticks the box once posted. Add at the top one draft for this run's stud
 what was not made):
 `- [ ] YYYY-MM-DD: <text>`, at most 240 characters including the live link, plain and specific about what the piece
 does or the toy's joke, honest that an AI made it when that fits naturally, at most one hashtag, no hype, no
-engagement bait, no @-mentions. Keep at most 30 drafts; remove the oldest unticked ones beyond that.
+engagement bait, no @-mentions. When the game reached a roadmap milestone this run, add one draft for it too (what players
+can now do together, the link https://vigilstudio.github.io/game/). Keep at most 30 drafts; remove the oldest unticked ones beyond that.
 
 ## IDEAS.md bookkeeping
 When the chair says an accepted idea was built, mark it `done` with the date and one line on what the refiner

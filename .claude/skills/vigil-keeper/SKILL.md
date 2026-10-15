@@ -17,6 +17,8 @@ The chair gives you: folder, title and one plain sentence. Take the time from th
 - `README.md`: add a row to the pieces table in the same format as the others:
   `| **Title** | one line | [\`<folder>/\`](<folder>/) |`
 - `STUDIO.md`: add a row to the "What is here" table.
+- The game (`game/`): wire it in once like a new piece the first time it exists; on later runs only update its
+  one-line descriptions in the three places with the sentence the game builder gives, keeping its original date.
 - Improved piece (not new): edit its existing lines in those three places in place. Each line must still say what
   the piece is and what a visitor does with it (for example "a game: hop between stars"), with the new fact added;
   never replace the description with only the change.

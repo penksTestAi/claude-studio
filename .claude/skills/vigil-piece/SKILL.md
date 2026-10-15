@@ -43,6 +43,11 @@ piece completely, check it, and report back. You never commit or push.
   map, the shown subset, the current setting), not over the full data, and give it no more precision than its check
   supports. Measure behaviour words ("stays round", "never overlaps") before writing them, use the data's own unit
   ("records", not "countries", unless they are the same), and check drawn shapes stay inside their visible area.
+- Methods the text names (lede, README, one-liners): for each one said to produce the result ("breaks it with",
+  "uses", "feeds"), name the line where its output reaches the result; if it only appears beside it, write "shown
+  alongside", never "uses". Then force every verdict or message branch to fire once and read its wording.
+  Vigenère's blurbs said Kasiski fed the break (it did not) and its "repeated key" branch never fired in testing;
+  builder and refiner missed both, the review caught them.
 - Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
   README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy

@@ -31,8 +31,8 @@ What the studio is reaching for right now. The advisor reads this before writing
 
 - Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
   pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
-  (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré) and a perception piece that measures
-  its own pixels (Lightness Illusions) now exist, so check the piece table
+  (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
+  its own pixels (Lightness Illusions) and a codebreaking piece (Breaking Vigenère) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -167,3 +167,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   independent; Tides' second list (TICON-4) re-fits the same gauge. Not judged: third test, review re-fetched and data
   matched, but this test was weak.
 - 2026-10-15: proposal for the owner: keeper_check should flag placeholder text (Tides README "X and Y", review only).
+- 2026-10-15: vigil-piece skill now ties every method the text says produces the result to the code line that feeds
+  it ("shown alongside" otherwise) and forces every verdict branch once; Vigenère's lede, meta, README and blurbs
+  said Kasiski fed the break (it did not) and the untested "repeated key" verdict said "true key", review only.
+- 2026-10-15: Direction updated; Breaking Vigenère adds codebreaking. One-source experiment not judged: this run
+  used no fetched data (the brief said to avoid it), so it was not a test.

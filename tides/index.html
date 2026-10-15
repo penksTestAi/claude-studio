@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tides · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Switch tidal waves on and off to build a predicted week of tide at a real station (Friday Harbor, Washington), and watch spring-neap and the Moon&#x27;s north-south rhythm appear; the page checks its predictions against NOAA&#x27;s published highs and lows (12 of 12 agree, from a public copy) and its constants against a second list (six of 34 flagged)">
+<link rel="canonical" href="https://vigilstudio.github.io/tides/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Tides · Vigil">
+<meta property="og:description" content="Switch tidal waves on and off to build a predicted week of tide at a real station (Friday Harbor, Washington), and watch spring-neap and the Moon&#x27;s north-south rhythm appear; the page checks its predictions against NOAA&#x27;s published highs and lows (12 of 12 agree, from a public copy) and its constants against a second list (six of 34 flagged)">
+<meta property="og:url" content="https://vigilstudio.github.io/tides/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tides · Vigil">
+<meta name="twitter:description" content="Switch tidal waves on and off to build a predicted week of tide at a real station (Friday Harbor, Washington), and watch spring-neap and the Moon&#x27;s north-south rhythm appear; the page checks its predictions against NOAA&#x27;s published highs and lows (12 of 12 agree, from a public copy) and its constants against a second list (six of 34 flagged)">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--off:#ebe7da;--acc:#b8431a;--sel:#b8431a;--ghost:#7d7869;--mark:#1f5fa8;--good:#1f7a4d;--bad:#b8431a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--sel:#ff9a63;--ghost:#9a9688;--mark:#7ab4f0;--good:#62d09a;--bad:#ff9a63}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e6dd;--muted:#a8a498;--line:#43474f;--off:#252932;--acc:#ff9a63;--sel:#ff9a63;--ghost:#9a9688;--mark:#7ab4f0;--good:#62d09a;--bad:#ff9a63}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;overflow-x:hidden}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2.1rem;line-height:1.15;margin:8px 0 6px;font-weight:normal}
+h2{font-size:1.3rem;margin:30px 0 8px;font-weight:normal}
+h3{font-size:1.05rem;margin:18px 0 6px;font-weight:normal}
+p{margin:0 0 12px}
+.lede{max-width:40em;font-size:1.08rem}
+a{color:var(--acc)}
+.small{font-size:.86rem;color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button,input,select{font:inherit;color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.btn{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 14px;min-height:40px;cursor:pointer;font-size:.92rem}
+.btn:hover{border-color:var(--acc)}
+.btn[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.seg{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg .btn{border:0;border-radius:0;border-right:1px solid var(--line)}
+.seg .btn:last-child{border-right:0}
+.seg .btn[aria-pressed=true]{background:var(--ink);color:var(--bg);box-shadow:none}
+input[type=date]{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px;min-height:40px}
+.chk{display:inline-flex;align-items:center;gap:8px;min-height:40px;cursor:pointer;font-size:.92rem}
+.chk input{width:22px;height:22px;accent-color:var(--acc);margin:0}
+.chartbox{position:relative;width:100%}
+svg.chart{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair}
+svg text{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;fill:var(--muted)}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .zero{stroke:var(--muted);stroke-width:1.5}
+svg .msl{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4}
+svg .ghostline{fill:none;stroke:var(--ghost);stroke-width:1.5;stroke-dasharray:5 4}
+svg .selline{fill:none;stroke:var(--sel);stroke-width:2.5;stroke-linejoin:round}
+svg .xdot{fill:var(--sel);stroke:var(--panel);stroke-width:2}
+svg .official{fill:var(--panel);stroke:var(--mark);stroke-width:2.5}
+svg .cursor{stroke:var(--ink);stroke-width:1}
+svg .bar-ghost{fill:none;stroke:var(--ghost);stroke-width:1.5;stroke-dasharray:4 3}
+svg .bar-sel{fill:var(--sel)}
+svg .tx-ink{fill:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--muted);margin:6px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{width:26px;height:12px}
+.readout{margin:8px 0 0}
+.rows{display:grid;gap:10px;margin:0}
+.row{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel)}
+.row.off{background:var(--off)}
+.row label{display:flex;align-items:center;gap:10px;cursor:pointer;min-height:44px}
+.row input{width:24px;height:24px;accent-color:var(--acc);margin:0;flex:none}
+.row .nm{font-weight:bold;font-size:1.05rem}
+.row .tt{color:var(--muted);font-size:.9rem}
+.row .meta{font-size:.84rem;color:var(--muted);margin:0 0 4px 34px}
+.row .why{margin:0 0 0 34px;font-size:.95rem}
+@media (min-width:760px){.rows{grid-template-columns:1fr 1fr}}
+.table{border-collapse:collapse;width:100%;font-size:.84rem;table-layout:auto}
+.table th,.table td{text-align:left;padding:4px 5px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.table th{font-weight:normal;color:var(--muted)}
+.table td.n,.table th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.table tr.flag td{background:var(--off)}
+.ok{color:var(--good);font-weight:bold}.bad{color:var(--bad);font-weight:bold}
+ul.plain{padding-left:1.1rem;margin:0 0 12px}
+ul.plain li{margin:0 0 6px}
+details.panel summary{cursor:pointer}
+.src dt{font-weight:bold;margin-top:8px}
+.src dd{margin:0 0 4px;font-size:.92rem}
+noscript{display:block;padding:12px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+@media (max-width:480px){body{font-size:16px}.table{font-size:.78rem}.table th,.table td{padding:3px 3px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Tides</h1>
+<p class="lede" id="lede">Toggle tidal waves to build a predicted week of tide at <span id="stname">a real station</span>, and watch spring-neap and the Moon's north-south rhythm appear.</p>
+<p class="small" id="checksum"></p>
+
+<section class="panel" aria-labelledby="h-week">
+  <h2 id="h-week" style="margin-top:0">A week of tide, built from waves</h2>
+  <div class="bar" role="group" aria-label="Window and units">
+    <button class="btn" id="prev" type="button"></button>
+    <input type="date" id="date" aria-label="First day of the window">
+    <button class="btn" id="next" type="button"></button>
+    <span class="seg" id="spanseg" role="group" aria-label="Days shown"></span>
+    <span class="seg" id="unitseg" role="group" aria-label="Height unit"></span>
+    <span class="seg" id="tzseg" role="group" aria-label="Clock"></span>
+  </div>
+  <div class="chartbox" id="chartbox"><svg class="chart" id="chart" role="img" tabindex="0" aria-describedby="cursorout"></svg></div>
+  <div class="legend" id="legend"></div>
+  <p class="readout small" id="cursorout" aria-live="polite"></p>
+  <p class="readout" id="summary" aria-live="polite"></p>
+  <h3 id="h-range">Daily range</h3>
+  <div class="chartbox"><svg class="chart" id="rangechart" role="img" aria-describedby="summary" style="cursor:default"></svg></div>
+  <p class="small" id="moonline"></p>
+  <details>
+    <summary>Highs and lows of this selection, as text</summary>
+    <ul class="plain" id="textlist"></ul>
+  </details>
+</section>
+
+<section class="panel" aria-labelledby="h-sw">
+  <h2 id="h-sw" style="margin-top:0">Switches</h2>
+  <p class="small" id="swintro"></p>
+  <div class="bar" id="presets" role="group" aria-label="Presets"></div>
+  <label class="chk"><input type="checkbox" id="nodalbox"> <span id="nodallabel"></span></label>
+  <p class="small" id="nodalnote"></p>
+  <div class="rows" id="rows"></div>
+</section>
+
+<h2 id="h-chk1">Check one: against NOAA's own predictions</h2>
+<p id="c1sum"></p>
+<p class="small" id="c1tol"></p>
+<table class="table" id="c1table" aria-labelledby="h-chk1"></table>
+<p class="small" id="c1note"></p>
+
+<h2 id="h-chk2">Check two: against a second list of constants</h2>
+<p id="c2sum"></p>
+<p class="small" id="c2rule"></p>
+<table class="table" id="c2table" aria-labelledby="h-chk2"></table>
+<p class="small" id="c2only"></p>
+
+<h2>Check three: the speeds</h2>
+<p id="c3sum"></p>
+
+<h2>How it is computed</h2>
+<ul class="plain" id="how"></ul>
+
+<h2>Where the numbers come from</h2>
+<dl class="src" id="src"></dl>
+<h3>Could not be reached while building this page</h3>
+<ul class="plain" id="blocked"></ul>
+<h3>Not verified</h3>
+<ul class="plain" id="unver"></ul>
+
+<p class="small">Made by Claude, an AI model by Anthropic, for Vigil. A study of tide prediction, not for navigation or safety decisions: use the official tables for those.</p>
+</div>
+<noscript>This page needs JavaScript to draw the tide.</noscript>
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script>
+"use strict";
+(function () {
+var D = window.TIDES_DATA, E = window.TideEngine, ST = D.station, DAYMS = E.DAY, FT = 0.3048;
+var TOL_MIN = 10, TOL_CM = 5;                       // check one: minutes, centimetres
+var GAP_M = 0.01, REL = 0.2, PH_DEG = 10, FLOOR_M = 0.005;   // check two
+var PRESET_TWICE = "Twice-a-day waves only";
+var SWING_MIN = 0.15;                               // relative spread of daily range that counts as a spring-neap swing
+var OFFSET = ST.msl - ST.mllw;                      // metres from mean sea level up to chart datum MLLW
+var $ = function (id) { return document.getElementById(id); };
+function el(tag, attrs, html) { var e = document.createElement(tag); if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
+function list(a) { return a.length === 0 ? "none" : a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+/* ---------- time zones ---------- */
+var fmtCache = {};
+function parts(ms, tz) {
+  var f = fmtCache[tz] || (fmtCache[tz] = new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23", weekday: "short", timeZoneName: "short" }));
+  var o = {}; f.formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; });
+  return { y: +o.year, m: +o.month, d: +o.day, hh: +o.hour, mm: +o.minute, ss: +o.second, wd: o.weekday, abbr: o.timeZoneName };
+}
+function offsetMs(ms, tz) { var p = parts(ms, tz); return Date.UTC(p.y, p.m - 1, p.d, p.hh, p.mm, p.ss) - Math.floor(ms / 1000) * 1000; }
+function midnight(y, m, d, tz) {                    // Unix ms of local 00:00 on a calendar date
+  var g = Date.UTC(y, m - 1, d), t = g - offsetMs(g, tz); return g - offsetMs(t, tz);
+}
+var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function two(n) { return (n < 10 ? "0" : "") + n; }
+function dayLabel(ms, tz) { var p = parts(ms, tz); return p.wd + " " + p.d + " " + MON[p.m - 1]; }
+function clock(ms, tz) { var p = parts(ms + 30000, tz); return two(p.hh) + ":" + two(p.mm); }
+function stamp(ms, tz) { return dayLabel(ms, tz) + " " + clock(ms, tz) + " " + parts(ms, tz).abbr; }
+function isoDate(p) { return p.y + "-" + two(p.m) + "-" + two(p.d); }
+
+/* ---------- state ---------- */
+var amps = D.noaa.slice().sort(function (a, b) { return b.a - a.a; });
+var byName = {}; D.noaa.forEach(function (c) { byName[c.n] = c; });
+var species = function (n) { return D.defs[n].doodson[0]; };
+var state = { on: {}, nodal: true, unit: "m", clock: "local", span: 7, start: null, cursor: null };
+var SPANS = [7, 15];
+function tzName() { return state.clock === "utc" ? "UTC" : ST.tz; }
+
+/* ---------- notes: why each switch matters (numbers are computed, not typed) ---------- */
+function speed(n) { return D.defs[n].speed; }
+function beat(a, b) { return 360 / Math.abs(speed(a) - speed(b)) / 24; }
+function per(n) { return 360 / speed(n); }
+function d1(x) { return x.toFixed(1); }
+function cmp(a, b) { var r = byName[a].a / byName[b].a; return r > 1.1 ? "bigger than" : r < 0.9 ? "smaller than" : "about as big as"; }
+var NOTES = {
+  M2: { t: "the Moon's main pull, twice a day", w: function () { return "The Moon raises a bulge of water on the side of the Earth facing it and on the far side, so most places get two highs a day. M2 repeats every " + d1(per("M2")) + " hours and is the largest of the twice-a-day waves. On its own it gives a steady rhythm with no spring or neap at all: every day looks like the last."; } },
+  S2: { t: "the Sun's pull, twice a day", w: function () { return "The Sun does the same job as the Moon, only weaker. Its day is a little shorter than the Moon's, so S2 gains on M2 and the two line up every " + d1(beat("M2", "S2")) + " days: the highs add up (spring tides, near new and full Moon). In between they pull against each other (neap tides, near the quarter Moons). Switch S2 off and the swing in the twice-a-day tide disappears."; } },
+  N2: { t: "the Moon's elliptical orbit", w: function () { return "The Moon's orbit is an oval, so its pull is stronger when it is closer. N2 makes M2 swell and shrink over a cycle of " + d1(beat("M2", "N2")) + " days (the Moon's closest-approach month), and it shifts the timing of the highs a little."; } },
+  K2: { t: "the tilt of the Moon's and Sun's paths, twice a day", w: function () { return "K2 runs almost in step with S2 and parts from it only every " + d1(beat("K2", "S2")) + " days, so over a week it mostly adjusts how big S2 is and lengthens or shortens the spring-neap effect slightly."; } },
+  K1: { t: "the tilt of the Moon and Sun, once a day", w: function () { return "When the Moon and Sun stand north or south of the equator, the two daily tides are lopsided and a once-a-day wave appears (period " + d1(per("K1")) + " hours). Here K1 is " + cmp("K1", "M2") + " M2, which is why the two highs of a day differ so much on this coast."; } },
+  O1: { t: "the Moon's tilt, once a day", w: function () { return "O1 and K1 drift apart and together every " + d1(beat("K1", "O1")) + " days, giving a second rhythm on top of spring-neap: days when the Moon is far from the equator have very unequal highs and lows, days when it is over the equator have more even ones."; } },
+  P1: { t: "the Sun's tilt, once a day", w: function () { return "P1 runs almost in step with K1 and parts from it only every " + d1(beat("K1", "P1")) + " days, so within a week it simply adds to K1; over the year it shifts the balance between the two highs of a day."; } },
+  Q1: { t: "the Moon's elliptical orbit, once a day", w: function () { return "The same closer-and-farther effect as N2, for the once-a-day tide. Q1 beats against O1 every " + d1(beat("O1", "Q1")) + " days."; } },
+  M4: { t: "shallow water, a quarter-day wave", w: function () { return "In shallow, narrow water the crest of a wave travels faster than its trough, so the rise and fall become lopsided. M4 turns at exactly twice M2's rate (period " + d1(per("M4")) + " hours) and bends the shape of every tide."; } },
+  SA: { t: "the yearly cycle", w: function () { return "Sea level here swings with the seasons (warming water expands, weather and river flow repeat each year). Its period is about a year, so over this window it only lifts or lowers the whole curve a little."; } }
+};
+var SWITCH_NAMES = Object.keys(NOTES).filter(function (n) { return byName[n]; }).sort(function (a, b) { return byName[b].a - byName[a].a; });
+var REST = amps.filter(function (c) { return SWITCH_NAMES.indexOf(c.n) < 0 && c.a > 0; }).map(function (c) { return c.n; });
+var ZERO = amps.filter(function (c) { return c.a === 0; }).map(function (c) { return c.n; });
+var KEYS = SWITCH_NAMES.concat(REST.length ? ["rest"] : []);
+KEYS.forEach(function (k) { state.on[k] = true; });
+
+function selectedList() {
+  return D.noaa.filter(function (c) {
+    if (c.a === 0) return false;
+    return SWITCH_NAMES.indexOf(c.n) >= 0 ? state.on[c.n] : state.on.rest;
+  });
+}
+var predCache = {};
+function predictorFor(list, nodal) { return E.predictor(list, { defs: D.defs, nodal: nodal, offset: OFFSET }); }
+function allPredictor() { var k = "all" + state.nodal; return predCache[k] || (predCache[k] = predictorFor(D.noaa, state.nodal)); }
+function selPredictor() {
+  var key = KEYS.filter(function (k) { return state.on[k]; }).join(",") + "|" + state.nodal;
+  if (predCache.selKey !== key) { predCache.selKey = key; predCache.sel = predictorFor(selectedList(), state.nodal); }
+  return predCache.sel;
+}
+function conv(m) { return state.unit === "ft" ? m / FT : m; }
+function fmtH(m, signed) { var v = conv(m), s = state.unit === "ft" ? v.toFixed(1) : v.toFixed(2); if (signed && v > 0) s = "+" + s; return s + " " + state.unit; }
+
+/* ---------- window ---------- */
+function windowDays() {
+  var tz = tzName(), p = state.start.split("-").map(Number), days = [];
+  for (var i = 0; i <= state.span; i++) { var q = new Date(Date.UTC(p[0], p[1] - 1, p[2] + i)); days.push(midnight(q.getUTCFullYear(), q.getUTCMonth() + 1, q.getUTCDate(), tz)); }
+  return days;
+}
+function shiftStart(n) { var p = state.start.split("-").map(Number), q = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); state.start = isoDate({ y: q.getUTCFullYear(), m: q.getUTCMonth() + 1, d: q.getUTCDate() }); }
+function moonPhases(t0, t1) {                       // times when the mean Moon-Sun elongation passes 0, 90, 180, 270 degrees
+  var names = ["new", "first quarter", "full", "last quarter"], out = [], STEP = 3 * 3600000;
+  function q(t) { var a = E.astro(t); return (((a.s - a.h) % 360) + 360) % 360 / 90; }
+  var prev = q(t0 - STEP), pt = t0 - STEP;
+  for (var t = t0; t <= t1 + STEP; t += STEP) {
+    var cur = q(t), k0 = Math.floor(prev), k1 = Math.floor(cur);
+    if (k1 !== k0) {
+      var k = (k0 + 1) % 4, a0 = prev, a1 = cur < prev ? cur + 4 : cur, target = k0 + 1;
+      if (target > a1) target -= 4; 
+      var f = (target - a0) / (a1 - a0), tc = pt + f * STEP;
+      if (tc >= t0 && tc < t1) out.push({ t: tc, name: names[k], k: k });
+    }
+    prev = cur; pt = t;
+  }
+  return out;
+}
+
+/* ---------- main chart ---------- */
+var NS = "http://www.w3.org/2000/svg";
+function S(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+var view = null;                                     // computed once per redraw
+function niceStep(range) { var c = state.unit === "ft" ? [1, 2, 5] : [0.5, 1, 2], i; for (i = 0; i < c.length; i++) if (range / c[i] <= 7) return c[i]; return c[c.length - 1] * 2; }
+function dayStep(dayW) { return Math.max(1, Math.ceil(52 / dayW)); }
+
+function compute() {
+  var days = windowDays(), t0 = days[0], t1 = days[days.length - 1], ap = allPredictor(), sp = selPredictor();
+  var STEP = 15 * 60000, n = Math.round((t1 - t0) / STEP) + 1, ghost = new Float64Array(n), sel = new Float64Array(n);
+  for (var i = 0; i < n; i++) { var t = t0 + i * STEP; ghost[i] = ap.height(t); sel[i] = sp.height(t); }
+  var exSel = E.extremes(sp.height, t0, t1, 6), exAll = E.extremes(ap.height, t0, t1, 6);
+  function dailyRanges(arr) {
+    var out = [];
+    for (var d = 0; d < days.length - 1; d++) {
+      var a = Math.round((days[d] - t0) / STEP), b = Math.round((days[d + 1] - t0) / STEP), mn = 1e9, mx = -1e9;
+      for (var j = a; j <= b && j < n; j++) { mn = Math.min(mn, arr[j]); mx = Math.max(mx, arr[j]); }
+      out.push(mx - mn);
+    }
+    return out;
+  }
+  var rangeSel = dailyRanges(sel), rangeAll = dailyRanges(ghost);
+  var noD = selectedList().filter(function (c) { return c.n !== "K1" && c.n !== "O1"; }), rangeNoD = null;   // the same selection with the once-a-day pair K1 and O1 off
+  if (noD.length) { var pn = predictorFor(noD, state.nodal), nd = new Float64Array(n); for (var q = 0; q < n; q++) nd[q] = pn.height(t0 + q * STEP); rangeNoD = dailyRanges(nd); }
+  else rangeNoD = rangeSel.map(function () { return 0; });
+  view = { days: days, t0: t0, t1: t1, ghost: ghost, sel: sel, STEP: STEP, n: n, exSel: exSel, exAll: exAll, rangeSel: rangeSel, rangeAll: rangeAll, rangeNoD: rangeNoD, sp: sp, ap: ap };
+}
+
+function drawChart() {
+  var svg = $("chart"), W = Math.max(280, $("chartbox").clientWidth), H = W < 520 ? 300 : 360;
+  var L = W < 520 ? 42 : 52, R = 10, T = 34, B = 36, pw = W - L - R, ph = H - T - B;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("width", W); svg.setAttribute("height", H);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  var v = view, lo = 1e9, hi = -1e9;
+  for (var i = 0; i < v.n; i++) { lo = Math.min(lo, v.ghost[i], v.sel[i]); hi = Math.max(hi, v.ghost[i], v.sel[i]); }
+  lo = Math.min(lo, 0); var step = niceStep(conv(hi) - conv(lo)), ymin = Math.floor(conv(lo) / step) * step, ymax = Math.ceil(conv(hi) / step) * step;
+  var X = function (t) { return L + (t - v.t0) / (v.t1 - v.t0) * pw; }, Y = function (m) { return T + (1 - (conv(m) - ymin) / (ymax - ymin)) * ph; };
+  var g = S("g", {}); svg.appendChild(g);
+  for (var yv = ymin; yv <= ymax + 1e-9; yv += step) {
+    var yy = T + (1 - (yv - ymin) / (ymax - ymin)) * ph;
+    g.appendChild(S("line", { x1: L, x2: W - R, y1: yy, y2: yy, "class": Math.abs(yv) < 1e-9 ? "zero" : "grid" }));
+    g.appendChild(S("text", { x: L - 6, y: yy + 4, "text-anchor": "end" }, (step < 1 ? yv.toFixed(1) : yv.toFixed(0))));
+  }
+  g.appendChild(S("text", { x: 4, y: 12 }, state.unit + " above MLLW"));
+  var yMsl = Y(OFFSET); g.appendChild(S("line", { x1: L, x2: W - R, y1: yMsl, y2: yMsl, "class": "msl" }));
+  // days
+  var dayW = pw / state.span, every = dayStep(dayW), tz = tzName();
+  v.days.forEach(function (t, k) {
+    var x = X(t); g.appendChild(S("line", { x1: x, x2: x, y1: T, y2: T + ph + 4, "class": "grid" }));
+    if (k < state.span && k % every === 0) {
+      var p = parts(t, tz), tx = S("text", { x: x + 3, y: H - 18 }, p.wd); tx.setAttribute("class", "tx-ink"); g.appendChild(tx);
+      g.appendChild(S("text", { x: x + 3, y: H - 4 }, p.d + " " + MON[p.m - 1]));
+    }
+  });
+  // moon marks
+  moonPhases(v.t0, v.t1).forEach(function (m) {
+    var x = X(m.t), glyph = ["●", "◐", "○", "◑"][m.k];
+    var tt = S("text", { x: x, y: T - 8, "text-anchor": "middle" }, glyph); tt.appendChild(S("title", {}, m.name + " Moon (mean), " + stamp(m.t, tz)));
+    g.appendChild(tt);
+  });
+  function path(arr) { var s = ""; for (var i = 0; i < v.n; i++) s += (i ? "L" : "M") + X(v.t0 + i * v.STEP).toFixed(1) + " " + Y(arr[i]).toFixed(1); return s; }
+  g.appendChild(S("path", { d: path(v.ghost), "class": "ghostline" }));
+  g.appendChild(S("path", { d: path(v.sel), "class": "selline" }));
+  v.exSel.forEach(function (e) { g.appendChild(S("circle", { cx: X(e.t), cy: Y(e.h), r: 4, "class": "xdot" })); });
+  D.official.forEach(function (o) {
+    var t = Date.parse(o.time); if (t < v.t0 || t > v.t1) return;
+    var x = X(t), y = Y(o.height + 0), s = 6;
+    var d = S("path", { d: "M" + x + " " + (y - s) + "L" + (x + s) + " " + y + "L" + x + " " + (y + s) + "L" + (x - s) + " " + y + "Z", "class": "official" });
+    d.appendChild(S("title", {}, "NOAA " + o.kind + ", " + stamp(t, tz) + ", " + o.height.toFixed(3) + " m")); g.appendChild(d);
+  });
+  var cg = S("g", { id: "cursorg" }); svg.appendChild(cg); drawCursor();
+  svg._geo = { L: L, pw: pw, W: W };
+  var offN = KEYS.filter(function (k) { return !state.on[k]; }).length;
+  svg.setAttribute("aria-label", "Predicted tide height over " + plural(state.span, "day") + " from " + dayLabel(v.t0, tz) + ", with " + plural(KEYS.length - offN, "switch", "switches") + " on. Use left and right arrow keys to move a cursor.");
+}
+var outTimer = null, outText = "", outLast = 0;
+function setOut(txt) {                               // throttled so a screen reader is not flooded while the pointer moves
+  outText = txt; var now = Date.now(), wait = 500 - (now - outLast);
+  if (wait <= 0) { outLast = now; $("cursorout").textContent = txt; return; }
+  if (!outTimer) outTimer = setTimeout(function () { outTimer = null; outLast = Date.now(); $("cursorout").textContent = outText; }, wait);
+}
+function drawCursor() {
+  var cg = $("cursorg"), v = view, svg = $("chart"); if (!cg) return;
+  while (cg.firstChild) cg.removeChild(cg.firstChild);
+  if (state.cursor == null) { setOut("Point at the chart, or focus it and use the arrow keys, to read a time and height."); return; }
+  var geo = svg._geo, x = geo.L + (state.cursor - v.t0) / (v.t1 - v.t0) * geo.pw;
+  cg.appendChild(S("line", { x1: x, x2: x, y1: 34, y2: parseFloat(svg.getAttribute("height")) - 36, "class": "cursor" }));
+  var hs = v.sp.height(state.cursor), ha = v.ap.height(state.cursor);
+  setOut(stamp(state.cursor, tzName()) + ": " + fmtH(hs) + " with your switches, " + fmtH(ha) + " with everything on.");
+}
+
+/* ---------- range chart and summary ---------- */
+function drawRange() {
+  var svg = $("rangechart"), W = Math.max(280, $("chartbox").clientWidth), H = 190, L = W < 520 ? 42 : 52, R = 10, T = 20, B = 36, pw = W - L - R, ph = H - T - B, v = view, n = state.span;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("width", W); svg.setAttribute("height", H);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  var mx = Math.max.apply(null, v.rangeAll.concat(v.rangeSel)), step = niceStep(conv(mx)) / (state.unit === "ft" ? 1 : 1), ymax = Math.ceil(conv(mx) / step) * step || step;
+  var Y = function (m) { return T + (1 - conv(m) / ymax) * ph; };
+  for (var yv = 0; yv <= ymax + 1e-9; yv += step) { var yy = T + (1 - yv / ymax) * ph; svg.appendChild(S("line", { x1: L, x2: W - R, y1: yy, y2: yy, "class": yv === 0 ? "zero" : "grid" })); svg.appendChild(S("text", { x: L - 6, y: yy + 4, "text-anchor": "end" }, step < 1 ? yv.toFixed(1) : yv.toFixed(0))); }
+  svg.appendChild(S("text", { x: 4, y: 12 }, state.unit + " from lowest to highest in each day"));
+  var slot = pw / n, bw = Math.max(6, Math.min(slot - 6, 46)), every = dayStep(slot), tz = tzName();
+  var imax = v.rangeSel.indexOf(Math.max.apply(null, v.rangeSel)), imin = v.rangeSel.indexOf(Math.min.apply(null, v.rangeSel));
+  for (var i = 0; i < n; i++) {
+    var cx = L + slot * (i + 0.5), x = cx - bw / 2;
+    var gh = S("rect", { x: x - 2, y: Y(v.rangeAll[i]), width: bw + 4, height: Math.max(0, T + ph - Y(v.rangeAll[i])), rx: 3, "class": "bar-ghost" }); svg.appendChild(gh);
+    var r = S("rect", { x: x, y: Y(v.rangeSel[i]), width: bw, height: Math.max(0, T + ph - Y(v.rangeSel[i])), rx: 3, "class": "bar-sel" }); r.appendChild(S("title", {}, dayLabel(v.days[i], tz) + ": " + fmtH(v.rangeSel[i]))); svg.appendChild(r);
+    if (slot >= 40 && v.rangeSel[i] > 0) svg.appendChild(S("text", { x: cx, y: Math.max(11, Y(Math.max(v.rangeSel[i], v.rangeAll[i])) - 4), "text-anchor": "middle" }, (state.unit === "ft" ? conv(v.rangeSel[i]).toFixed(1) : conv(v.rangeSel[i]).toFixed(2))));
+    if (i % every === 0) { var p = parts(v.days[i], tz); var tx = S("text", { x: cx, y: H - 18, "text-anchor": "middle" }, p.wd); tx.setAttribute("class", "tx-ink"); svg.appendChild(tx); svg.appendChild(S("text", { x: cx, y: H - 4, "text-anchor": "middle" }, p.d + " " + MON[p.m - 1])); }
+  }
+  svg.setAttribute("aria-label", "Daily range of the tide for each of " + plural(n, "day") + ": " + v.rangeSel.map(function (r, i) { return dayLabel(v.days[i], tz) + " " + fmtH(r); }).join("; ") + ".");
+}
+function summary() {
+  var v = view, tz = tzName(), on = KEYS.filter(function (k) { return state.on[k]; }), sel = selectedList();
+  var s = on.length + " of " + KEYS.length + " switches on. ";
+  var mx = Math.max.apply(null, v.rangeSel), mn = Math.min.apply(null, v.rangeSel);
+  if (mx < 1e-9) s += "The curve is flat: with nothing on, the sea stays at mean sea level."; else {
+    var imax = v.rangeSel.indexOf(mx), imin = v.rangeSel.indexOf(mn), swing = (mx - mn) / ((mx + mn) / 2);
+    s += "The daily range goes from " + fmtH(mn) + " on " + dayLabel(v.days[imin], tz) + " to " + fmtH(mx) + " on " + dayLabel(v.days[imax], tz) + ", a difference of " + Math.round(swing * 100) + "% of the average. ";
+    var both = state.on.M2 && state.on.S2, hasD = !!(state.on.K1 || state.on.O1);
+    var mxN = Math.max.apply(null, v.rangeNoD), mnN = Math.min.apply(null, v.rangeNoD), swingN = hasD ? (mxN < 1e-9 ? 0 : (mxN - mnN) / ((mxN + mnN) / 2)) : swing;   // the swing that survives with K1 and O1 off
+    var pct = Math.round(swingN * 100), springOK = both && swingN >= SWING_MIN;
+    if (swing >= SWING_MIN) {
+      if (springOK && !hasD) s += imax < imin ? "That is a spring tide followed by a neap tide." : "That is a neap tide building towards a spring tide.";
+      else if (springOK) s += "With K1 and O1 off the range still swings by " + pct + "%, so spring and neap are part of it, " + (swingN * 2 < swing ? "but the once-a-day pair K1 and O1, which follows the Moon's north-south position, drives most of the swing." : "and the once-a-day pair K1 and O1, which follows the Moon's north-south position, adds the rest.");
+      else if (hasD && swingN < SWING_MIN) s += "Most of this swing comes from the once-a-day pair K1 and O1, which follows the Moon's north-south position, not from spring and neap: with K1 and O1 off the range changes by " + (mxN < 1e-9 ? "nothing" : "only " + pct + "%") + ".";
+      else s += (imax < imin ? "The range swings from big to small" : "The range swings from small to big") + ", but M2 and S2 are not both on, so this is not the usual spring-neap cycle.";
+    } else s += "That is nearly steady: no spring and neap.";
+  }
+  if (state.on.M2 && state.on.S2) s += " M2 and S2 are both on, so they drift in and out of step every " + d1(beat("M2", "S2")) + " days.";
+  else if (state.on.M2 && byName.S2 && !state.on.S2) s += " S2 is off, so M2 has nothing to drift against; for a clear spring-neap cycle try the \u201C" + PRESET_TWICE + "\u201D preset.";
+  $("summary").textContent = s;
+  // text list
+  var ul = $("textlist"); ul.innerHTML = "";
+  v.days.slice(0, -1).forEach(function (d0, i) {
+    var items = v.exSel.filter(function (e) { return e.t >= d0 && e.t < v.days[i + 1]; }).map(function (e) { return e.kind + " " + clock(e.t, tz) + " " + fmtH(e.h); });
+    ul.appendChild(el("li", null, "<b>" + esc(dayLabel(d0, tz)) + "</b>: " + esc(items.length ? items.join("; ") : "no highs or lows")));
+  });
+  var mp = moonPhases(v.t0, v.t1);
+  $("moonline").textContent = "Moon phases from the mean Sun and Moon (the true Moon can differ by hours): " + (mp.length ? mp.map(function (m) { return m.name + " " + stamp(m.t, tz); }).join("; ") : "none in this window") + ". Symbols on the top edge of the chart mark them.";
+}
+
+/* ---------- controls ---------- */
+function seg(id, opts, get, set) {
+  var box = $(id); box.innerHTML = "";
+  opts.forEach(function (o) {
+    var b = el("button", { type: "button", "class": "btn", "aria-pressed": String(get() === o.v) }, esc(o.l));
+    b.addEventListener("click", function () { set(o.v); box.querySelectorAll("button").forEach(function (x, i) { x.setAttribute("aria-pressed", String(opts[i].v === get())); }); });
+    box.appendChild(b);
+  });
+}
+function buildControls() {
+  seg("spanseg", SPANS.map(function (n) { return { v: n, l: plural(n, "day") }; }), function () { return state.span; }, function (v) { state.span = v; render(); });
+  seg("unitseg", [{ v: "m", l: "metres" }, { v: "ft", l: "feet" }], function () { return state.unit; }, function (v) { state.unit = v; render(); });
+  seg("tzseg", [{ v: "local", l: "Local time" }, { v: "utc", l: "UTC" }], function () { return state.clock; }, function (v) { state.clock = v; render(); });
+  $("prev").textContent = "◀ Earlier"; $("next").textContent = "Later ▶";
+  $("prev").addEventListener("click", function () { shiftStart(-state.span); render(); });
+  $("next").addEventListener("click", function () { shiftStart(state.span); render(); });
+  var dt = $("date"); dt.min = "2000-01-01"; dt.max = "2050-12-31";
+  dt.addEventListener("change", function () { if (/^\d{4}-\d{2}-\d{2}$/.test(dt.value)) { state.start = dt.value; render(); } });
+  $("nodalbox").checked = state.nodal;
+  $("nodalbox").addEventListener("change", function () { state.nodal = $("nodalbox").checked; render(); });
+  $("nodallabel").textContent = "Apply nodal corrections";
+  var a = E.astro(view ? view.t0 : Date.UTC(2026, 6, 15));
+  $("nodalnote").textContent = "The Moon's orbit wobbles over a cycle of about " + d1(360 / Math.abs(a.NSpeed) / 24 / 365.25) + " years, which makes each wave a little bigger or smaller and a little early or late. NOAA's published constants are averages over such a cycle, so a prediction should correct for where the cycle is now. Turn this off to see how much it matters (check one shows it too).";
+  // presets
+  var P = $("presets"), sp2 = KEYS.filter(function (k) { return k !== "rest" && species(k) === 2; }), sp1 = KEYS.filter(function (k) { return k !== "rest" && species(k) === 1; });
+  var presets = [
+    { l: "All on", k: KEYS },
+    { l: "M2 alone", k: ["M2"] },
+    { l: "M2 + S2", k: ["M2", "S2"] },
+    { l: "M2 + S2 + N2", k: ["M2", "S2", "N2"] },
+    { l: PRESET_TWICE, k: sp2 },
+    { l: "Once-a-day waves only", k: sp1 },
+    { l: "None", k: [] }
+  ];
+  presets.forEach(function (p) {
+    var b = el("button", { type: "button", "class": "btn" }, esc(p.l));
+    b.addEventListener("click", function () { KEYS.forEach(function (k) { state.on[k] = p.k.indexOf(k) >= 0; }); render(); });
+    P.appendChild(b);
+  });
+  // rows
+  var R = $("rows");
+  KEYS.forEach(function (k) {
+    var id = "sw-" + k, row = el("div", { "class": "row", id: "row-" + k }), isRest = k === "rest";
+    var title = isRest ? "all the smaller waves together" : NOTES[k].t;
+    row.innerHTML = '<label for="' + id + '"><input type="checkbox" id="' + id + '" role="switch"><span><span class="nm">' + esc(isRest ? "The rest" : k) + '</span> <span class="tt">' + esc(title) + '</span></span></label><p class="meta" id="meta-' + k + '"></p><p class="why" id="why-' + k + '"></p>';
+    R.appendChild(row);
+    row.querySelector("input").addEventListener("change", function (e) { state.on[k] = e.target.checked; render(); });
+  });
+  $("swintro").textContent = "Each switch is one wave in the sum, or for “the rest” " + plural(REST.length, "wave") + " that are each small. The dashed grey line always shows everything on.";
+}
+function refreshRows() {
+  var mid = view.t0 + (view.t1 - view.t0) / 2, P = view.ap.paramsFor(mid);
+  KEYS.forEach(function (k) {
+    var cb = $("sw-" + k); cb.checked = !!state.on[k]; $("row-" + k).className = "row" + (state.on[k] ? "" : " off");
+    if (k === "rest") {
+      var big = Math.max.apply(null, REST.map(function (n) { return byName[n].a; })), names = REST.slice().sort(function (a, b) { return byName[b].a - byName[a].a; });
+      $("meta-rest").textContent = "no single one above " + fmtH(big);
+      $("why-rest").innerHTML = "Overtones made in shallow water, finer adjustments from the Sun's and Moon's orbits, and slow seasonal terms. Each is tiny; together they sharpen heights and timing by a few centimetres, which matters for check one. Switched on here: " + esc(list(names)) + (ZERO.length ? ". NOAA lists " + esc(list(ZERO)) + " with zero amplitude, so they add nothing." : ".");
+    } else {
+      var f = P.list.filter(function (x) { return x.n === k; })[0], c = byName[k];
+      $("meta-" + k).textContent = "up to ±" + fmtH(c.a * (f ? f.f : 1)) + " · repeats every " + d1(per(k)) + " hours";
+      $("why-" + k).textContent = NOTES[k].w();
+    }
+  });
+}
+
+/* ---------- checks ---------- */
+function runCheck1(nodal) {
+  var p = predictorFor(D.noaa, nodal), t0 = Date.parse(D.officialWindow.start), t1 = Date.parse(D.officialWindow.end);
+  var ex = E.extremes(p.height, t0, t1, 1), used = {}, rows = [];
+  D.official.forEach(function (o) {
+    var t = Date.parse(o.time), best = -1, bd = 1e12;
+    ex.forEach(function (e, i) { if (e.kind === o.kind && Math.abs(e.t - t) < bd && Math.abs(e.t - t) < 3 * 3600000) { bd = Math.abs(e.t - t); best = i; } });
+    var r = { o: o, t: t };
+    if (best >= 0) {
+      used[best] = true; var e = ex[best]; r.e = e; r.dt = (e.t - t) / 60000; r.dh = (e.h - o.height) * 100; r.ok = Math.abs(r.dt) <= TOL_MIN && Math.abs(r.dh) <= TOL_CM;
+      var w = 0; for (var s = 1; s <= 360; s++) { if (Math.abs(p.height(e.t + s * 60000) - e.h) * 100 <= TOL_CM && Math.abs(p.height(e.t - s * 60000) - e.h) * 100 <= TOL_CM) w = s; else break; }
+      r.flat = w;
+    } else r.ok = false;
+    rows.push(r);
+  });
+  var extra = ex.filter(function (e, i) { return !used[i]; });
+  var okN = rows.filter(function (r) { return r.ok; }).length;
+  var maxdt = Math.max.apply(null, rows.map(function (r) { return r.e ? Math.abs(r.dt) : 0; })), maxdh = Math.max.apply(null, rows.map(function (r) { return r.e ? Math.abs(r.dh) : 0; }));
+  return { rows: rows, extra: extra, ok: okN, n: rows.length, maxdt: maxdt, maxdh: maxdh };
+}
+function buildCheck1() {
+  var a = runCheck1(true), b = runCheck1(false);
+  var bound = 0; D.noaa.forEach(function (c) { if (c.a > 0) bound += 0.0005 + c.a * 0.05 * Math.PI / 180; });
+  var w0 = Date.parse(D.officialWindow.start), w1 = Date.parse(D.officialWindow.end);
+  $("c1sum").innerHTML = "<b>" + a.ok + " of " + plural(a.n, "NOAA high or low tide") + "</b> fall within " + plural(TOL_MIN, "minute") + " and " + TOL_CM + " cm of the predicted tide of the same kind (nodal corrections on), between " + esc(stamp(w0, "UTC")) + " and " + esc(stamp(w1, "UTC")) + ". The worst event is " + a.maxdt.toFixed(1) + " minutes and " + a.maxdh.toFixed(1) + " cm off. " +
+    (a.extra.length ? "The curve has " + plural(a.extra.length, "further turning point") + " in that window that NOAA does not list: " + esc(a.extra.map(function (e) { return e.kind + " " + stamp(e.t, "UTC"); }).join("; ")) + "." : "There are no further turning points in that window that NOAA leaves out.") +
+    " With nodal corrections off the count is " + b.ok + " of " + b.n + ", worst " + b.maxdt.toFixed(1) + " minutes and " + b.maxdh.toFixed(1) + " cm.";
+  $("c1tol").textContent = "Why " + TOL_MIN + " minutes and " + TOL_CM + " cm: the published constants are rounded to a millimetre and a tenth of a degree, which in the worst case adds up to " + (bound * 100).toFixed(1) + " cm over " + plural(D.noaa.filter(function (c) { return c.a > 0; }).length, "wave") + "; the rest of the allowance covers differences in method (my nodal formulas and Sun and Moon positions are not NOAA's). A tide near a high or low is flat, so a few centimetres of height error moves its time by minutes: the Flat column shows the total minutes the curve stays within " + TOL_CM + " cm of each peak. I picked these round numbers after a first run showed the worst event inside them, so they are not an independent standard; every event is listed so you can apply your own. Also, the neaps fixture that supplies NOAA's published times says its constants come from @slackwater/database, so this check partly tests the same relayed constants against themselves.";
+  var t = $("c1table"); t.innerHTML = '<thead><tr><th>Event (UTC)</th><th class="n">NOAA m</th><th class="n">Ours m</th><th class="n">Time off min</th><th class="n">Height off cm</th><th class="n">Flat min</th><th><span class="vh">Within tolerance</span></th></tr></thead>';
+  var tb = el("tbody");
+  a.rows.forEach(function (r) {
+    var tr = el("tr", r.ok ? null : { "class": "flag" });
+    tr.innerHTML = "<td>" + esc(dayLabel(r.t, "UTC") + " " + clock(r.t, "UTC")) + "<br>" + r.o.kind + "</td><td class='n'>" + r.o.height.toFixed(3) + "</td><td class='n'>" + (r.e ? r.e.h.toFixed(3) : "-") + "</td><td class='n'>" + (r.e ? (r.dt > 0 ? "+" : "") + r.dt.toFixed(1) : "-") + "</td><td class='n'>" + (r.e ? (r.dh > 0 ? "+" : "") + r.dh.toFixed(1) : "-") + "</td><td class='n'>" + (r.flat != null ? 2 * r.flat : "-") + "</td><td>" + (r.ok ? "<span class='ok'>✓ yes</span>" : "<span class='bad'>✗ no</span>") + "</td>";
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  $("c1note").textContent = "Heights are metres above MLLW (our sum plus " + OFFSET.toFixed(3) + " m, the station's mean sea level minus MLLW, both from NOAA's datums). Times are UTC, as NOAA's GMT tables. Positive time off means ours is later. This table stays in metres and centimetres whatever unit is picked above.";
+  return a;
+}
+function buildCheck2() {
+  var ALIAS = { RHO: "RHO1", LAM2: "LAMBDA2" };       // same waves, different spellings in the two lists
+  var N = {}, T = {}, tName = function (n) { return ALIAS[n] || n; }, nName = {}; D.noaa.forEach(function (c) { N[c.n] = c; nName[tName(c.n)] = c.n; }); D.ticon.list.forEach(function (c) { T[c.n] = c; });
+  var common = amps.filter(function (c) { return T[tName(c.n)]; }).map(function (c) { return c.n; });
+  var onlyN = D.noaa.filter(function (c) { return !T[tName(c.n)]; }).map(function (c) { return c.n; }), onlyT = D.ticon.list.filter(function (c) { return !nName[c.n]; }).map(function (c) { return c.n; });
+  var rows = common.map(function (n) {
+    var a = N[n], b = T[tName(n)], r = Math.PI / 180, dx = a.a * Math.cos(a.p * r) - b.a * Math.cos(b.p * r), dy = a.a * Math.sin(a.p * r) - b.a * Math.sin(b.p * r), gap = Math.sqrt(dx * dx + dy * dy);
+    var dphi = ((a.p - b.p + 540) % 360) - 180, mxA = Math.max(a.a, b.a), why = [];
+    if (gap > GAP_M) why.push("height gap");
+    if (mxA >= FLOOR_M && Math.abs(a.a - b.a) / mxA > REL) why.push("amplitude");
+    if (mxA >= FLOOR_M && Math.abs(dphi) > PH_DEG) why.push("phase");
+    return { n: n, a: a, b: b, gap: gap, dphi: dphi, why: why };
+  });
+  var flagged = rows.filter(function (r) { return r.why.length; });
+  var sp = common.slice();
+  $("c2sum").innerHTML = "<b>" + plural(common.length, "constant") + " in both lists were compared</b>, from the largest (" + esc(common[0]) + ") to the smallest (" + esc(common[common.length - 1]) + "), including odd ones such as the slow terms, the shallow-water overtones and M1. <b>" + (flagged.length ? flagged.length + " disagree: " + esc(list(flagged.map(function (r) { return r.n + " (" + r.why.join(", ") + ")"; }))) : "None disagree") + ".</b> The second list is TICON-4, fitted by other people to a different run of years (" + esc(D.ticon.epoch.start.slice(0, 4)) + " to " + esc(D.ticon.epoch.end.slice(0, 4)) + ") of this tide gauge's record, against NOAA's " + esc(String(ST.epoch.start).slice(0, 4)) + " to " + esc(String(ST.epoch.end).slice(0, 4)) + ", so small differences are expected and not all are errors.";
+  $("c2rule").textContent = "A constant is flagged when the two waves differ by more than " + (GAP_M * 100).toFixed(0) + " cm at their biggest (the vector gap), or, for waves of at least " + (FLOOR_M * 1000).toFixed(0) + " mm, when the amplitudes differ by more than " + (REL * 100).toFixed(0) + "% or the phases by more than " + PH_DEG + " degrees. Flagged rows are shaded. Possible reasons, not checked: a different definition of the wave (M1 has several in the literature), or a wave too small to separate cleanly from noise in either fit.";
+  var t = $("c2table"); t.innerHTML = '<thead><tr><th>Wave</th><th class="n">Amplitude m<br>NOAA / TICON</th><th class="n">Phase °<br>NOAA / TICON</th><th class="n">Gap cm</th><th>Verdict</th></tr></thead>';
+  var tb = el("tbody");
+  rows.forEach(function (r) {
+    var tr = el("tr", r.why.length ? { "class": "flag" } : null);
+    tr.innerHTML = "<td>" + esc(r.n) + (tName(r.n) !== r.n ? " <span class='small'>(TICON: " + esc(tName(r.n)) + ")</span>" : "") + "</td><td class='n'>" + r.a.a.toFixed(3) + "<br>" + r.b.a.toFixed(3) + "</td><td class='n'>" + r.a.p.toFixed(1) + "<br>" + r.b.p.toFixed(1) + "</td><td class='n'>" + (r.gap * 100).toFixed(1) + "</td><td>" + (r.why.length ? "<span class='bad'>✗ " + esc(r.why.join(", ")) + "</span>" : "<span class='ok'>✓ agree</span>") + "</td>";
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  $("c2only").textContent = "Only in NOAA's list, so not cross-checked: " + list(onlyN) + ". Only in TICON's list, not used on this page: " + plural(onlyT.length, "wave") + " (" + list(onlyT) + ").";
+  return { common: common.length, flagged: flagged.length, names: flagged.map(function (r) { return r.n; }) };
+}
+function buildCheck3() {
+  var a = E.astro(Date.UTC(2026, 6, 15)), worst = 0, who = "", n = 0;
+  for (var k in D.defs) { n++; var d = Math.abs(E.speedFromDoodson(D.defs[k].doodson, a) - D.defs[k].speed); if (d > worst) { worst = d; who = k; } }
+  $("c3sum").textContent = "Each wave has a speed (degrees per hour) in the table I used, and also a Doodson code saying how many times the Moon's and Sun's motions go into it. Recomputing all " + n + " speeds from the codes and the Meeus rates agrees to within " + worst.toExponential(1) + " degrees per hour (worst: " + who + "), so the codes and speeds are consistent with each other. They come from the same source, so this finds a typing or transfer slip, not a wrong table.";
+  return { n: n, worst: worst };
+}
+
+/* ---------- text sections ---------- */
+function buildText(c1, c2) {
+  var tzs = ST.tz, lat = ST.lat, lon = ST.lon;
+  $("stname").textContent = ST.name.split(",")[0] + ", " + (ST.country === "United States" ? ST.region : ST.country);
+  $("checksum").textContent = "Checks on this page, run when it loads: " + c1.ok + " of " + c1.n + " of NOAA's published highs and lows matched; " + (c2.common - c2.flagged) + " of " + c2.common + " constants agree with a second list" + (c2.flagged ? " (disagree: " + list(c2.names) + ")" : "") + ".";
+  var how = [
+    "Height at a moment = mean level + the sum over waves of amplitude \u00D7 cos(speed \u00D7 time + starting angle \u2212 the station's phase). Amplitude and phase are NOAA's published values for " + ST.name + " (station " + ST.id + "), so this is a prediction of the astronomical tide only: no wind, no air pressure, no river flow, no storm surge.",
+    "Datum and units: heights are metres above MLLW (mean lower low water, NOAA's chart datum here). The constants are measured from mean sea level, so the page adds " + OFFSET.toFixed(3) + " m. The feet button divides by " + FT + " m per foot, exactly.",
+    "Time: NOAA's phases are for Greenwich time (GMT), not the local clock. The page sums in UTC and converts for display. Local time at the station is " + tzs + " (daylight saving applied by your browser's time-zone data); the check tables use UTC."
+  ];
+  function spread(k) {                              // range of a wave's nodal size factor over one full cycle, as plus or minus a share of the middle
+    var lo = 9, hi = 0; for (var d = 0; d < 360; d += 2) { var f = E.FUND[k](d * Math.PI / 180, 0).f; lo = Math.min(lo, f); hi = Math.max(hi, f); }
+    return "\u00B1" + Math.round((hi - lo) / (hi + lo) * 100) + "%";
+  }
+  var mid = Date.UTC(2026, 6, 15, 12), P = allPredictorAt(mid);
+  how.push("Nodal factors: the Moon's orbital plane wobbles, so each wave gets a size factor f and a timing angle u that drift slowly. I apply them, evaluated at the middle of each UTC day. For 15 July 2026, M2 gets f = " + P.M2.f.toFixed(3) + " and u = " + P.M2.u.toFixed(1) + " degrees, K1 gets f = " + P.K1.f.toFixed(3) + " and u = " + P.K1.u.toFixed(1) + " degrees, O1 gets f = " + P.O1.f.toFixed(3) + ". NOAA's constants are averages over the whole cycle, so ignoring the factors would be wrong by about " + spread("K1") + " for K1, " + spread("O1") + " for O1 and " + spread("M2") + " for M2 (each factor's range over the cycle, as a share of its middle value); the nodal switch and check one show the effect. The formulas are the IHO ones, not NOAA's own (Schureman's), a small mismatch I did not measure on this page.");
+  how.push("Astronomy: positions of the Sun and Moon come from low-order polynomials in time (Meeus). Universal time is used where the astronomers' dynamical time belongs; the difference is about a minute and shifts the Moon by about " + (E.astro(mid).sSpeed / 60).toFixed(2) + " degrees, far inside the match tolerance.");
+  how.push("Highs and lows are found by sampling the curve every few minutes and fitting a parabola through each peak. Daily range is the highest minus the lowest height within one clock day of the zone you picked.");
+  how.push("Spring and neap tides need two waves of nearly equal speed. M2 and S2 differ by " + (speed("M2") - speed("S2")).toFixed(3).replace("-", "") + " degrees per hour, so they are in step every " + d1(beat("M2", "S2")) + " days. In this mixed tide the once-a-day pair K1 and O1 adds a second, " + d1(beat("K1", "O1")) + "-day rhythm, so the daily range can swing for two reasons at once.");
+  var ul = $("how"); how.forEach(function (h) { ul.appendChild(el("li", null, esc(h))); });
+  var dl = $("src"); D.sources.forEach(function (s) {
+    dl.appendChild(el("dt", null, esc(s.role)));
+    dl.appendChild(el("dd", null, esc(s.what) + (s.url ? ' — <a href="' + esc(s.url) + '">' + esc(s.url) + "</a>" : "") + (s.ref ? " (" + esc(s.ref) + ")" : "")));
+  });
+  var bl = $("blocked"); D.blocked.forEach(function (b) { bl.appendChild(el("li", null, esc(b))); });
+  var uv = [
+    "I could not read NOAA's own harmonic-constants page or API, so the constants and the published tide table were taken from two public copies on GitHub (the tide-database and the neaps test fixture). Both say they come from NOAA's API; I did not see NOAA's response myself.",
+    "NOAA's published predictions cover only " + plural(D.official.length, "event") + " (" + esc(dayLabel(Date.parse(D.officialWindow.start), "UTC")) + " to " + esc(dayLabel(Date.parse(D.officialWindow.end), "UTC")) + "), so check one is a small sample at one place in one season. Other months and the other waves' behaviour on other days are untested against NOAA.",
+    "Check two uses a second fit of the same gauge, so it tests the analysis, not the gauge. Neither list was checked against a printed table.",
+    "The nodal formulas and constituent codes are used as published in an open-source engine; I compared my code with that engine's output (agreement within a fraction of a millimetre over several test windows), but I did not check the engine against the IHO documents.",
+    "The 'why' notes are my own plain-language summaries of standard tidal theory, not quoted from a source."
+  ];
+  var uu = $("unver"); uv.forEach(function (u) { uu.appendChild(el("li", null, esc(u))); });
+}
+function allPredictorAt(ms) { var P = predictorFor(D.noaa, true).paramsFor(ms), o = {}; P.list.forEach(function (x) { o[x.n] = x; }); return o; }
+
+/* ---------- render ---------- */
+var scheduled = false;
+function render() {
+  $("date").value = state.start;
+  compute(); refreshRows(); drawChart(); drawRange(); summary();
+}
+function bindChart() {
+  var svg = $("chart");
+  function at(clientX) { var r = svg.getBoundingClientRect(), g = svg._geo; if (!g) return; var x = (clientX - r.left) * (g.W / r.width), f = (x - g.L) / g.pw; f = Math.max(0, Math.min(1, f)); state.cursor = view.t0 + f * (view.t1 - view.t0); drawCursor(); }
+  svg.addEventListener("pointermove", function (e) { at(e.clientX); });
+  svg.addEventListener("pointerdown", function (e) { at(e.clientX); });
+  svg.addEventListener("keydown", function (e) {
+    var step = 30 * 60000;
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); var c = state.cursor == null ? view.t0 : state.cursor; state.cursor = Math.max(view.t0, Math.min(view.t1, c + (e.key === "ArrowRight" ? step : -step))); drawCursor(); }
+    else if (e.key === "Home") { state.cursor = view.t0; drawCursor(); } else if (e.key === "End") { state.cursor = view.t1; drawCursor(); } else if (e.key === "Escape") { state.cursor = null; drawCursor(); }
+  });
+}
+function legend() {
+  $("legend").innerHTML = '<span><svg viewBox="0 0 26 12"><line x1="0" x2="26" y1="6" y2="6" stroke="var(--sel)" stroke-width="3"/></svg>your switches</span><span><svg viewBox="0 0 26 12"><line x1="0" x2="26" y1="6" y2="6" stroke="var(--ghost)" stroke-width="2" stroke-dasharray="5 4"/></svg>everything on</span><span><svg viewBox="0 0 26 12"><circle cx="13" cy="6" r="4" fill="var(--sel)"/></svg>high or low of your switches</span><span><svg viewBox="0 0 26 12"><path d="M13 0L20 6L13 12L6 6Z" fill="var(--panel)" stroke="var(--mark)" stroke-width="2.5"/></svg>NOAA\'s published high or low (hollow)</span><span><svg viewBox="0 0 26 12"><line x1="0" x2="26" y1="6" y2="6" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4"/></svg>mean sea level</span>';
+}
+
+// start on the local date of the first published NOAA event
+var p0 = parts(Date.parse(D.officialWindow.start), ST.tz); state.start = isoDate(p0);
+view = null;
+state.cursor = null;
+buildControls_pre();
+function buildControls_pre() { view = null; compute(); buildControls(); }
+legend(); bindChart();
+var c1 = buildCheck1(), c2 = buildCheck2(); buildCheck3(); buildText(c1, c2);
+render();
+var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { drawChart(); drawRange(); }, 80); });
+})();
+</script>
+</body>
+</html>

@@ -32,8 +32,27 @@ def pieces():
     return out
 
 
+def _old_dates():
+    """Dates already published in the committed feed.xml, so older entries never change."""
+    try:
+        txt = subprocess.run(["git", "show", "HEAD:feed.xml"], cwd=ROOT, capture_output=True,
+                             text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        txt = (ROOT / "feed.xml").read_text() if (ROOT / "feed.xml").exists() else ""
+    return {m.group(1): m.group(2) for m in re.finditer(
+        r"<id>[^<]*/([^/<]+)/</id>\s*<updated>([^<]+)</updated>", txt)}
+
+
+_OLD = None
+
+
 def added(folder):
-    """Date the folder first appeared in git, newest-first fallback to now."""
+    """Date the folder was first published: the committed feed if listed, else first git add, else now."""
+    global _OLD
+    if _OLD is None:
+        _OLD = _old_dates()
+    if folder in _OLD:
+        return _OLD[folder]
     try:
         dates = subprocess.run(["git", "log", "--diff-filter=A", "--format=%aI", "--", folder],
                                cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()

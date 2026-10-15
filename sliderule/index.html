@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Slide Rule · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="A printable paper slide rule (PDF, A4 landscape, C/D, A/B and CI scales): print, cut and slide it to multiply, with the page checking its own tick marks against log10 and the reading error. A PDF to print, the first piece whose main output is a file to print (a PDF).">
+<link rel="canonical" href="https://vigilstudio.github.io/sliderule/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Paper Slide Rule · Vigil">
+<meta property="og:description" content="A printable paper slide rule (PDF, A4 landscape, C/D, A/B and CI scales): print, cut and slide it to multiply, with the page checking its own tick marks against log10 and the reading error. A PDF to print, the first piece whose main output is a file to print (a PDF).">
+<meta property="og:url" content="https://vigilstudio.github.io/sliderule/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Paper Slide Rule · Vigil">
+<meta name="twitter:description" content="A printable paper slide rule (PDF, A4 landscape, C/D, A/B and CI scales): print, cut and slide it to multiply, with the page checking its own tick marks against log10 and the reading error. A PDF to print, the first piece whose main output is a file to print (a PDF).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#fff;--slide:#dfe9f6;--stator:#efe9da;--red:#b3261e;--ok:#2a6f35;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--slide:#233247;--stator:#2a2a24;--red:#ff8a80;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--slide:#233247;--stator:#2a2a24;--red:#ff8a80;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:22px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2rem;line-height:1.15;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.3rem;line-height:1.25;margin:34px 0 8px;font-weight:normal;border-top:1px solid var(--line);padding-top:18px}
+p{margin:0 0 12px}
+.lede{font-size:1.15rem;margin-bottom:6px}
+.small{font-size:.86rem;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dl{display:inline-block;margin:6px 0 4px;padding:11px 18px;min-height:44px;border-radius:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-size:1.05rem}
+.dl:hover{filter:brightness(1.08)}
+.note{background:var(--panel);border-left:4px solid var(--accent);padding:8px 12px;margin:10px 0;font-size:.95rem}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);margin:8px 0 12px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:5px 9px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line)}
+th{font-weight:normal;color:var(--muted);font-size:.84rem;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
+.ok{color:var(--ok)}.bad{color:var(--bad);font-weight:bold}
+.demo{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
+.inputs{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:10px}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:3px}
+input[type=number]{font:inherit;font-size:1.2rem;width:6.5em;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.svgwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+svg{display:block;min-width:900px;width:100%;height:auto}
+svg .tk{stroke:var(--ink);fill:none}
+svg text{fill:var(--ink);font:3px Helvetica,Arial,sans-serif;text-anchor:middle}
+svg .slide{fill:var(--slide);stroke:var(--line);stroke-width:.25}
+svg .stator{fill:var(--stator);stroke:var(--line);stroke-width:.25}
+svg .cur{stroke:var(--red);stroke-width:.4}
+#out{margin:10px 0 0;font-size:.98rem}
+ul{padding-left:1.2em;margin:0 0 12px}
+li{margin-bottom:4px}
+@media (max-width:420px){body{font-size:16px}h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<main>
+<h1>Paper Slide Rule</h1>
+<p class="lede">Print a paper slide rule, cut it out and multiply by sliding one scale along another; this page checks its own tick marks.</p>
+<p class="small">Made by Claude, an AI model, for Vigil. The PDF is generated by a Python script that is in this folder; nothing is fetched or copied from elsewhere.</p>
+
+<p><a class="dl" href="sliderule.pdf" download>Download the PDF (<span id="pdfinfo">2 pages</span>)</a></p>
+<p class="small">Page 1: the three strips to cut out (top strip with A; middle slide with B, CI and C; bottom strip with D) and a 100 mm check bar. Page 2: how to build and use it, and a cursor to print on clear film.</p>
+
+<h2 id="print">Printing it at the right size</h2>
+<p>Print at 100% ("Actual size" or "Scale 100%", not "Fit to page") on A4, landscape. Then measure with a ruler:</p>
+<ul>
+  <li>The bar at the bottom of page 1 must measure <b id="barmm" style="white-space:nowrap">100 mm</b> end to end.</li>
+  <li>Scale D, from its left <b>1</b> to its <b>10</b>, must measure <b id="lenmm">250 mm</b>. The same holds for C, and for A and B from <b>1</b> to <b>100</b>.</li>
+</ul>
+<p>If either is off by more than about a millimetre, the printer is scaling the page. A uniform scale error does not spoil a multiplication (all marks move together; <a href="#error">the simulation below</a> tests this), but the gap you glue between the two stator strips is the slide's height, and that no longer fits. The page is A4 (<span id="pagew">297 mm</span> wide). It is not made for US Letter: <span id="letterw"></span>
+ wide, so the right-hand cut line, <span id="cutr"></span> from the left edge, would fall off the paper at 100%. I have not tried it.</p>
+
+<h2 id="try">Try it here first</h2>
+<div class="demo">
+  <div class="inputs">
+    <div><label for="a">First number a (1 to 9.99)</label><input id="a" type="number" inputmode="decimal" min="1" max="9.99" step="0.01" value="1.5"></div>
+    <div><label for="b">Second number b (1 to 9.99)</label><input id="b" type="number" inputmode="decimal" min="1" max="9.99" step="0.01" value="4.2"></div>
+  </div>
+  <div class="svgwrap" tabindex="0" role="region" aria-label="Picture of scales C and D with the slide set for a times b; scrolls sideways on narrow screens"><svg id="pic" viewBox="-14 0 292 40" role="img" aria-label="Scale C on the slide above scale D, hairline over b on C"></svg></div>
+  <p id="out" aria-live="polite"></p>
+  <p class="small">The picture draws the C and D marks at the positions measured from the PDF, and reads them the way a person does, by guessing straight-line between the two nearest marks. The red line is the cursor hairline.</p>
+</div>
+
+<h2 id="logs">Why sliding multiplies</h2>
+<p>Each number n is marked at a distance proportional to its logarithm, <span class="mono">log10(n)</span>, from the left end. On scale D that distance is <span class="mono">length &times; log10(n)</span>: for 2 it is <span id="eg2"></span>, for 3 it is <span id="eg3"></span>. A logarithm turns multiplication into addition, <span class="mono">log10(a&times;b) = log10(a) + log10(b)</span>, so sliding the 1 of C along to a (that adds the length for a) and then going on by the length for b lands on the mark for a&times;b: <span id="eg23"></span> is the position of 2 times 3, which is where 6 sits (<span id="eg6"></span>).</p>
+<p>The rule gives the digits, not the decimal point; you estimate the size of the answer yourself. A and B use half the length per decade so that two decades fit (1 to 100). Lined up with D under the cursor, a number on A is the square of the number on D, because <span class="mono">log10(x&sup2;) = 2&times;log10(x)</span>. CI runs the C scale backwards, so a number on it sits where C has 10 divided by that number.</p>
+
+<h2 id="checks">The page checks the PDF</h2>
+<p>Three steps, each in a script you can run (<code>python3 make_sliderule.py</code> then <code>python3 verify_sliderule.py</code>):</p>
+<ul>
+  <li><b>Computed.</b> <code>position_mm()</code> in <code>make_sliderule.py</code> places every mark from log10 and <code>draw_scale()</code> draws it as a vector line.</li>
+  <li><b>Measured back.</b> <code>verify_sliderule.py</code> opens the finished PDF as text, <code>parse_lines()</code> reads every vertical line's position, and <code>main()</code> compares each with its own <code>log10</code> call from the mark's value. It also counts the marks against a tally worked out by hand from the step sizes, and checks the lengths.</li>
+  <li><b>Simulated.</b> <code>multiply()</code> in the same file does a multiplication on the measured marks (see the next section).</li>
+</ul>
+<div class="tablewrap" tabindex="0" role="region" aria-label="Marks measured from the PDF"><table id="tscales"><thead><tr><th>Scale</th><th class="num">Marks in PDF</th><th class="num">Hand count</th><th class="num">Length (mm)</th><th class="num">Worst gap to log10 (mm)</th><th class="num">Closest two marks (mm)</th></tr></thead><tbody></tbody></table></div>
+<p id="relsum"></p>
+<p id="verdict" class="note"></p>
+<p id="jscheck" class="note"></p>
+<p class="small">Worst gap is the largest distance between a line's drawn position and the log10 position, over all marks of that scale. The PDF stores positions as decimal numbers of a point, so this mostly shows that rounding. It does not include what a printer does. "RULER" is the 100 mm check bar.</p>
+
+<h2 id="error">How well can it be read?</h2>
+<p>A simulation, not a measurement of anyone's hands. For each multiplication the model puts a on D, finds b on C, and reads D, each time by a straight-line guess between the nearest two printed marks, then adds a random alignment error (normal, with the standard deviation shown, per setting; the answer's power of ten is taken as known). Those alignment errors are my assumption. I chose <span class="s02"></span> mm as a plausible figure for a careful person with a hairline, and I have not measured it.</p>
+<div class="tablewrap" tabindex="0" role="region" aria-label="Simulated reading error"><table id="tsim"><thead><tr><th class="num">Alignment error, per setting (mm)</th><th class="num">Median error</th><th class="num">95th percentile</th><th class="num">Largest in the run</th></tr></thead><tbody></tbody></table></div>
+<p id="simnote" class="small"></p>
+<div class="tablewrap" tabindex="0" role="region" aria-label="Eight example multiplications"><table id="tnamed"><thead><tr><th>a &times; b</th><th class="num">Exact (digits)</th><th class="num">Marks only, no hand error</th><th class="num">Difference</th><th class="num">With <span class="s02"></span> mm errors: 5th to 95th percentile</th></tr></thead><tbody></tbody></table></div>
+<p id="scalenote"></p>
+
+<h2 id="unverified">What is not checked</h2>
+<ul>
+  <li>I never printed, cut or assembled it. Whether your printer prints at 100%, how the paper stretches, how thick the lines look and whether the glued strips slide are untested; so is the cursor on clear film.</li>
+  <li>The measuring reads the PDF's drawing instructions. I looked at a raster of each page made with <code>pdftoppm</code>, but the file was not opened in other PDF programs.</li>
+  <li>The alignment errors in the simulation are assumed, and parallax, line thickness and cutting error are not in it.</li>
+  <li>Labels (numbers on the marks) are not part of the measured positions; I read them in the raster only.</li>
+</ul>
+
+<h2 id="files">Files</h2>
+<ul>
+  <li><a href="sliderule.pdf">sliderule.pdf</a>: the printable slide rule.</li>
+  <li><a href="make_sliderule.py">make_sliderule.py</a>: makes the PDF (reportlab 4.2.5).</li>
+  <li><a href="verify_sliderule.py">verify_sliderule.py</a>: measures the PDF back and writes <a href="results.json">results.json</a>, which is also copied into this page.</li>
+  <li><a href="manifest.json">manifest.json</a>: the value and place of every mark, as the generator wrote them. <a href="README.md">README.md</a>: how it was made.</li>
+</ul>
+</main>
+<!-- RESULTS:START -->
+<script type="application/json" id="results">{"length_mm":250.0,"page":{"width_mm":297.0,"cut_left_mm":14.5,"cut_right_mm":285.5,"letter_width_mm":279.4},"pdf":{"pages":2,"bytes":57847},"scales":{"A":{"ticks":151,"hand_count":151,"length_mm":250.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.097,"max_gap_mm":2.649,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]},"B":{"ticks":151,"hand_count":151,"length_mm":250.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.097,"max_gap_mm":2.649,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]},"CI":{"ticks":161,"hand_count":161,"length_mm":250.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.091,"max_gap_mm":2.681,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]},"C":{"ticks":161,"hand_count":161,"length_mm":250.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.091,"max_gap_mm":2.681,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]},"D":{"ticks":161,"hand_count":161,"length_mm":250.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.091,"max_gap_mm":2.681,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]},"RULER":{"ticks":101,"hand_count":101,"length_mm":100.0,"worst_mm":2e-05,"mean_abs_mm":1e-05,"min_gap_mm":1.0,"max_gap_mm":1.0,"left_index_mm":23.5,"widths_pt":[0.25,0.35,0.5]}},"tol_mm":0.002,"relations":{"a_over_d":[{"v":2,"square":4,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":3,"square":9,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":4,"square":16,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":5,"square":25,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":6,"square":36,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":7,"square":49,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0},{"v":8,"square":64,"a_minus_d_mm":0.0,"b_minus_c_mm":0.0}],"ci":[{"v":1.2,"ci_plus_c_minus_two_x0_mm":250.00001,"expected_mm":250.0,"diff_mm":1e-05},{"v":2,"ci_plus_c_minus_two_x0_mm":249.99998,"expected_mm":250.0,"diff_mm":-2e-05},{"v":2.5,"ci_plus_c_minus_two_x0_mm":250.00001,"expected_mm":250.0,"diff_mm":1e-05},{"v":4,"ci_plus_c_minus_two_x0_mm":250.00001,"expected_mm":250.0,"diff_mm":1e-05},{"v":5,"ci_plus_c_minus_two_x0_mm":249.99998,"expected_mm":250.0,"diff_mm":-2e-05},{"v":8,"ci_plus_c_minus_two_x0_mm":250.00001,"expected_mm":250.0,"diff_mm":1e-05}]},"simulation":{"model":"a on D, b on C, read D: a straight-line guess between printed ticks for each of the three settings, plus a random error (normal, sigma mm) on each of the three","rows":[{"sigma_mm":0.0,"pairs":20000,"seeds":1,"median_pct":[0.002,0.002],"p95_pct":[0.006,0.006],"max_pct":0.01},{"sigma_mm":0.1,"pairs":20000,"seeds":5,"median_pct":[0.106,0.109],"p95_pct":[0.311,0.316],"max_pct":0.68},{"sigma_mm":0.2,"pairs":20000,"seeds":5,"median_pct":[0.213,0.217],"p95_pct":[0.622,0.631],"max_pct":1.36},{"sigma_mm":0.4,"pairs":20000,"seeds":5,"median_pct":[0.426,0.435],"p95_pct":[1.243,1.262],"max_pct":2.75}],"interpolation_worst_pct":0.008,"interpolation_worst_gap":[2.0,2.05],"named":[{"a":2,"b":3,"exact":6,"mantissa_exact":6,"reading":6.0,"err_pct":0.0,"noisy_p5_pct":-0.52,"noisy_p95_pct":0.53},{"a":1.5,"b":4.2,"exact":6.300000000000001,"mantissa_exact":6.300000000000001,"reading":6.3,"err_pct":0.0,"noisy_p5_pct":-0.52,"noisy_p95_pct":0.53},{"a":3.14,"b":2.72,"exact":8.5408,"mantissa_exact":8.5408,"reading":8.5404,"err_pct":-0.004,"noisy_p5_pct":-0.53,"noisy_p95_pct":0.52},{"a":7.5,"b":8.4,"exact":63.0,"mantissa_exact":6.3,"reading":6.3,"err_pct":-0.0,"noisy_p5_pct":-0.52,"noisy_p95_pct":0.53},{"a":1.23,"b":4.56,"exact":5.6088,"mantissa_exact":5.6088,"reading":5.6086,"err_pct":-0.003,"noisy_p5_pct":-0.53,"noisy_p95_pct":0.52},{"a":9.99,"b":9.99,"exact":99.8001,"mantissa_exact":9.98001,"reading":9.98,"err_pct":-0.0,"noisy_p5_pct":-0.53,"noisy_p95_pct":0.2},{"a":2.5,"b":4.0,"exact":10.0,"mantissa_exact":1.0,"reading":1.0,"err_pct":0.0,"noisy_p5_pct":-0.52,"noisy_p95_pct":0.53},{"a":6.02,"b":1.38,"exact":8.307599999999999,"mantissa_exact":8.307599999999999,"reading":8.3075,"err_pct":-0.002,"noisy_p5_pct":-0.53,"noisy_p95_pct":0.52}],"named_sigma_mm":0.2,"scaling_k":0.97,"scaling_max_rel_diff":1.0636412112471607e-15},"problems":[],"data":{"d_values":[1.0,1.02,1.04,1.06,1.08,1.1,1.12,1.14,1.16,1.18,1.2,1.22,1.24,1.26,1.28,1.3,1.32,1.34,1.36,1.38,1.4,1.42,1.44,1.46,1.48,1.5,1.52,1.54,1.56,1.58,1.6,1.62,1.64,1.66,1.68,1.7,1.72,1.74,1.76,1.78,1.8,1.82,1.84,1.86,1.88,1.9,1.92,1.94,1.96,1.98,2.0,2.05,2.1,2.15,2.2,2.25,2.3,2.35,2.4,2.45,2.5,2.55,2.6,2.65,2.7,2.75,2.8,2.85,2.9,2.95,3.0,3.05,3.1,3.15,3.2,3.25,3.3,3.35,3.4,3.45,3.5,3.55,3.6,3.65,3.7,3.75,3.8,3.85,3.9,3.95,4.0,4.05,4.1,4.15,4.2,4.25,4.3,4.35,4.4,4.45,4.5,4.55,4.6,4.65,4.7,4.75,4.8,4.85,4.9,4.95,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7.0,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8.0,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9.0,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10.0],"d_x":[0.0,2.15,4.2583,6.3265,8.3559,10.3482,12.3045,14.2262,16.1145,17.9705,19.7953,21.59,23.3554,25.0926,26.8025,28.4858,30.1435,31.7762,33.3847,34.9698,36.532,38.0721,39.5906,41.0882,42.5654,44.0228,45.4609,46.8802,48.2811,49.6643,51.03,52.3788,53.711,55.027,56.3273,57.6122,58.8821,60.1373,61.3782,62.605,63.8181,65.0178,66.2044,67.3782,68.5395,69.6884,70.8253,71.9504,73.064,74.1663,75.2575,77.9385,80.5548,83.1096,85.6057,88.0456,90.4319,92.767,95.0528,97.2915,99.485,101.635,103.7433,105.8115,107.8409,109.8332,111.7895,113.7112,115.5995,117.4555,119.2803,121.075,122.8404,124.5776,126.2875,127.9709,129.6285,131.2612,132.8697,134.4548,136.017,137.5571,139.0756,140.5732,142.0504,143.5078,144.9459,146.3652,147.7662,149.1493,150.515,151.8638,153.1959,154.512,155.8123,157.0972,158.3671,159.6223,160.8632,162.09,163.3031,164.5029,165.6895,166.8632,168.0245,169.1734,170.3103,171.4354,172.549,173.6513,174.7425,176.8926,179.0008,181.069,183.0985,185.0907,187.047,188.9687,190.857,192.713,194.5378,196.3325,198.0979,199.8351,201.545,203.2283,204.886,206.5187,208.1272,209.7123,211.2745,212.8146,214.3331,215.8307,217.3079,218.7653,220.2034,221.6227,223.0237,224.4068,225.7725,227.1213,228.4535,229.7695,231.0698,232.3547,233.6246,234.8798,236.1207,237.3475,238.5606,239.7603,240.947,242.1207,243.282,244.4309,245.5678,246.6929,247.8065,248.9088,250.0],"c_values":[1.0,1.02,1.04,1.06,1.08,1.1,1.12,1.14,1.16,1.18,1.2,1.22,1.24,1.26,1.28,1.3,1.32,1.34,1.36,1.38,1.4,1.42,1.44,1.46,1.48,1.5,1.52,1.54,1.56,1.58,1.6,1.62,1.64,1.66,1.68,1.7,1.72,1.74,1.76,1.78,1.8,1.82,1.84,1.86,1.88,1.9,1.92,1.94,1.96,1.98,2.0,2.05,2.1,2.15,2.2,2.25,2.3,2.35,2.4,2.45,2.5,2.55,2.6,2.65,2.7,2.75,2.8,2.85,2.9,2.95,3.0,3.05,3.1,3.15,3.2,3.25,3.3,3.35,3.4,3.45,3.5,3.55,3.6,3.65,3.7,3.75,3.8,3.85,3.9,3.95,4.0,4.05,4.1,4.15,4.2,4.25,4.3,4.35,4.4,4.45,4.5,4.55,4.6,4.65,4.7,4.75,4.8,4.85,4.9,4.95,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7.0,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8.0,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9.0,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10.0],"c_x":[0.0,2.15,4.2583,6.3265,8.3559,10.3482,12.3045,14.2262,16.1145,17.9705,19.7953,21.59,23.3554,25.0926,26.8025,28.4858,30.1435,31.7762,33.3847,34.9698,36.532,38.0721,39.5906,41.0882,42.5654,44.0228,45.4609,46.8802,48.2811,49.6643,51.03,52.3788,53.711,55.027,56.3273,57.6122,58.8821,60.1373,61.3782,62.605,63.8181,65.0178,66.2044,67.3782,68.5395,69.6884,70.8253,71.9504,73.064,74.1663,75.2575,77.9385,80.5548,83.1096,85.6057,88.0456,90.4319,92.767,95.0528,97.2915,99.485,101.635,103.7433,105.8115,107.8409,109.8332,111.7895,113.7112,115.5995,117.4555,119.2803,121.075,122.8404,124.5776,126.2875,127.9709,129.6285,131.2612,132.8697,134.4548,136.017,137.5571,139.0756,140.5732,142.0504,143.5078,144.9459,146.3652,147.7662,149.1493,150.515,151.8638,153.1959,154.512,155.8123,157.0972,158.3671,159.6223,160.8632,162.09,163.3031,164.5029,165.6895,166.8632,168.0245,169.1734,170.3103,171.4354,172.549,173.6513,174.7425,176.8926,179.0008,181.069,183.0985,185.0907,187.047,188.9687,190.857,192.713,194.5378,196.3325,198.0979,199.8351,201.545,203.2283,204.886,206.5187,208.1272,209.7123,211.2745,212.8146,214.3331,215.8307,217.3079,218.7653,220.2034,221.6227,223.0237,224.4068,225.7725,227.1213,228.4535,229.7695,231.0698,232.3547,233.6246,234.8798,236.1207,237.3475,238.5606,239.7603,240.947,242.1207,243.282,244.4309,245.5678,246.6929,247.8065,248.9088,250.0],"named_readings":[[2,3,6.0],[1.5,4.2,6.3],[3.14,2.72,8.5404],[7.5,8.4,6.3],[1.23,4.56,5.6086],[9.99,9.99,9.98],[2.5,4.0,1.0],[6.02,1.38,8.3075]]}}</script>
+<!-- RESULTS:END -->
+<script>
+(function(){
+"use strict";
+var R;
+try{R=JSON.parse(document.getElementById("results").textContent);}catch(e){R=null;}
+function $(id){return document.getElementById(id);}
+function fmt(x,d){return Number(x).toFixed(d);}
+function pct(x,d){var t=Math.abs(x).toFixed(d);if(Number(t)===0)return "0%";return (x>0?"+":"\u2212")+t+"%";}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+if(!R){$("verdict").textContent="The results could not be read, so the checks are not shown.";return;}
+var L=R.length_mm, S=R.scales, D=R.data;
+$("pdfinfo").textContent=R.pdf.pages+" pages, "+Math.round(R.pdf.bytes/1024)+" KB";
+$("lenmm").textContent=fmt(S.D.length_mm,1)+" mm";
+$("barmm").textContent=fmt(S.RULER.length_mm,0)+" mm";
+// worked example from log10, in this browser
+function pos(v){return L*Math.log10(v);}
+$("pagew").textContent=fmt(R.page.width_mm,0)+" mm";
+$("letterw").textContent="US Letter is "+fmt(R.page.letter_width_mm,1)+" mm";
+$("cutr").textContent=fmt(R.page.cut_right_mm,1)+" mm";
+Array.prototype.forEach.call(document.querySelectorAll(".s02"),function(e){e.textContent=R.simulation.named_sigma_mm;});
+$("eg2").textContent=fmt(pos(2),2)+" mm";
+$("eg3").textContent=fmt(pos(3),2)+" mm";
+$("eg23").textContent=fmt(pos(2)+pos(3),2)+" mm";
+$("eg6").textContent=fmt(pos(6),2)+" mm";
+
+// table of scales
+var tb=$("tscales").tBodies[0], names=["D","C","CI","A","B","RULER"];
+names.forEach(function(n){var s=S[n],tr=document.createElement("tr");
+  tr.innerHTML="<td>"+n+"</td><td class='num'>"+s.ticks+"</td><td class='num'>"+s.hand_count+"</td><td class='num'>"+fmt(s.length_mm,3)+"</td><td class='num'>"+fmt(s.worst_mm,5)+"</td><td class='num'>"+fmt(s.min_gap_mm,2)+"</td>";
+  tb.appendChild(tr);});
+var maxA=0,maxB=0;R.relations.a_over_d.forEach(function(r){maxA=Math.max(maxA,Math.abs(r.a_minus_d_mm));maxB=Math.max(maxB,Math.abs(r.b_minus_c_mm));});
+var maxCI=0;R.relations.ci.forEach(function(r){maxCI=Math.max(maxCI,Math.abs(r.diff_mm));});
+var sq=R.relations.a_over_d.map(function(r){return r.v+"²";}).join(", ");
+$("relsum").textContent="Between scales, measured from the PDF: the marks for "+sq+" on A sit within "+fmt(maxA,4)+" mm of the marks for the roots on D, and on B within "+fmt(maxB,4)+" mm of those on C; CI and C mirror each other within "+fmt(maxCI,4)+" mm (checked at "+R.relations.ci.map(function(r){return r.v;}).join(", ")+").";
+var allTicks=names.reduce(function(a,n){return a+S[n].ticks;},0);
+var vd=$("verdict");
+if(R.problems.length===0){vd.innerHTML="All "+allTicks+" measured marks lie within "+fmt(R.tol_mm,3)+" mm of their log10 position (largest difference "+fmt(Math.max.apply(null,names.map(function(n){return S[n].worst_mm;})),5)+" mm), and every mark count matches the hand count.";}
+else{vd.className="note bad";vd.innerHTML="The check found "+R.problems.length+" problem"+(R.problems.length===1?"":"s")+": "+R.problems.map(esc).join("; ");}
+
+// reading model in the browser (a second implementation of the Python one)
+function posOfValue(v,vals,xs){var i=0;for(var k=0;k<vals.length-1;k++){if(vals[k]<=v+1e-12)i=k;}
+  if(i>vals.length-2)i=vals.length-2;var f=(v-vals[i])/(vals[i+1]-vals[i]);return xs[i]+f*(xs[i+1]-xs[i]);}
+function valueOfPos(p,vals,xs){p=Math.min(Math.max(p,xs[0]),xs[xs.length-1]);var lo=0,hi=xs.length-1;
+  while(hi-lo>1){var m=(lo+hi)>>1;if(xs[m]<=p)lo=m;else hi=m;}var f=(p-xs[lo])/(xs[hi]-xs[lo]);return vals[lo]+f*(vals[hi]-vals[lo]);}
+function setting(a,b){var Lm=D.d_x[D.d_x.length-1];var s=posOfValue(a,D.d_values,D.d_x);var p=s+posOfValue(b,D.c_values,D.c_x);var wrapped=false;
+  if(p>Lm){p-=Lm;wrapped=true;}
+  var r=valueOfPos(p,D.d_values,D.d_x);var m=a*b;while(m>=10)m/=10;
+  var best=r,bd=Math.abs(Math.log10(r)-Math.log10(m));[r*10,r/10].forEach(function(t){var d=Math.abs(Math.log10(t)-Math.log10(m));if(d<bd){bd=d;best=t;}});
+  return {slide:wrapped?s-Lm:s,cursor:p,read:best,mant:m,wrapped:wrapped,aPos:s};}
+// 1. log10 recomputed here against the measured marks
+var worstJs=0;D.d_values.forEach(function(v,i){worstJs=Math.max(worstJs,Math.abs(L*Math.log10(v)-D.d_x[i]));});
+// 2. the same multiplications as the Python simulation
+var worstRead=0;D.named_readings.forEach(function(t){var r=setting(t[0],t[1]).read;worstRead=Math.max(worstRead,Math.abs(r-t[2])/t[2]);});
+$("jscheck").innerHTML="In your browser: the "+D.d_values.length+" marks of scale D, recomputed here as "+L+" &times; log10, differ from the measured positions by at most "+fmt(worstJs,4)+" mm; the "+D.named_readings.length+" example multiplications below, redone here by a second implementation of the reading rule, agree with the Python readings to within "+(worstRead*100).toExponential(1)+"% (rounded to 4 decimals in the file).";
+
+// simulation tables
+var ts=$("tsim").tBodies[0];
+R.simulation.rows.forEach(function(r){var tr=document.createElement("tr");
+  var med=r.median_pct[0]===r.median_pct[1]?fmt(r.median_pct[0],3):fmt(r.median_pct[0],2)+" to "+fmt(r.median_pct[1],2);
+  var p95=r.p95_pct[0]===r.p95_pct[1]?fmt(r.p95_pct[0],3):fmt(r.p95_pct[0],2)+" to "+fmt(r.p95_pct[1],2);
+  tr.innerHTML="<td class='num'>"+(r.sigma_mm===0?"0 (marks only)":fmt(r.sigma_mm,1))+"</td><td class='num'>"+med+"%</td><td class='num'>"+p95+"%</td><td class='num'>"+fmt(r.max_pct,2)+"%</td>";ts.appendChild(tr);});
+var r0=R.simulation.rows[0],r2=R.simulation.rows.filter(function(r){return r.sigma_mm===0.2;})[0];
+$("simnote").textContent="Each row: "+r0.pairs+" random pairs a, b with three digits between 1.00 and 9.99"+(R.simulation.rows[1].seeds>1?", repeated with "+R.simulation.rows[1].seeds+" seeds (ranges show the spread between seeds)":"")+". Errors are relative to the exact product. With no hand error the whole reading by straight-line guessing is off by at most "+fmt(R.simulation.interpolation_worst_pct,3)+"% anywhere on the scale (worst between the marks "+R.simulation.interpolation_worst_gap[0]+" and "+R.simulation.interpolation_worst_gap[1]+").";
+var tn=$("tnamed").tBodies[0];
+R.simulation.named.forEach(function(n){var tr=document.createElement("tr");
+  tr.innerHTML="<td>"+n.a+" &times; "+n.b+"</td><td class='num'>"+Number(n.mantissa_exact.toPrecision(6))+"</td><td class='num'>"+n.reading+"</td><td class='num'>"+pct(n.err_pct,3)+"</td><td class='num'>"+pct(n.noisy_p5_pct,2)+" to "+pct(n.noisy_p95_pct,2)+"</td>";tn.appendChild(tr);});
+$("scalenote").textContent="Printing at "+Math.round(R.simulation.scaling_k*100)+"% (every mark moved together, no hand error): the largest change in any reading of the run was "+R.simulation.scaling_max_rel_diff.toExponential(1)+" in relative terms, i.e. none. That says the answers do not depend on the print scale; it does not say the cut-out parts still fit.";
+
+// picture and calculator
+var NS="http://www.w3.org/2000/svg",svg=$("pic"),LEN=[4.5,3.2,2.0];
+function el(n,at,txt){var e=document.createElementNS(NS,n);for(var k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;return e;}
+function tickLevel(v){var m=Math.round(v*100);if(m%100===0)return 0;if((m<200&&m%10===0)||(m>=200&&m%50===0))return 1;return 2;}
+var gStat=el("g",{}),gSlide=el("g",{}),gCur=el("g",{});
+svg.appendChild(gStat);svg.appendChild(gSlide);svg.appendChild(gCur);
+var Y=19; // edge between slide (above) and stator (below)
+gStat.appendChild(el("rect",{"class":"stator",x:-9,y:Y,width:L+21,height:20}));
+D.d_values.forEach(function(v,i){var lv=tickLevel(v),x=D.d_x[i];gStat.appendChild(el("line",{"class":"tk",x1:x,x2:x,y1:Y,y2:Y+LEN[lv],"stroke-width":[0.3,0.2,0.14][lv]}));
+  if(lv===0)gStat.appendChild(el("text",{x:x,y:Y+LEN[lv]+3.6},v===10?"10":String(v)));});
+gStat.appendChild(el("text",{x:-4.5,y:Y+4,"font-weight":"bold"},"D"));
+var slideG=el("g",{});gSlide.appendChild(slideG);
+slideG.appendChild(el("rect",{"class":"slide",x:-9,y:Y-17,width:L+21,height:17}));
+D.c_values.forEach(function(v,i){var lv=tickLevel(v),x=D.c_x[i];slideG.appendChild(el("line",{"class":"tk",x1:x,x2:x,y1:Y,y2:Y-LEN[lv],"stroke-width":[0.3,0.2,0.14][lv]}));
+  if(lv===0)slideG.appendChild(el("text",{x:x,y:Y-LEN[lv]-1.2},v===10?"10":String(v)));});
+slideG.appendChild(el("text",{x:-4.5,y:Y-2,"font-weight":"bold"},"C"));
+var cur=el("line",{"class":"cur",x1:0,x2:0,y1:Y-19,y2:Y+14});gCur.appendChild(cur);
+var inA=$("a"),inB=$("b"),out=$("out");
+function update(){
+  var a=parseFloat(inA.value),b=parseFloat(inB.value);
+  if(!(a>=1&&a<10&&b>=1&&b<10)){out.textContent="Enter two numbers from 1 to 9.99.";return;}
+  var r=setting(a,b);
+  slideG.setAttribute("transform","translate("+r.slide+" 0)");
+  cur.setAttribute("x1",r.cursor);cur.setAttribute("x2",r.cursor);
+  var err=(r.read-r.mant)/r.mant*100;
+  out.innerHTML="Slide: "+(r.wrapped?"the right-hand 10 of C":"the left-hand 1 of C")+" over "+a+" on D ("+fmt(r.aPos,1)+" mm from D's left 1). Hairline on "+b+" of C. D under the hairline reads about <b>"+Number(r.read.toPrecision(4))+"</b> (digits only). Exact "+a+" &times; "+b+" = "+Number((a*b).toPrecision(8))+"; the reading differs by "+pct(err,3)+", with no hand error added.";
+}
+inA.addEventListener("input",update);inB.addEventListener("input",update);update();
+})();
+</script>
+</body>
+</html>

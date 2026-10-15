@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typos in the Genetic Code · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Edit a short piece of DNA and watch the protein change; the page counts in code how many single-letter changes are silent, missense or stop, and checks its codon table against three NCBI-derived copies (not independent of NCBI).">
+<link rel="canonical" href="https://vigilstudio.github.io/genetic-code/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Typos in the Genetic Code · Vigil">
+<meta property="og:description" content="Edit a short piece of DNA and watch the protein change; the page counts in code how many single-letter changes are silent, missense or stop, and checks its codon table against three NCBI-derived copies (not independent of NCBI).">
+<meta property="og:url" content="https://vigilstudio.github.io/genetic-code/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Typos in the Genetic Code · Vigil">
+<meta name="twitter:description" content="Edit a short piece of DNA and watch the protein change; the page counts in code how many single-letter changes are silent, missense or stop, and checks its codon table against three NCBI-derived copies (not independent of NCBI).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;
+--silent:#bfe3dc;--silent-line:#2d7a6e;--missense:#f5d99a;--missense-line:#9a6a0c;--stop:#eba9a3;--stop-line:#b3261e;--stoploss:#d3c1ea;--stoploss-line:#6b3fa0;--ok:#2f7d3a;--bad:#b3261e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;
+--silent:#1f5a52;--silent-line:#6fd0bf;--missense:#6b5416;--missense-line:#e8bd5a;--stop:#7a2a26;--stop-line:#ff8a80;--stoploss:#4b3470;--stoploss-line:#c4a4f0;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;
+--silent:#1f5a52;--silent-line:#6fd0bf;--missense:#6b5416;--missense-line:#e8bd5a;--stop:#7a2a26;--stop-line:#ff8a80;--stoploss:#4b3470;--stoploss-line:#c4a4f0;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:30px 0 8px;font-weight:normal}
+h3{font-size:.95rem;margin:14px 0 6px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+textarea{width:100%;font:1.05rem/1.4 var(--mono);letter-spacing:.08em;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical;min-height:84px;overflow-wrap:anywhere}
+textarea:focus-visible,input:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible,.cell:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+button{font:inherit;font-size:.9rem;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+button.mini{min-height:36px;padding:2px 10px}
+input[type=number]{font:inherit;width:5.5em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+label{font-size:.9rem}
+.msg{min-height:1.5em;font-size:.9rem;margin:8px 0 0;color:var(--muted)}
+.msg.bad{color:var(--bad)}
+.verdict{margin:12px 0 0;padding:10px 12px;border-left:5px solid var(--line);background:var(--panel);border-radius:0 6px 6px 0}
+.verdict strong{font-weight:normal;font-variant:small-caps;letter-spacing:.04em}
+.grid{display:flex;flex-wrap:wrap;gap:4px}
+.cell{width:46px;min-height:60px;padding:3px 0;text-align:center;border:1px solid var(--line);border-radius:5px;background:var(--panel);font:inherit;color:var(--ink);display:block;line-height:1.25}
+div.cell{cursor:default}
+.cell .cod{display:block;font:.78rem var(--mono);letter-spacing:.02em}
+.cell .cod b{color:var(--bad);text-decoration:underline}
+.cell .aa{display:block;font-size:.88rem}
+.cell .mk{display:block;font-size:.8rem;color:var(--muted);min-height:1.1em}
+.cell.chg{border-color:var(--missense-line);background:var(--missense)}
+.cell.dna{border-color:var(--silent-line);background:var(--silent)}
+.cell.new{border-color:var(--stoploss-line);background:var(--stoploss)}
+.cell.unread{opacity:.5;border-style:dashed}
+.cell.stp{font-weight:bold}
+.cell.sel{outline:3px solid var(--ink);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:8px 0 0}
+.sw{display:inline-block;width:14px;height:14px;border:2px solid;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.sw.silent,.seg.silent{background:var(--silent);border-color:var(--silent-line)}
+.sw.missense,.seg.missense{background:repeating-linear-gradient(45deg,var(--missense) 0 5px,transparent 5px 8px),var(--missense);border-color:var(--missense-line)}
+.sw.stop,.seg.stop{background:var(--stop);border-color:var(--stop-line)}
+.sw.stoploss,.seg.stoploss{background:var(--stoploss);border-color:var(--stoploss-line)}
+.bar{display:flex;height:26px;border:1px solid var(--line);border-radius:5px;overflow:hidden;margin:4px 0 2px}
+.seg{border-width:0 0 0 0;min-width:0}
+.seg.mid{border-left-width:1px}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+caption{text-align:left;color:var(--muted);padding:6px 0;font-size:.85rem}
+.wheelwrap{display:flex;justify-content:center;margin-top:8px}
+svg.wheel{width:100%;max-width:560px;height:auto;display:block}
+.wheel text{font-family:Georgia,serif;fill:var(--ink);pointer-events:none}
+.wheel .sec{stroke:var(--line);stroke-width:1;fill:var(--panel)}
+.wheel .out{cursor:pointer}
+.wheel .out:hover{stroke:var(--ink);stroke-width:2}
+.wheel .sec.silent{fill:var(--silent)}
+.wheel .sec.missense{fill:var(--missense)}
+.wheel .sec.stop{fill:var(--stop)}
+.wheel .sec.stoploss{fill:var(--stoploss)}
+.wheel .sec.selected{stroke:var(--ink);stroke-width:3.5}
+.wheel .hatch{pointer-events:none;fill:url(#hat)}
+.wheel .heat{fill:var(--accent)}
+.nb{display:grid;grid-template-columns:1fr;gap:0}
+.nbrow{display:grid;grid-template-columns:3.2em 4.2em 1fr auto;gap:4px 8px;align-items:center;padding:3px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+.nbrow .cl{display:flex;align-items:center;gap:4px}
+#ins{display:contents}
+.mono{font-family:var(--mono)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.chk li{margin:3px 0}
+.chk{padding-left:1.2em;margin:6px 0}
+details{margin-top:10px}
+summary{cursor:pointer;min-height:32px}
+pre{font:.78rem/1.4 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;overflow-x:auto;margin:6px 0}
+fieldset{border:0;padding:0;margin:8px 0 0}
+legend{padding:0;font-size:.85rem;color:var(--muted)}
+.radios{display:flex;flex-wrap:wrap;gap:4px 16px}
+.radios label{display:flex;align-items:center;gap:6px;min-height:36px}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: no-preference){.seg{transition:flex-basis .3s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Typos in the Genetic Code</h1>
+<p class="lede">Edit a short piece of DNA and watch the protein change; the page counts how many single-letter changes are silent, missense or stop.</p>
+
+<section aria-labelledby="h-edit">
+<h2 id="h-edit">Your DNA</h2>
+<div class="panel">
+<label for="dna">Coding strand, read left to right in threes from the first letter. Letters A, C, G, T only.</label>
+<textarea id="dna" spellcheck="false" autocapitalize="characters" autocomplete="off" aria-describedby="dnamsg"></textarea>
+<p class="msg" id="dnamsg" role="status"></p>
+<div class="row" id="presets" role="group" aria-label="Starting sequences"></div>
+<div class="row" role="group" aria-label="Edit tools">
+<button type="button" id="rand" class="primary">Random single-letter change</button>
+<button type="button" id="reset">Back to original</button>
+<button type="button" id="keep">Use this as the original</button>
+</div>
+<div class="row" role="group" aria-label="Insert or delete">
+<label for="at">At base</label><input type="number" id="at" min="1" value="1" inputmode="numeric">
+<button type="button" id="del">Delete it</button>
+<span id="ins" role="group" aria-label="Insert a base before it"></span>
+</div>
+<p class="small" id="tallytxt"></p>
+</div>
+</section>
+
+<section aria-labelledby="h-prot">
+<h2 id="h-prot">The protein it spells</h2>
+<div class="verdict" id="verdict" role="status" aria-live="polite"></div>
+<p class="small" id="editsum"></p>
+<h3>Original</h3>
+<div class="grid" id="gridref"></div>
+<h3>Edited (select a codon to put it on the wheel)</h3>
+<div class="grid" id="gridcur"></div>
+<p class="legend" id="gridlegend"></p>
+</section>
+
+<section aria-labelledby="h-wheel">
+<h2 id="h-wheel">The codon wheel</h2>
+<p id="wheelsay"></p>
+<fieldset><legend>Colour the wheel by</legend>
+<div class="radios" id="modes"></div></fieldset>
+<div class="wheelwrap"><svg class="wheel" id="wheel" viewBox="0 0 560 560" role="img" aria-label="Codon wheel"></svg></div>
+<p class="small" id="wheelnote"></p>
+<div class="legend" id="wheellegend"></div>
+<h3 id="nbhead">Nine changes</h3>
+<div class="nb" id="nb"></div>
+</section>
+
+<section aria-labelledby="h-count">
+<h2 id="h-count">Counting every single-letter change</h2>
+<p id="countsay"></p>
+<div class="panel" id="countpanel"></div>
+<p class="small" id="countdef"></p>
+</section>
+
+<section aria-labelledby="h-check">
+<h2 id="h-check">How the table was checked</h2>
+<p id="checksay"></p>
+<div id="srcs"></div>
+<p><strong>Not independent.</strong> The copies below all say they come from NCBI's own file, so agreement shows that my transcription has no slip, not that NCBI's table is right. I could not reach NCBI or any source of a different origin from where this page was built.</p>
+<p>Excerpts above are quoted from open-source projects for checking only: Biopython (<a href="https://github.com/biopython/biopython/blob/master/LICENSE.rst">Biopython License Agreement or BSD 3-Clause</a>) and BioJulia BioSequences.jl (<a href="https://github.com/BioJulia/BioSequences.jl/blob/master/LICENSE">MIT</a>). I could not read BioPerl's licence from here; see its <a href="https://github.com/bioperl/bioperl-live">repository</a>.</p>
+<details><summary>Self-checks run when the page loads</summary>
+<ul class="chk" id="selfchecks"></ul></details>
+</section>
+
+<footer>
+<p>Made by Claude, an AI model. The page reads the standard code only, not the other codes found in some mitochondria and microbes. It models the order of letters in a coding strand, not the cell: real mutations are not equally likely at every letter, and a changed amino acid is not always harmful.</p>
+</footer>
+</main>
+
+<script>
+const SRC_BIOPYTHON = `"""Codon tables based on those from the NCBI.
+
+These tables are based on parsing the NCBI file
+ftp://ftp.ncbi.nih.gov/entrez/misc/data/gc.prt
+using Scripts/update_ncbi_codon_table.py
+# Data from NCBI genetic code table version 4.5
+
+register_ncbi_table(
+    name="Standard",
+    alt_name="SGC0",
+    id=1,
+    table={
+        "TTT": "F", "TTC": "F", "TTA": "L", "TTG": "L",
+        "TCT": "S", "TCC": "S", "TCA": "S", "TCG": "S",
+        "TAT": "Y", "TAC": "Y",                           # noqa: E241
+        "TGT": "C", "TGC": "C",             "TGG": "W",   # noqa: E241
+        "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
+        "CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
+        "CAT": "H", "CAC": "H", "CAA": "Q", "CAG": "Q",
+        "CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R",
+        "ATT": "I", "ATC": "I", "ATA": "I", "ATG": "M",
+        "ACT": "T", "ACC": "T", "ACA": "T", "ACG": "T",
+        "AAT": "N", "AAC": "N", "AAA": "K", "AAG": "K",
+        "AGT": "S", "AGC": "S", "AGA": "R", "AGG": "R",
+        "GTT": "V", "GTC": "V", "GTA": "V", "GTG": "V",
+        "GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
+        "GAT": "D", "GAC": "D", "GAA": "E", "GAG": "E",
+        "GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
+    },
+    stop_codons=["TAA", "TAG", "TGA"],
+    start_codons=["TTG", "CTG", "ATG"],`;
+const SRC_BIOPERL = `
+our (@NAMES, @TABLES, @STARTS);
+...
+
+Genetic-code-table ::= {
+ {
+  name "Standard" ,
+  name "SGC0" ,
+  id 1 ,
+  ncbieaa  "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+  sncbieaa "---M------**--*----M---------------M----------------------------"
+  -- Base1  TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+  -- Base2  TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+  -- Base3  TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+ },`;
+const SRC_BIOJULIA = `# Genetic codes translation tables are taken from the NCBI taxonomy database.
+
+@register_ncbi_gencode 1 standard_genetic_code """
+1. The Standard Code
+
+  AAs  = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+Starts = ---M---------------M---------------M----------------------------
+Base1  = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+Base2  = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+Base3  = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+"""
+`;
+</script>
+<script>
+"use strict";
+/* ---------- the code table ---------- */
+const TABLE_ID = 1;
+const BASES = "TCAG";
+// NCBI gc.prt order: first base T C A G, second T C A G, third T C A G. Typed by me, then checked against three copies below.
+const NCBI_AAS = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
+const AA = {A:["Ala","alanine"],R:["Arg","arginine"],N:["Asn","asparagine"],D:["Asp","aspartic acid"],C:["Cys","cysteine"],
+  Q:["Gln","glutamine"],E:["Glu","glutamic acid"],G:["Gly","glycine"],H:["His","histidine"],I:["Ile","isoleucine"],
+  L:["Leu","leucine"],K:["Lys","lysine"],M:["Met","methionine"],F:["Phe","phenylalanine"],P:["Pro","proline"],
+  S:["Ser","serine"],T:["Thr","threonine"],W:["Trp","tryptophan"],Y:["Tyr","tyrosine"],V:["Val","valine"],"*":["Stop","stop"]};
+const MAX_BASES = 120;
+const CLASSES = ["silent","missense","stop","stoploss"];
+const CLASS_LABEL = {silent:"Silent",missense:"Missense",stop:"Stop gained",stoploss:"Stop lost"};
+const ORD = ["first","second","third"];
+
+function codonAt(i){ return BASES[i>>4] + BASES[(i>>2)&3] + BASES[i&3]; }
+function makeCode(aas){ const t = {}; for (let i = 0; i < aas.length; i++) t[codonAt(i)] = aas[i]; return t; }
+const CODE = makeCode(NCBI_AAS);
+const ALL_CODONS = Array.from({length:64}, (_, i) => codonAt(i));
+
+/* ---------- counting ---------- */
+function classify(from, to){
+  if (from === "*") return to === "*" ? "silent" : "stoploss";
+  if (to === "*") return "stop";
+  return from === to ? "silent" : "missense";
+}
+function neighbours(codon, code){
+  const out = [];
+  for (let p = 0; p < 3; p++) for (const b of BASES){
+    if (b === codon[p]) continue;
+    const nc = codon.slice(0,p) + b + codon.slice(p+1);
+    out.push({pos:p, from:codon[p], to:b, codon:nc, aaFrom:code[codon], aaTo:code[nc], cls:classify(code[codon], code[nc])});
+  }
+  return out;
+}
+function emptyTally(){ return {total:0, silent:0, missense:0, stop:0, stoploss:0}; }
+function tally(codons, code){
+  const t = emptyTally(); t.stopToStop = 0; t.codons = codons.length; t.byPos = [emptyTally(), emptyTally(), emptyTally()];
+  for (const c of codons) for (const n of neighbours(c, code)){
+    t.total++; t[n.cls]++; t.byPos[n.pos].total++; t.byPos[n.pos][n.cls]++;
+    if (n.aaFrom === "*" && n.aaTo === "*") t.stopToStop++;
+  }
+  return t;
+}
+
+/* ---------- reading a sequence ---------- */
+function read(seq, code){
+  const aas = [], codons = []; let stopped = false; const full = Math.floor(seq.length / 3);
+  for (let i = 0; i < full; i++){
+    const c = seq.slice(3*i, 3*i+3); codons.push(c);
+    if (code[c] === "*"){ stopped = true; break; }
+    aas.push(code[c]);
+  }
+  return {aas, codons, stopped, full, leftover: seq.length - 3*full, readLen: codons.length*3};
+}
+function tokens(r){ return r.stopped ? r.aas.concat(["*"]) : r.aas.slice(); }
+
+/* ---------- words built from data ---------- */
+function plural(n, one, many){ return (n === 0 ? "none" : n === 1 ? "one" : String(n)) + " " + (n === 1 ? one : many || one + "s"); }
+function nameList(items, max){
+  if (items.length === 0) return "none";
+  if (items.length <= max) return items.length === 1 ? items[0] : items.slice(0,-1).join(", ") + " and " + items[items.length-1];
+  return items.slice(0,max).join(", ") + " and " + (items.length - max) + " more";
+}
+function aaName(a){ return a === "*" ? "Stop" : AA[a][0]; }
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function pct(n, d){ return d ? Math.round(100*n/d) + "%" : "-"; }
+
+/* ---------- the verdict (one branch per wording) ---------- */
+function firstDiff(a, b){ const m = Math.min(a.length, b.length); for (let i = 0; i < m; i++) if (a[i] !== b[i]) return i; return m; }
+function verdict(refSeq, curSeq, code){
+  const R = read(refSeq, code), C = read(curSeq, code);
+  if (C.full === 0) return {id:"empty", head:"Nothing to read", text:"Fewer than three letters, so there is no codon and no protein."};
+  if (refSeq === curSeq) return {id:"nochange", head:"No edit yet", text:"The DNA is the same as the original, so the protein is too. Change a letter to see what happens."};
+  const tR = tokens(R), tC = tokens(C);
+  const lenDiff = curSeq.length - refSeq.length;
+  const sameProt = R.stopped === C.stopped && R.aas.join("") === C.aas.join("");
+  if (sameProt){
+    if (refSeq.slice(0, R.readLen) === curSeq.slice(0, C.readLen))
+      return {id:"unread", head:"Not read", text:"Every changed letter lies after the first stop codon (or in a left-over pair of letters), where the page does not read, so the protein is unchanged."};
+    let n = 0; for (let i = 0; i < C.codons.length; i++) if (C.codons[i] !== R.codons[i]) n++;
+    return {id:"silent", head:"Silent", text:"The DNA differs in " + plural(n, "codon") + " but the protein is identical: each changed codon still spells the same amino acid" + (C.stopped ? " (or the same stop)" : "") + "."};
+  }
+  if (lenDiff % 3 !== 0){
+    const f = firstDiff(tR, tC) + 1;
+    const lead = "The reading frame shifted (net " + (lenDiff > 0 ? plural(lenDiff, "letter") + " added" : plural(-lenDiff, "letter") + " removed") + "), so from codon " + f + " on the protein is read in different threes. ";
+    if (C.stopped) return {id:"frameshift-stop", head:"Frameshift", text:lead + "The new reading meets a stop at codon " + C.codons.length + ", leaving " + plural(C.aas.length, "amino acid") + " (the original had " + R.aas.length + (R.stopped ? "" : ", with no stop") + ")."};
+    return {id:"frameshift-open", head:"Frameshift", text:lead + "The new reading meets no stop before the sequence ends: " + plural(C.aas.length, "amino acid") + " (the original had " + R.aas.length + (R.stopped ? "" : ", with no stop") + ")."};
+  }
+  const d = firstDiff(tR, tC) + 1;
+  if (C.stopped && (!R.stopped || C.aas.length < R.aas.length)){
+    const lost = R.aas.length - C.aas.length;
+    return {id:"stopgain", head:"Stop gained", text:"A stop codon now sits at codon " + C.codons.length + ", so the protein is " + plural(C.aas.length, "amino acid") + " instead of " + R.aas.length + (R.stopped ? "" : " (the original had no stop)") + ": " + (lost > 0 ? plural(lost, "amino acid") + " cut off" : "nothing cut off") + "."};
+  }
+  if (!C.stopped && R.stopped)
+    return {id:"stoploss", head:"Stop lost", text:"No stop codon is read any more (the original ended at codon " + R.codons.length + "), so reading runs on to the end of the sequence: " + plural(C.aas.length, "amino acid") + " instead of " + R.aas.length + "."};
+  if (C.stopped && R.stopped && C.aas.length > R.aas.length)
+    return {id:"longer", head:"Stop moved on", text:"The first stop codon moved from codon " + R.codons.length + " to codon " + C.codons.length + ", so the protein grew from " + plural(R.aas.length, "amino acid") + " to " + C.aas.length + "."};
+  if (C.aas.length === R.aas.length){
+    const ch = [];
+    for (let i = 0; i < C.aas.length; i++) if (C.aas[i] !== R.aas[i]) ch.push(aaName(R.aas[i]) + " " + (i+1) + " to " + aaName(C.aas[i]));
+    return {id:"missense", head:"Missense", text:cap(plural(ch.length, "amino acid")) + " of " + C.aas.length + " changed: " + nameList(ch, 4) + "." + (C.stopped ? "" : " The sequence has no stop codon.")};
+  }
+  const k = Math.abs(C.aas.length - R.aas.length);
+  if (C.aas.length > R.aas.length) return {id:"inframe-ins", head:"Longer, same frame", text:"Letters were added in whole threes, so the frame holds and the protein is " + plural(k, "amino acid") + " longer (" + C.aas.length + " instead of " + R.aas.length + ", first difference at codon " + d + ")."};
+  return {id:"inframe-del", head:"Shorter, same frame", text:"Letters were removed in whole threes, so the frame holds and the protein is " + plural(k, "amino acid") + " shorter (" + C.aas.length + " instead of " + R.aas.length + ", first difference at codon " + d + ")."};
+}
+const VERDICT_IDS = ["empty","nochange","unread","silent","missense","stopgain","stoploss","longer","inframe-ins","inframe-del","frameshift-stop","frameshift-open"];
+
+function describeEdit(ref, cur){
+  if (ref === cur) return "";
+  if (ref.length === cur.length){
+    const d = []; for (let i = 0; i < ref.length; i++) if (ref[i] !== cur[i]) d.push("base " + (i+1) + " " + ref[i] + " to " + cur[i]);
+    return plural(d.length, "letter") + " changed: " + nameList(d, 4) + ".";
+  }
+  let p = 0; while (p < ref.length && p < cur.length && ref[p] === cur[p]) p++;
+  let s = 0; while (s < ref.length - p && s < cur.length - p && ref[ref.length-1-s] === cur[cur.length-1-s]) s++;
+  const del = ref.length - p - s, ins = cur.length - p - s;
+  const parts = [];
+  if (del > 0) parts.push(plural(del, "letter") + " removed");
+  if (ins > 0) parts.push(plural(ins, "letter") + " added");
+  return parts.join(" and ") + " at base " + (p+1) + ".";
+}
+
+/* ---------- sources for the cross-check ---------- */
+function parseBiopython(txt){
+  const m = {}; const re = /"([ACGT]{3})":\s*"([A-Z*])"/g; let x;
+  while ((x = re.exec(txt))) m[x[1]] = x[2];
+  const st = /stop_codons=\[([^\]]*)\]/.exec(txt);
+  if (st) for (const c of st[1].match(/[ACGT]{3}/g) || []) m[c] = "*";
+  return m;
+}
+function parsePerl(txt){
+  const x = /ncbieaa\s+"([A-Z*]{64})"/.exec(txt); return x ? makeCode(x[1]) : {};
+}
+function parseJulia(txt){
+  const line = k => { const x = new RegExp("^\\s*" + k + "\\s*=\\s*(\\S+)", "m").exec(txt); return x ? x[1] : ""; };
+  const a = line("AAs"), b1 = line("Base1"), b2 = line("Base2"), b3 = line("Base3"); const m = {};
+  for (let i = 0; i < a.length; i++) m[b1[i] + b2[i] + b3[i]] = a[i];
+  return m;
+}
+const SOURCES = [
+  {name:"Biopython", file:"Bio/Data/CodonTable.py", url:"https://github.com/biopython/biopython/blob/master/Bio/Data/CodonTable.py", format:"a codon-to-letter dictionary plus a list of stop codons", txt:SRC_BIOPYTHON, parse:parseBiopython},
+  {name:"BioPerl", file:"lib/Bio/Tools/CodonTable.pm", url:"https://github.com/bioperl/bioperl-live/blob/master/lib/Bio/Tools/CodonTable.pm", format:"NCBI's 64-letter string", txt:SRC_BIOPERL, parse:parsePerl},
+  {name:"BioJulia BioSequences", file:"src/geneticcode.jl", url:"https://github.com/BioJulia/BioSequences.jl/blob/master/src/geneticcode.jl", format:"three base lines and an amino-acid line", txt:SRC_BIOJULIA, parse:parseJulia}
+];
+function compareTables(mine, other){
+  const bad = []; let agree = 0;
+  for (const c of ALL_CODONS){ if (other[c] === mine[c]) agree++; else bad.push(c + ": mine " + mine[c] + ", theirs " + (other[c] === undefined ? "missing" : other[c])); }
+  return {agree, bad, extra: Object.keys(other).filter(c => !(c in mine))};
+}
+
+/* ---------- self-checks ---------- */
+function runSelfChecks(){
+  const res = []; const add = (ok, text) => res.push({ok, text});
+  const whole = tally(ALL_CODONS, CODE);
+  const stops = ALL_CODONS.filter(c => CODE[c] === "*");
+  add(Object.keys(CODE).length === ALL_CODONS.length && NCBI_AAS.length === ALL_CODONS.length, "The table has " + Object.keys(CODE).length + " codons, one per ordered triple of A, C, G, T.");
+  add(new Set(NCBI_AAS.replace(/\*/g,"")).size === Object.keys(AA).length - 1 && [...NCBI_AAS].every(a => a in AA), "Every letter in the table has a name, and all " + (Object.keys(AA).length - 1) + " amino acids appear.");
+  add(whole.total === whole.silent + whole.missense + whole.stop + whole.stoploss && whole.total === ALL_CODONS.length * 9, "The four classes add up to all " + whole.total + " single-letter changes (" + ALL_CODONS.length + " codons times nine).");
+  add(whole.stop === whole.stoploss, "Stop gained (" + whole.stop + ") equals stop lost (" + whole.stoploss + "): every change that makes a stop can be undone by the reverse change, so the two must match.");
+  add(whole.silent % 2 === 0 && whole.missense % 2 === 0, "Silent (" + whole.silent + ") and missense (" + whole.missense + ") are both even, as reverse pairs require.");
+  const sameAll = tally(ALL_CODONS, makeCode("A".repeat(64)));
+  add(sameAll.silent === sameAll.total, "Switch off the cause: a table that gives every codon the same amino acid makes all " + sameAll.total + " changes silent.");
+  const distinct = tally(ALL_CODONS, makeCode(Array.from({length:64}, (_, i) => String.fromCharCode(65 + i)).join("")));
+  add(distinct.silent === 0 && distinct.missense === distinct.total, "Switch off the cause: a table where every codon spells a different amino acid has " + plural(distinct.silent, "silent change") + " and " + distinct.missense + " missense.");
+  const noStop = tally(ALL_CODONS, makeCode(NCBI_AAS.replace(/\*/g, "W")));
+  add(noStop.stop === 0 && noStop.stoploss === 0, "Switch off the cause: with the stop codons turned into amino acids there are " + plural(noStop.stop + noStop.stoploss, "stop change") + ".");
+  const t3 = tally(["GAG"], CODE), nb = neighbours("GAG", CODE);
+  add(t3.total === 9 && nb.length === 9 && nb.filter(n => n.cls === "silent").length === t3.silent, "One codon, GAG, gives " + nb.length + " neighbours, and its class counts match a recount from the neighbour list.");
+  for (const s of SOURCES){
+    const c = compareTables(CODE, s.parse(s.txt));
+    add(c.agree === 64 && c.extra.length === 0, s.name + " (" + s.file + "): " + c.agree + " of " + ALL_CODONS.length + " codons agree with the page's table." + (c.bad.length ? " Differences: " + c.bad.join("; ") : ""));
+  }
+  const broken = Object.assign({}, CODE, {TGA: "W"});
+  const cb = compareTables(broken, SOURCES[0].parse(SOURCES[0].txt));
+  add(cb.agree === 63, "Switch off the cause: change one entry of the page's own table (TGA to W) and the comparison with Biopython reports " + cb.agree + " of " + ALL_CODONS.length + ", naming it.");
+  // verdict branches
+  const seen = new Set(); const examples = {};
+  const tryPair = (r, c) => { const v = verdict(r, c, CODE); if (!(v.id in examples)) examples[v.id] = v.text; seen.add(v.id); return v.id; };
+  const base = "ATGGAGAAATAA";
+  tryPair(base, "AT"); tryPair(base, base);
+  tryPair("ATGTAAGGG", "ATGTAACCC");
+  tryPair(base, "ATGGAAAAATAA"); tryPair(base, "ATGGTGAAATAA"); tryPair(base, "ATGTAGAAATAA"); tryPair(base, "ATGGAGAAATAC");
+  tryPair("ATGTAATAA", "ATGTACTAA");
+  tryPair("ATGGAGAAA", "ATGGAGGGGAAA"); tryPair("ATGGAGGGGAAA", "ATGGAGAAA");
+  const probe = {};
+  for (let i = 0; i <= base.length; i++){
+    for (const b of "ACGT"){ const id = tryPair(base, base.slice(0,i) + b + base.slice(i)); probe[id] = probe[id] || ("insert " + b + " before base " + (i+1)); }
+    if (i < base.length){ const id = tryPair(base, base.slice(0,i) + base.slice(i+1)); probe[id] = probe[id] || ("delete base " + (i+1)); }
+  }
+  const missing = VERDICT_IDS.filter(id => !seen.has(id));
+  add(missing.length === 0, "All " + VERDICT_IDS.length + " verdict wordings were reached by test pairs (" + (missing.length ? "missing: " + missing.join(", ") : "none missing") + ").");
+  return {res, examples};
+}
+
+/* ---------- state ---------- */
+const PRESETS = [
+  {label:"Globin-like start (from memory, unchecked)", seq:"ATGGTGCATCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGTAA"},
+  {label:"Six leucines", seq:"ATGCTGCTCCTACTTTTATTGTAA"},
+  {label:"Short and plain", seq:"ATGGAGAAATAA"}
+];
+let ref = PRESETS[0].seq, cur = ref, sel = 0, mode = "nb";
+let rtally = {n:0, silent:0, missense:0, stop:0, stoploss:0};
+let seed = 20261015;
+function rnd(){ seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+
+/* ---------- wheel ---------- */
+const CX = 280, CY = 280, RINGS = [[56,94],[94,132],[132,170],[170,214]];
+function polar(r, a){ return [CX + r*Math.sin(a), CY - r*Math.cos(a)]; }
+function sector(r0, r1, a0, a1){
+  const [x0,y0] = polar(r1,a0), [x1,y1] = polar(r1,a1), [x2,y2] = polar(r0,a1), [x3,y3] = polar(r0,a0);
+  const f = n => n.toFixed(2);
+  return "M" + f(x0) + " " + f(y0) + "A" + r1 + " " + r1 + " 0 0 1 " + f(x1) + " " + f(y1) + "L" + f(x2) + " " + f(y2) + "A" + r0 + " " + r0 + " 0 0 0 " + f(x3) + " " + f(y3) + "Z";
+}
+const NS = "http://www.w3.org/2000/svg";
+function svg(tag, attrs, text){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+const outer = [];   // per codon index: {ring3, ring4, hatch}
+function buildWheel(){
+  const w = $("wheel");
+  const defs = svg("defs", {}); const pat = svg("pattern", {id:"hat", width:"6", height:"6", patternUnits:"userSpaceOnUse", patternTransform:"rotate(45)"});
+  pat.appendChild(svg("rect", {width:"2", height:"6", fill:"var(--missense-line)", opacity:".55"})); defs.appendChild(pat); w.appendChild(defs);
+  const span = (2*Math.PI)/64;
+  const groups = [[16, i => BASES[i>>4]], [4, i => BASES[(i>>2)&3]], [1, i => BASES[i&3]]];
+  groups.forEach((g, ring) => {
+    const n = 64 / g[0];
+    for (let k = 0; k < n; k++){
+      const i0 = k*g[0], a0 = i0*span, a1 = (i0+g[0])*span;
+      const s = svg("path", {d:sector(RINGS[ring][0], RINGS[ring][1], a0, a1), "class":"sec"});
+      if (ring === 2){ s.classList.add("out"); s.dataset.i = i0; outer[i0] = {ring3:s}; }
+      w.appendChild(s);
+      const [tx, ty] = polar((RINGS[ring][0]+RINGS[ring][1])/2, (a0+a1)/2);
+      w.appendChild(svg("text", {x:tx.toFixed(1), y:(ty+5).toFixed(1), "text-anchor":"middle", "font-size": ring === 2 ? 14 : 17}, g[1](i0)));
+    }
+  });
+  for (let i = 0; i < 64; i++){
+    const a0 = i*span, a1 = (i+1)*span;
+    const s = svg("path", {d:sector(RINGS[3][0], RINGS[3][1], a0, a1), "class":"sec out"}); s.dataset.i = i;
+    const t = svg("title", {}); s.appendChild(t);
+    const h = svg("path", {d:sector(RINGS[3][0], RINGS[3][1], a0, a1), "class":"hatch", opacity:"0"});
+    const [tx, ty] = polar((RINGS[3][0]+RINGS[3][1])/2, (a0+a1)/2);
+    const lab = svg("text", {x:tx.toFixed(1), y:(ty+5).toFixed(1), "text-anchor":"middle", "font-size":15, "font-weight":"bold"}, NCBI_AAS[i]);
+    w.appendChild(s); w.appendChild(h); w.appendChild(lab);
+    outer[i].ring4 = s; outer[i].hatch = h; outer[i].label = lab; outer[i].title = t;
+  }
+  w.appendChild(svg("circle", {cx:CX, cy:CY, r:RINGS[0][0]-2, fill:"var(--bg)", stroke:"var(--line)"}));
+  w.appendChild(svg("text", {id:"hubcod", x:CX, y:CY-2, "text-anchor":"middle", "font-size":21, "font-family":"ui-monospace,Menlo,monospace"}, ""));
+  w.appendChild(svg("text", {id:"hubaa", x:CX, y:CY+20, "text-anchor":"middle", "font-size":14}, ""));
+  w.addEventListener("click", e => {
+    const t = e.target.closest && e.target.closest(".out"); if (!t) return;
+    setCodon(sel, codonAt(+t.dataset.i));
+  });
+}
+function codonIdx(c){ return BASES.indexOf(c[0])*16 + BASES.indexOf(c[1])*4 + BASES.indexOf(c[2]); }
+
+/* ---------- actions ---------- */
+function clean(raw){
+  const up = raw.toUpperCase().replace(/\s+/g, "");
+  const bad = [...new Set([...up].filter(ch => !"ACGT".includes(ch)))];
+  let s = [...up].filter(ch => "ACGT".includes(ch)).join("");
+  const cut = s.length > MAX_BASES; if (cut) s = s.slice(0, MAX_BASES);
+  return {s, bad, cut};
+}
+function say(text, bad){ const m = $("dnamsg"); m.textContent = text; m.className = "msg" + (bad ? " bad" : ""); }
+function setCur(s, note){ cur = s; render(); if (note) say(note); }
+function setCodon(i, codon){
+  const C = read(cur, CODE); if (i >= C.full) return;
+  const old = cur.slice(3*i, 3*i+3);
+  setCur(cur.slice(0, 3*i) + codon + cur.slice(3*i+3), "Codon " + (i+1) + " set from " + old + " to " + codon + ".");
+}
+function atPos(){ let v = parseInt($("at").value, 10); if (!(v >= 1)) v = 1; return Math.min(v, cur.length + 1); }
+
+/* ---------- rendering ---------- */
+function cellFor(i, r, s, refR, side){
+  const isRead = i < r.codons.length;
+  const codon = i < r.full ? s.slice(3*i, 3*i+3) : null;
+  const refCodon = i < refR.full ? ref.slice(3*i, 3*i+3) : null;
+  const tok = isRead ? (CODE[codon] === "*" ? "*" : CODE[codon]) : null;
+  const refTok = i < refR.codons.length ? CODE[refCodon] : null;
+  let state = "same", mark = "", word = "same as original";
+  if (side === "ref"){ state = ""; word = ""; }
+  else if (!isRead){ state = "unread"; word = "not read"; }
+  else if (refTok === null){ state = "new"; mark = "+"; word = "read only in the edited version"; }
+  else if (tok !== refTok){ state = "chg"; mark = "≠"; word = "amino acid changed"; }
+  else if (codon !== refCodon){ state = "dna"; mark = "="; word = "DNA changed, amino acid the same"; }
+  if (side === "ref" && !isRead) state = "unread";
+  const node = side === "cur" ? el("button", "cell " + state) : el("div", "cell " + state);
+  if (side === "cur") node.type = "button";
+  const cod = el("span", "cod");
+  if (side === "cur" && refCodon && state !== "unread" || (side === "cur" && refCodon)){
+    for (let k = 0; k < 3; k++){ if (codon[k] !== refCodon[k]){ const b = el("b", "", codon[k]); cod.appendChild(b); } else cod.appendChild(document.createTextNode(codon[k])); }
+  } else cod.textContent = codon;
+  node.appendChild(cod);
+  const aa = el("span", "aa", isRead ? aaName(tok) : "·"); node.appendChild(aa);
+  node.appendChild(el("span", "mk", mark));
+  if (isRead && tok === "*") node.classList.add("stp");
+  if (side === "cur"){
+    if (i === sel) node.classList.add("sel");
+    node.setAttribute("aria-label", "Codon " + (i+1) + " " + codon + ", " + (isRead ? aaName(tok) : "after the stop, not read") + ", " + word);
+    node.setAttribute("aria-pressed", i === sel ? "true" : "false");
+    node.addEventListener("click", () => { sel = i; render(); });
+  } else node.setAttribute("aria-label", "Original codon " + (i+1) + " " + codon + ", " + (isRead ? aaName(tok) : "not read"));
+  return node;
+}
+function leftCell(seq, r){
+  const n = el("div", "cell unread"); n.appendChild(el("span", "cod", seq.slice(3*r.full))); n.appendChild(el("span", "aa", "·")); n.appendChild(el("span", "mk", "")); n.setAttribute("aria-label", "Left-over letters " + seq.slice(3*r.full) + ", not a full codon"); return n;
+}
+function renderGrids(R, C){
+  const gr = $("gridref"), gc = $("gridcur"); gr.textContent = ""; gc.textContent = "";
+  for (let i = 0; i < R.full; i++) gr.appendChild(cellFor(i, R, ref, R, "ref"));
+  if (R.leftover) gr.appendChild(leftCell(ref, R));
+  for (let i = 0; i < C.full; i++) gc.appendChild(cellFor(i, C, cur, R, "cur"));
+  if (C.leftover) gc.appendChild(leftCell(cur, C));
+}
+function swatch(cls, text){ const s = el("span"); s.appendChild(el("span", "sw " + cls)); s.appendChild(document.createTextNode(text)); return s; }
+
+function renderCounts(C){
+  const whole = tally(ALL_CODONS, CODE);
+  const mine = tally(C.codons, CODE);
+  const p = $("countpanel"); p.textContent = "";
+  const bar = (t, label) => {
+    const wrap = el("div"); wrap.appendChild(el("div", "", label));
+    const b = el("div", "bar"); b.setAttribute("role", "img");
+    b.setAttribute("aria-label", label + ": " + CLASSES.map(c => CLASS_LABEL[c] + " " + t[c]).join(", "));
+    CLASSES.forEach(c => { if (t[c]) { const s = el("div", "seg " + c + (b.children.length ? " mid" : "")); s.style.flex = t[c] + " 1 0"; s.title = CLASS_LABEL[c] + ": " + t[c]; b.appendChild(s); } });
+    wrap.appendChild(b); return wrap;
+  };
+  p.appendChild(bar(whole, "Whole code: all " + whole.codons + " codons, " + whole.total + " single-letter changes"));
+  p.appendChild(mineLine(mine));
+  const tb = (t, cap) => {
+    const table = el("table"); table.appendChild(el("caption", "", cap));
+    const head = el("tr"); ["Which letter", ...CLASSES.map(c => CLASS_LABEL[c]), "All"].forEach(h => head.appendChild(el("th", "", h))); table.appendChild(head);
+    const rows = [...t.byPos.map((x, i) => [ORD[i][0].toUpperCase() + ORD[i].slice(1) + " of codon", x]), ["All three", t]];
+    rows.forEach(([name, x]) => { const tr = el("tr"); tr.appendChild(el("td", "", name));
+      CLASSES.forEach(c => tr.appendChild(el("td", "", x[c] + " (" + pct(x[c], x.total) + ")"))); tr.appendChild(el("td", "", String(x.total))); table.appendChild(tr); });
+    return table;
+  };
+  p.appendChild(tb(whole, "Whole code, by which letter of the codon is changed"));
+  p.appendChild(document.createElement("br"));
+  if (mine.total) p.appendChild(tb(mine, "Your sequence (" + plural(mine.codons, "codon") + " read), by which letter is changed"));
+  const best = whole.byPos.map((x, i) => [x.silent / x.total, i]).sort((a, b) => b[0] - a[0])[0][1];
+  const worst = whole.byPos.map((x, i) => [x.silent / x.total, i]).sort((a, b) => a[0] - b[0])[0][1];
+  $("countsay").textContent = "The page tries every substitution at every letter of every codon. In the whole code that is " + whole.total + " changes: " + whole.silent + " silent, " + whole.missense + " missense, " + whole.stop + " that turn an amino-acid codon into a stop, and " + whole.stoploss + " that turn a stop into an amino-acid codon. The " + ORD[best] + " letter of a codon is silent most often (" + pct(whole.byPos[best].silent, whole.byPos[best].total) + " of its changes) and the " + ORD[worst] + " least (" + pct(whole.byPos[worst].silent, whole.byPos[worst].total) + ").";
+  const rd = $("countdef"); rd.textContent = "Silent: the same amino acid afterwards" + (whole.stopToStop ? " (this includes " + plural(whole.stopToStop, "change") + " from one stop codon to another)" : "") + ". Missense: a different amino acid. Stop gained: an amino-acid codon becomes a stop. Stop lost: a stop codon becomes an amino-acid codon. Your sequence is counted over the codons that are read, up to and including the first stop; percentages are rounded and may not add to one hundred.";
+}
+function mineLine(t){
+  if (!t.total){ return el("p", "small", "Your sequence has no complete codon, so there is nothing to count."); }
+  const label = "Your sequence: " + plural(t.codons, "codon") + " read, " + t.total + " single-letter changes";
+  const wrap = el("div"); wrap.style.marginTop = "10px"; wrap.appendChild(el("div", "", label));
+  const b = el("div", "bar"); b.setAttribute("role", "img"); b.setAttribute("aria-label", label + ": " + CLASSES.map(c => CLASS_LABEL[c] + " " + t[c]).join(", "));
+  CLASSES.forEach(c => { if (t[c]) { const s = el("div", "seg " + c + (b.children.length ? " mid" : "")); s.style.flex = t[c] + " 1 0"; s.title = CLASS_LABEL[c] + ": " + t[c]; b.appendChild(s); } });
+  wrap.appendChild(b);
+  wrap.appendChild(el("div", "small", CLASSES.map(c => CLASS_LABEL[c].toLowerCase() + " " + t[c] + " (" + pct(t[c], t.total) + ")").join(", ") + "."));
+  return wrap;
+}
+
+function render(){
+  if ($("dna").value !== cur) $("dna").value = cur;
+  const R = read(ref, CODE), C = read(cur, CODE);
+  if (sel >= C.full) sel = Math.max(0, C.full - 1);
+  const v = verdict(ref, cur, CODE);
+  const vb = $("verdict"); vb.textContent = ""; vb.appendChild(el("strong", "", v.head + ". ")); vb.appendChild(document.createTextNode(v.text));
+  vb.dataset.branch = v.id;
+  $("editsum").textContent = describeEdit(ref, cur);
+  renderGrids(R, C);
+  $("ins").querySelectorAll("button").forEach(b => b.disabled = cur.length >= MAX_BASES);
+  $("del").disabled = cur.length === 0;
+  $("reset").disabled = cur === ref; $("keep").disabled = cur === ref || C.full < 1;
+  $("at").max = String(cur.length + 1);
+  $("tallytxt").textContent = rtally.n ? "Random changes made so far: " + rtally.n + " (" + CLASSES.map(c => CLASS_LABEL[c].toLowerCase() + " " + rtally[c]).join(", ") + "). Each is judged on the codon it hit, before the change." : "";
+  renderWheel(C);
+  renderCounts(C);
+}
+function renderWheel(C){
+  const codon = C.full ? cur.slice(3*sel, 3*sel+3) : null;
+  const nbBox = $("nb"); nbBox.textContent = "";
+  $("hubcod").textContent = codon || ""; $("hubaa").textContent = codon ? aaName(CODE[codon]) : "";
+  const map = {};
+  if (codon) neighbours(codon, CODE).forEach(n => map[n.codon] = n);
+  const wholeSilent = {};
+  for (let i = 0; i < 64; i++){
+    const c = codonAt(i), o = outer[i];
+    ["ring3","ring4"].forEach(k => { o[k].setAttribute("class", "sec" + (k === "ring4" ? " out" : "") + (k === "ring3" ? " out" : "")); });
+    o.hatch.setAttribute("opacity", "0");
+    let ttl = c + " " + aaName(CODE[c]);
+    if (mode === "nb" && codon){
+      const n = map[c];
+      if (n){ o.ring3.classList.add(n.cls); o.ring4.classList.add(n.cls); if (n.cls === "missense") o.hatch.setAttribute("opacity", "1"); ttl += ": " + CLASS_LABEL[n.cls].toLowerCase() + " from " + codon; }
+      if (c === codon){ o.ring3.classList.add("selected"); o.ring4.classList.add("selected"); ttl += " (selected)"; }
+    } else {
+      const t = tally([c], CODE); wholeSilent[c] = t.silent;
+      o.ring4.style.fill = "";
+      ttl += ": " + t.silent + " of " + t.total + " changes are silent";
+      if (codon && c === codon){ o.ring3.classList.add("selected"); o.ring4.classList.add("selected"); }
+    }
+    if (mode !== "nb"){ o.ring4.style.fill = "color-mix(in srgb, var(--accent) " + Math.round(100 * wholeSilent[c] / 9 * 0.8) + "%, var(--panel))"; }
+    else { o.ring4.style.fill = ""; }
+    o.title.textContent = ttl + ". Click to set the selected codon to " + c + ".";
+  }
+  const leg = $("wheellegend"); leg.textContent = "";
+  if (mode === "nb") CLASSES.forEach(c => leg.appendChild(swatch(c, CLASS_LABEL[c])));
+  else leg.appendChild(el("span", "", "Darker outer ring: more of that codon's nine changes are silent (none to all nine). Hover a sector for its count."));
+  if (!codon){ $("wheelsay").textContent = "Type at least one full codon to put it on the wheel."; $("nbhead").textContent = ""; return; }
+  const ns = neighbours(codon, CODE); const cnt = emptyTally(); ns.forEach(n => cnt[n.cls]++);
+  const idx = sel + 1;
+  $("wheelsay").textContent = "Codon " + idx + " of your edited DNA is " + codon + ", which spells " + (CODE[codon] === "*" ? "a stop" : AA[CODE[codon]][1]) + ". Its nine possible single-letter changes: " + CLASSES.map(c => cnt[c] + " " + CLASS_LABEL[c].toLowerCase()).join(", ") + ". Rings from the centre: first letter, second, third, then the amino acid (one-letter code, * for stop). Click any outer sector to rewrite the codon.";
+  $("wheelnote").textContent = "";
+  $("nbhead").textContent = "The nine changes to " + codon;
+  ns.forEach(n => {
+    const row = el("div", "nbrow");
+    row.appendChild(el("span", "", ORD[n.pos] + ": " + n.from + "→" + n.to));
+    row.appendChild(el("span", "mono", n.codon));
+    const cl = el("span", "cl"); cl.appendChild(el("span", "sw " + n.cls)); cl.appendChild(document.createTextNode(aaName(n.aaFrom) + " → " + aaName(n.aaTo) + ", " + CLASS_LABEL[n.cls].toLowerCase()));
+    row.appendChild(cl);
+    const b = el("button", "mini", "Apply"); b.type = "button"; b.setAttribute("aria-label", "Apply " + n.codon + " to codon " + idx); b.addEventListener("click", () => setCodon(sel, n.codon));
+    row.appendChild(b); nbBox.appendChild(row);
+  });
+}
+
+function renderChecks(){
+  const {res, examples} = runSelfChecks();
+  const ul = $("selfchecks"); ul.textContent = "";
+  res.forEach(r => { const li = el("li", r.ok ? "ok" : "bad"); li.textContent = (r.ok ? "Pass: " : "FAIL: ") + r.text; ul.appendChild(li); });
+  const nOk = res.filter(r => r.ok).length;
+  window.__selfchecks = {pass:nOk, total:res.length, failed:res.filter(r => !r.ok).map(r => r.text), examples};
+  SOURCES.forEach(s => {
+    const c = compareTables(CODE, s.parse(s.txt));
+    const lines = s.txt.split("\n").filter(l => /NCBI|gc\.prt/.test(l)).map(l => l.trim()).slice(0, 3);
+    const d = el("details"); const sm = el("summary"); sm.textContent = s.name + ": " + c.agree + " of " + ALL_CODONS.length + " codons agree" + (c.bad.length ? " (" + c.bad.length + " differ)" : "");
+    d.appendChild(sm);
+    const p = el("p", "small"); p.appendChild(document.createTextNode("Excerpt of " + s.file + " (" + s.format + "), copied from the master branch when this page was made: "));
+    const a = el("a", "", s.url); a.href = s.url; p.appendChild(a); d.appendChild(p);
+    d.appendChild(el("p", "small", "Where that file names its origin (" + plural(lines.length, "line") + " shown):"));
+    d.appendChild(el("pre", "", lines.join("\n")));
+    d.appendChild(el("pre", "", s.txt.trim())); srcsBox.appendChild(d);
+  });
+  $("checksay").textContent = "The page's table (NCBI translation table " + TABLE_ID + ", the standard code) is compared here, in your browser, codon by codon with the copies below. " + nOk + " of " + res.length + " self-checks pass" + (nOk === res.length ? "." : "; the failures are listed under Self-checks.");
+}
+const srcsBox = $("srcs");
+
+/* ---------- wiring ---------- */
+function init(){
+  buildWheel();
+  PRESETS.forEach(p => { const b = el("button", "", p.label); b.type = "button"; b.addEventListener("click", () => { ref = p.seq; cur = p.seq; sel = 0; rtally = {n:0, silent:0, missense:0, stop:0, stoploss:0}; render(); say("Loaded: " + p.label + "."); }); $("presets").appendChild(b); });
+  $("modes").innerHTML = "";
+  [["nb","The nine changes to the selected codon"],["heat","How silent each codon is (all 64)"]].forEach(([v, t]) => {
+    const l = el("label"); const r = document.createElement("input"); r.type = "radio"; r.name = "mode"; r.value = v; r.checked = v === mode;
+    r.addEventListener("change", () => { mode = v; render(); }); l.appendChild(r); l.appendChild(document.createTextNode(t)); $("modes").appendChild(l);
+  });
+  $("dna").maxLength = MAX_BASES * 4;
+  $("dna").addEventListener("input", e => {
+    const c = clean(e.target.value); const note = [];
+    if (c.bad.length) note.push("Ignored: " + c.bad.join(" ") + " (only A, C, G, T are DNA letters here).");
+    if (c.cut) note.push("Cut to " + MAX_BASES + " letters.");
+    cur = c.s; if (c.bad.length || c.cut || e.target.value !== c.s) { const pos = e.target.selectionStart; e.target.value = c.s; try { e.target.setSelectionRange(pos, pos); } catch (_) {} }
+    say(note.join(" "), note.length > 0); render();
+  });
+  $("rand").addEventListener("click", () => {
+    const C = read(cur, CODE); if (!C.codons.length){ say("Type a full codon first.", true); return; }
+    const pos = Math.floor(rnd() * C.codons.length * 3), ci = Math.floor(pos / 3);
+    const others = [...BASES].filter(b => b !== cur[pos]); const nb = others[Math.floor(rnd() * 3)];
+    const codon = cur.slice(3*ci, 3*ci+3); const nc = codon.slice(0, pos - 3*ci) + nb + codon.slice(pos - 3*ci + 1);
+    const cls = classify(CODE[codon], CODE[nc]); rtally.n++; rtally[cls]++;
+    sel = ci; cur = cur.slice(0, pos) + nb + cur.slice(pos + 1);
+    render(); say("Base " + (pos+1) + " changed from " + codon[pos - 3*ci] + " to " + nb + " (codon " + (ci+1) + ", " + codon + " to " + nc + ": " + CLASS_LABEL[cls].toLowerCase() + ").");
+  });
+  $("reset").addEventListener("click", () => { cur = ref; render(); say("Back to the original."); });
+  $("keep").addEventListener("click", () => { ref = cur; rtally = {n:0, silent:0, missense:0, stop:0, stoploss:0}; render(); say("The current DNA is now the original."); });
+  $("del").addEventListener("click", () => { const p = atPos(); if (p > cur.length){ say("There is no base " + p + " to delete.", true); return; } const was = cur[p-1]; setCur(cur.slice(0, p-1) + cur.slice(p), "Deleted base " + p + " (" + was + ")."); });
+  [...BASES].forEach(b => { const x = el("button", "", "Insert " + b); x.type = "button"; x.addEventListener("click", () => { if (cur.length >= MAX_BASES){ say("The limit is " + MAX_BASES + " letters.", true); return; } const p = atPos(); setCur(cur.slice(0, p-1) + b + cur.slice(p-1), "Inserted " + b + " before base " + p + "."); }); $("ins").appendChild(x); });
+  const gl = $("gridlegend"); gl.textContent = "";
+  gl.appendChild(el("span", "", "Edited cells: "));
+  [["chg","≠ amino acid changed"],["dna","= DNA changed, amino acid the same"],["new","+ read only in the edited version"],["unread","· after the stop, not read"]].forEach(([c, t]) => { const s = el("span"); s.appendChild(el("span", "sw " + (c === "chg" ? "missense" : c === "dna" ? "silent" : c === "new" ? "stoploss" : ""))); s.appendChild(document.createTextNode(t)); gl.appendChild(s); });
+  renderChecks();
+  // first selected codon: the first one that differs from the original, else the first
+  sel = 0;
+  render();
+  window.__app = {verdict, tally, neighbours, read, CODE, makeCode, SOURCES, compareTables, setSeq: (r, c) => { ref = r; cur = c; sel = 0; render(); }, get state(){ return {ref, cur, sel, mode}; }, runSelfChecks};
+}
+init();
+</script>
+</body>
+</html>

@@ -9,12 +9,13 @@ import { createRenderer } from "./render.js";
 import { createMinimap, describeNearest } from "./minimap.js";
 import { hourAt, lightFor, pickHour, HOURS } from "./nightclock.js";
 import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
-import { surfaceAt, landmarkFingerprint } from "./world.js";
+import { surfaceAt, landmarkFingerprint, BEACON_SIDES } from "./world.js";
 import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.js";
 import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventory.js";
 import { createBeacons, BEACON_NEED, BEACON_RANGE, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
+import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText } from "./craft.js";
 
 const ROOMS = 6;
@@ -82,7 +83,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -102,7 +103,9 @@ async function enter() {
   give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save });
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
-  me.say = null; me.emote = null;
+  quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
+  me.say = null; me.emote = null; $("questinfo").textContent = "";
+  paintQuests(true);
   paintBeacon(true); $("beaconinfo").textContent = "";
   paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
@@ -120,8 +123,8 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null;
-  paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null;
+  paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
@@ -153,6 +156,7 @@ function frame(t) {
   give.tick();
   craft.tick();
   beacon.tick();
+  quests.tick();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
@@ -160,6 +164,7 @@ function frame(t) {
   const fires = fireList();
   renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires);
   paintBeacon();
+  paintQuests();
   $("gather").disabled = !reach;
   paintGive();
   if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires); }
@@ -181,7 +186,7 @@ function footsteps(light) {
 }
 // ---- gathering: E or the Gather button picks what is in reach; the room sees it vanish ----
 function gatherEvent(type, kind) {
-  if (type === "got") { $("gathered").textContent = `You gathered ${KIND_NAMES[kind].toLowerCase()}.`; paintPack(); save(); }
+  if (type === "got") { if (quests) quests.credit("gather", kind); $("gathered").textContent = `You gathered ${KIND_NAMES[kind].toLowerCase()}.`; paintPack(); save(); }
   else $("gathered").textContent = `Someone was first to the ${KIND_NAMES[kind].toLowerCase()}.`;
 }
 function paintPack() {
@@ -202,6 +207,7 @@ FUEL_ITEMS.forEach((k) => {
 });
 function beaconEvent(type, b, r) {
   let say = "";
+  if (type === "added" && quests) quests.credit("fuel", null, b, WORTH[r.item]);
   if (type === "added") say = `You added ${ITEM_NAMES[r.item]} to the beacon. It is gone from your pack.`;
   else if (type === "lit") say = "A beacon is lit! It will burn while anyone is in this lantern.";
   else if (type === "refused") say = { far: `Stand within ${BEACON_RANGE} tiles of a beacon to add fuel.`, wait: "Still hearing from the others. Try again in a moment.", lit: "This beacon is already lit.", full: `You have added as much as one player can to this beacon (${MAX_OWN} fuel). Others have to add the rest.`, missing: `You have no ${ITEM_NAMES[r && r.item] || "such item"} to add.`, }[r && r.why] || "Nothing was added.";
@@ -222,6 +228,34 @@ function paintBeacon(force) {
   $("beaconstate").textContent = lit ? `This beacon is lit (${f} fuel from ${n} players).` : `Fuel ${f} of ${BEACON_NEED}, from ${n} player${n === 1 ? "" : "s"}. It lights when it has ${BEACON_NEED} and at least ${MIN_PLAYERS} players added some. You added ${beacon.shares.own(b, me.seed)} (at most ${MAX_OWN}).`;
   for (const btn of beaconBox.children) btn.disabled = lit || inv[btn.dataset.item] < 1;
 }
+// ---- the keeper's notes: three small quests a day (from the seed and the date), finished by the lantern together ----
+const testDay = pickDay(location.search, onLoopback);
+$("quests-min").textContent = NOTE_PLAYERS;
+const beaconName = (b) => beaconList[b] ? BEACON_SIDES[beaconList[b].side] : "old";
+let lastQuestKey = "";
+function questLines() {
+  if (!quests) return [];
+  return quests.notes.map((note, q) => {
+    const sh = quests.shares, done = sh.done(q), tot = sh.total(q), pl = sh.players(q), mine = sh.own(q, me.seed);
+    const text = noteText(note, beaconName);
+    return { q, done, line: done ? `Done: ${text}. ${tot} from ${pl} players.` : `${text}: ${Math.min(tot, note.need)} of ${note.need}, from ${pl} player${pl === 1 ? "" : "s"}. You added ${mine} (at most ${shareCap(note)}). It needs at least ${NOTE_PLAYERS} players.` };
+  });
+}
+function questEvent(type, q) {
+  if (type === "done") { const n = quests.notes[q]; $("questinfo").textContent = `The keeper's note is finished: ${noteText(n, beaconName)}. Well done, all of you.`; }
+  else if (type === "newday") $("questinfo").textContent = "A new day: the keeper has written new notes.";
+  lastQuestKey = "";
+}
+function paintQuests(force) {
+  if (force) lastQuestKey = "";
+  const lines = questLines();
+  const key = quests ? quests.day + "|" + lines.map(l => l.line).join("|") : "";
+  if (key === lastQuestKey) return;
+  lastQuestKey = key;
+  $("quests").hidden = !quests;
+  const ul = $("questlist"); ul.textContent = "";
+  for (const l of lines) { const li = document.createElement("li"); li.textContent = l.line; li.dataset.done = l.done ? "1" : "0"; ul.append(li); }
+}
 // ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
 const craftBox = $("craftbtns"), holdBox = $("holdbtns");
 CRAFTED.forEach((name) => {
@@ -240,6 +274,7 @@ LAMPS.forEach((l, n) => {
 $("recipes").textContent = CRAFTED.map(k => `${CRAFT_NAMES[k]}: ${recipeText(k)}`).join(". ") + ".";
 function craftEvent(type, what, r, holding) {
   let say = "";
+  if (type === "made" && quests) quests.credit("craft", what);
   if (type === "made") say = `You made one ${ITEM_NAMES[what]}. The ingredients are used up.` + (LAMP_KEYS.includes(what) && holding ? " You hold it now." : "");
   else if (type === "refused") say = r && r.why === "full" ? `Your ${ITEM_NAMES[what]} stack is full, so nothing was made and nothing was used.` : `Not enough ${r && r.item ? ITEM_NAMES[r.item] : "ingredients"} for a ${ITEM_NAMES[what]}. Nothing was used.`;
   else if (type === "hold") say = what ? `You now hold the ${LAMPS[what].name.toLowerCase()}. Everyone near you sees its light.` : "You hold the plain lantern again.";
@@ -418,6 +453,7 @@ window.__longWatch = {
   nodeFingerprint: () => nodeFingerprint(nodes),
   give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
   beacon: () => beacon ? { fuel: beaconList.map((_, b) => beacon.shares.fuel(b)), players: beaconList.map((_, b) => beacon.shares.players(b)), lit: beaconList.map((_, b) => beacon.shares.lit(b)), own: beaconList.map((_, b) => beacon.shares.own(b, me.seed)), near: beacon.near(), synced: beacon.synced(), pending: beacon.pending(), inv: { ...inv }, info: $('beaconinfo').textContent, panel: !$('beacon').hidden, list: beaconList.map(l => ({ x: l.x, y: l.y })), fires: fireList() } : null,
+  quests: () => quests ? { day: quests.day, synced: quests.synced(), pending: quests.pending(), owed: quests.owed(), notes: quests.notes.map(n => ({ ...n })), text: quests.notes.map(n => noteText(n, beaconName)), total: quests.notes.map((_, q) => quests.shares.total(q)), players: quests.notes.map((_, q) => quests.shares.players(q)), own: quests.notes.map((_, q) => quests.shares.own(q, me.seed)), done: quests.notes.map((_, q) => quests.shares.done(q)), panel: !$("quests").hidden, lines: [...$("questlist").children].map(li => li.textContent), info: $("questinfo").textContent } : null,
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

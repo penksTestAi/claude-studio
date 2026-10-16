@@ -41,11 +41,14 @@ working features.
   coloured lanterns' light, `prefers-reduced-motion` freezes all of it, and a governor turns the extras down on a slow
   device. Drawn by each browser alone, nothing new is sent. (2026-10-16; frame rates measured only in headless
   Chromium without a GPU, not on a phone)
+- **8. The keeper's notes.** Three notes a day from the seed and the date (gather some of one thing, make wicks or amber
+  lanterns, burn fuel in one named beacon), shared by everyone in a lantern: each player's share is a grow-only counter, a
+  note is done at its number with at least two players, one player's share is capped at one less than the number; late
+  joiners get a snapshot; progress is not saved and starts again at 0 when the lantern empties and at 00:00 UTC.
+  (2026-10-16, local relay only)
 
 ## Later (in rough order, each one run)
-8. **NEXT: The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
-   shared by everyone in a room, finished together.
-9. **Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
+9. **NEXT: Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
    standing together. Co-operative, no player against player harm.
 10. **Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
    else's lantern counts for more than your own).

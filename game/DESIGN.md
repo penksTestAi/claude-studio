@@ -134,6 +134,19 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   checked against where the sender stands (accepted weakness: a modified client can claim shares, and a claimed seed
   of someone else counts as another player; there is nothing to win from others). A lit beacon draws a flame and a
   wide pool of light (`LIT_RADIUS` 9 tiles) for everyone, and a warm mark on the minimap.
+- **Keeper's notes protocol v1** (`js/quests.js`, milestone 8): `notesFor(seed, day)` makes three notes, a pure function
+  (hash only, so every browser agrees): gather 5 to 9 of one item, make 3 to 5 wicks or 2 amber lanterns, burn 6 to 9 fuel in
+  one of the four beacons. The day is the UTC day number from the browser's clock (`?day=N` pins it on loopback pages only).
+  Progress is a per-player grow-only counter per note, keyed by the player's seed, exactly like the beacons' shares: merging
+  keeps the larger number. A note is done when the total reaches `need` and at least `MIN_PLAYERS` (2) players have a share;
+  one player's share is capped at `need - 1`, 24 players are counted per note and a full list refuses new ones. Counting is
+  by the player's own events: a successful pick, a craft, fuel added to the note's beacon (by its fuel worth). Messages:
+  `qp {q,d,n}`, `qq {d}`, `qs {d,q[],s[],n[],f}` (all numbers; same checks as the beacons' `fu`, `fq`, `fs`, and a message whose
+  day is not the receiver's own is dropped). Credits earned while the counters of a present peer are not yet heard are held
+  back (`owed`) and added after the snapshot, to the share the others hold for you. At the UTC day change every browser
+  starts the new day's notes at 0 (so clock differences of seconds can briefly hide progress). Nothing is saved: a room that
+  empties forgets its notes; the pack is not touched by a note. Accepted weakness: a modified client can claim shares (or
+  another player's seed, faking the second player); there is nothing to win from others.
 - **Presence watchdog** (milestone 6, in `js/presence.js`): over real WebRTC a link can come up on one side before the
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
@@ -208,6 +221,7 @@ game/
   js/minimap.js         minimap drawing, compass words, nearest-landmark text
   js/sound.js           footsteps: stride counting, earshot gain, synthesised sounds (off by default)
   js/living.js          the living island, pure parts: which tiles glint, foam or sway, sway and foam motion, moon and stars by hour, fireflies, soft light edges, the slow-device governor
+  js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -221,14 +235,15 @@ game/
   tests/craft.test.mjs     node checks of recipes (conversion only, refusals, full stacks, saved data, the lantern message), then local and WebRTC pages: a second player sees the lantern's reach (drawn radius and ground brightness), late joiner, reload, full stack, forged messages
   tests/beacon.test.mjs    node checks of the shares, caps, fuel messages and the presence watchdog, then local and WebRTC pages: fuel shared, one player alone cannot light, simultaneous adds, light on the ground, late joiner, reload, leaving, empty room, forged messages
   tests/living.test.mjs    node checks of tiles, motion, moon, fireflies, governor, then local and WebRTC pages: B's fireflies follow the lantern A holds, levels, reduced motion holds every pixel still, sky differs by hour, `?look=` flags, measured frame times
+  tests/quests.test.mjs    node checks of the notes, shares and the module on a fake mesh, then local and WebRTC pages: three notes worked by two players, late joiner, reload, another day, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `#room=N`.
+URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

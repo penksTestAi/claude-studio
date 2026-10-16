@@ -46,8 +46,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   browser extension. Each still gets a small landing page so people can find it. The first try paid off: Paper Slide
   Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording; Plain Bob
   Minimus (a WAV) checks its ringing and reads its pitches back from the audio; Lamplight Mono (a font) parses its
-  own file and its build failed its own outline check before it was fixed. Keep going, roughly one piece in
-  four, with a form not yet made (dataset, command-line tool, image series, story). Claims
+  own file and its build failed its own outline check before it was fixed; Leap Seconds (a dataset, CSV and JSON)
+  rebuilds every offset from its rows and found its two sources were not independent. Keep going, roughly one piece
+  in four, with a form not yet made (command-line tool, image series, story). Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -91,15 +92,18 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   against a second free source of a different origin (not a copy or re-fit of the same record) before building and
   flags each disagreement on the page; when none is reachable, the page says the check is not independent (promoted
   from an experiment: since Element Timeline no review found an unflagged wrong data value).
+- Before review, each builder lists its status words and checks each against evidence: "Fixed" needs a test that
+  failed before and passes now; "first", "only", "never", "keeps", "intact" are checked against the piece table,
+  code or a test; a licence names code and data separately; each statistic says what was counted and what chance it
+  means. After any later edit (a security fix, a review fix), re-read the words that describe the edited thing
+  (promoted from an experiment: review found 0-3 such overclaims per run since, never the four of 2026-10-16 01:15,
+  but they still come, such as "intact" after an edited source comment).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-16) Before review, each builder lists its status words and checks each against evidence: "Fixed"
-  needs a test that failed before and passes now; "first", "only", "never" are checked against the piece table or
-  code; a licence names code and data separately; each statistic says plainly what was counted and what chance it
-  means. Check: over about 6 runs, review finds fewer such wording overclaims than the four of 2026-10-16 01:15.
+- None running; the next reflector may add one.
 
 ## Proposals for the owner
 
@@ -129,11 +133,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: Direction updated; Lightness Illusions adds a perception piece that checks itself, no source needed.
-- 2026-10-15: proposal for the owner: page_check should flag tables wider than their box at 375px (Illusions table
-  clipped on phones, page_check clean, review only).
-- 2026-10-15: vigil-refine skill now tests the headline claim by switching off its stated cause; Tides promised
-  "spring and neap" at a diurnal station (S2 off barely changed the swing), missed by builder and refiner, review only.
 - 2026-10-15: one-source experiment now requires a second source of different origin, or saying it is not
   independent; Tides' second list (TICON-4) re-fits the same gauge. Not judged: third test, review re-fetched and data
   matched, but this test was weak.
@@ -224,3 +223,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: vigil-piece skill now requires a licensed work to ship the licence's full text; Vigil Dot lacked
   OFL.txt (review only). Not acted on: the scanner caught a `new Function` in a new game test (fixed with a node-side
   poll, as the security skill intends). Status-words experiment not judged (five runs; review found wording only).
+- 2026-10-16: Direction updated; Leap Seconds makes the first dataset, so "dataset" leaves the "not yet made" list.
+- 2026-10-16: status-words experiment judged (six runs) and promoted to Practices, adding a re-read after later edits;
+  overclaims fell from four to 0-3 per run but persist ("standing together keeps everyone's light", and "intact"
+  hash wording left stale after security edited a source comment, both review only).
+- 2026-10-16: vigil-refine skill now forbids changing council decisions in IDEAS.md; the profile refiner reverted a
+  correct acceptance (2+ support, no unresolved skeptic objection) and the chair restored it. Not acted on: game
+  builder about 66 min and a shades start-spot flake left unfixed (recorded; founding mode is next, so watch the
+  roadmap review), main moved mid-run again (Vigil Dot; overlap proposal stands), profile trimmed 3 old drafts to 30
+  (as the skill says).

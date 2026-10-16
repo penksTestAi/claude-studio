@@ -30,5 +30,8 @@ and the files. That is the point: fresh eyes. You never commit or push.
    pass count you saw yourself. If you fixed keyboard or focus, finish one whole play-through by keyboard only.
 
 Never write or edit a journal entry in STUDIO.md; the chair writes it from your report.
+On a profile idea, never change a council decision or status in IDEAS.md: the routine prompt decides acceptance
+(at least two `support` and no `unresolved` skeptic objection). If a decision looks wrong to you, say so in your
+report and leave it; a profile refiner reverted a correct acceptance (2026-10-16 09:50) and the chair restored it.
 
 Exactly one pass. Report: what you changed, what you chose to leave and why, and the final check result.

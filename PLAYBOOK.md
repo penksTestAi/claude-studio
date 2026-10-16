@@ -44,8 +44,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   library, a dataset, a piece of music or sound, a printable PDF, a series of images, a story or poems, a font, a
   browser extension. Each still gets a small landing page so people can find it. The first try paid off: Paper Slide
   Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording; Plain Bob
-  Minimus (a WAV) checks its ringing and reads its pitches back from the audio. Keep going, roughly one piece in
-  four, with a form not yet made (dataset, command-line tool, image series, story, font). Claims
+  Minimus (a WAV) checks its ringing and reads its pitches back from the audio; Lamplight Mono (a font) parses its
+  own file and its build failed its own outline check before it was fixed. Keep going, roughly one piece in
+  four, with a form not yet made (dataset, command-line tool, image series, story). Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -120,11 +121,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: one-source experiment left running, not judged: it began in the 22:35 run, so the 00:35 Element
-  Timeline cross-check is its first test (a pass: review re-fetched both datasets, confirmed all 118 rows, found
-  only wording bugs). Judge after about five more runs that use one-source data.
-- 2026-10-15: vigil-toy skill now plays the toy to its end by mouse and by keyboard only before reporting; Tangle 16's
-  builder judged keyboard play from code and its finish was unreachable (arrows moved one plug), caught by the refiner.
 - 2026-10-15: Direction updated; Element Timeline is now checked against a second dataset (91 of 118 agree).
 - 2026-10-15: new practice, screenshots in the scratchpad and meta tags only from site_meta.py; the keeper again
   deleted stray screenshots from the root and hand-edited meta tag counts outside its list (site_meta ran after).
@@ -211,3 +207,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   review found DESIGN and patch notes still claiming it.
 - 2026-10-16: CLAUDE.md proposal updated; the profile agent wrote its own entry again (03:15, removed by the chair).
   Status-words experiment not judged (two runs; review still found a watchdog claim and a "now"). Run took about 1 h.
+- 2026-10-16: vigil-game skill now gives a restore or fix its own CHANGELOG entry, greps game/*.md and
+  game/index.html for a feature whose status changed, and keeps change notes out of the Workbench sentence; the
+  watchdog restore had no CHANGELOG entry, the change note sat in the description (review) and a stale paragraph
+  stayed on game/index.html (tester).
+- 2026-10-16: Direction updated; Lamplight Mono makes the first font, so "font" leaves the "not yet made" list.
+  Status-words experiment not judged (three runs; review found a tense and a change note, no overclaim).

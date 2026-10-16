@@ -108,7 +108,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    **Tested:**, which stay in the changelog only. When the increment rewrites a file, `git diff` it against the
    previous version and name every removed behaviour, flag or hook in the CHANGELOG (or put it back); DESIGN and
    patch notes claim only what `grep` finds in the code now (2fc04d5 dropped the watchdog and `?mute=` unannounced,
-   and DESIGN and the patch notes still claimed it, review only).
+   and DESIGN and the patch notes still claimed it, review only). A restore or fix with nothing for players still
+   gets its own CHANGELOG entry. When a feature's status changes (missing, back, removed), `grep -rn` its name
+   across game/*.md and game/index.html and fix every hit before reporting (2026-10-16 04:38: the watchdog restore
+   had no CHANGELOG entry and a stale paragraph stayed on game/index.html; review and tester only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
    game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
    Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks
@@ -116,4 +119,5 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
 
 ## Report (at most 8 lines)
 Mode, what players can now do, files changed, test results, whether online play was tested, the next roadmap item,
-and one plain sentence for the Workbench line describing the game as it is now.
+and one plain sentence for the Workbench line describing the game as it is now (no change notes such as "restored"
+or "now has" in it; those go in the CHANGELOG; 2026-10-16 04:38 review).

@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
+<meta name="description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
+<meta property="og:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
+<meta name="twitter:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -147,6 +147,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <ul class="small notes" id="questlist" aria-labelledby="quests-label"></ul>
       <p class="small heard" id="questinfo" role="status" aria-live="polite"></p>
     </div>
+    <div class="craft" id="rank" hidden>
+      <p class="small" id="rank-label">Lamplighter rank: earned only by helping other players (relighting a friend's lantern, driving off a shade together, a gift that arrives, lighting a beacon together, finishing a keeper's note together). It is kept in this browser and shown beside your name and as gold marks on your lantern.</p>
+      <p class="small" id="rankstate"></p>
+      <p class="small heard" id="rankinfo" role="status" aria-live="polite"></p>
+    </div>
     <div class="craft" id="shades" hidden>
       <p class="small" id="shades-label">Shades: slow creatures of the night that put out lanterns. They hurt no one and take nothing. Light drives them off, and the more of you stand together with lit lanterns, the faster.</p>
       <p class="small" id="shadestate"></p>
@@ -196,6 +201,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.13</b> · milestone 10 (the lamplighter rank) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> earn a lamplighter rank by helping other players. Five kinds of help give one point each: relighting a friend's snuffed lantern early by standing beside them, driving off a shade together, a gift of yours that arrives, lighting a beacon together, and finishing a keeper's note together (only when you added to it yourself; walking back into a beacon that is already lit earns nothing). Three points make you a Lamplighter, then 10, 25 and 60 points bring Beacon keeper, Warden of the watch and Long watcher. Your rank shows as a small gold title over your name, as gold marks on your lantern (one per rank) and beside your name in the player list, for everyone in the lantern, and a new panel tells you your points and what the last point was for. Receiving a gift earns nothing; giving does, at most one point every 4 seconds, and a relight at most one every 10 seconds. Your points are saved in your own browser. The rank is decoration only and gives no advantage; a modified game could claim any rank, so a title proves nothing.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the gold title and marks look and the panel reads on a real phone and with a screen reader, whether the steps (3, 10, 25, 60 points) feel right in real play, and whether points are easy to farm with a second browser (nothing stops that; the page says the rank proves nothing).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.12</b> · roadmap review and a steadier shades test <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-fixed">Fixed</span> a test that failed now and then (nothing players see changes). The shades test that failed now and then was checked against the real paths of the shades, and the game's rules were not at fault; the test now starts on a quiet stretch of the shades' clock.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox proxy refused a connection to relay.damus.io this run with 403; only the local relay was used).</p>
@@ -280,12 +290,13 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <li>The keeper's notes are counted live in the browsers of the players in the lantern and are not saved anywhere: when the last player leaves, or at 00:00 UTC (a few seconds of clock difference between players can briefly hide someone's progress at the change), they start again at 0. Doing a note's job uses nothing up beyond what the job itself uses. A modified game could claim progress it did not make, so a finished note proves nothing.</li>
       <li>Shades are slow creatures of the night drawn on every player's screen from the island's seed and the clock, so everyone in a lantern sees the same ones in the same places; where they are is never sent. A shade only snuffs a lantern for a few seconds, takes nothing and hurts no one. How much light players have put on a shade is counted live in their browsers and is not saved: it starts again when the lantern empties and every 160 seconds. Whether your lantern is out is told to the others as a single yes or no. A modified game could claim light it did not give, or keep its own lantern lit; there is nothing to win from others.</li>
       <li>Beacons are shared only among the players in the lantern right now: the fuel counts live in their browsers, there is no server, and when the last player leaves the beacons go dark and are forgotten. The fuel you spend leaves your own pack for good. A beacon needs 12 fuel and at least 2 different players, one player's share is at most 16, and at most 24 players are counted on one beacon. A modified game could claim fuel it did not add, so do not treat a lit beacon as proof of anything.</li>
+      <li>The lamplighter rank is earned only by helping other players (relighting a friend's lantern, driving off a shade together, a gift that arrives, lighting a beacon together, finishing a keeper's note together). Your help points are saved only in your own browser, and your rank is told to the others in the lantern as one small number, which is shown as a title from a fixed list beside your name and as gold marks on your lantern. It is only decoration and gives no advantage. A modified game could claim any rank, so a title proves nothing, and clearing your browser's saved data clears your points.</li>
       <li>The island is generated from a fixed seed, so everyone walks the same island.</li>
       <li>A lantern is meant for a small group: every browser connects to every other one, so a crowded room gets heavy.</li>
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 9 (the shades). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 10 (the lamplighter rank). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

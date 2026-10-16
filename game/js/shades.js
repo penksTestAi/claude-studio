@@ -43,6 +43,7 @@ export const SNUFF_R = 1.0, SNUFF_S = 14, RELIGHT_R = 2.5, RELIGHT_S = 1.5, GRAC
 export const EMBER_TILES = 0.9;       // how far a snuffed lantern still glows
 export const LIGHT_FRACTION = 0.9;    // a lantern lights a shade within this share of its reach
 export const SAFE_FRACTION = 0.9;     // inside this share of a lit beacon's radius a shade cannot snuff anyone
+export const HELP_S = 0.9;            // seconds beside a snuffed friend before their early relight counts as my help
 export const RESEND_MS = 5000;
 export const SYNC_WAIT_MS = 1500;
 const CHUNK = 10;
@@ -148,7 +149,8 @@ export function createShades(net, world, me, peers, opts = {}) {
   const announceLight = (to) => { for (let i = 0; i < MAX_SHADES; i++) { const n = shares.own(i, me.seed); if (n > 0) net.send({ k: "hp", s: slot, i, n }, to); } };
   const announceSnuff = (to) => net.send({ k: "sf", z: me.snuffed ? 1 : 0 }, to);
 
-  net.onPeerLeave((id) => { guard.forget(id); lastHq.delete(id); asked.delete(id); awaiting.delete(id); });
+  const helpNear = new Map(); // peer id -> seconds I have stood within relight reach of them while they were snuffed
+  net.onPeerLeave((id) => { guard.forget(id); lastHq.delete(id); asked.delete(id); awaiting.delete(id); helpNear.delete(id); });
   net.onPeerJoin((id) => { announceLight(id); announceSnuff(id); });
   net.onMessage((msg, id) => {
     if (!msg || typeof msg !== "object" || (msg.k !== "sf" && msg.k !== "hp" && msg.k !== "hq" && msg.k !== "hs")) return;
@@ -158,8 +160,15 @@ export function createShades(net, world, me, peers, opts = {}) {
     const keys = Object.keys(msg).length;
     if (msg.k === "sf") {
       if (keys !== 2 || (msg.z !== 0 && msg.z !== 1)) return;
+      const was = !!p.snuffed;
       p.snuffUntil = msg.z === 1 ? now() + (SNUFF_S + 6) * 1000 : 0;
       p.snuffed = msg.z === 1;
+      if (msg.z === 1 && !was) p.snuffAt = now();
+      if (msg.z === 0 && was) { // a friend relit early while I stood by with a lit lantern: I helped (the game counts it for the rank)
+        const early = now() - (p.snuffAt ?? 0) < (SNUFF_S - 1) * 1000;
+        if (early && !me.snuffed && (helpNear.get(id) || 0) >= HELP_S) onEvent("helped", p.seed);
+      }
+      if (msg.z === 0) helpNear.delete(id);
       return;
     }
     if (msg.s !== slot) return; // another slot (or a bad number): not ours
@@ -231,6 +240,10 @@ export function createShades(net, world, me, peers, opts = {}) {
         current.push(sh);
       }
       for (const p of peers.values()) { if (p.snuffed && !(p.snuffUntil > t)) p.snuffed = false; }
+      for (const p of peers.values()) {
+        if (p.snuffed && !me.snuffed && dist(me, p) <= RELIGHT_R) helpNear.set(p.id, (helpNear.get(p.id) || 0) + dt);
+        else helpNear.delete(p.id);
+      }
       const myReach = reachFor(me);
       // my light on the shades
       if (!me.snuffed) for (const sh of current) {

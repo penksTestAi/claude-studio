@@ -17,6 +17,7 @@ import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventor
 import { createBeacons, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
+import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 
 const ROOMS = 6;
@@ -42,10 +43,11 @@ function loadSave() {
 }
 // The pack and the giving lists are saved with the character; every change to them is saved at once, not on a timer.
 function save() {
-  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y, inv, cr, lamp: held.lamp, out: ledger.out, exp: ledger.exp, got: ledger.got })); } catch { /* storage blocked: the pack then lasts only while the page stays open */ }
+  try { store().setItem(STORE, JSON.stringify({ seed: me.seed, x: me.x, y: me.y, inv, cr, lamp: held.lamp, help: rank.points, out: ledger.out, exp: ledger.exp, got: ledger.got })); } catch { /* storage blocked: the pack then lasts only while the page stays open */ }
 }
 const saved = loadSave();
-const { inv, out, exp, got, cr, lamp } = cleanSave(saved);
+const { inv, out, exp, got, cr, lamp, help } = cleanSave(saved);
+const rank = createRank(help, { onEvent: rankEvent, persist: () => save() });
 const held = { lamp }; // the lantern in hand: 0 plain, 1 amber, 2 jade, 3 azure
 const ledger = { out, exp, got };
 const start = (Number.isFinite(saved.x) && Number.isFinite(saved.y) && !isBlocked(world, saved.x, saved.y)) ? { x: saved.x, y: saved.y } : spawnFor(world, saved.seed);
@@ -84,7 +86,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -106,6 +108,7 @@ async function enter() {
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
   shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe });
+  rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
@@ -126,7 +129,7 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; me.snuffed = false;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -161,6 +164,8 @@ function frame(t) {
   beacon.tick();
   quests.tick();
   shades.tick(dt);
+  rankNet.tick();
+  watchBaselines();
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
@@ -168,6 +173,7 @@ function frame(t) {
   const fires = fireList();
   renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list());
   paintShades();
+  paintRank();
   paintBeacon();
   paintQuests();
   $("gather").disabled = !reach;
@@ -201,6 +207,16 @@ function paintPack() {
 }
 // ---- beacons: fuel an old beacon together; it lights when enough fuel is in and two or more players added some ----
 const beaconList = world.landmarks.filter(l => l.kind === "beacon");
+let helpNo = 0, giftNo = 0;
+// The rank counts help only from this visit: what a share was when the lantern's state arrived is the baseline, and a
+// beacon, note or shade counts for you only if your own share grew past it (so a reload into a lit beacon earns nothing).
+const baseline = new Map();
+function grew(key, own, synced) { if (!synced) return false; if (!baseline.has(key)) { baseline.set(key, own); return false; } return own > baseline.get(key); }
+function watchBaselines() {
+  if (beacon) beaconList.forEach((_, b) => grew("b" + b, beacon.shares.own(b, me.seed), beacon.synced()));
+  if (quests) quests.notes.forEach((_, q) => grew(`q${quests.day}.${q}`, quests.shares.own(q, me.seed), quests.synced()));
+  if (shades) for (let i = 0; i < 4; i++) grew(`s${shades.slot}.${i}`, shades.shares.own(i, me.seed), shades.synced());
+}
 const FUEL_ITEMS = ["driftwood", "berries"];
 const fireList = () => beaconList.map((l, b) => beacon ? { x: l.x, y: l.y, n: b, fuel: beacon.shares.fuel(b), frac: Math.min(1, beacon.shares.fuel(b) / BEACON_NEED), lit: beacon.shares.lit(b) } : { x: l.x, y: l.y, n: b, fuel: 0, frac: 0, lit: false });
 const beaconBox = $("beaconbtns");
@@ -213,6 +229,7 @@ FUEL_ITEMS.forEach((k) => {
 function beaconEvent(type, b, r) {
   let say = "";
   if (type === "added" && quests) quests.credit("fuel", null, b, WORTH[r.item]);
+  if (type === "lit" && beacon && grew("b" + b, beacon.shares.own(b, me.seed), true)) rank.credit("beacon", String(b));
   if (type === "added") say = `You added ${ITEM_NAMES[r.item]} to the beacon. It is gone from your pack.`;
   else if (type === "lit") say = "A beacon is lit! It will burn while anyone is in this lantern.";
   else if (type === "refused") say = { far: `Stand within ${BEACON_RANGE} tiles of a beacon to add fuel.`, wait: "Still hearing from the others. Try again in a moment.", lit: "This beacon is already lit.", full: `You have added as much as one player can to this beacon (${MAX_OWN} fuel). Others have to add the rest.`, missing: `You have no ${ITEM_NAMES[r && r.item] || "such item"} to add.`, }[r && r.why] || "Nothing was added.";
@@ -247,6 +264,7 @@ function questLines() {
   });
 }
 function questEvent(type, q) {
+  if (type === "done" && grew(`q${quests.day}.${q}`, quests.shares.own(q, me.seed), true)) rank.credit("note", `${quests.day}.${q}`);
   if (type === "done") { const n = quests.notes[q]; $("questinfo").textContent = `The keeper's note is finished: ${noteText(n, beaconName)}. Well done, all of you.`; }
   else if (type === "newday") $("questinfo").textContent = "A new day: the keeper has written new notes.";
   lastQuestKey = "";
@@ -283,6 +301,8 @@ function shadeEvent(type, k, sh) {
     snuffLog.push({ slot: shades ? shades.slot : -1, k, u: s ? +s.u.toFixed(2) : null, phase: s ? s.phase : null, sx: s ? +s.x.toFixed(2) : null, sy: s ? +s.y.toFixed(2) : null, x: +me.x.toFixed(2), y: +me.y.toFixed(2), peers: presence ? presence.peers.size : 0 });
     if (snuffLog.length > 8) snuffLog.shift();
   }
+  if (type === "helped") rank.credit("relight", `${k}.${++helpNo}`);
+  if (type === "banished" && shades && grew(`s${shades.slot}.${k}`, shades.shares.own(k, me.seed), true)) rank.credit("shade", `${shades.slot}.${k}`);
   if (type === "banished") { drivenOff++; if (sh) renderer.burst(sh.x, sh.y, performance.now()); }
   if (say) $("shadeinfo").textContent = say;
   lastShadeKey = "";
@@ -309,6 +329,25 @@ function paintShades(force) {
   lastShadeKey = key;
   $("shades").hidden = !shades;
   $("shadestate").textContent = lines.join(" ");
+}
+// ---- rank: the lamplighter rank, earned only by helping others (see rank.js) ----
+const DEED_WORDS = { relight: "relighting a friend's lantern", shade: "driving off a shade together", gift: "a gift that arrived", beacon: "lighting a beacon together", note: "finishing a keeper's note together" };
+function rankEvent(type, a, b) {
+  if (type === "deed") $("rankinfo").textContent = `A point for ${DEED_WORDS[a]}.`;
+  else if (type === "rank") $("rankinfo").textContent = `You are now a ${titleFor(a)}. Thank you for helping.`;
+  lastRankKey = "";
+}
+let lastRankKey = "";
+function paintRank(force) {
+  if (force) lastRankKey = "";
+  const peerKey = presence ? [...presence.peers.values()].map(p => p.id + ":" + (p.rank | 0)).join() : "";
+  const key = [!!rankNet, rank.points, peerKey].join("|");
+  if (key === lastRankKey) return;
+  lastRankKey = key;
+  $("rank").hidden = !rankNet;
+  const r = rank.rank, next = pointsToNext(rank.points);
+  $("rankstate").textContent = (r ? `Your rank: ${titleFor(r)}. ` : "You have no rank yet. ") + `Help points: ${rank.points}.` + (next ? ` ${next} more for the next rank.` : " That is the highest rank.");
+  if (presence) updatePeers();
 }
 // ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
 const craftBox = $("craftbtns"), holdBox = $("holdbtns");
@@ -368,6 +407,7 @@ function giveEvent(type, d) {
     lost: `The offer of ${what} ended because ${who} left. Nothing moved.`,
   }[type];
   if (say) $("giveinfo").textContent = say;
+  if (type === "delivered") rank.credit("gift", `${d.seed}.${++giftNo}`);
   if (type === "received" || type === "sent" || type === "delivered") paintPack();
   paintGive();
 }
@@ -469,7 +509,8 @@ function updatePeers() {
   const add = (p, you) => {
     const li = document.createElement("li");
     li.style.setProperty("--c", p.colour);
-    li.textContent = p.name + (you ? " (you)" : "");
+    const title = titleFor(you ? rank.rank : p.rank);
+    li.textContent = p.name + (title ? ` · ${title}` : "") + (you ? " (you)" : "");
     list.append(li);
   };
   add(me, true);
@@ -507,6 +548,7 @@ window.__longWatch = {
   nodeFingerprint: () => nodeFingerprint(nodes),
   give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
   beacon: () => beacon ? { fuel: beaconList.map((_, b) => beacon.shares.fuel(b)), players: beaconList.map((_, b) => beacon.shares.players(b)), lit: beaconList.map((_, b) => beacon.shares.lit(b)), own: beaconList.map((_, b) => beacon.shares.own(b, me.seed)), near: beacon.near(), synced: beacon.synced(), pending: beacon.pending(), inv: { ...inv }, info: $('beaconinfo').textContent, panel: !$('beacon').hidden, list: beaconList.map(l => ({ x: l.x, y: l.y })), fires: fireList() } : null,
+  rank: () => ({ points: rank.points, rank: rank.rank, title: titleFor(rank.rank), seen: rank.seenCount(), panel: !$("rank").hidden, text: $("rankstate").textContent, info: $("rankinfo").textContent, peerRanks: presence ? [...presence.peers.values()].map(p => ({ id: p.id, rank: p.rank | 0 })) : [], saved: (() => { try { return JSON.parse(store().getItem(STORE) || "{}").help; } catch { return null; } })(), titles: TITLES.slice(), thresholds: THRESHOLDS.slice() }),
   quests: () => quests ? { day: quests.day, synced: quests.synced(), pending: quests.pending(), owed: quests.owed(), notes: quests.notes.map(n => ({ ...n })), text: quests.notes.map(n => noteText(n, beaconName)), total: quests.notes.map((_, q) => quests.shares.total(q)), players: quests.notes.map((_, q) => quests.shares.players(q)), own: quests.notes.map((_, q) => quests.shares.own(q, me.seed)), done: quests.notes.map((_, q) => quests.shares.done(q)), panel: !$("quests").hidden, lines: [...$("questlist").children].map(li => li.textContent), info: $("questinfo").textContent } : null,
   shades: () => shades ? { slot: shades.slot, synced: shades.synced(), pending: shades.pending(), owed: shades.owed(), count: shadeCount(world.seed, shades.slot), list: shades.list().map(s => ({ k: s.k, x: s.x, y: s.y, alpha: s.alpha, phase: s.phase, gone: s.gone, safe: s.safe, total: s.total, players: s.players, own: s.own })), snuffed: !!me.snuffed, snuffLeft: shades.snuffLeft(), peerSnuffed: presence ? [...presence.peers.values()].map(p => ({ id: p.id, snuffed: !!p.snuffed })) : [], panel: !$("shades").hidden, text: $("shadestate").textContent, info: $("shadeinfo").textContent, drivenOff } : null,
   shadeNow: () => shadeNow(),

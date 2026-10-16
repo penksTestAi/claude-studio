@@ -47,6 +47,11 @@ working features.
   joiners get a snapshot; progress is not saved and starts again at 0 when the lantern empties and at 00:00 UTC.
   (2026-10-16, local relay only)
 
+- **10. The lamplighter rank.** Five kinds of help (relighting a friend early, driving off a shade together, a gift that
+  arrives, lighting a beacon together, finishing a keeper's note together) give a point each, saved in your own browser; the
+  rank (0 to 4) is told to the room as one number and shown as a gold line over the name, a list suffix and gold marks on
+  the lantern. Cosmetic only. (2026-10-16, local relay only)
+
 - **9. The shades.** Waves of 0 to 4 slow hooded creatures (a pure function of the seed and the UTC clock, so nothing about
   where they are is sent) circle landmarks and snuff a lantern for 14 s; light-seconds put on a shade are a grow-only
   counter per player, a shade is driven off at 20 from at least 2 players (one alone adds at most 19), a friend's lit
@@ -67,14 +72,14 @@ working features.
   Rooms stay at 12 players (`MAX_PEERS` 11 others); no evidence yet that more are needed.
 
 ## Later (in rough order, each one run)
-**Open problem before item 10:** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3; it fails the same WebRTC check every time ("link watchdog: the two pages find each other although one was deaf for 12 s"), local and node parts pass. Cause not found; the next run looks at it first. Earlier "beacon 5 of 5" notes are stale.
+**Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-10. **NEXT: Progression, small and shared.** A "lamplighter" rank earned only by helping others: relighting a friend's
+10. **Done (2026-10-16, local relay only): Progression, small and shared.** A "lamplighter" rank earned only by helping others: relighting a friend's
     snuffed lantern, light on a shade that is then driven off together, a gift that arrives, fuel in a beacon that lights
     with others, a keeper's note finished together. Counted and saved in your own browser; your rank (a small number)
     is told to the room and drawn as a trim on your lantern and a title beside the generated name (no text crosses the
     network, receivers clamp the number). Cosmetic only: a modified client can claim any rank, and the page says so.
-11. **A look step: weather and the shades' sky.** Drifting mist and light rain from the seed and the clock, a sky strip
+11. **NEXT: A look step: weather and the shades' sky.** Drifting mist and light rain from the seed and the clock, a sky strip
     that darkens when a wave of shades arrives; cheap on phones, still under reduced motion.
 12. **Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as gathered
     items (kinds added to the saved lists, every cap tested full and expired, a peer leaving midway).
@@ -95,8 +100,7 @@ working features.
   6 of 135 slots bring a shade within a tile of some arrival spot); the counter then failed the later check. Fixed in
   the test (pages load on a quiet stretch of the shades' clock and the test checks nobody was snuffed before it
   starts) and pages now keep the last few snuffs (slot, shade, where) for the failure message. The rule stays. After the fix:
-  shades 5/5 (140 checks); give, craft, living, quests and shades were later run 3/3 by the tester and page_check passed, but beacon failed 0/3 at its WebRTC link-watchdog check (cause not found); the next run
-  looks at the beacon failure first.
+  shades 5/5 (140 checks); give, craft, living, quests and shades were later run 3/3 by the tester and page_check passed, but beacon failed 0/3 at its WebRTC link-watchdog check (cause not found; the milestone 10 run could not reproduce it, see "Open problem" above).
 - Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
   of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
   which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150

@@ -6,6 +6,7 @@ import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 import { lampOf } from "./craft.js";
+import { titleFor, MAX_RANK } from "./rank.js";
 import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
 import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
@@ -422,6 +423,13 @@ export function createRenderer(canvas, world, opts = {}) {
       const sx = p.x * tile - camX, sy = p.y * tile - camY - tile * 0.62;
       g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = p === me ? "#fff3d6" : "#e6e9f2";
       g.strokeText(p.name, sx, sy); g.fillText(p.name, sx, sy);
+      if (p.rank > 0) { // the lamplighter title, a smaller gold line over the name (looked up in our own list)
+        const title = titleFor(p.rank);
+        g.font = `${Math.round(fontPx * 0.82)}px Georgia, serif`;
+        g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#ffd36b";
+        g.strokeText(title, sx, sy - fontPx * 1.05); g.fillText(title, sx, sy - fontPx * 1.05);
+        g.font = `${fontPx}px Georgia, serif`;
+      }
     }
 
     // Speech bubbles (preset phrases, words from our own list), over the names.
@@ -508,6 +516,11 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   }
   else if (glow) { g.fillStyle = `rgba(${glow[0]},${glow[1]},${glow[2]},0.35)`; g.beginPath(); g.arc(lx, ly, r * 0.75, 0, Math.PI * 2); g.fill(); }
   if (!p.snuffed) { g.fillStyle = glow ? `rgb(${glow[0]},${glow[1]},${glow[2]})` : p.colour; g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill(); }
+  if (p.rank > 0 && !p.snuffed) { // lamplighter trim: one gold mark round the lantern per rank (the rank is a clamped number)
+    const n = Math.min(MAX_RANK, p.rank | 0), lr = r * 0.62;
+    g.fillStyle = "#ffd36b";
+    for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * 0.62; g.beginPath(); g.arc(lx + Math.cos(a) * lr, ly + Math.sin(a) * lr, Math.max(1.5, r * 0.11), 0, Math.PI * 2); g.fill(); }
+  }
   if (name === "wave") { // a raised hand swinging side to side
     const hx = sx + r * 1.1 + (reduce ? 0 : Math.sin(t / 80) * r * 0.5), hy = sy - r * 1.35;
     g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);

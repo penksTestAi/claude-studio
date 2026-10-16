@@ -54,7 +54,8 @@ export function cleanSave(raw) {
   const csrc = o.cr && typeof o.cr === "object" ? o.cr : {};
   for (const k of CRAFTED) if (isInt(csrc[k], 0, HARD_STACK)) cr[k] = csrc[k];
   const lamp = isInt(o.lamp, 1, LAMP_KEYS.length) && cr[LAMP_KEYS[o.lamp - 1]] > 0 ? o.lamp : 0; // you can only hold a lantern you own
-  return { inv, cr, lamp, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []) };
+  const help = isInt(o.help, 0, 100000) ? o.help : 0; // lamplighter points (see rank.js)
+  return { inv, cr, lamp, help, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []) };
 }
 
 // Copy a saved state into the live objects in place (another tab of this browser saved a newer one).

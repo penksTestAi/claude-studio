@@ -169,6 +169,19 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   no glow. Nothing is lost and nothing is saved. Accepted weakness: a modified client can claim light-seconds or never be
   snuffed; clocks that differ by more than a few seconds show shades in slightly different places (and by minutes, in different
   slots). `?shadeclock=N` (loopback pages only) shifts the shades' clock; `__longWatch.setShadeClock(ms)` does the same for tests.
+- **Rank protocol v1** (`js/rank.js`, milestone 10): the lamplighter rank is cosmetic and earned only by helping. Five kinds of deed
+  give one point each, and the game calls `rank.credit(kind, key)` only when the player took part: `relight` (a friend's lantern
+  was relit early while I stood within `RELIGHT_R` of them for `HELP_S` (0.9 s) with my own lantern lit; `shades.js` raises the
+  `helped` event when the friend's `sf` 0 arrives, only if their snuff began less than `SNUFF_S - 1` s before), `shade` (a shade
+  was driven off, which needs two players, and my own share grew past the baseline taken when the counters were synced),
+  `gift` (a gift I gave was confirmed), `beacon` and `note` (lit or finished, with my own share grown past the baseline, so
+  re-entering a lit beacon earns nothing). A deed key counts once per page load; a gift counts at most once every 4 s and a
+  relight once every 10 s; 500 keys are remembered per visit (a full list refuses new deeds, it forgets none); points stop at
+  100000. Ranks from points: 3 Lamplighter, 10 Beacon keeper, 25 Warden of the watch, 60 Long watcher (`THRESHOLDS`, `TITLES`).
+  Saved as `help` (a whole number) next to the pack. Message `rk {r}` (exactly two fields, r a whole number 0..4), sent on change,
+  to each newcomer and every 5 s; a receiver needs a known sender, allows 2 a second, and shows only the title looked up in
+  `TITLES` (a trim of r gold marks on the lantern, a gold line over the name, and a suffix in the player list). Accepted weakness:
+  a modified client can claim any rank, and a second tab or alt character can farm points; the page says the rank proves nothing.
 - **Presence watchdog** (milestone 6, in `js/presence.js`): over real WebRTC a link can come up on one side before the
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
@@ -258,6 +271,7 @@ game/
   js/living.js          the living island, pure parts: which tiles glint, foam or sway, sway and foam motion, moon and stars by hour, fireflies, soft light edges, the slow-device governor
   js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
   js/shades.js          the shades: slots, waves, a shade's path (pure), light-seconds shares counter, `hp` `hq` `hs` `sf` messages, snuffing and relighting, `?shadeclock=`
+  js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -273,6 +287,7 @@ game/
   tests/living.test.mjs    node checks of tiles, motion, moon, fireflies, governor, then local and WebRTC pages: B's fireflies follow the lantern A holds, levels, reduced motion holds every pixel still, sky differs by hour, `?look=` flags, measured frame times
   tests/quests.test.mjs    node checks of the notes, shares and the module on a fake mesh, then local and WebRTC pages: three notes worked by two players, late joiner, reload, another day, forged messages
   tests/shades.test.mjs    node checks of the shades' paths, shares, caps and the module on a fake mesh (snuffing, ward, relight, flags, floods, slot change), then local and WebRTC pages: two players drive a circling shade off together without being snuffed, a lone player is snuffed and a friend relights, late joiner, forged messages
+  tests/rank.test.mjs      node checks of the rank (deeds, gaps, caps, the message on a fake mesh, the shades module's "helped" event), then local and WebRTC pages: three gifts that arrive make a Lamplighter, the other player sees the title, a reload keeps the points, a gift too soon earns nothing, forged rank messages (local run)
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
@@ -280,7 +295,7 @@ URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

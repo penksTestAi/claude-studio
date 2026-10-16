@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mark and Recapture · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Tag fish in a seeded pond, net a second sample, compare the Lincoln-Petersen and Chapman estimates, and watch the page measure their bias and spread over seeded ponds, then switch off each assumption to see it fail">
+<link rel="canonical" href="https://vigilstudio.github.io/recapture/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Mark and Recapture · Vigil">
+<meta property="og:description" content="Tag fish in a seeded pond, net a second sample, compare the Lincoln-Petersen and Chapman estimates, and watch the page measure their bias and spread over seeded ponds, then switch off each assumption to see it fail">
+<meta property="og:url" content="https://vigilstudio.github.io/recapture/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mark and Recapture · Vigil">
+<meta name="twitter:description" content="Tag fish in a seeded pond, net a second sample, compare the Lincoln-Petersen and Chapman estimates, and watch the page measure their bias and spread over seeded ponds, then switch off each assumption to see it fail">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f4f6f0;--panel:#fcfdf9;--ink:#202420;--muted:#586058;--line:#c6cdbf;--accent:#1f6f78;--accent-ink:#ffffff;--tag:#c2570c;--water:#dbe8e6;--fish:#4d6a66;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1514;--panel:#151d1c;--ink:#e6ebe4;--muted:#a1ada6;--line:#34423f;--accent:#6cc4cc;--accent-ink:#06191b;--tag:#ff9a57;--water:#14302f;--fish:#8fb3ad;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1514;--panel:#151d1c;--ink:#e6ebe4;--muted:#a1ada6;--line:#34423f;--accent:#6cc4cc;--accent-ink:#06191b;--tag:#ff9a57;--water:#14302f;--fish:#8fb3ad;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:10px}
+button{font-size:.92rem;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=number]{width:6em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+select{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+label{font-size:.9rem}
+.fld{display:flex;flex-direction:column;gap:2px}
+.chkrow{display:flex;gap:8px;align-items:flex-start;margin:6px 0;min-height:32px}
+.chkrow input{width:22px;height:22px;margin-top:2px;flex:none}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--water)}
+#tray{background:var(--panel);margin-top:8px}
+.msg{min-height:1.5em;font-size:.92rem;margin:8px 0 0}
+.res{margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.res div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.88rem}
+.res b{display:block;font-weight:normal;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+.mono{font-family:var(--mono)}
+ul.chk{padding-left:1.2em;margin:6px 0}
+.chk li{margin:3px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.verdicts{padding-left:1.2em;margin:10px 0}
+.verdicts li{margin:5px 0}
+svg.hist{display:block;width:100%;height:auto}
+svg.hist text{fill:var(--ink);font:11px Georgia,serif}
+svg.hist .mut{fill:var(--muted)}
+svg.hist .bar{fill:var(--accent);opacity:.8}
+svg.hist .true{stroke:var(--tag);stroke-width:2}
+svg.hist .mean{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 2}
+svg.hist .axis{stroke:var(--line)}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+code{font-family:var(--mono);font-size:.88em}
+</style>
+</head>
+<body>
+<main>
+<h1>Mark and Recapture</h1>
+<p class="lede" id="lede">Tag fish in a seeded pond, catch a second sample, estimate the population, then watch the estimate fail when assumptions break.</p>
+<p class="small">Made by Claude, an AI model. Nothing is fetched: the ponds are made in your browser from a seed, and every estimate, error and count shown is computed by the code you can read in the page source.</p>
+
+<h2>1. Count a pond you cannot see</h2>
+<p>A pond holds a hidden number of fish. Net some, tag them and put them back; later net again. If the second net holds <i>m</i> tagged fish out of <i>n</i><sub>2</sub>, then the tagged share of the pond is probably about <i>m</i>/<i>n</i><sub>2</sub>, and the pond holds about <i>n</i><sub>1</sub> &times; <i>n</i><sub>2</sub> / <i>m</i> fish (Lincoln&ndash;Petersen). Chapman's version, <span class="mono">(n1+1)(n2+1)/(m+1) &minus; 1</span>, also works when <i>m</i> is zero or small.</p>
+<div class="panel">
+  <div class="row">
+    <div class="fld"><label for="inN">Fish in pond (hidden)</label><input id="inN" type="number" min="50" max="2000" step="50" value="600"></div>
+    <div class="fld"><label for="inN1">First net, <i>n</i><sub>1</sub></label><input id="inN1" type="number" min="5" max="2000" value="100"></div>
+    <div class="fld"><label for="inN2">Second net, <i>n</i><sub>2</sub></label><input id="inN2" type="number" min="5" max="2000" value="100"></div>
+    <div class="fld"><label for="inSeed">Pond seed</label><input id="inSeed" type="number" min="0" max="999999" value="7"></div>
+  </div>
+  <p class="small" style="margin-top:10px">Break an assumption (each switch applies to this pond and to the trials in section 2):</p>
+  <div class="chkrow"><input type="checkbox" id="fOpen"><label for="fOpen" id="lOpen"></label></div>
+  <div class="chkrow"><input type="checkbox" id="fHet"><label for="fHet" id="lHet"></label></div>
+  <div class="chkrow"><input type="checkbox" id="fTag"><label for="fTag" id="lTag"></label></div>
+  <div class="row">
+    <button class="primary" id="bTag">1. Net and tag</button>
+    <button class="primary" id="bCatch" disabled>2. Net again</button>
+    <button id="bReveal" disabled>3. Reveal the pond</button>
+    <button id="bNew">New pond</button>
+  </div>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <canvas id="pond" height="230" role="img" aria-label="The pond. The fish are hidden until you reveal the pond."></canvas>
+  <canvas id="tray" height="60" role="img" aria-label="The fish in your net"></canvas>
+  <div class="res" id="res" aria-live="polite"></div>
+  <p class="msg" id="after"></p>
+</div>
+
+<h2>2. Does the page know how wrong it is?</h2>
+<p>The page knows the true count, so it can repeat the whole experiment on many seeded ponds with the sizes you chose above and measure the error of the Chapman estimate against the count at tagging time. First with every assumption true, then with each one switched off in turn.</p>
+<div class="row">
+  <div class="fld"><label for="inT">Trials per row</label><select id="inT"><option>500</option><option selected>2000</option><option>5000</option></select></div>
+  <div class="fld"><label for="inS0">First trial seed</label><input id="inS0" type="number" min="0" max="999999" value="1000"></div>
+  <button class="primary" id="bRun">Run the trials</button>
+</div>
+<p class="msg" id="runmsg" role="status" aria-live="polite"></p>
+<ul class="verdicts" id="verdicts"></ul>
+<div class="scroll" tabindex="0" role="region" aria-label="Trial results table"><table id="tbl"></table></div>
+<p class="small" id="tblnote"></p>
+<div id="histwrap"></div>
+<p class="small" id="histnote"></p>
+
+<h2>3. How many recaptures does it take?</h2>
+<p>Same pond size, bigger and bigger nets (equal first and second nets, every assumption true). The spread should shrink roughly like one over the square root of the expected number of recaptures. While recaptures are few, both estimates are unreliable, and Lincoln&ndash;Petersen has no answer at all when nothing comes back.</p>
+<div class="scroll" tabindex="0" role="region" aria-label="Net size table"><table id="swp"></table></div>
+<p class="small" id="swpnote"></p>
+
+<h2>4. The page checks itself</h2>
+<p class="small">These run when the page loads, on fixed settings that do not depend on the boxes above.</p>
+<ul class="chk" id="checks"></ul>
+
+<h2>5. What the model leaves out, and what is not checked</h2>
+<ul id="limits" class="chk"></ul>
+
+<footer>Part of <a href="../">Vigil</a>. Code is in this page, with no libraries. Made by Claude, an AI model.</footer>
+</main>
+
+<script id="core">
+"use strict";
+const Recap = (function () {
+  // Constants of the broken-assumption worlds. The page text is built from these.
+  const P = { leave: 0.2, arrive: 0.5, boldShare: 0.3, boldWeight: 6, tagLoss: 0.3 };
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // A pond: fish 0..N0-1, later arrivals appended. tag: 0 none, 1 tag on, 2 tag lost.
+  function newPond(N0, seed, flags) {
+    const rand = mulberry32(seed >>> 0), pos = mulberry32((seed ^ 0x9e3779b9) >>> 0);
+    const pond = { N0, seed, flags, rand, pos, bold: [], tag: [], present: [], x: [], y: [], n1: 0, n2: 0, m: 0, N1: N0, N2: N0,
+      events: { left: 0, arrived: 0, lost: 0, taglessCaught: 0 }, lastNet: [] };
+    for (let i = 0; i < N0; i++) addFish(pond);
+    return pond;
+  }
+  function addFish(pond) {
+    pond.bold.push(pond.rand() < P.boldShare ? 1 : 0);
+    pond.tag.push(0); pond.present.push(1);
+    pond.x.push(pond.pos()); pond.y.push(pond.pos());
+  }
+  function weight(pond, i) { return pond.flags.hetero && pond.bold[i] ? P.boldWeight : 1; }
+  function presentCount(pond) { let c = 0; for (let i = 0; i < pond.present.length; i++) c += pond.present[i]; return c; }
+
+  // Draw n distinct present fish, fish i chosen with chance related to its weight (exponential race: the n smallest of -ln(u)/w).
+  function sample(pond, n) {
+    const ids = [], keys = [];
+    for (let i = 0; i < pond.present.length; i++) if (pond.present[i]) { ids.push(i); keys.push(-Math.log(1 - pond.rand()) / weight(pond, i)); }
+    n = Math.max(0, Math.min(n, ids.length));
+    if (n === 0) return [];
+    const sorted = Float64Array.from(keys).sort();
+    const thr = sorted[n - 1], out = [];
+    for (let j = 0; j < ids.length && out.length < n; j++) if (keys[j] <= thr) out.push(ids[j]);
+    return out;
+  }
+  function tagStep(pond, n1) {
+    const got = sample(pond, n1);
+    for (const i of got) pond.tag[i] = 1;
+    pond.n1 = got.length; pond.N1 = presentCount(pond); pond.lastNet = got;
+    return got;
+  }
+  function driftStep(pond) {
+    const f = pond.flags, ev = pond.events;
+    if (f.open) {
+      const ids = []; for (let i = 0; i < pond.present.length; i++) if (pond.present[i]) ids.push(i);
+      const k = Math.round(P.leave * ids.length);
+      for (let j = 0; j < k; j++) { const r = j + Math.floor(pond.rand() * (ids.length - j)); const t = ids[j]; ids[j] = ids[r]; ids[r] = t; pond.present[ids[j]] = 0; }
+      ev.left = k;
+      const a = Math.round(P.arrive * pond.N0);
+      for (let j = 0; j < a; j++) addFish(pond);
+      ev.arrived = a;
+    }
+    if (f.tagloss) {
+      for (let i = 0; i < pond.present.length; i++) if (pond.present[i] && pond.tag[i] === 1 && pond.rand() < P.tagLoss) { pond.tag[i] = 2; ev.lost++; }
+    }
+    pond.N2 = presentCount(pond);
+  }
+  function catchStep(pond, n2) {
+    const got = sample(pond, n2);
+    let m = 0, hidden = 0;
+    for (const i of got) { if (pond.tag[i] === 1) m++; else if (pond.tag[i] === 2) hidden++; }
+    pond.n2 = got.length; pond.m = m; pond.events.taglessCaught = hidden; pond.lastNet = got;
+    return got;
+  }
+
+  function estimate(n1, n2, m) {
+    const lp = m > 0 ? n1 * n2 / m : null;
+    const ch = (n1 + 1) * (n2 + 1) / (m + 1) - 1;
+    const v = (n1 + 1) * (n2 + 1) * (n1 - m) * (n2 - m) / ((m + 1) * (m + 1) * (m + 2));
+    const sd = Math.sqrt(Math.max(0, v));
+    return { lp, ch, sd, lo: Math.max(0, ch - 1.96 * sd), hi: ch + 1.96 * sd };
+  }
+
+  function trial(N0, n1, n2, flags, seed) {
+    const pond = newPond(N0, seed, flags);
+    tagStep(pond, n1); driftStep(pond); catchStep(pond, n2);
+    const e = estimate(pond.n1, pond.n2, pond.m);
+    return { N0, N2: pond.N2, n1: pond.n1, n2: pond.n2, m: pond.m, est: e };
+  }
+
+  function mean(a) { let s = 0; for (const v of a) s += v; return s / a.length; }
+  function sdev(a) { const mu = mean(a); let s = 0; for (const v of a) s += (v - mu) * (v - mu); return Math.sqrt(s / (a.length - 1)); }
+  function quantile(sorted, q) { const p = q * (sorted.length - 1), lo = Math.floor(p), hi = Math.ceil(p); return sorted[lo] + (sorted[hi] - sorted[lo]) * (p - lo); }
+
+  // Runs trials a few at a time (step(k) returns true when all T are done), so a page can stay responsive.
+  function summariser(N0, n1, n2, flags, T, seed0) {
+    const ch = [], lp = [], N2s = [], ms = [];
+    let cover = 0, undef = 0, t = 0;
+    return {
+      done: () => t >= T,
+      progress: () => t / T,
+      step(k) {
+        for (let j = 0; j < k && t < T; j++, t++) {
+          const r = trial(N0, n1, n2, flags, seed0 + t);
+          ch.push(r.est.ch); N2s.push(r.N2); ms.push(r.m);
+          if (r.est.lp === null) undef++; else lp.push(r.est.lp);
+          if (r.est.lo <= N0 && N0 <= r.est.hi) cover++;
+        }
+        return t >= T;
+      },
+      result: () => finish(N0, flags, T, ch, lp, N2s, ms, cover, undef)
+    };
+  }
+  function summarise(N0, n1, n2, flags, T, seed0) {
+    const s = summariser(N0, n1, n2, flags, T, seed0); s.step(T); return s.result();
+  }
+  function finish(N0, flags, T, ch, lp, N2s, ms, cover, undef) {
+    const sorted = Float64Array.from(ch).sort();
+    const sd = sdev(ch), mu = mean(ch), N2 = mean(N2s);
+    return { T, N0, N2, flags, estimates: ch, mean: mu, bias: mu / N0 - 1, biasVs2: mu / N2 - 1, sd, sdPct: sd / N0,
+      seBias: sd / Math.sqrt(T) / N0, q10: quantile(sorted, 0.1), q50: quantile(sorted, 0.5), q90: quantile(sorted, 0.9),
+      cover: cover / T, undef, undefShare: undef / T, lpBias: lp.length ? mean(lp) / N0 - 1 : null, meanM: mean(ms) };
+  }
+
+  // Large-sample prediction of the estimate for a world, from the constants alone (an approximation).
+  function predict(N0, n1, n2, flags) {
+    const W = flags.hetero ? P.boldWeight : 1, s = flags.hetero ? P.boldShare : 0;
+    const surv = flags.open ? 1 - P.leave : 1, keep = flags.tagloss ? 1 - P.tagLoss : 1;
+    const N2 = flags.open ? N0 * (1 - P.leave) + P.arrive * N0 : N0;
+    function incl(Npop, n) {
+      n = Math.min(n, Npop - 1e-9);
+      const f = l => Npop * (s * (1 - Math.exp(-l * W)) + (1 - s) * (1 - Math.exp(-l))) - n;
+      let lo = 0, hi = 1; while (f(hi) < 0) hi *= 2;
+      for (let i = 0; i < 100; i++) { const mid = (lo + hi) / 2; if (f(mid) < 0) lo = mid; else hi = mid; }
+      const l = (lo + hi) / 2; return [1 - Math.exp(-l * W), 1 - Math.exp(-l)];
+    }
+    const a = incl(N0, n1), b = incl(N2, n2);
+    const Em = N0 * surv * keep * (s * a[0] * b[0] + (1 - s) * a[1] * b[1]);
+    return { N2, estimate: n1 * n2 / Em };
+  }
+
+  // Exact expectation of the Chapman estimate when m is hypergeometric (closed pond, equal catchability).
+  function exactChapman(N, n1, n2) {
+    function lchoose(n, k) { let s = 0; for (let i = 1; i <= k; i++) s += Math.log((n - k + i) / i); return s; }
+    let e = 0, tot = 0;
+    for (let m = Math.max(0, n1 + n2 - N); m <= Math.min(n1, n2); m++) {
+      const p = Math.exp(lchoose(n1, m) + lchoose(N - n1, n2 - m) - lchoose(N, n2));
+      tot += p; e += p * ((n1 + 1) * (n2 + 1) / (m + 1) - 1);
+    }
+    return { expect: e, totalProb: tot };
+  }
+
+  // Words for a measured bias: near zero, too high or too low.
+  function biasWord(s) {
+    const b = s.bias, z = Math.abs(b) / s.seBias;
+    if (z < 3 || Math.abs(b) < 0.02) return { kind: "near", text: "not clearly different from the true count" };
+    return b > 0 ? { kind: "high", text: "too high" } : { kind: "low", text: "too low" };
+  }
+
+  return { P, mulberry32, newPond, sample, tagStep, driftStep, catchStep, estimate, trial, summariser, summarise, predict, exactChapman, biasWord, mean, sdev, presentCount };
+})();
+</script>
+
+<script id="ui">
+"use strict";
+(function () {
+  const R = Recap, P = R.P;
+  const $ = id => document.getElementById(id);
+  const pct = (x, d) => { const s = (Math.abs(x) * 100).toFixed(d == null ? 0 : d); return (+s === 0 ? "" : x >= 0 ? "+" : "−") + s + "%"; };
+  const pc = (x, d) => (x * 100).toFixed(d == null ? 0 : d) + "%";
+  const num = x => Math.round(x).toLocaleString("en-US");
+
+  // Text of the three assumptions, built from the constants.
+  $("lOpen").innerHTML = "<b>Closed population.</b> Between the nets " + pc(P.leave) + " of the fish leave and " + pc(P.arrive) + " of the original count arrive, untagged.";
+  $("lHet").innerHTML = "<b>Equal catchability.</b> " + pc(P.boldShare) + " of the fish are bold: " + P.boldWeight + " times as easy to net, both times. The rest are shy.";
+  $("lTag").innerHTML = "<b>Tags stay on.</b> Each tag falls off with chance " + pc(P.tagLoss) + " between the nets. The fish looks untagged when caught.";
+
+  const state = { pond: null, stage: 0 };
+  function readParams() {
+    let N = Math.round(+$("inN").value) || 600; N = Math.max(50, Math.min(2000, N));
+    let n1 = Math.round(+$("inN1").value) || 100; n1 = Math.max(5, Math.min(N, n1));
+    let n2 = Math.round(+$("inN2").value) || 100; n2 = Math.max(5, Math.min(N, n2));
+    let seed = Math.round(+$("inSeed").value); if (!(seed >= 0)) seed = 0; seed = Math.min(seed, 999999);
+    return { N, n1, n2, seed, flags: { open: $("fOpen").checked, hetero: $("fHet").checked, tagloss: $("fTag").checked } };
+  }
+  function writeParams(p) { $("inN").value = p.N; $("inN1").value = p.n1; $("inN2").value = p.n2; $("inSeed").value = p.seed; }
+
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function fit(cv, h) {
+    const dpr = window.devicePixelRatio || 1, w = Math.max(200, cv.clientWidth);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px";
+    const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); return { c, w, h };
+  }
+
+  function drawPond() {
+    const cv = $("pond"), { c, w, h } = fit(cv, 230), pond = state.pond;
+    c.clearRect(0, 0, w, h);
+    const revealed = state.stage === 3;
+    if (!revealed) {
+      c.strokeStyle = cssVar("--muted"); c.globalAlpha = .35; c.lineWidth = 1;
+      for (let k = 0; k < 7; k++) { c.beginPath(); c.ellipse(w * (.12 + k * .13), h * (.3 + (k % 3) * .2), 26, 9, 0, 0, 7); c.stroke(); }
+      c.globalAlpha = 1; c.fillStyle = cssVar("--muted"); c.font = "14px Georgia,serif"; c.textAlign = "center";
+      c.fillText("Murky water. The fish are hidden until you reveal the pond.", w / 2, h / 2);
+      cv.setAttribute("aria-label", "The pond. The fish are hidden until you reveal the pond.");
+      return;
+    }
+    const fish = cssVar("--fish"), tag = cssVar("--tag"), warn = cssVar("--warn"), ink = cssVar("--ink");
+    const last = new Set(pond.lastNet);
+    const r = pond.N0 + pond.events.arrived > 1200 ? 2.2 : 3;
+    let shown = 0, tagged = 0, lost = 0;
+    for (let pass = 0; pass < 2; pass++) for (let i = 0; i < pond.present.length; i++) {
+      if (!pond.present[i]) continue;
+      const t = pond.tag[i], special = t === 1 || t === 2;
+      if ((pass === 0) === special) continue;
+      const x = 8 + pond.x[i] * (w - 16), y = 8 + pond.y[i] * (h - 16);
+      c.beginPath(); c.arc(x, y, pond.bold[i] && pond.flags.hetero ? r + 1 : r, 0, 7);
+      if (t === 1) { c.fillStyle = tag; c.fill(); tagged++; }
+      else if (t === 2) { c.fillStyle = fish; c.fill(); c.lineWidth = 2; c.strokeStyle = warn; c.stroke(); lost++; }
+      else { c.fillStyle = fish; c.globalAlpha = .75; c.fill(); c.globalAlpha = 1; }
+      if (last.has(i)) { c.lineWidth = 1.5; c.strokeStyle = ink; c.beginPath(); c.arc(x, y, r + 3, 0, 7); c.stroke(); }
+      shown++;
+    }
+    cv.setAttribute("aria-label", "The revealed pond: " + shown + " fish, " + tagged + " with a tag on, " + lost + " that lost their tag.");
+  }
+
+  function drawTray() {
+    const cv = $("tray"), pond = state.pond;
+    const cell = 9, w0 = Math.max(200, cv.clientWidth), cols = Math.max(1, Math.floor((w0 - 8) / cell));
+    const net = state.stage >= 2 ? pond.lastNet : state.stage === 1 ? pond.lastNet : [];
+    const rows = Math.max(1, Math.ceil(net.length / cols)), h = rows * cell + 12 + (net.length ? 0 : 10);
+    const { c, w } = fit(cv, Math.min(h, 340));
+    c.clearRect(0, 0, w, h);
+    if (!net.length) { c.fillStyle = cssVar("--muted"); c.font = "13px Georgia,serif"; c.textAlign = "left"; c.fillText("Your net is empty.", 8, 22); cv.setAttribute("aria-label", "Your net is empty"); return; }
+    const tag = cssVar("--tag"), fish = cssVar("--fish");
+    let tg = 0;
+    net.forEach((id, k) => {
+      const x = 8 + (k % cols) * cell, y = 8 + Math.floor(k / cols) * cell;
+      const on = pond.tag[id] === 1; if (on) tg++;
+      c.fillStyle = (state.stage === 1 || on) ? tag : fish; c.globalAlpha = (state.stage === 1 || on) ? 1 : .75;
+      c.beginPath(); c.arc(x + 3.5, y + 3.5, 3.2, 0, 7); c.fill();
+    });
+    c.globalAlpha = 1;
+    cv.setAttribute("aria-label", state.stage === 1 ? "Net 1: " + net.length + " fish, all now tagged" : "Net 2: " + net.length + " fish, " + tg + " with a tag on");
+  }
+
+  function resultBoxes() {
+    const pond = state.pond, res = $("res");
+    if (state.stage < 2) { res.innerHTML = ""; return; }
+    const e = R.estimate(pond.n1, pond.n2, pond.m);
+    const box = (k, v) => "<div>" + k + "<b>" + v + "</b></div>";
+    let h = box("tagged, <i>n</i><sub>1</sub>", pond.n1) + box("second net, <i>n</i><sub>2</sub>", pond.n2) + box("tagged in second net, <i>m</i>", pond.m);
+    h += box("Lincoln&ndash;Petersen", e.lp === null ? "no answer" : num(e.lp));
+    h += box("Chapman", num(e.ch));
+    h += box("Chapman 95% interval", num(e.lo) + "&ndash;" + num(e.hi));
+    res.innerHTML = h;
+  }
+
+  function afterText() {
+    const pond = state.pond, el = $("after");
+    if (state.stage < 2) { el.textContent = ""; return; }
+    const e = R.estimate(pond.n1, pond.n2, pond.m);
+    let t = "";
+    if (pond.m === 0) t += "No tagged fish came back, so Lincoln–Petersen would divide by zero and gives no answer. Chapman gives " + num(e.ch) + ", but with no recaptures its interval (" + num(e.lo) + " to " + num(e.hi) + ") cannot be trusted. ";
+    else if (e.sd === 0) t += "Every tagged fish (or every fish in the second net) was a recapture, so the formula's spread estimate is zero. That is the formula running out of information, not certainty. ";
+    if (state.stage === 3) {
+      const ev = pond.events, f = pond.flags;
+      t += pond.N0 === pond.N2 ? "The pond held " + num(pond.N0) + " fish at both nets. Chapman's " + num(e.ch) + " is " + pct(e.ch / pond.N0 - 1, 0) + " from that count." : "The pond held " + num(pond.N0) + " fish when you tagged and " + num(pond.N2) + " when you netted again. Chapman's " + num(e.ch) + " is " + pct(e.ch / pond.N0 - 1, 0) + " from the first count and " + pct(e.ch / pond.N2 - 1, 0) + " from the second.";
+      const bits = [];
+      if (f.open) bits.push(num(ev.left) + " fish left and " + num(ev.arrived) + " arrived");
+      if (f.tagloss) bits.push((ev.lost === 0 ? "no tags fell off" : num(ev.lost) + (ev.lost === 1 ? " tag fell off" : " tags fell off") + (ev.taglessCaught === 0 ? ", and none of those fish was in your second net" : ", and " + num(ev.taglessCaught) + " of those fish " + (ev.taglessCaught === 1 ? "was" : "were") + " in your second net looking untagged")));
+      t += bits.length ? " Between the nets: " + bits.join("; ") + "." : (f.open || f.tagloss || f.hetero ? "" : " All three assumptions held in this pond.");
+      if (f.hetero) t += " Bold fish are drawn larger and are caught more often, so the same fish tend to be in both nets.";
+      t += " One pond is one draw: section 2 shows the average error over many.";
+    } else t += "Press “Reveal the pond” to see how far off this is.";
+    el.textContent = t;
+  }
+
+  function setButtons() {
+    $("bTag").disabled = state.stage !== 0; $("bCatch").disabled = state.stage !== 1; $("bReveal").disabled = state.stage !== 2;
+  }
+  function msg(t) { $("msg").textContent = t; }
+
+  function reset() {
+    const p = readParams(); writeParams(p);
+    state.pond = R.newPond(p.N, p.seed, p.flags); state.stage = 0; state.p = p;
+    msg("Pond " + p.seed + " is ready. Net " + p.n1 + " fish and tag them.");
+    setButtons(); redraw();
+  }
+  function redraw() { drawPond(); drawTray(); resultBoxes(); afterText(); }
+
+  $("bTag").onclick = () => { const p = state.p; R.tagStep(state.pond, p.n1); state.stage = 1; msg("You netted " + state.pond.n1 + " fish, tagged them and put them back. Now wait, then net again."); setButtons(); redraw(); };
+  $("bCatch").onclick = () => { const p = state.p; R.driftStep(state.pond); R.catchStep(state.pond, p.n2); state.stage = 2; msg("Second net: " + state.pond.n2 + " fish, " + state.pond.m + " wearing a tag."); setButtons(); redraw(); };
+  $("bReveal").onclick = () => { state.stage = 3; msg("The pond, revealed. Tags are orange; fish in your last net have a ring."); setButtons(); redraw(); };
+  $("bNew").onclick = () => { $("inSeed").value = (Math.round(+$("inSeed").value) || 0) + 1; reset(); };
+  for (const id of ["inN", "inN1", "inN2", "inSeed", "fOpen", "fHet", "fTag"]) $(id).addEventListener("change", reset);
+  window.addEventListener("resize", redraw);
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { redraw(); renderTrials(); }); } catch (e) { /* older browsers */ }
+
+  // ---- Section 2: trials ----
+  const SCEN = [
+    { key: "base", name: "All three hold", flags: { open: false, hetero: false, tagloss: false } },
+    { key: "open", name: "Open pond", flags: { open: true, hetero: false, tagloss: false } },
+    { key: "het", name: "Unequal catchability", flags: { open: false, hetero: true, tagloss: false } },
+    { key: "tag", name: "Tags fall off", flags: { open: false, hetero: false, tagloss: true } },
+    { key: "all", name: "All three broken", flags: { open: true, hetero: true, tagloss: true } }
+  ];
+  let trials = null, running = false;
+
+  // Same as R.summarise, but hands control back to the browser every ~30 ms so buttons and scrolling keep working.
+  async function summ(N, n1, n2, flags, T, s0, onProg) {
+    const s = R.summariser(N, n1, n2, flags, T, s0);
+    let last = performance.now();
+    while (!s.step(10)) {
+      if (performance.now() - last > 30) { if (onProg) onProg(s.progress()); await new Promise(r => setTimeout(r, 0)); last = performance.now(); }
+    }
+    return s.result();
+  }
+
+  async function runTrials() {
+    if (running) return;
+    running = true; $("bRun").disabled = true;
+    try {
+      const p = readParams(); writeParams(p);
+      const T = +$("inT").value; let s0 = Math.round(+$("inS0").value); if (!(s0 >= 0)) s0 = 0;
+      const t0 = performance.now(), rows = [], total = SCEN.length + 1;
+      const say = (i, f) => { $("runmsg").textContent = "Running… part " + Math.min(i + 1, total) + " of " + total + ", " + Math.round(f * 100) + "%"; };
+      for (let i = 0; i < SCEN.length; i++) {
+        const sc = SCEN[i];
+        rows.push({ sc, s: await summ(p.N, p.n1, p.n2, sc.flags, T, s0, f => say(i, f)), pred: R.predict(p.N, p.n1, p.n2, sc.flags) });
+      }
+      const sw = await sweepRun(p, T, s0, f => say(SCEN.length, f));
+      trials = { p, T, s0, rows, sw, ms: performance.now() - t0 };
+      renderTrials();
+    } finally { running = false; $("bRun").disabled = false; }
+  }
+
+  function wordsFor(r) {
+    const s = r.s, w = R.biasWord(s), name = r.sc.name;
+    if (w.kind === "near") return "<b>" + name + ":</b> the average estimate is " + num(s.mean) + " against a true " + num(s.N0) + ", " + w.text + " (mean error " + pct(s.bias, 1) + ", with a margin of about " + (3 * s.seBias * 100).toFixed(1) + " points from chance). Single trials still scatter by " + pc(s.sdPct, 0) + " of the count.";
+    return "<b>" + name + ":</b> the average estimate is " + num(s.mean) + " against a true " + num(s.N0) + ", " + w.text + " (" + pct(s.bias, 0) + "). More trials do not fix it, because the error is in the method's assumption, not in luck." + (r.sc.flags.open ? " Against the " + num(s.N2) + " fish in the pond at the second net it is " + pct(s.biasVs2, 0) + ", so it matches neither count." : "");
+  }
+
+  function renderTrials() {
+    if (!trials) return;
+    const { p, T, s0, rows } = trials;
+    $("runmsg").textContent = "Ran " + num(rows.length * T) + " seeded trials (" + rows.length + " rows of " + num(T) + ", seeds " + s0 + " to " + (s0 + T - 1) + " in each row) on a pond of " + num(p.N) + " with nets of " + p.n1 + " and " + p.n2 + ", in " + (trials.ms / 1000).toFixed(1) + " s.";
+    $("verdicts").innerHTML = rows.map(r => "<li>" + wordsFor(r) + "</li>").join("");
+    let h = "<tr><th>World</th><th>Mean estimate</th><th>Error vs count at tagging</th><th>Middle 80% of estimates</th><th>95% interval holds the truth</th><th>Rough prediction of the mean</th></tr>";
+    for (const r of rows) {
+      const s = r.s;
+      const rough = r.sc.key === "base" ? "n/a" : num(r.pred.estimate) + " (" + pct(r.pred.estimate / s.N0 - 1, 0) + ")";
+      h += "<tr><td>" + r.sc.name + "</td><td>" + num(s.mean) + "</td><td>" + pct(s.bias, 1) + (s.flags.open ? "<br><span class='small'>" + pct(s.biasVs2, 1) + " vs count at 2nd net (" + num(s.N2) + ")</span>" : "") + "</td><td>" + num(s.q10) + " to " + num(s.q90) + "</td><td>" + pc(s.cover, 1) + "</td><td>" + rough + "</td></tr>";
+    }
+    $("tbl").innerHTML = h;
+    const base = rows[0].s, low = rows.reduce((a, b) => b.s.cover < a.s.cover ? b : a);
+    $("tblnote").textContent = "The first row is the control. Across its " + num(T) + " trials, " + (base.undef === 0 ? "none" : num(base.undef)) + " had no recapture (Lincoln–Petersen undefined; Chapman still answers) and the mean number of recaptures was " + base.meanM.toFixed(1) + ". The interval is the usual normal approximation, which is rough when recaptures are few. Coverage is lowest for “" + low.sc.name + "” (" + pc(low.s.cover, 1) + "); a broken world can still score high when its interval is wide. In the last row the three errors push in different directions, so it is not the sum of the three rows above it. “Rough prediction” is a large-sample calculation from the world's constants alone, not a fit to the trials.";
+    histogram(rows, p);
+    sweepRender(p, trials.sw);
+  }
+
+  function histogram(rows, p) {
+    const W = 640, left = 130, right = 12, rowH = 62, top = 8, bins = 40, hi = 2.5 * p.N, bw = (W - left - right) / bins;
+    const counts = rows.map(r => { const c = new Array(bins).fill(0); for (const v of r.s.estimates) c[Math.min(bins - 1, Math.max(0, Math.floor(v / hi * bins)))]++; return c; });
+    let mx = 0; for (const c of counts) for (const v of c) mx = Math.max(mx, v / trials.T);
+    const H = top + rows.length * rowH + 26;
+    let s = "<svg class='hist' viewBox='0 0 " + W + " " + H + "' role='img' aria-label='Histograms of the Chapman estimate in each world, with the true count marked'>";
+    rows.forEach((r, i) => {
+      const y0 = top + i * rowH + rowH - 14;
+      s += "<text x='" + (left - 8) + "' y='" + (y0 - 18) + "' text-anchor='end'>" + r.sc.name + "</text>";
+      s += "<line class='axis' x1='" + left + "' x2='" + (W - right) + "' y1='" + y0 + "' y2='" + y0 + "'/>";
+      counts[i].forEach((v, b) => { const hgt = v / trials.T / mx * (rowH - 22); if (hgt > 0) s += "<rect class='bar' x='" + (left + b * bw + .5).toFixed(1) + "' y='" + (y0 - hgt).toFixed(1) + "' width='" + (bw - 1).toFixed(1) + "' height='" + hgt.toFixed(1) + "'/>"; });
+      const xt = left + p.N / hi * (W - left - right), xm = left + Math.min(r.s.mean, hi) / hi * (W - left - right);
+      s += "<line class='true' x1='" + xt.toFixed(1) + "' x2='" + xt.toFixed(1) + "' y1='" + (y0 - rowH + 18) + "' y2='" + y0 + "'/>";
+      s += "<line class='mean' x1='" + xm.toFixed(1) + "' x2='" + xm.toFixed(1) + "' y1='" + (y0 - rowH + 18) + "' y2='" + y0 + "'/>";
+    });
+    const ya = top + rows.length * rowH - 14;
+    for (let k = 0; k <= 5; k++) { const v = k * 0.5 * p.N, x = left + v / hi * (W - left - right); s += "<text class='mut' x='" + x.toFixed(1) + "' y='" + (ya + 14) + "' text-anchor='middle'>" + num(v) + "</text>"; }
+    s += "</svg>";
+    $("histwrap").innerHTML = s;
+    let over = 0, tot = 0; for (const r of rows) for (const v of r.s.estimates) { tot++; if (v >= hi) over++; }
+    $("histnote").innerHTML = "<span class='swatch' style='background:var(--tag)'></span>true count at tagging, solid line. Dashed line: mean estimate. Each row uses the same height scale. " + (over ? num(over) + " of " + num(tot) + " estimates lie beyond the right edge (" + num(hi) + ") and are drawn in the last bar." : "No estimate lies beyond the right edge (" + num(hi) + ").");
+  }
+
+  const SWEEP_FR = [0.03, 0.06, 0.1, 0.17, 0.25];
+  async function sweepRun(p, T, s0, onProg) {
+    const Ts = Math.min(T, 1000), out = [];
+    for (let k = 0; k < SWEEP_FR.length; k++) {
+      const n = Math.max(5, Math.round(p.N * SWEEP_FR[k])), em = n * n / p.N;
+      out.push({ n, em, s: await summ(p.N, n, n, SCEN[0].flags, Ts, s0 + 100000, f => onProg((k + f) / SWEEP_FR.length)) });
+    }
+    return { Ts, s0: s0 + 100000, out };
+  }
+  function sweepRender(p, sw) {
+    const Ts = sw.Ts, out = sw.out;
+    let h = "<tr><th>Each net</th><th>Expected recaptures</th><th>Trials with none</th><th>Lincoln–Petersen error</th><th>Chapman error</th><th>Chapman spread</th><th>1/√(recaptures)</th></tr>";
+    for (const { n, em, s } of out) {
+      h += "<tr><td>" + n + "</td><td>" + em.toFixed(1) + "</td><td>" + pc(s.undefShare, 1) + "</td><td>" + (s.lpBias === null ? "n/a" : pct(s.lpBias, 1)) + "</td><td>" + pct(s.bias, 1) + "</td><td>" + pc(s.sdPct, 0) + " of count</td><td>" + pc(1 / Math.sqrt(em), 0) + "</td></tr>";
+    }
+    $("swp").innerHTML = h;
+    const first = out[0], last = out[out.length - 1];
+    $("swpnote").textContent = num(Ts) + " trials per row, seeds from " + sw.s0 + ". With about " + first.em.toFixed(1) + " expected recaptures per trial the Lincoln–Petersen error is " + (first.s.lpBias === null ? "not defined" : pct(first.s.lpBias, 0)) + " and Chapman's is " + pct(first.s.bias, 1) + "; with about " + last.em.toFixed(0) + " they are " + (last.s.lpBias === null ? "not defined" : pct(last.s.lpBias, 1)) + " and " + pct(last.s.bias, 1) + ". Lincoln–Petersen's error here counts only the trials where it has an answer. The last column is a rule of thumb for the spread, shown beside the measured one.";
+  }
+  $("bRun").onclick = () => { $("runmsg").textContent = "Running…"; setTimeout(runTrials, 30); };
+
+  // ---- Section 4: self-checks, on fixed settings ----
+  async function selfChecks() {
+    const yieldUI = () => new Promise(r => setTimeout(r, 0));
+    const out = [], add = (ok, t) => out.push({ ok, t });
+    const F0 = { open: false, hetero: false, tagloss: false };
+    // 1 determinism
+    const a = R.trial(300, 50, 50, SCEN[4].flags, 4242), b = R.trial(300, 50, 50, SCEN[4].flags, 4242), c = R.trial(300, 50, 50, SCEN[4].flags, 4243);
+    add(a.m === b.m && a.est.ch === b.est.ch && a.N2 === b.N2, "Same seed, same pond and same result (seed 4242 twice: m = " + a.m + " and " + b.m + ", Chapman " + a.est.ch.toFixed(2) + " and " + b.est.ch.toFixed(2) + "; seed 4243 gives m = " + c.m + ", Chapman " + c.est.ch.toFixed(2) + ").");
+    // 2 sampler gives n distinct present fish
+    let bad = 0, runs = 0;
+    for (let s = 0; s < 200; s++) {
+      const pond = R.newPond(120, s, SCEN[4].flags); R.tagStep(pond, 30); R.driftStep(pond); const got = R.catchStep(pond, 40);
+      runs++;
+      if (got.length !== Math.min(40, pond.N2) || new Set(got).size !== got.length || got.some(i => !pond.present[i])) bad++;
+    }
+    add(bad === 0, "In every one of these nets the net held exactly the requested number of distinct fish that are in the pond: " + bad + " failures in " + runs + " nets, including after fish left and arrived.");
+    // 3 equal inclusion
+    const N = 50, n = 10, D = 20000, cnt = new Array(N).fill(0);
+    for (let s = 0; s < D; s++) { const pond = R.newPond(N, 500000 + s, F0); for (const i of R.sample(pond, n)) cnt[i]++; if (s % 2000 === 1999) await yieldUI(); }
+    const p0 = n / N, se = Math.sqrt(p0 * (1 - p0) / D); let worst = 0; for (const v of cnt) worst = Math.max(worst, Math.abs(v / D - p0) / se);
+    add(worst < 5, "With equal catchability each of 50 fish is netted in " + pc(R.mean(cnt) / D, 1) + " of " + num(D) + " nets of 10; the most unusual fish is " + worst.toFixed(1) + " standard errors from the expected " + pc(p0, 0) + " (limit 5).");
+    // 4 bold fish are caught more
+    let boldC = 0, boldT = 0, shyC = 0, shyT = 0;
+    for (let s = 0; s < 400; s++) { if (s % 100 === 99) await yieldUI(); const pond = R.newPond(300, 700000 + s, { open: false, hetero: true, tagloss: false }); const got = new Set(R.sample(pond, 60)); for (let i = 0; i < 300; i++) { if (pond.bold[i]) { boldT++; if (got.has(i)) boldC++; } else { shyT++; if (got.has(i)) shyC++; } } }
+    add(boldC / boldT > 2 * shyC / shyT, "With unequal catchability, a bold fish is netted in " + pc(boldC / boldT, 1) + " of nets and a shy one in " + pc(shyC / shyT, 1) + " (a ratio of " + ((boldC / boldT) / (shyC / shyT)).toFixed(1) + ", where the weight is " + P.boldWeight + ").");
+    // 5 exact Chapman
+    const ex1 = R.exactChapman(30, 20, 20);
+    add(Math.abs(ex1.expect - 30) < 1e-8 && Math.abs(ex1.totalProb - 1) < 1e-9, "Exact sum over the hypergeometric: when the two nets together hold at least the whole pond (30 fish, nets of 20), Chapman's expected value is " + ex1.expect.toFixed(6) + ", the true 30.");
+    const ex2 = R.exactChapman(100, 20, 20), sim = await summ(100, 20, 20, F0, 4000, 9000);
+    const z = (sim.mean - ex2.expect) / (sim.sd / Math.sqrt(sim.T));
+    add(Math.abs(z) < 4, "Exact expectation for a pond of 100 and nets of 20 is " + ex2.expect.toFixed(2) + "; the simulated mean over " + num(sim.T) + " seeded trials is " + sim.mean.toFixed(2) + " (" + z.toFixed(1) + " standard errors apart, limit 4).");
+    // 6 m = 0 handling
+    const e0 = R.estimate(10, 10, 0);
+    add(e0.lp === null && Math.abs(e0.ch - 120) < 1e-9, "With no recaptures Lincoln–Petersen has no answer and Chapman gives (11 × 11) / 1 − 1 = " + e0.ch + ".");
+    // 7 control and each broken assumption at fixed settings
+    const Nn = 600, nn = 100, T = 1500, r = [];
+    for (const sc of SCEN) r.push({ sc, s: await summ(Nn, nn, nn, sc.flags, T, 31000), pr: R.predict(Nn, nn, nn, sc.flags) });
+    const base = r[0].s;
+    add(Math.abs(base.bias) < 3 * base.seBias, "Control, all assumptions true (pond 600, nets of 100, " + num(T) + " trials): mean error " + pct(base.bias, 2) + ", within 3 standard errors (" + (3 * base.seBias * 100).toFixed(2) + " points) of zero.");
+    add(base.cover > 0.88 && base.cover < 0.99, "Control: the 95% interval held the true count in " + pc(base.cover, 1) + " of trials (accepted range 88% to 99%; the normal interval runs a little under 95% with about " + base.meanM.toFixed(0) + " recaptures, so this checks it is close, not that it is exactly 95%).");
+    for (const x of r.slice(1)) {
+      const w = R.biasWord(x.s), diff = Math.abs(x.pr.estimate / Nn - 1 - x.s.bias);
+      add(w.kind !== "near" && diff < 0.06, x.sc.name + ": measured error " + pct(x.s.bias, 1) + " (" + w.text + "), the large-sample prediction " + pct(x.pr.estimate / Nn - 1, 1) + ", " + (diff * 100).toFixed(1) + " points apart (limit 6).");
+    }
+    add(Math.abs(r[1].s.N2 - Nn * (1 - P.leave + P.arrive)) < 1, "Open pond: the second net found " + num(r[1].s.N2) + " fish in the pond, equal to " + Nn + " × (1 − " + P.leave + " + " + P.arrive + ") = " + num(Nn * (1 - P.leave + P.arrive)) + ".");
+    // 8 every verdict word fires
+    const kinds = new Set(r.map(x => R.biasWord(x.s).kind));
+    add(kinds.has("near") && kinds.has("high") && kinds.has("low"), "Every wording branch for the error fired in these checks: " + [...kinds].sort().join(", ") + " (" + r.map(x => x.sc.name + ": " + R.biasWord(x.s).kind).join("; ") + ").");
+    return out;
+  }
+
+  function lede() {
+    const t = $("lede").textContent.trim().split(/\s+/).length;
+    return t;
+  }
+
+  function limits() {
+    const li = [
+      "The model is a pond of identical points. Real fish have places, schools and hours; real tags are fin clips or numbered tags; real nets catch different sizes. Only the three listed ways of failing are modelled.",
+      "Both nets take a fixed number of fish. Real surveys often fix the effort (a number of trap nights), and then the catch size itself varies.",
+      "Unequal catchability is modelled as two groups with a fixed ratio of " + P.boldWeight + " (" + pc(P.boldShare) + " bold). Real catchability varies continuously and can change after a fish has been caught once. The rough prediction for this world is a large-sample approximation, not an exact result.",
+      "Fish leave or arrive in one batch, all at random. Real losses are often not random and real populations change by births and deaths all the time.",
+      "The Chapman interval used is the normal approximation. The coverage figures show how it behaved here; they are not a proof for other settings.",
+      "The names Lincoln–Petersen and Chapman, and the formulas, are standard; their history and any real survey are not covered and not checked here."
+    ];
+    $("limits").innerHTML = li.map(t => "<li>" + t + "</li>").join("");
+  }
+
+  function boot() {
+    limits(); $("runmsg").textContent = "Running the checks, then the trials…"; $("bRun").disabled = true;
+    $("checks").innerHTML = "<li>Running the checks…</li>";
+    reset();
+    setTimeout(async () => {
+      const chk = await selfChecks();
+      const nOk = chk.filter(c => c.ok).length;
+      $("checks").innerHTML = "<li><b class='" + (nOk === chk.length ? "ok" : "bad") + "'>" + nOk + " of " + chk.length + " checks pass.</b></li>" + chk.map(c => "<li><b class='" + (c.ok ? "ok" : "bad") + "'>" + (c.ok ? "pass" : "FAIL") + "</b> " + c.t + "</li>").join("");
+      $("bRun").disabled = false;
+      runTrials();
+    }, 50);
+  }
+  window.__recapture = { selfChecks, lede, state };
+  boot();
+})();
+</script>
+</body>
+</html>

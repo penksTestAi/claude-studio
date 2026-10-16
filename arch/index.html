@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hanging Chain, Standing Arch · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Hang weights on a 30-link chain, watch the page solve its shape in code, flip it into an arch, and see whether a stone ring of your chosen rise and thickness would stand, stand along a different line, or fail.">
+<link rel="canonical" href="https://vigilstudio.github.io/arch/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Hanging Chain, Standing Arch · Vigil">
+<meta property="og:description" content="Hang weights on a 30-link chain, watch the page solve its shape in code, flip it into an arch, and see whether a stone ring of your chosen rise and thickness would stand, stand along a different line, or fail.">
+<meta property="og:url" content="https://vigilstudio.github.io/arch/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hanging Chain, Standing Arch · Vigil">
+<meta name="twitter:description" content="Hang weights on a 30-link chain, watch the page solve its shape in code, flip it into an arch, and see whether a stone ring of your chosen rise and thickness would stand, stand along a different line, or fail.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5f5b52;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#fff;--ok:#2a6f35;--bad:#b3261e;--warn:#8a5a00;--stone:#d9cfba;--stone-line:#a39878;--weight:#6b4e16;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8b860;--stone:#3b3a35;--stone-line:#6f6b5e;--weight:#e0b968;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8b860;--stone:#3b3a35;--stone-line:#6f6b5e;--weight:#e0b968;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:22px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2rem;line-height:1.15;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.3rem;line-height:1.25;margin:34px 0 8px;font-weight:normal;border-top:1px solid var(--line);padding-top:18px}
+p{margin:0 0 12px}
+.lede{font-size:1.15rem}
+.small{font-size:.86rem;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+svg#view{display:block;width:100%;height:auto;touch-action:manipulation;cursor:crosshair;border-radius:6px}
+svg#view:focus-visible{outline:3px solid var(--ink)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 18px;margin-top:12px}
+fieldset{border:1px solid var(--line);border-radius:8px;margin:0;padding:8px 12px 10px;min-width:0}
+legend{font-size:.9rem;color:var(--muted);padding:0 4px}
+label{display:block;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+button{font:inherit;font-size:.92rem;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;min-height:40px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.out{font-variant-numeric:tabular-nums}
+#verdict{margin:0 0 12px;border-left:6px solid var(--line);padding:8px 12px;background:var(--panel);border-radius:0 8px 8px 0}
+#verdict.stands,#verdict.other{border-left-color:var(--ok)}
+#verdict.fails{border-left-color:var(--bad)}
+#verdict strong{display:block}
+dl.readout{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:10px 0 0;font-size:.95rem}
+dl.readout dt{color:var(--muted)}
+dl.readout dd{margin:0}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:normal}
+.tw{overflow-x:auto}
+.pass{color:var(--ok)}.fail{color:var(--bad)}
+svg text{font-family:Georgia,serif;fill:var(--muted)}
+.ring{fill:var(--stone);stroke:var(--stone-line);stroke-width:1.2}
+.ln-ok{stroke:var(--accent)}.ln-bad{stroke:var(--bad)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Hanging Chain, Standing Arch</h1>
+<p class="lede" id="lede">Hang weights on a chain, then flip the settled shape upside down and test whether a stone arch could carry the same loads.</p>
+<p>The saying, as I remember it and have not checked against the source, is Robert Hooke's: he published it as a Latin anagram in 1675, and the solution appeared in print in 1705 (both dates from memory, not checked). As hangs the flexible line, so but inverted will stand the rigid arch. A hanging chain is pulled everywhere along its length. Turn the picture over and each pull becomes a push, and stone is good at pushing and poor at pulling. So if the flipped line stays inside the stone, the stone can carry the loads along that line. This page works out the shape in code from the weights you hang (it is not a drawing of a curve) and then checks the line against a stone ring you can thicken and thin.</p>
+
+<div class="panel">
+<svg id="view" viewBox="0 0 640 520" role="group" tabindex="0" aria-labelledby="viewhelp"></svg>
+<p class="small" id="viewhelp">Click or tap near a joint of the chain to add the chosen weight to it; switch to Take off to remove weight. With the keyboard, focus the picture, then Left and Right choose a joint, Up adds weight and Down takes it off.</p>
+<p class="out" id="selinfo" aria-live="polite"></p>
+<div id="verdict" aria-live="polite"></div>
+
+<div class="controls">
+<fieldset><legend>Flip</legend>
+<label>Hanging &larr; &rarr; standing<input type="range" id="flip" min="0" max="100" value="0" aria-label="Flip from hanging chain to standing arch"></label>
+<div class="row"><button id="bHang">Hang</button><button id="bFlip">Flip over</button></div>
+</fieldset>
+<fieldset><legend>Weights</legend>
+<div class="row" role="group" aria-label="Weight size">
+<button data-step="1" aria-pressed="false">+1</button><button data-step="5" aria-pressed="true">+5</button><button data-step="15" aria-pressed="false">+15</button>
+</div>
+<div class="row" role="group" aria-label="Click action" style="margin-top:6px">
+<button id="mAdd" aria-pressed="true">Add</button><button id="mDel" aria-pressed="false">Take off</button><button id="bClear">Clear all</button>
+</div>
+<p class="small" style="margin:6px 0 0" id="unitnote"></p>
+</fieldset>
+<fieldset><legend>Load and chain</legend>
+<div class="row" role="group" aria-label="Kind of load">
+<button id="kChain" aria-pressed="true">Chain's own weight</button><button id="kDeck" aria-pressed="false">Level deck</button>
+</div>
+<label>Chain length: <span class="out" id="oL"></span> &times; span<input type="range" id="len" min="105" max="160" value="120"></label>
+<label id="deckrow">Deck weight: <span class="out" id="oD"></span><input type="range" id="deck" min="5" max="120" value="30"></label>
+</fieldset>
+<fieldset><legend>Stone ring</legend>
+<label>Rise: <span class="out" id="oR"></span> of span<input type="range" id="rise" min="10" max="40" value="25"></label>
+<label>Thickness: <span class="out" id="oT"></span> of span<input type="range" id="thick" min="1" max="15" value="8"></label>
+</fieldset>
+<fieldset><legend>Compare with</legend>
+<label><input type="checkbox" id="oCat"> exact catenary (cosh), same span and length</label>
+<label><input type="checkbox" id="oPar"> parabola with the same sag</label>
+<p class="small out" id="gaps" style="margin:4px 0 0"></p>
+</fieldset>
+<fieldset><legend>Examples</legend>
+<div class="row">
+<button id="p1">Plain chain</button><button id="p2">Weight on one joint</button><button id="p3">Level deck</button>
+</div>
+</fieldset>
+</div>
+
+<dl class="readout" id="readout"></dl>
+</div>
+
+<h2>What the page does</h2>
+<p id="how"></p>
+
+<h2>Self-checks, run on every load</h2>
+<p class="small">These run in your browser when the page loads, on preset cases and on seeded random loadings, not on the picture above. A row says whether the code agrees with the formula it is compared with. It does not show the formula is the right physics for real stone.</p>
+<div class="tw"><table id="checks"><thead><tr><th>Check</th><th>What was measured</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<p id="checksum"></p>
+
+<h2>What is not verified</h2>
+<ul id="unver"></ul>
+<p class="small">Made by Claude, an AI model, from the studio's brief. The code is in <a href="engine.js">engine.js</a> and this page; the README has the method. No outside data or libraries are used.</p>
+<p class="small"><a href="../">Back to the Workbench</a></p>
+</main>
+<script src="engine.js"></script>
+<script>
+(function () {
+  "use strict";
+  var E = ArchEngine, N = E.N, S = 1, LMIN = 1.05, LMAX = 1.6, LSTEP = E.LSTEP, MAXW = 60, NPT = N + 1;
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $("view"), NS = "http://www.w3.org/2000/svg";
+  var VW = 640, VH = 520, X0 = 40, SC = 560, YTOP = 40, YBOT = VH - 110;
+  var st = { extras: zeros(), mode: "chain", L: 1.2, D: 30, rise: 0.25, t: 0.08, f: 0, step: 5, del: false, sel: 15, cat: false, par: false };
+  var reduce = false;
+  try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+  function zeros() { var a = []; for (var i = 0; i < N - 1; i++) a.push(0); return a; }
+  function pct(x, d) { return (100 * x).toFixed(d === undefined ? 1 : d) + "%"; }
+  function el(name, attrs, parent) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  function list(a) { return a.length === 0 ? "none" : a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+  var cur = null, ver = null, rafPending = false;
+
+  function compute() {
+    var r = E.loads(S, st.L * S, st.mode, st.extras, st.D);
+    cur = r;
+    ver = E.verdict({ S: S, L: st.L * S, mode: st.mode, extras: st.extras, D: st.D, rise: st.rise, t: st.t }, LMIN, LMAX);
+  }
+  function sx(x) { return X0 + x * SC; }
+  function sy(d, s, f) { return (1 - f) * (YTOP + d * SC) + f * (YBOT - (d + s) * SC); }
+
+  function draw() {
+    rafPending = false;
+    compute();
+    var sol = cur.sol, f = st.f, s = ver.fit ? ver.fit.s : 0;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // ring
+    if (f > 0.02) {
+      var up = [], dn = [], k;
+      for (k = 0; k <= 60; k++) { var x = S * k / 60, r = E.ringAt(S, st.rise, st.t, x); up.push([sx(x), YBOT - r[1] * SC]); dn.push([sx(x), YBOT - r[0] * SC]); }
+      var dstr = "M" + up.map(function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join("L") + "L" + dn.reverse().map(function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join("L") + "Z";
+      el("path", { d: dstr, "class": "ring", opacity: Math.min(1, f * 1.4).toFixed(2) }, svg);
+    }
+    // supports and ground
+    var sy0 = sy(0, s, f);
+    el("line", { x1: sx(0) - 26, x2: sx(0) + 6, y1: sy0, y2: sy0, stroke: "var(--ink)", "stroke-width": 3 }, svg);
+    el("line", { x1: sx(S) - 6, x2: sx(S) + 26, y1: sy0, y2: sy0, stroke: "var(--ink)", "stroke-width": 3 }, svg);
+    if (!sol) { el("text", { x: 320, y: 270, "text-anchor": "middle", "font-size": 24 }, svg).textContent = "No load to hang."; updateText(); return; }
+    // overlays
+    var a = E.catenaryParam(S, st.L * S), sag = sol.d[N / 2];
+    function overlay(fn, color) {
+      var pts = [];
+      for (var k = 0; k <= 80; k++) { var x = S * k / 80; pts.push(sx(x).toFixed(1) + " " + sy(fn(x), s, f).toFixed(1)); }
+      el("path", { d: "M" + pts.join("L"), fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": "7 5", opacity: 0.9 }, svg);
+    }
+    if (st.cat) overlay(function (x) { return E.catenaryDepth(S, a, x); }, "var(--warn)");
+    if (st.par) overlay(function (x) { return E.parabolaDepth(S, sag, x); }, "var(--ok)");
+    // best other line
+    if (f > 0.5 && ver.bestSol && (ver.branch === "other" || ver.branch === "fails")) {
+      var bp = [], bs = ver.best.s;
+      for (var i = 0; i <= N; i++) bp.push(sx(ver.bestSol.x[i]).toFixed(1) + " " + sy(ver.bestSol.d[i], bs, f).toFixed(1));
+      el("path", { d: "M" + bp.join("L"), fill: "none", stroke: ver.branch === "other" ? "var(--ok)" : "var(--bad)", "stroke-width": 2.5, "stroke-dasharray": "3 5", opacity: 0.9 }, svg);
+    }
+    // loads
+    var dir = f < 0.5 ? 1 : -1, j;
+    var tot = cur.w;
+    for (j = 1; j < N; j++) {
+      var ex = st.extras[j - 1], dk = st.mode === "deck" ? tot[j - 1] - ex : 0, X = sx(sol.x[j]), Y = sy(sol.d[j], s, f);
+      if (dk > 0.001) el("line", { x1: X, x2: X, y1: Y, y2: Y + dir * Math.min(dk * 1.6, 64), stroke: "var(--muted)", "stroke-width": 2, opacity: 0.6 }, svg);
+      if (ex > 0) {
+        var len = Math.min(ex * 1.6, 64) + 6;
+        el("line", { x1: X, x2: X, y1: Y, y2: Y + dir * len, stroke: "var(--weight)", "stroke-width": 3 }, svg);
+        el("rect", { x: X - 6, y: dir > 0 ? Y + len : Y - len - 12, width: 12, height: 12, fill: "var(--weight)" }, svg);
+      }
+    }
+    // chain line, coloured by whether inside ring (arch view)
+    for (i = 0; i < N; i++) {
+      var bad = false;
+      if (f > 0.5) {
+        for (var q = 0; q <= 4 && !bad; q++) {
+          var u = q / 4, xx = sol.x[i] + (sol.x[i + 1] - sol.x[i]) * u, dd = sol.d[i] + (sol.d[i + 1] - sol.d[i]) * u, rr = E.ringAt(S, st.rise, st.t, xx), h = dd + s;
+          if (h > rr[1] + 1e-9 || h < rr[0] - 1e-9) bad = true;
+        }
+      }
+      el("line", { x1: sx(sol.x[i]), y1: sy(sol.d[i], s, f), x2: sx(sol.x[i + 1]), y2: sy(sol.d[i + 1], s, f), "class": bad ? "ln-bad" : "ln-ok", "stroke-width": 3.5, "stroke-linecap": "round" }, svg);
+    }
+    for (j = 1; j < N; j++) el("circle", { cx: sx(sol.x[j]), cy: sy(sol.d[j], s, f), r: j === st.sel ? 6 : 3.2, fill: j === st.sel ? "var(--ink)" : "var(--panel)", stroke: "var(--ink)", "stroke-width": 1.5 }, svg);
+    el("text", { x: 14, y: 26, "font-size": 22 }, svg).textContent = f < 0.5 ? "Hanging chain" : "Standing arch (stone ring shaded)";
+    updateText();
+  }
+
+  function updateText() {
+    var sol = cur.sol;
+    $("oL").textContent = st.L.toFixed(2);
+    $("oD").textContent = st.D + " link-weights";
+    $("oR").textContent = pct(st.rise, 0);
+    $("oT").textContent = pct(st.t, 0);
+    $("deckrow").style.display = st.mode === "deck" ? "" : "none";
+    var ex = st.extras[st.sel - 1];
+    $("selinfo").textContent = "Selected joint " + st.sel + " of " + (N - 1) + ": " + (ex === 0 ? "no extra weight" : ex + " link-weights hung here") + ".";
+    $("unitnote").textContent = "One unit is the weight of one link of the chain (the whole chain is " + N + " units). Each joint takes up to " + MAXW + ".";
+    var rd = $("readout"); rd.innerHTML = "";
+    function add(t, v) { var a = document.createElement("dt"), b = document.createElement("dd"); a.textContent = t; b.textContent = v; rd.appendChild(a); rd.appendChild(b); }
+    if (sol) {
+      var sumEx = st.extras.reduce(function (p, c) { return p + c; }, 0), nJ = st.extras.filter(function (v) { return v > 0; }).length;
+      add("Extra weights", sumEx === 0 ? "none" : sumEx + " units on " + plural(nJ, "joint", "joints"));
+      add("Load on the joints", sol.W.toFixed(1) + " units" + (st.mode === "deck" ? " (deck spread by horizontal width)" : " (links plus extras)"));
+      add("Horizontal pull (thrust)", sol.H.toFixed(2) + " units, " + (sol.H / sol.W).toFixed(2) + " of the load");
+      add("Lowest joint", pct(Math.max.apply(null, sol.d), 1) + " of the span below the supports");
+      add("Steepest link", (Math.atan2(Math.max(Math.abs(sol.V[0]), Math.abs(sol.V[N - 1])), sol.H) * 180 / Math.PI).toFixed(0) + " degrees from level");
+      var a = E.catenaryParam(S, st.L * S), sag = sol.d[N / 2], gc = 0, gp = 0;
+      for (var j = 0; j <= N; j++) { gc = Math.max(gc, Math.abs(sol.d[j] - E.catenaryDepth(S, a, sol.x[j]))); gp = Math.max(gp, Math.abs(sol.d[j] - E.parabolaDepth(S, sag, sol.x[j]))); }
+      $("gaps").textContent = "Largest gap over the " + NPT + " points (" + (N - 1) + " joints and 2 supports), as a share of the middle sag: catenary " + pct(gc / sag, 2) + ", parabola " + pct(gp / sag, 2) + ".";
+    } else { $("gaps").textContent = ""; }
+    // verdict
+    var v = $("verdict"), t = "";
+    v.className = ver.branch;
+    var ringTxt = "ring rise " + pct(st.rise, 0) + " and thickness " + pct(st.t, 0) + " of the span";
+    if (ver.branch === "stands") {
+      t = "<strong>The arch stands, in this model.</strong>The flipped line lies inside the stone everywhere (" + ringTxt + "), with " + pct(ver.margin, 2) + " of the span to spare at the tightest point.";
+    } else if (ver.branch === "other") {
+      t = "<strong>The arch might stand, in this model, along a different line.</strong>The line from your chain leaves the stone by " + pct(-ver.margin, 2) + " of the span, but a chain " + ver.bestL.toFixed(2) + " times the span long gives a line that fits with " + pct(ver.best.margin, 2) + " to spare (dashed, once flipped). That other line comes from a chain with its weight spread differently from the one you hung, so it only suggests the arch might stand.";
+    } else if (ver.branch === "fails") {
+      t = "<strong>No line found that fits, in this model.</strong>Of " + ver.tried + " chain lengths tried, from " + LMIN.toFixed(2) + " to " + LMAX.toFixed(2) + " times the span, none gives a line that stays inside the stone (" + ringTxt + "). The closest one (dashed) still leaves it by " + pct(-ver.best.margin, 2) + " of the span: it meets the outer face near " + pct(ver.best.topAt, 0) + " of the way across and the inner face near " + pct(ver.best.bottomAt, 0) + ". Stone cannot pull, so cracks would likely open near there.";
+    } else { t = "<strong>No load.</strong>Hang a weight or switch to the chain's own weight."; }
+    v.innerHTML = t + '<span class="small" style="display:block;margin-top:4px">This is the model\'s answer: rigid stone, no tension, ends held level, loads as hung. Whether real masonry arches behave this way is not checked here.</span>';
+  }
+
+  function schedule() { if (!rafPending) { rafPending = true; requestAnimationFrame(draw); } }
+
+  // controls
+  function setStep(n) { st.step = n; document.querySelectorAll("[data-step]").forEach(function (b) { b.setAttribute("aria-pressed", String(+b.dataset.step === n)); }); }
+  document.querySelectorAll("[data-step]").forEach(function (b) { b.addEventListener("click", function () { setStep(+b.dataset.step); }); });
+  function setDel(v) { st.del = v; $("mAdd").setAttribute("aria-pressed", String(!v)); $("mDel").setAttribute("aria-pressed", String(v)); }
+  $("mAdd").onclick = function () { setDel(false); }; $("mDel").onclick = function () { setDel(true); };
+  function setMode(m) { st.mode = m; $("kChain").setAttribute("aria-pressed", String(m === "chain")); $("kDeck").setAttribute("aria-pressed", String(m === "deck")); schedule(); }
+  $("kChain").onclick = function () { setMode("chain"); }; $("kDeck").onclick = function () { setMode("deck"); };
+  function change(j, delta) { st.extras[j - 1] = Math.max(0, Math.min(MAXW, st.extras[j - 1] + delta)); st.sel = j; schedule(); }
+  $("bClear").onclick = function () { st.extras = zeros(); schedule(); };
+  $("len").oninput = function () { st.L = +this.value / 100; schedule(); };
+  $("deck").oninput = function () { st.D = +this.value; schedule(); };
+  $("rise").oninput = function () { st.rise = +this.value / 100; schedule(); };
+  $("thick").oninput = function () { st.t = +this.value / 100; schedule(); };
+  $("oCat").onchange = function () { st.cat = this.checked; schedule(); };
+  $("oPar").onchange = function () { st.par = this.checked; schedule(); };
+  $("flip").oninput = function () { st.f = +this.value / 100; schedule(); };
+  var anim = 0;
+  function flipTo(target) {
+    cancelAnimationFrame(anim);
+    if (reduce) { st.f = target; $("flip").value = target * 100; schedule(); return; }
+    var from = st.f, t0 = performance.now();
+    (function step(t) { var k = Math.min(1, (t - t0) / 700); st.f = from + (target - from) * k; $("flip").value = st.f * 100; draw(); if (k < 1) anim = requestAnimationFrame(step); })(t0);
+  }
+  $("bHang").onclick = function () { flipTo(0); }; $("bFlip").onclick = function () { flipTo(1); };
+  function preset(extras, mode, L) {
+    st.extras = extras; st.mode = mode; st.L = L; $("len").value = Math.round(L * 100); setMode(mode);
+  }
+  $("p1").onclick = function () { preset(zeros(), "chain", 1.2); };
+  $("p2").onclick = function () { var e = zeros(); e[9] = 30; preset(e, "chain", 1.3); };
+  $("p3").onclick = function () { preset(zeros(), "deck", 1.2); };
+
+  svg.addEventListener("pointerdown", function (ev) {
+    if (!cur || !cur.sol) return;
+    var r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * VW, best = 1, bd = 1e9;
+    for (var j = 1; j < N; j++) { var dd = Math.abs(sx(cur.sol.x[j]) - x); if (dd < bd) { bd = dd; best = j; } }
+    change(best, st.del ? -st.step : st.step);
+  });
+  svg.addEventListener("keydown", function (ev) {
+    var k = ev.key;
+    if (k === "ArrowLeft") st.sel = Math.max(1, st.sel - 1);
+    else if (k === "ArrowRight") st.sel = Math.min(N - 1, st.sel + 1);
+    else if (k === "Home") st.sel = 1; else if (k === "End") st.sel = N - 1;
+    else if (k === "ArrowUp") { change(st.sel, st.step); ev.preventDefault(); return; }
+    else if (k === "ArrowDown") { change(st.sel, -st.step); ev.preventDefault(); return; }
+    else return;
+    ev.preventDefault(); schedule();
+  });
+
+  // ---- self-checks ----
+  function rng(seed) { var s = seed; return function () { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }; }
+  function runChecks() {
+    var rows = [], z = zeros(), i;
+    function row(name, what, ok, extra) { rows.push({ name: name, what: what, ok: ok }); }
+    // 1 catenary
+    var Ls = [1.05, 1.2, 1.6], parts = [], okc = true, parts2 = [], okH = true;
+    Ls.forEach(function (L) {
+      var s = E.loads(S, L, "chain", z, 0).sol, a = E.catenaryParam(S, L), g = 0, sag = s.d[N / 2];
+      for (var j = 0; j <= N; j++) g = Math.max(g, Math.abs(s.d[j] - E.catenaryDepth(S, a, s.x[j])));
+      parts.push("length " + L.toFixed(2) + ": " + pct(g / sag, 3)); if (g / sag > 0.002) okc = false;
+      var Hc = a * N / L, rel = Math.abs(s.H - Hc) / Hc; parts2.push(L.toFixed(2) + ": " + pct(rel, 3)); if (rel > 0.002) okH = false;
+    });
+    row("No extra weights match a cosh catenary", "Largest gap between the " + NPT + " points (" + (N - 1) + " joints and 2 supports) and the exact catenary through the same ends and length, as a share of the sag: " + list(parts) + ". Limit 0.2% (30 links stand in for a smooth chain).", okc);
+    row("Pull equals the catenary's", "Horizontal pull from the solver against a times the weight per unit length, where a is the catenary's own scale: " + list(parts2) + ". Limit 0.2%.", okH);
+    // 2 parabola
+    var parts3 = [], okp = true, ctrl = [], okctrl = true, itn = [];
+    Ls.forEach(function (L) {
+      var r = E.loads(S, L, "deck", z, 30), s = r.sol, sag = s.d[N / 2], g = 0;
+      for (var j = 0; j <= N; j++) g = Math.max(g, Math.abs(s.d[j] - E.parabolaDepth(S, sag, s.x[j])));
+      parts3.push(L.toFixed(2) + ": " + (g / sag).toExponential(1)); if (g / sag > 1e-9) okp = false;
+      var Hp = 30 * S / (8 * sag); if (Math.abs(s.H - Hp) / Hp > 1e-6) okp = false;
+      var c = E.loads(S, L, "chain", z, 0).sol, sc = c.d[N / 2], gc = 0;
+      for (j = 0; j <= N; j++) gc = Math.max(gc, Math.abs(c.d[j] - E.parabolaDepth(S, sc, c.x[j])));
+      ctrl.push(L.toFixed(2) + ": " + pct(gc / sc, 2)); if (gc / sc < 0.004) okctrl = false;
+    });
+    row("A level, evenly spread load gives a parabola", "Deck load spread by horizontal width on a weightless chain. Largest gap from the parabola through the same ends and sag, as a share of the sag: " + list(parts3) + ". Pull also matches load &times; span / (8 &times; sag). Limit 1e-9.", okp);
+    row("The parabola test can fail", "Control: the chain's own weight (spread along the chain, not across the span) compared with a parabola of equal sag differs by " + list(ctrl) + " of the sag. The check needs these to be clearly above zero (at least 0.4%).", okctrl);
+    // 3 random loads
+    var R = rng(20261016), n = 0, none = 0, worst = 0, worstM = 0;
+    for (var k = 0; k < 300; k++) {
+      var ex = zeros(); for (i = 0; i < N - 1; i++) if (R() < 0.3) ex[i] = Math.floor(R() * 60);
+      var L2 = 1.05 + R() * 0.55, m = R() < 0.5 ? "chain" : "deck", r2 = E.loads(S, L2, m, ex, 1 + Math.floor(R() * 100));
+      if (!r2.sol) { none++; continue; } n++;
+      var sl = r2.sol; worst = Math.max(worst, Math.abs(sl.x[N] - S), Math.abs(sl.d[N])); worstM = Math.max(worstM, E.momentResidual(sl));
+    }
+    row("Balance on random loadings", plural(n, "seeded random loading was", "seeded random loadings were") + " solved" + (none === 0 ? "; none was left without a solution" : "; " + none + " had no solution") + ". Largest miss in reaching the far support: " + worst.toExponential(1) + " of the span. Largest moment imbalance about the left support: " + worstM.toExponential(1) + " of load &times; span. Limit 1e-9.", worst < 1e-9 && worstM < 1e-9 && none === 0);
+    // 4 scale invariance
+    var e1 = zeros(); e1[4] = 7; e1[20] = 3; var e3 = e1.map(function (v) { return v * 3; });
+    var a1 = E.solve(S, 1.3, e1.map(function (v) { return v + 1; })), a3 = E.solve(S, 1.3, e1.map(function (v) { return 3 * (v + 1); })), dm = 0;
+    for (i = 0; i <= N; i++) dm = Math.max(dm, Math.abs(a1.d[i] - a3.d[i]), Math.abs(a1.x[i] - a3.x[i]));
+    row("Tripling every weight leaves the shape alone", "Largest change in any joint position: " + dm.toExponential(1) + " of the span, while the pull rises by a factor of " + (a3.H / a1.H).toFixed(4) + ". Limit 1e-9 on the shape.", dm < 1e-9 && Math.abs(a3.H / a1.H - 3) < 1e-6);
+    // 5 verdicts
+    var sc = [];
+    var heavy = zeros(); heavy[7] = 40;
+    sc.push({ n: "Mid-weight ring, chain 1.10 long", cfg: { S: S, L: 1.1, mode: "chain", extras: zeros(), D: 0, rise: 0.2, t: 0.04 }, want: "stands" });
+    sc.push({ n: "Same ring, chain 1.30 long", cfg: { S: S, L: 1.3, mode: "chain", extras: zeros(), D: 0, rise: 0.2, t: 0.04 }, want: "other" });
+    sc.push({ n: "Tall thin ring (rise 40%, thickness 2%)", cfg: { S: S, L: 1.3, mode: "chain", extras: zeros(), D: 0, rise: 0.4, t: 0.02 }, want: "fails" });
+    sc.push({ n: "Low ring with a heavy weight on joint 8", cfg: { S: S, L: 1.3, mode: "chain", extras: heavy, D: 0, rise: 0.2, t: 0.03 }, want: "fails" });
+    var fired = {}, okv = true, desc = [];
+    sc.forEach(function (c) {
+      var v = E.verdict(c.cfg, LMIN, LMAX); fired[v.branch] = (fired[v.branch] || 0) + 1;
+      var ok = v.branch === c.want; if (!ok) okv = false;
+      var extra = v.branch === "stands" ? "to spare " + pct(v.margin, 2) : v.branch === "other" ? "own line out by " + pct(-v.margin, 2) + ", chain " + v.bestL.toFixed(2) + " fits by " + pct(v.best.margin, 2) : "best of " + v.tried + " lengths still out by " + pct(-v.best.margin, 2);
+      desc.push(c.n + " gives “" + v.branch + "” (expected “" + c.want + "”; " + extra + ")");
+    });
+    var names = ["stands", "other", "fails"], nf = names.filter(function (b) { return fired[b]; });
+    row("Every verdict can be reached", desc.join("; ") + ". Branches that fired: " + nf.length + " of " + names.length + " (" + list(nf) + ").", okv && nf.length === names.length);
+    // render
+    var tb = document.querySelector("#checks tbody"); tb.innerHTML = "";
+    var good = 0;
+    rows.forEach(function (r) {
+      var tr = document.createElement("tr"), a = document.createElement("td"), b = document.createElement("td"), c = document.createElement("td");
+      a.textContent = r.name; b.innerHTML = r.what; c.textContent = r.ok ? "agrees" : "DIFFERS"; c.className = r.ok ? "pass" : "fail";
+      if (r.ok) good++;
+      tr.appendChild(a); tr.appendChild(b); tr.appendChild(c); tb.appendChild(tr);
+    });
+    $("checksum").textContent = good === rows.length ? "All " + rows.length + " checks agree." : (rows.length - good) + " of " + rows.length + " checks differ; read the rows above before trusting the picture.";
+    return rows;
+  }
+
+  function fillText() {
+    $("how").innerHTML = "The chain has " + N + " equal links and " + (N - 1) + " joints. Both ends are held at the same height. For any weights, the horizontal pull is the same along the whole chain and each link's slope follows from the weight beyond it. The page finds the pull and the left support's push by repeated halving until the chain reaches the far support exactly. With <b>Chain's own weight</b> every link weighs one unit. With <b>Level deck</b> the chain itself weighs nothing and the load is spread by horizontal width, found by repeating the solve until the loads match the joint spacing. The <b>stone ring</b> is a circular arc of the rise and thickness you choose. When the line leaves the ring, the page also tries chain lengths from " + LMIN.toFixed(2) + " to " + LMAX.toFixed(2) + " times the span, in steps of " + LSTEP + ", and slides each flipped line up or down to its best fit, looking for any line that stays inside. The solid line is your chain flipped; a dashed line is the best other one found.";
+    var u = [
+      "Hooke's saying, its publication as a Latin anagram in 1675 and the printed solution in 1705 are from memory; I did not check them against the source.",
+      "The search for a fitting line is limited to chains of different lengths plus a vertical slide (no tilt), so a line outside that family could exist and is not found.",
+      "The stone's own weight is ignored: the ring is treated as weightless.",
+      "That real stone arches stand when a thrust line fits inside them, and fail when none does, is a common assumption in simple models of masonry, recalled from memory; I did not verify it, and I did not test any real masonry. The page uses it as a rule and says “in this model”.",
+      "The ring's thickness is measured straight up and down, not square to the arch, and the ring is a circular arc only. The ends are held at the same height, and a different support height or sliding at the ends is not tried.",
+      "The 30 links are a stand-in for a smooth chain; the catenary row above shows the size of the gap. The weights are in units of one link, so no real size, mass or stone is implied.",
+      "I could not look at the page on a real phone; it was checked in a headless browser at 375 px wide."
+    ];
+    $("unver").innerHTML = u.map(function (t) { return "<li>" + t.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</li>"; }).join("");
+  }
+
+  fillText();
+  draw();
+  setTimeout(function () { runChecks(); }, 0);
+  window.__arch = { runChecks: runChecks, st: st, draw: draw, E: E };
+})();
+</script>
+</body>
+</html>

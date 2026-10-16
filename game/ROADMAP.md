@@ -2,7 +2,7 @@
 
 One milestone per run, in order. Each must work for several players at once and get a check in
 `tests/presence.test.mjs` (or a sibling test). Mark the next one with **NEXT**. A roadmap review is due after
-10 increments since the last one (founding: 2026-10-15); it may rewrite everything below "done", never the
+10 increments since the last one (last: 2026-10-16, after milestone 9); it may rewrite everything below "done", never the
 working features.
 
 ## Done
@@ -53,19 +53,50 @@ working features.
   lantern on a shade holds it back, a friend nearby relights you, a lit beacon is safe ground. Drawn with a real figure
   (hood, eyes, arms, swaying hem, sparks where light burns it, a ring that fills). (2026-10-16, local relay only)
 
+## Roadmap reviews
+- **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
+  feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
+  (nothing sent), and player contributions as grow-only counters per player seed with a cap below "done" and a
+  two-player minimum; new items should reuse it before inventing another. (2) Canvas 2D is not the limit yet (5.5 ms a
+  frame with the living look, shades 1 to 3 ms, headless and software-rendered), so no move to three.js or WebGL now;
+  revisit when a look step cannot be done in 2D or a phone measurement says otherwise. (3) Connections cost the most
+  time: half-open WebRTC links, the 57 s offer renewal and late joiners took several runs; online play over the public
+  relays has never been reachable from the sandbox, so a second free signalling path is now on the list. (4) Each run's
+  5-times test loop over ten files takes most of an hour; keep increments small. (5) Players can help one another in
+  many ways now (gifts, beacons, notes, shades, relighting) but nothing remembers it: that is the next step.
+  Rooms stay at 12 players (`MAX_PEERS` 11 others); no evidence yet that more are needed.
+
 ## Later (in rough order, each one run)
-**A roadmap review is due** (10 increments since the founding: milestones 1 to 9 and the watchdog restore). The next run
-is in founding mode: read the CHANGELOG, rewrite this file, then build item 10 if time allows.
-10. **NEXT: Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
-   else's lantern counts for more than your own).
-11. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned, consider rendering
-    (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
-12. **A look step: weather and the shades' sky.** Drifting mist and rain on the island, soft thunder-less storms that thin
-    the light, a night sky that darkens when a wave of shades arrives; keep it cheap on phones (one in three increments is
-    mainly about the look; the last one was milestone 7).
+**Open problem before item 10:** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3; it fails the same WebRTC check every time ("link watchdog: the two pages find each other although one was deaf for 12 s"), local and node parts pass. Cause not found; the next run looks at it first. Earlier "beacon 5 of 5" notes are stale.
+
+10. **NEXT: Progression, small and shared.** A "lamplighter" rank earned only by helping others: relighting a friend's
+    snuffed lantern, light on a shade that is then driven off together, a gift that arrives, fuel in a beacon that lights
+    with others, a keeper's note finished together. Counted and saved in your own browser; your rank (a small number)
+    is told to the room and drawn as a trim on your lantern and a title beside the generated name (no text crosses the
+    network, receivers clamp the number). Cosmetic only: a modified client can claim any rank, and the page says so.
+11. **A look step: weather and the shades' sky.** Drifting mist and light rain from the seed and the clock, a sky strip
+    that darkens when a wave of shades arrives; cheap on phones, still under reduced motion.
+12. **Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as gathered
+    items (kinds added to the saved lists, every cap tested full and expired, a peer leaving midway).
+13. **A second way to find each other.** When the Nostr relays cannot be reached, try a second free signalling path
+    with no sign-up (BitTorrent trackers or MQTT through Trystero), say on the page which one connected, and test the
+    fallback locally; record whether the public ones were reachable.
+14. **The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
+    everyone there until the room empties, and the shades stay away from its beam (derived, nothing new sent).
+15. **A look step: people.** Better character figures with a walk cycle, lantern swing and gesture poses drawn in code.
+16. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.
 
 ## Known problems
-- `shades.test.mjs` failed once in a tester run (then passed) at "neither player was ever snuffed": the start spots are up to 3 tiles apart from a shade's side, so a lone arrival can snuff before the friend's light reaches it. Decide whether the rule or the spots should change.
+- `shades.test.mjs` failed once in a tester run (then passed) at "neither player was ever snuffed". The roadmap guessed
+  the start spots; a check of every 50 ms of that slot's two shades against the test's spots (at the pinned hour,
+  reach 3.6 tiles) found the friend's light always on the shade whenever it was within a tile of either player, so the
+  spots and the rule were not the cause. What the test did not control: the pages loaded on the real clock and stood
+  at the arrival point while connecting, where a shade of whatever slot the run fell in could snuff a lone page (about
+  6 of 135 slots bring a shade within a tile of some arrival spot); the counter then failed the later check. Fixed in
+  the test (pages load on a quiet stretch of the shades' clock and the test checks nobody was snuffed before it
+  starts) and pages now keep the last few snuffs (slot, shade, where) for the failure message. The rule stays. After the fix:
+  shades 5/5 (140 checks); give, craft, living, quests and shades were later run 3/3 by the tester and page_check passed, but beacon failed 0/3 at its WebRTC link-watchdog check (cause not found); the next run
+  looks at the beacon failure first.
 - Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
   of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
   which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150

@@ -268,6 +268,7 @@ const shadeReach = (p) => (p.snuffed ? EMBER_TILES : lightNow().reach * lampOf(p
 const shadeSafe = (x, y) => !!beacon && beaconList.some((l, b) => beacon.shares.lit(b) && Math.hypot(l.x - x, l.y - y) <= LIT_RADIUS * SAFE_FRACTION);
 const compassWord = (dx, dy) => ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"][((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
 let drivenOff = 0, snuffCount = 0, lastShadeKey = "";
+const snuffLog = []; // the last few snuffs (slot, shade, where), for the tests' failure messages; numbers only, kept in this page
 function shadeEvent(type, k, sh) {
   const say = {
     snuffed: `A shade snuffed your lantern. Stay near another player: their light can bring yours back, or it relights by itself in ${SNUFF_S} seconds. Nothing is lost.`,
@@ -276,7 +277,12 @@ function shadeEvent(type, k, sh) {
     held: "A shade is held back by a friend's light. Stay together.",
     banished: "A shade is driven off by the light of you all. Well done.",
   }[type];
-  if (type === "snuffed") snuffCount++;
+  if (type === "snuffed") {
+    snuffCount++;
+    const s = shades && shades.list().find(q => q.k === k);
+    snuffLog.push({ slot: shades ? shades.slot : -1, k, u: s ? +s.u.toFixed(2) : null, phase: s ? s.phase : null, sx: s ? +s.x.toFixed(2) : null, sy: s ? +s.y.toFixed(2) : null, x: +me.x.toFixed(2), y: +me.y.toFixed(2), peers: presence ? presence.peers.size : 0 });
+    if (snuffLog.length > 8) snuffLog.shift();
+  }
   if (type === "banished") { drivenOff++; if (sh) renderer.burst(sh.x, sh.y, performance.now()); }
   if (say) $("shadeinfo").textContent = say;
   lastShadeKey = "";
@@ -506,6 +512,7 @@ window.__longWatch = {
   shadeNow: () => shadeNow(),
   setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
   snuffCount: () => snuffCount,
+  snuffLog: () => snuffLog.map(e => ({ ...e })),
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

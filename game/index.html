@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
+<meta name="description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
+<meta property="og:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
+<meta name="twitter:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together (online play over public relays untested).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -196,6 +196,12 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.12</b> · roadmap review and a steadier shades test <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-fixed">Fixed</span> a test that failed now and then (nothing players see changes). The shades test that failed now and then was checked against the real paths of the shades, and the game's rules were not at fault; the test now starts on a quiet stretch of the shades' clock.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox proxy refused a connection to relay.damus.io this run with 403; only the local relay was used).</p>
+    <p><span class="tag t-not">Not yet checked</span> the tester then ran <code>beacon.test.mjs</code> 3 times: 0 of 3 passed, each failing the WebRTC check that two pages find each other again after one was deaf for 12 s (local and node parts passed), so reconnecting after a dropped link may not work; cause not found, and the earlier "5 of 5" beacon result was not reproduced. give, craft, living, quests and shades passed 3 of 3 and the page check passed.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.11</b> · milestone 9 (the shades) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> meet the shades: slow, hooded creatures of the night that drift in off the sea, circle one of the island's landmarks for about a minute and drift away again. They hurt no one and take nothing. A shade that reaches you puts your lantern out for 14 seconds: your light shrinks to a dull ember with a curl of smoke, and everyone sees it. Light drives shades off, and the more of you stand together the better. Every second your lit lantern reaches a shade you add one light-second to it; when a shade has 20 light-seconds from at least 2 different players it is driven off in a burst of motes and gone for the rest of that wave (one player alone can add at most 19, so a shade always takes two). While another player's lit lantern is on a shade, it cannot snuff you: it is held back, so a friend whose light reaches the shade keeps your light safe. If your lantern is out, a player with a lit lantern who comes within two and a half tiles relights it after a second and a half, and then no shade can snuff you again for 6 seconds. Inside the light of a lit beacon a shade cannot snuff anyone. A new Shades panel says how many shades are out, how far and which way the nearest one is, and how much light it has; a small violet mark on the minimap shows each one; waves of 0 to 4 shades arrive every few minutes, the same for everyone in the lantern. Shades are drawn as cold hooded mist with two pale eyes and a ragged hem that sways; they thin, shrink and bend away from your light and throw off sparks where it burns them, and a ring at their feet fills as the light-seconds come in. With reduced motion they hold their pose (they still drift slowly along their path, since that is where the game says they are).</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the shades look and the panel reads on a real phone and with a screen reader, whether 14 seconds snuffed and 20 light-seconds are the right numbers for real play, whether the waves are too rare or too frequent, a lantern whose players' clocks differ by minutes (they would see shades in different places and count light on different ones), and a shade's look in direct comparison with real devices' colour (checked only in headless Chromium screenshots).</p>
@@ -265,7 +271,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <li>Like a video call, a direct connection lets the other players' browsers see your network (IP) address.
         If that matters to you, do not join.</li>
       <li>Tested online on 15 October 2026, before gathering and giving existed: a phone and a computer on different networks found each other through
-        the public relays and played together. Giving, crafting and beacons have only been tested on a local relay. With no TURN relay server, some pairs of networks may still never
+        the public relays and played together. Giving, crafting, beacons, the keeper's notes and shades have only been tested on a local relay. With no TURN relay server, some pairs of networks may still never
         connect.</li>
       <li>Your character (its generated name, where you stood, your pack, the wicks and lanterns you made and any gift still on its way) is saved only in your own browser. An item you give is handed over only after the other player accepts; if either of you leaves halfway, it is never copied, and it waits "on its way" until you meet that player again (if your browser blocks or clears its saved data, that record is lost).</li>
       <li>Vigil collects nothing. The public Nostr relays and the STUN servers (run by Google and Cloudflare) that your browser

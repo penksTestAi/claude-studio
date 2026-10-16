@@ -43,7 +43,8 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
 - **three.js / Babylon.js / PlayCanvas engine.** A 3D world would cost far more per increment (models, camera,
   lighting, phone performance) and add a large dependency, while the game's interest lies in what players do
   together, not in 3D. A later roadmap review may revisit it, for example three.js with an orthographic camera
-  over the same tile data; the world, presence and net modules are independent of the renderer.
+  over the same tile data; the world, presence and net modules are independent of the renderer. The 2026-10-16
+  review kept Canvas 2D (frames stay well inside budget in headless measurements; see ROADMAP.md).
 - **2D engines (Phaser, PixiJS, Kaboom).** Useful for sprites, physics and scenes we do not need yet; plain
   canvas keeps every file readable by the next run. Revisit if sprite animation or many particles arrive.
 - **PeerJS public server.** One shared broker run by the PeerJS project (a single point of failure we

@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Huffman Coding · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Type some text and watch Huffman&#x27;s method build a prefix code for its bytes step by step, then see the page encode the text, decode it back from the packed bits, and check itself against entropy and fixed 8-bit codes.">
+<link rel="canonical" href="https://vigilstudio.github.io/huffman/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Huffman Coding · Vigil">
+<meta property="og:description" content="Type some text and watch Huffman&#x27;s method build a prefix code for its bytes step by step, then see the page encode the text, decode it back from the packed bits, and check itself against entropy and fixed 8-bit codes.">
+<meta property="og:url" content="https://vigilstudio.github.io/huffman/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Huffman Coding · Vigil">
+<meta name="twitter:description" content="Type some text and watch Huffman&#x27;s method build a prefix code for its bytes step by step, then see the page encode the text, decode it back from the packed bits, and check itself against entropy and fixed 8-bit codes.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;--warnbg:#f8ecd0;--okbg:#e1f1e3;--badbg:#f7dedb;--hi:#f3d37a;--zero:#2f5f9e;--one:#a5521f;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;--hi:#6b5518;--zero:#7fb0ee;--one:#f0a070;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;--hi:#6b5518;--zero:#7fb0ee;--one:#f0a070;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lede{font-size:1.1rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+code,.mono{font-family:var(--mono);font-size:.92em}
+label{display:block;margin:0 0 4px}
+textarea{width:100%;min-height:84px;font:1rem var(--mono);padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);resize:vertical}
+button{font:inherit;padding:8px 14px;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+input[type=range]{flex:1 1 160px;min-width:120px;accent-color:var(--accent)}
+.treebox{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:6px}
+svg{display:block;max-width:none}
+svg text{font-family:var(--mono);fill:var(--ink)}
+.leaf{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.node{fill:var(--panel);stroke:var(--muted);stroke-width:1.2}
+.edge{stroke:var(--muted);stroke-width:1.4;fill:none}
+.hi .leaf,.hi .node,.leaf.hi,.node.hi{fill:var(--hi)}
+.edge.hi{stroke:var(--ink);stroke-width:3}
+.e0{fill:var(--zero)!important;font-size:12px;font-weight:bold}
+.e1{fill:var(--one)!important;font-size:12px;font-weight:bold}
+.wt{font-size:11px;fill:var(--muted)!important}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto}
+.bits{font-family:var(--mono);word-break:break-all;line-height:1.9}
+.bits .w{padding:1px 2px;margin:0 1px;border-radius:3px;background:var(--line)}
+.bits .w.alt{background:transparent;outline:1px solid var(--line)}
+.bits .w.cur{background:var(--hi);outline:2px solid var(--ink)}
+.b0{color:var(--zero)}.b1{color:var(--one)}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.tag{font:bold .78rem var(--mono);padding:2px 8px;border-radius:10px;align-self:start;margin-top:3px;white-space:nowrap}
+.tag.pass{background:var(--okbg);color:var(--ok)}
+.tag.fail{background:var(--badbg);color:var(--bad)}
+.tag.na{background:var(--warnbg);color:var(--warn)}
+.status{padding:10px 12px;border-radius:8px;font-weight:bold;margin:0 0 8px}
+.status.pass{background:var(--okbg);color:var(--ok)}
+.status.fail{background:var(--badbg);color:var(--bad)}
+.out{font-family:var(--mono);white-space:pre-wrap;word-break:break-all;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-height:2.6em}
+.stat{display:flex;flex-wrap:wrap;gap:8px 22px;margin:6px 0}
+.stat div{min-width:130px}
+.stat b{display:block;font-size:1.25rem;font-weight:normal;font-variant-numeric:tabular-nums}
+.bar{height:14px;border-radius:3px;background:var(--accent);min-width:2px}
+.bar.fixed{background:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>Huffman Coding</h1>
+<p class="lede" id="lede">Type some text and watch Huffman's method build a prefix code for its bytes, then encode the text and decode it back.</p>
+<p class="small muted">Made by Claude, an AI model. Every number below is computed by this page from your text as you type.</p>
+
+<div class="panel">
+  <label for="txt">Your text</label>
+  <textarea id="txt" maxlength="4000" spellcheck="false" aria-describedby="facts"></textarea>
+  <div class="row" role="group" aria-label="Examples">
+    <span class="small muted">Try:</span>
+    <button type="button" data-ex="she sells sea shells by the sea shore">a sentence</button>
+    <button type="button" data-ex="aaaaaaaaaaaa">one repeated symbol</button>
+    <button type="button" data-ex="abcdabcdabcdabcd">four symbols, equally often</button>
+    <button type="button" data-ex="abcabcabcabc">three symbols, equally often</button>
+    <button type="button" data-ex="aaaaaaaaaaaaaaaaaaaaaaab">one rare symbol</button>
+  </div>
+  <p id="facts" class="small muted" style="margin:6px 0 0" aria-live="polite"></p>
+</div>
+
+<div id="empty" class="panel" hidden>Type at least one character to begin.</div>
+
+<div id="main" hidden>
+<h2>1. Build the tree</h2>
+<p>Each distinct byte starts as a tree of one leaf, weighted by how often it occurs. Repeatedly take the two lightest trees and join them under a new node whose weight is their sum, until one tree is left. The first one taken goes on the <span class="b0"><b>0</b></span> side and the second on the <span class="b1"><b>1</b></span> side; on equal weights the older tree goes first. Rare bytes end up deep, with long codes, and common bytes end up near the top.</p>
+<div class="panel">
+  <div class="row">
+    <button type="button" id="first">Start</button>
+    <button type="button" id="prev">Back</button>
+    <button type="button" id="next" class="primary">Next merge</button>
+    <button type="button" id="play">Play</button>
+    <button type="button" id="last">Finish</button>
+  </div>
+  <div class="row"><label for="step" class="small muted" style="margin:0">Merge</label><input type="range" id="step" min="0" max="0" value="0" aria-describedby="stepdesc"></div>
+  <p id="stepdesc" class="small" style="margin:0 0 8px" aria-live="polite"></p>
+  <div class="treebox" id="forest" tabindex="0" role="region" aria-label="Forest of trees (scrolls sideways)"></div>
+</div>
+
+<h2>2. The code</h2>
+<p id="codeintro"></p>
+<div class="tblwrap"><table class="tbl" id="codetbl"></table></div>
+
+<h2>3. Encode</h2>
+<p id="encintro"></p>
+<div class="stat" id="stats"></div>
+<div id="bars"></div>
+
+<h2>4. Decode it again</h2>
+<p>The decoder does not use the table above. It reads the encoded bits one at a time from the packed bytes and walks the finished tree: 0 goes left, 1 goes right, and a leaf means one byte is done. Move the slider to decode more.</p>
+<div class="panel">
+  <div class="row"><label for="dstep" class="small muted" style="margin:0">Bytes decoded</label><input type="range" id="dstep" min="0" max="0" value="0" aria-describedby="dtext">
+    <button type="button" id="dprev">Back</button><button type="button" id="dnext" class="primary">Next byte</button></div>
+  <p id="dtext" class="small" style="margin:0 0 8px" aria-live="polite"></p>
+  <div class="treebox" id="dtree" tabindex="0" role="region" aria-label="Finished tree with the last code path marked (scrolls sideways)"></div>
+  <p class="small muted" style="margin:10px 0 4px">Encoded bits around the current byte (each code word boxed):</p>
+  <div class="bits" id="dbits"></div>
+  <p class="small muted" style="margin:10px 0 4px">Decoded so far:</p>
+  <div class="out" id="dout"></div>
+</div>
+
+<h2>5. Self-checks</h2>
+<div id="verdict" class="status" aria-live="polite"></div>
+<div id="checks"></div>
+<p class="small muted" id="checknote"></p>
+</div>
+
+<h2>What this does not show</h2>
+<ul>
+<li>It codes bytes (UTF-8), not letters: a character such as "é" is two bytes and two symbols here. That keeps the comparison with 8-bit codes exact.</li>
+<li>The size of the table a real decoder needs is not counted in the encoded size. It is why short texts rarely gain from Huffman coding in practice.</li>
+<li>Huffman coding gives each byte a whole number of bits. It is the best such code (the page checks that on small alphabets in its test file, not in your text), but it can sit up to one bit per byte above the entropy; arithmetic coding can come closer.</li>
+<li>The entropy H is measured from your own text's byte counts. It says nothing about how English, or any other source, would behave.</li>
+</ul>
+<p class="small muted"><a href="README.md">README</a> · <a href="test.mjs">test.mjs</a> · <a href="../">Vigil</a></p>
+</main>
+<script src="huffman.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var enc = new TextEncoder(), dec = new TextDecoder("utf-8");
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var A = null, step = 0, dstep = 0, timer = null;
+  var DEF = "she sells sea shells by the sea shore";
+
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  function pct(x) { return (Math.round(x * 10) / 10).toFixed(1) + "%"; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var NS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+
+  // ---------- drawing trees ----------
+  var DX = 40, DY = 58, PAD = 20;
+  function layout(roots) {
+    var pos = new Map(), x = 0, maxD = 0;
+    function walk(n, d) {
+      maxD = Math.max(maxD, d);
+      if (!n.left) { pos.set(n, { x: x, d: d }); x += DX; return; }
+      walk(n.left, d + 1); walk(n.right, d + 1);
+      pos.set(n, { x: (pos.get(n.left).x + pos.get(n.right).x) / 2, d: d });
+    }
+    roots.forEach(function (r, i) { if (i) x += DX * 0.6; walk(r, 0); });
+    return { pos: pos, w: Math.max(x, DX) + PAD * 2, h: (maxD + 1) * DY + 36, maxD: maxD };
+  }
+  function drawForest(host, roots, hiSet, newNode) {
+    host.textContent = "";
+    var L = layout(roots), svg = sv("svg", { width: L.w, height: L.h, viewBox: "0 0 " + L.w + " " + L.h, role: "img" });
+    var sumLeaves = 0; roots.forEach(function (r) { sumLeaves += r.w; });
+    svg.setAttribute("aria-label", "Forest of " + plural(roots.length, "tree", "trees") + " with total weight " + sumLeaves);
+    function P(n) { var p = L.pos.get(n); return { x: PAD + p.x, y: 24 + p.d * DY }; }
+    function edges(n) {
+      if (!n.left) return;
+      [n.left, n.right].forEach(function (c, i) {
+        var a = P(n), b = P(c), on = hiSet && hiSet.has(n) && hiSet.has(c);
+        svg.appendChild(sv("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: "edge" + (on ? " hi" : "") }));
+        svg.appendChild(sv("text", { x: (a.x + b.x) / 2 + (i ? 7 : -7), y: (a.y + b.y) / 2 + 4, "text-anchor": "middle", class: i ? "e1" : "e0" }, String(i)));
+        edges(c);
+      });
+    }
+    roots.forEach(edges);
+    L.pos.forEach(function (_, n) {
+      var p = P(n), on = (hiSet && hiSet.has(n)) || n === newNode;
+      var g = sv("g", { class: on ? "hi" : "" });
+      if (!n.left) {
+        g.appendChild(sv("rect", { x: p.x - 16, y: p.y - 14, width: 32, height: 28, rx: 5, class: "leaf" }));
+        var lab = Huffman.label(n.sym);
+        g.appendChild(sv("text", { x: p.x, y: p.y + 4, "text-anchor": "middle", style: "font-size:" + (lab.length > 2 ? 9 : 13) + "px" }, lab));
+        g.appendChild(sv("text", { x: p.x, y: p.y + 28, "text-anchor": "middle", class: "wt" }, String(n.w)));
+      } else {
+        g.appendChild(sv("circle", { cx: p.x, cy: p.y, r: 16, class: "node" }));
+        g.appendChild(sv("text", { x: p.x, y: p.y + 4, "text-anchor": "middle", style: "font-size:" + (String(n.w).length > 3 ? 9 : 12) + "px" }, String(n.w)));
+      }
+      svg.appendChild(g);
+    });
+    host.appendChild(svg);
+  }
+  var MAXDRAW = 40;
+
+  // ---------- build view ----------
+  function renderBuild() {
+    var B = A.built, k = A.k, host = $("forest"), s = step;
+    var af = document.activeElement, forest = Huffman.forestAt(B, s);
+    var st = s > 0 ? B.steps[s - 1] : null;
+    var d;
+    if (k === 1) d = "One distinct byte (" + Huffman.label(B.leaves[0].sym) + ", " + plural(B.leaves[0].w, "time", "times") + "): there is nothing to join, so the tree is a single leaf.";
+    else if (s === 0) d = "Start: " + plural(k, "tree", "trees") + ", one leaf per distinct byte, lightest first.";
+    else d = "Merge " + s + " of " + B.steps.length + ": joined " + nodeName(st.a) + " on the 0 side with " + nodeName(st.b) + " on the 1 side into a node of weight " + st.node.w + ". " + plural(forest.length, "tree", "trees") + " left" + (s === B.steps.length ? "; the tree is finished and its root weight is " + B.root.w + "." : ".");
+    $("stepdesc").textContent = d;
+    if (k > MAXDRAW) {
+      host.textContent = "";
+      host.appendChild(el("p", "small", "There are " + k + " distinct bytes, too many to draw readably (the limit is " + MAXDRAW + "). The merges are still counted: " + s + " of " + B.steps.length + " done, " + plural(forest.length, "tree", "trees") + " left. The final code is in the table below."));
+    } else drawForest(host, forest, null, st && st.node);
+    $("step").value = s; $("step").max = B.steps.length;
+    $("first").disabled = $("prev").disabled = s === 0;
+    $("next").disabled = $("last").disabled = $("play").disabled = s >= B.steps.length;
+    $("step").disabled = B.steps.length === 0;
+    keepFocus(af, $("prev").disabled ? $("next") : $("prev"));
+  }
+  // a button that disables itself while focused would drop keyboard focus to the page top
+  function keepFocus(was, to) { if (was && was.disabled && !to.disabled) to.focus(); }
+  function nodeName(n) { return n.left ? "the tree of weight " + n.w : "\u201c" + Huffman.label(n.sym) + "\u201d (weight " + n.w + ")"; }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; } $("play").textContent = "Play"; }
+
+  // ---------- code table ----------
+  function renderTable() {
+    var tb = $("codetbl"); tb.textContent = "";
+    var head = el("tr"); ["Byte", "Count", "Share", "Code", "Bits", "Bits in text"].forEach(function (h, i) { var th = el("th", i && i !== 3 ? "num" : "", h); head.appendChild(th); });
+    tb.appendChild(head);
+    var rows = A.built.leaves.slice().sort(function (a, b) { return b.w - a.w || a.sym - b.sym; });
+    rows.forEach(function (l) {
+      var c = A.codes[l.sym], tr = el("tr");
+      tr.appendChild(el("td", "mono", Huffman.label(l.sym)));
+      tr.appendChild(el("td", "num", String(l.w)));
+      tr.appendChild(el("td", "num", pct(100 * l.w / A.n)));
+      var td = el("td", "mono"); for (var i = 0; i < c.length; i++) td.appendChild(el("span", c[i] === "0" ? "b0" : "b1", c[i])); tr.appendChild(td);
+      tr.appendChild(el("td", "num", String(c.length)));
+      tr.appendChild(el("td", "num", String(c.length * l.w)));
+      tb.appendChild(tr);
+    });
+    var lens = rows.map(function (l) { return A.codes[l.sym].length; });
+    var mn = Math.min.apply(null, lens), mx = Math.max.apply(null, lens);
+    var common = rows[0], rare = rows[rows.length - 1];
+    var bitw = function (n) { return plural(n, "bit", "bits"); }, intro;
+    if (A.k === 1) intro = "One distinct byte, so the tree has no branches. By convention it gets the one-bit code 0, so the decoder knows when a symbol ends.";
+    else {
+      intro = plural(A.k, "distinct byte value", "distinct byte values") + ", " + (mn === mx ? "every code word " + bitw(mn) + " long" : "code words from " + bitw(mn) + " to " + bitw(mx));
+      if (common.w === rare.w) intro += ", and every byte occurs " + plural(common.w, "time", "times");
+      else {
+        var tc = rows.filter(function (l) { return l.w === common.w; }).length, tr2 = rows.filter(function (l) { return l.w === rare.w; }).length;
+        intro += ". Most common: " + Huffman.label(common.sym) + " with " + bitw(A.codes[common.sym].length) + (tc > 1 ? " (one of " + tc + " seen " + plural(common.w, "time", "times") + ")" : "") +
+          "; least common: " + Huffman.label(rare.sym) + " with " + bitw(A.codes[rare.sym].length) + (tr2 > 1 ? " (one of " + tr2 + " seen " + plural(rare.w, "time", "times") + ")" : "");
+      }
+      intro += ".";
+    }
+    $("codeintro").textContent = intro;
+  }
+
+  // ---------- encode / stats ----------
+  function stat(label, value, note) { var d = el("div"); d.appendChild(el("span", "small muted", label)); d.appendChild(el("b", "", value)); if (note) d.appendChild(el("span", "small muted", note)); return d; }
+  function renderEncode() {
+    var n = A.n, bitsLen = A.bits.length;
+    $("encintro").textContent = "Each of the " + plural(n, "byte", "bytes") + " is replaced by its code word, and the words are joined. The result is " + plural(bitsLen, "bit", "bits") + ", packed into " + plural(A.packed.length, "byte", "bytes") + " (the last one padded with zeros).";
+    var s = $("stats"); s.textContent = "";
+    s.appendChild(stat("Entropy H", A.H.toFixed(3), "bits per byte, from your counts"));
+    s.appendChild(stat("Huffman average L", A.L.toFixed(3), "bits per byte = " + bitsLen + " / " + n));
+    s.appendChild(stat("Gap L − H", (A.L - A.H).toFixed(3), A.k > 1 ? "must stay under 1" : "one distinct byte"));
+    s.appendChild(stat("Fixed 8-bit", (A.fixed8 / n).toFixed(3), "bits per byte = " + A.fixed8 + " / " + n));
+    var b = $("bars"); b.textContent = "";
+    var items = [["Fixed 8-bit codes", A.fixed8, true], ["Fixed codes of " + A.fixedMinWidth + (A.fixedMinWidth === 1 ? " bit" : " bits") + " (just enough for " + plural(A.k, "value", "values") + ")", A.fixedMin, true], ["Huffman code", bitsLen, false]];
+    items.forEach(function (it) {
+      var r = el("div", "small"); r.style.margin = "6px 0";
+      r.appendChild(el("div", "", it[0] + ": " + plural(it[1], "bit", "bits") + " (" + pct(100 * it[1] / A.fixed8) + " of fixed 8-bit)"));
+      var bar = el("div", "bar" + (it[2] ? " fixed" : "")); bar.style.width = (100 * it[1] / A.fixed8) + "%"; r.appendChild(bar);
+      b.appendChild(r);
+    });
+    var saved = A.fixed8 - bitsLen;
+    var tail = saved > 0 ? "Huffman saves " + plural(saved, "bit", "bits") + " (" + pct(100 * saved / A.fixed8) + ") against 8-bit codes" : saved === 0 ? "Huffman and 8-bit codes use the same " + plural(bitsLen, "bit", "bits") : "Huffman is longer by " + plural(-saved, "bit", "bits");
+    var p = el("p", "small", tail + ", before counting the table a decoder needs. If that table were sent as one byte for the value and one byte for the code length of each distinct byte, it would add " + plural(16 * A.k, "bit", "bits") + ", giving " + (bitsLen + 16 * A.k) + " in all against " + A.fixed8 + " for 8-bit codes (" + ((bitsLen + 16 * A.k) < A.fixed8 ? "still smaller" : (bitsLen + 16 * A.k) === A.fixed8 ? "equal" : "larger") + "). That header layout is an assumption made for this comparison only.");
+    b.appendChild(p);
+  }
+
+  // ---------- decode view ----------
+  function renderDecode() {
+    var i = dstep, n = A.n, codes = A.codes, bytes = A.srcBytes;
+    $("dstep").max = n; $("dstep").value = i;
+    var daf = document.activeElement;
+    $("dprev").disabled = i === 0; $("dnext").disabled = i >= n;
+    keepFocus(daf, $("dprev").disabled ? $("dnext") : $("dprev"));
+    var startBit = 0, j, lens = [];
+    for (j = 0; j < i; j++) startBit += codes[bytes[j]].length;
+    var cur = i > 0 ? bytes[i - 1] : null;
+    $("dtext").textContent = i === 0 ? "No bits read yet. " + plural(A.bits.length, "bit", "bits") + " to read." :
+      "Read " + startBit + " of " + A.bits.length + " bits and decoded " + i + " of " + plural(n, "byte", "bytes") + ". Last: bits " + codes[cur] + " lead down to the leaf " + Huffman.label(cur) + ".";
+    // tree with highlighted path
+    var hi = null;
+    if (cur !== null && A.k <= MAXDRAW) {
+      hi = new Set(); var node = A.built.root; hi.add(node);
+      var c = codes[cur];
+      if (node.left) for (j = 0; j < c.length; j++) { node = c[j] === "0" ? node.left : node.right; hi.add(node); }
+    }
+    if (A.k <= MAXDRAW) drawForest($("dtree"), [A.built.root], hi); else { $("dtree").textContent = ""; $("dtree").appendChild(el("p", "small", "Tree not drawn (" + A.k + " leaves; the limit is " + MAXDRAW + ").")); }
+    // bit window: code words from i-10 to i+10
+    var from = Math.max(0, i - 10), to = Math.min(n, i + 10), bh = $("dbits"); bh.textContent = "";
+    if (from > 0) bh.appendChild(el("span", "muted", "… "));
+    for (j = from; j < to; j++) {
+      var w = el("span", "w" + (j === i - 1 ? " cur" : (j % 2 ? " alt" : "")));
+      var cw = codes[bytes[j]]; for (var q = 0; q < cw.length; q++) w.appendChild(el("span", cw[q] === "0" ? "b0" : "b1", cw[q]));
+      if (j >= i) w.style.opacity = ".75";
+      bh.appendChild(w);
+    }
+    if (to < n) bh.appendChild(el("span", "muted", " …"));
+    // decoded text so far: from the real decoder output
+    var part = A.dec.bytes.subarray(0, i), shown = part.length > 400 ? part.subarray(part.length - 400) : part;
+    var txt = dec.decode(shown, { stream: false });
+    $("dout").textContent = (part.length > 400 ? "… " : "") + txt;
+  }
+
+  // ---------- checks ----------
+  function renderChecks() {
+    var sum = Huffman.summary(A.checks), v = $("verdict");
+    v.className = "status " + (sum.fail ? "fail" : "pass"); v.textContent = sum.text;
+    var host = $("checks"); host.textContent = "";
+    A.checks.forEach(function (c) {
+      var d = el("div", "chk"); d.appendChild(el("span", "tag " + c.status, c.status === "pass" ? "PASS" : c.status === "fail" ? "FAIL" : "N/A"));
+      var t = el("div"); t.appendChild(el("b", "", c.name)); t.appendChild(el("div", "small muted", c.detail)); d.appendChild(t); host.appendChild(d);
+    });
+    $("checknote").textContent = "A pass means that test ran on this text and the number came out as stated. It does not show the method is right for other texts; test.mjs runs the same checks on 3,000 random byte strings and compares the code length with a brute-force search on 300 small alphabets.";
+  }
+
+  // ---------- main ----------
+  function update() {
+    stopPlay();
+    var text = $("txt").value, bytes = enc.encode(text), chars = Array.from(text).length;
+    $("empty").hidden = bytes.length > 0; $("main").hidden = bytes.length === 0;
+    if (bytes.length === 0) { $("facts").textContent = "Nothing typed yet."; A = null; return; }
+    A = Huffman.analyse(bytes); A.srcBytes = bytes;
+    $("facts").textContent = plural(chars, "character", "characters") + ", " + plural(bytes.length, "byte", "bytes") + (bytes.length !== chars ? " in UTF-8" : "") + ", " + plural(A.k, "distinct byte value", "distinct byte values") + ".";
+    step = 0; dstep = 0;
+    renderBuild(); renderTable(); renderEncode(); renderDecode(); renderChecks();
+  }
+  function go(s) { step = Math.max(0, Math.min(A.built.steps.length, s)); renderBuild(); if (step >= A.built.steps.length) stopPlay(); }
+  $("txt").addEventListener("input", update);
+  $("first").onclick = function () { stopPlay(); go(0); };
+  $("prev").onclick = function () { stopPlay(); go(step - 1); };
+  $("next").onclick = function () { stopPlay(); go(step + 1); };
+  $("last").onclick = function () { stopPlay(); go(A.built.steps.length); };
+  $("step").oninput = function () { stopPlay(); go(+this.value); };
+  $("play").onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (reduce) { go(A.built.steps.length); return; }
+    if (step >= A.built.steps.length) go(0);
+    $("play").textContent = "Pause";
+    timer = setInterval(function () { go(step + 1); }, 800);
+  };
+  $("dstep").oninput = function () { dstep = +this.value; renderDecode(); };
+  $("dprev").onclick = function () { dstep = Math.max(0, dstep - 1); renderDecode(); };
+  $("dnext").onclick = function () { dstep = Math.min(A.n, dstep + 1); renderDecode(); };
+  Array.prototype.forEach.call(document.querySelectorAll("[data-ex]"), function (b) {
+    b.onclick = function () { $("txt").value = b.getAttribute("data-ex"); update(); };
+  });
+
+  // the opening sentence must be one sentence of at most 25 words: measured here, shown if it is not
+  var words = $("lede").textContent.trim().split(/\s+/).length;
+  if (words > 25) $("lede").textContent += " [lede is " + words + " words]";
+
+  $("txt").value = DEF;
+  update();
+})();
+</script>
+</body>
+</html>

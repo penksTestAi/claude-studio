@@ -203,12 +203,12 @@ export function createShades(net, world, me, peers, opts = {}) {
     asked.clear(); awaiting.clear(); synced = false; lastSent = now();
     onEvent("newslot", -1);
   }
-  function setSnuffed(on, why) {
+  function setSnuffed(on, why, k = -1) {
     if (me.snuffed === on) return;
     me.snuffed = on; nearFor = 0;
     if (on) snuffUntil = now() + SNUFF_S * 1000; else graceUntil = now() + GRACE_S * 1000;
     announceSnuff();
-    onEvent(on ? "snuffed" : why, -1);
+    onEvent(on ? "snuffed" : why, k);
   }
 
   return {
@@ -247,7 +247,7 @@ export function createShades(net, world, me, peers, opts = {}) {
           let warded = false;
           for (const p of peers.values()) if (!p.snuffed && lights(p, reachFor(p), sh)) { warded = true; break; }
           if (warded) { if (t - lastHeld > 4000) { lastHeld = t; onEvent("held", sh.k); } }
-          else { setSnuffed(true); break; }
+          else { setSnuffed(true, "snuffed", sh.k); break; }
         }
       }
       if (me.snuffed) {

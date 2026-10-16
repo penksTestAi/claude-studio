@@ -54,6 +54,11 @@ function pickSlot(from, need = 1, skip = []) {
 }
 const SLOT_A = pickSlot(slotOf(Date.UTC(2027, 0, 1)));      // the cooperative scenario
 const SLOT_B = pickSlot(SLOT_A + 1, 1, [SLOT_A]);           // the lone-player scenario
+// Three quiet slots in a row (no shades at all): pages load on this clock, so no shade of the real clock can reach
+// a player standing at the arrival point while the pages connect (before this, a shade of whatever slot the test ran
+// in could snuff A or B before the scenario began, and "neither player was ever snuffed" failed now and then).
+const QUIET = (() => { for (let s = SLOT_A + 400; s < SLOT_A + 40000; s++) if (shadeCount(SEED, s) === 0 && shadeCount(SEED, s + 1) === 0 && shadeCount(SEED, s + 2) === 0) return s; throw new Error("no quiet slots"); })();
+const quiet = () => `&shadeclock=${QUIET * SLOT_MS + 2000 - Date.now()}`;
 
 // ---- 0. node: the rules ----
 console.log("# shades, in node");
@@ -317,12 +322,13 @@ async function enterBoth(label, mk, url, timeout) {
 async function scenario(label, mk, query, roomA, roomB, opts = {}) {
   console.log(`\n# ${label}`);
   const pl = shadePlan(world, SLOT_A, 0), uArrive = pl.t1;
-  const A_url = `${base}${query}#room=${roomA}`;
+  const A_url = `${base}${query}${quiet()}#room=${roomA}`;
   const pair = await enterBoth("cooperative room", mk, A_url, opts.timeout);
   if (!pair) return;
   const [A, B] = pair;
   const panelA = await sh(A);
   ok(panelA.panel && /shade/i.test(await A.locator("#shades-label").innerText()), "the Shades panel is open on the page with its plain description");
+  ok((await sh(A)).count === 0 && (await sh(B)).count === 0 && await A.evaluate(() => window.__longWatch.snuffCount()) === 0, "while the pages connect their shade clock is in a quiet slot: no shades, nobody snuffed");
   // 1. the same shades everywhere
   ok(await aim([A, B], SLOT_A, uArrive - 14), "both pages' shade clock set to 14 s before the shade reaches its landmark");
   ok(await waitFor(A, () => window.__longWatch.shades().synced, null, 8000) && await waitFor(B, () => window.__longWatch.shades().synced, null, 8000), "and both hear the room's counters for that slot");
@@ -349,7 +355,9 @@ async function scenario(label, mk, query, roomA, roomB, opts = {}) {
   const x1 = a1.list.find(s => s.k === 0), y1 = b1.list.find(s => s.k === 0);
   ok(x1.total >= SHADE_NEED && x1.players === 2 && y1.total === x1.total && y1.players === 2, `both pages count ${x1.total} light-seconds from 2 players (A ${x1.own}, B ${y1.own}; each at most ${MAX_SHARE})`);
   ok(x1.own <= MAX_SHARE && y1.own <= MAX_SHARE && x1.own >= 1 && y1.own >= 1, "each added some and neither went over the cap");
-  ok(await A.evaluate(() => window.__longWatch.snuffCount()) === 0 && await B.evaluate(() => window.__longWatch.snuffCount()) === 0, "neither player was ever snuffed: together their light held the shade back");
+  const [snA, snB] = [await A.evaluate(() => window.__longWatch.snuffCount()), await B.evaluate(() => window.__longWatch.snuffCount())];
+  ok(snA === 0 && snB === 0, "neither player was ever snuffed: together their light held the shade back");
+  if (snA || snB) console.log(`  snuffs: A ${JSON.stringify(await A.evaluate(() => window.__longWatch.snuffLog()))}, B ${JSON.stringify(await B.evaluate(() => window.__longWatch.snuffLog()))}; A's links ${JSON.stringify(await A.evaluate(() => window.__longWatch.linkHistory()))}`);
   ok(a1.drivenOff === 1 && b1.drivenOff === 1 && /driven off/.test(a1.info), `the page says so ("${a1.info}")`);
   ok(Math.abs((x1.own + y1.own) - x1.total) === 0, "the two shares add up to the total");
   await shoot(A, `${opts.shot}-after`);
@@ -368,7 +376,7 @@ async function scenario(label, mk, query, roomA, roomB, opts = {}) {
 
 async function loneScenario(mk, query, room, opts) {
   console.log("  a lone player");
-  const pl = shadePlan(world, SLOT_B, 0), url = `${base}${query}#room=${room}`;
+  const pl = shadePlan(world, SLOT_B, 0), url = `${base}${query}${quiet()}#room=${room}`;
   const C = await mk();
   await C.goto(url); await C.click("#enter");
   ok(await waitFor(C, () => window.__longWatch.shades() && window.__longWatch.shades().synced, null, 10000), "a player enters an empty lantern");

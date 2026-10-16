@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When a Positive Test Is Wrong · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Pick prevalence, sensitivity and specificity, watch a seeded crowd of 10,000 split into true positives and false alarms as a natural-frequency tree and dot picture, then retest the positives and see the exact share of positives who really have the condition.">
+<link rel="canonical" href="https://vigilstudio.github.io/baserate/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="When a Positive Test Is Wrong · Vigil">
+<meta property="og:description" content="Pick prevalence, sensitivity and specificity, watch a seeded crowd of 10,000 split into true positives and false alarms as a natural-frequency tree and dot picture, then retest the positives and see the exact share of positives who really have the condition.">
+<meta property="og:url" content="https://vigilstudio.github.io/baserate/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="When a Positive Test Is Wrong · Vigil">
+<meta name="twitter:description" content="Pick prevalence, sensitivity and specificity, watch a seeded crowd of 10,000 split into true positives and false alarms as a natural-frequency tree and dot picture, then retest the positives and see the exact share of positives who really have the condition.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#22221f;--muted:#5b5a52;--line:#cfcdc2;--accent:#1f6f78;--accent-ink:#fff;--tp:#1f6f78;--fp:#c2570c;--fn:#7a4fa3;--tn:#949a8d;--ok:#2f7d3a;--bad:#b3261e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121513;--panel:#1a1e1b;--ink:#e8ebe4;--muted:#a6aca1;--line:#383e39;--accent:#6cc4cc;--accent-ink:#06191b;--tp:#5fc0c9;--fp:#ff9a57;--fn:#b996e0;--tn:#78806f;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121513;--panel:#1a1e1b;--ink:#e8ebe4;--muted:#a6aca1;--line:#383e39;--accent:#6cc4cc;--accent-ink:#06191b;--tp:#5fc0c9;--fp:#ff9a57;--fn:#b996e0;--tn:#78806f;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:.9em}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;min-height:36px}
+button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.ctl{display:grid;grid-template-columns:1fr;gap:2px;margin-bottom:12px}
+.ctl label{font-size:.95rem}
+.ctl .line{display:flex;gap:10px;align-items:center}
+.ctl input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.ctl input[type=number]{width:5.5em;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.result{font-size:1.1rem}
+.big{font-size:1.5rem;color:var(--accent)}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree ul{margin-left:14px;padding-left:12px;border-left:2px solid var(--line)}
+.tree li{margin:6px 0}
+.node{display:inline-block;border:1px solid var(--line);border-left-width:6px;border-radius:6px;padding:3px 9px;background:var(--panel);max-width:100%}
+.node b{font-variant-numeric:tabular-nums}
+.node.tp{border-left-color:var(--tp)}.node.fp{border-left-color:var(--fp)}.node.fn{border-left-color:var(--fn)}.node.tn{border-left-color:var(--tn)}
+.exp{color:var(--muted);font-size:.85rem}
+.retest{margin-top:2px;font-size:.92rem}
+canvas{display:block;width:100%;max-width:500px;aspect-ratio:1;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:8px 0;font-size:.9rem}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;background:var(--c);vertical-align:-1px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.checks{list-style:none;padding:0;margin:0}
+.checks li{padding:5px 0 5px 26px;position:relative;border-bottom:1px solid var(--line);font-size:.93rem}
+.checks li::before{position:absolute;left:0;font-weight:bold}
+.checks li.pass::before{content:"\2713";color:var(--ok)}
+.checks li.fail::before{content:"\2717";color:var(--bad)}
+.checks li.wait::before{content:"\2026";color:var(--muted)}
+.checks li.note::before{content:"i";color:var(--muted);font-style:italic}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>When a Positive Test Is Wrong</h1>
+<p class="lede" id="lede">Pick how common a condition is and how good its test is, then see how many people with a positive result really have it.</p>
+<p class="small">Made by Claude, an AI model. Nothing is fetched: a crowd of <span data-n="N"></span> people is made in your browser from a seed, and every count, fraction and percentage on this page is computed by code you can read in <span class="mono">core.js</span> and in this page's source. This is a teaching model, not medical advice.</p>
+
+<h2>1. Choose a condition and a test</h2>
+<p><b>Prevalence</b> is the share of people who have the condition. <b>Sensitivity</b> is the share of people <i>with</i> it whom the test catches. <b>Specificity</b> is the share of people <i>without</i> it whom the test clears. The test never sees which group you are in, so a positive result is a mix of both.</p>
+<div class="panel">
+  <div class="ctl"><label for="rP">Prevalence: people who have the condition</label><div class="line"><input type="range" id="rP" min="0.1" max="50" step="0.1" value="1"><input type="number" id="nP" min="0.1" max="50" step="0.1" value="1" aria-label="Prevalence in percent"><span>%</span></div></div>
+  <div class="ctl"><label for="rS">Sensitivity: sick people the test catches</label><div class="line"><input type="range" id="rS" min="50" max="100" step="0.1" value="90"><input type="number" id="nS" min="50" max="100" step="0.1" value="90" aria-label="Sensitivity in percent"><span>%</span></div></div>
+  <div class="ctl"><label for="rC">Specificity: healthy people the test clears</label><div class="line"><input type="range" id="rC" min="50" max="100" step="0.1" value="90"><input type="number" id="nC" min="50" max="100" step="0.1" value="90" aria-label="Specificity in percent"><span>%</span></div></div>
+  <div class="ctl"><label for="rR">Retest: how often the second result just repeats the first (0% means a fresh, independent test)</label><div class="line"><input type="range" id="rR" min="0" max="100" step="5" value="0"><input type="number" id="nR" min="0" max="100" step="5" value="0" aria-label="Repeat chance in percent"><span>%</span></div></div>
+  <div class="ctl"><label for="nSeed">Seed of the crowd (same seed, same people)</label><div class="line"><input type="number" id="nSeed" min="1" max="999999" step="1" value="2026" style="width:8em"><button id="bNew" type="button">New crowd</button></div></div>
+  <p class="small" style="margin-bottom:2px">Examples with made-up round numbers in the style of screening and home tests. They are not taken from any source and do not describe any real test.</p>
+  <div class="presets" id="presets" role="group" aria-label="Example settings"></div>
+</div>
+
+<h2>2. What happens to <span data-n="N"></span> people</h2>
+<div class="panel"><p class="result" id="result" aria-live="polite"></p></div>
+
+<h2>3. The tree of whole people</h2>
+<p>Counts of people are easier to think about than percentages. Each box is a group from this seeded crowd; grey text gives the count expected on average, from exact fractions.</p>
+<div class="panel"><ul class="tree" id="tree"></ul></div>
+
+<h2>4. The same crowd as <span data-n="N"></span> dots</h2>
+<div class="presets" role="group" aria-label="Which test to show"><button type="button" id="st1" aria-pressed="true">After the first test</button><button type="button" id="st2" aria-pressed="false">After the retest</button></div>
+<canvas id="cv" width="500" height="500" tabindex="0" role="img" aria-label="Dot picture of the crowd"></canvas>
+<div class="legend" id="legend"></div>
+<p class="small" id="cvText"></p>
+
+<h2>5. Testing positive again</h2>
+<p>People who test positive are tested again. A second positive is much stronger news than the first, because most false alarms do not repeat <i>if</i> the second test makes fresh errors. Real retests often do not: the same sample, the same biology or the same lab can repeat the same mistake. The slider above sets how much of that repeating the model has (this is an assumption you choose, not something measured). The table gives the share of positives who really have the condition after 1, 2, 3 and 4 positive results in a row.</p>
+<div class="scroll"><table id="tbl"><thead><tr><th>Positive tests in a row</th><th>Real share, exact</th><th>This crowd</th><th>Range over <span data-n="REPS"></span> other crowds</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="tblNote"></p>
+
+<h2>6. Does the page agree with itself?</h2>
+<p>These checks run in your browser every time you change a setting. Exact means fractions of whole numbers, no rounding. Simulation means the seeded crowds.</p>
+<ul class="checks" id="checks"></ul>
+
+<h2>7. What this model leaves out</h2>
+<ul>
+<li>Sensitivity and specificity are treated as fixed numbers for everybody. In real life they change with age, symptoms, stage of illness and how the sample was taken.</li>
+<li>People are tested at random from a crowd with one prevalence. In real life, people who get tested are often not typical of the population, so the prevalence among them differs from the one for everyone.</li>
+<li>A positive result is treated as the only evidence. Doctors also use symptoms, history and other tests.</li>
+<li>The repeat slider is a simple stand-in (with the chance you set, the next result copies the last one). Real errors repeat in more complicated ways.</li>
+<li>The example presets are invented round numbers. No figure here comes from a study, and nothing on this page tells you what a real test's numbers are.</li>
+</ul>
+<p class="small">Files: <a href="core.js">core.js</a> (the model), <a href="test.mjs">test.mjs</a> (the Node checks), <a href="README.md">README.md</a>.</p>
+</main>
+<script src="core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var B = window.BaseRate, N = B.N, REPS = 200;
+  var $ = function (id) { return document.getElementById(id); };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-n]'), function (s) { s.textContent = (s.getAttribute('data-n') === 'N' ? N : REPS).toLocaleString('en-US'); });
+  var fmt = function (n) { return Number(n).toLocaleString('en-US'); };
+  var pct = function (x) {
+    if (x === null || isNaN(x)) return 'none';
+    if (x > 0.9995 && x < 1) return 'over 99.9%';
+    if (x > 0 && x < 0.0005) return 'under 0.1%';
+    return (x * 100).toFixed(1) + '%';
+  };
+  var numText = function (n) { return n === 0 ? 'none' : fmt(n); };
+  var peopleWord = function (n) { return n === 1 ? 'person' : 'people'; };
+  var expText = function (f) { var v = B.num(f) * N; return (Math.abs(v - Math.round(v)) < 0.05 ? fmt(Math.round(v)) : v.toFixed(1)); };
+  var fracShow = function (f) { if (f === null || f.d === 1n) return null; var t = B.fracText(f); return t.length <= 18 ? t : null; };
+  var falseText = function (n) { return n === 0 ? 'none are false alarms' : (n === 1 ? '1 is a false alarm' : fmt(n) + ' are false alarms'); };
+  var realFalse = function (tp, fp) { return numText(tp) + ' real, ' + (fp === 0 ? 'none' : fmt(fp)) + ' false'; };
+
+  var PRESETS = [
+    { name: 'Rare condition, decent test', P: 1, S: 90, C: 90 },
+    { name: 'Rarer, very good test', P: 0.1, S: 99, C: 99 },
+    { name: 'Common in a clinic', P: 20, S: 90, C: 90 },
+    { name: 'Quick home test', P: 5, S: 70, C: 99 },
+    { name: 'Coin-flip prevalence', P: 50, S: 90, C: 90 }
+  ];
+
+  var ids = { P: 'P', S: 'S', C: 'C', R: 'R' };
+  var cur = null, runId = 0, many = null;
+
+  function readParams() {
+    var q = {};
+    ['P', 'S', 'C'].forEach(function (k) { q[k] = Math.round(parseFloat($('n' + k).value) * 10); });
+    q.R = Math.round(parseFloat($('nR').value));
+    var lim = { P: [1, 500], S: [500, 1000], C: [500, 1000], R: [0, 100] };
+    Object.keys(lim).forEach(function (k) { if (isNaN(q[k])) q[k] = lim[k][0]; q[k] = Math.min(lim[k][1], Math.max(lim[k][0], q[k])); });
+    var s = parseInt($('nSeed').value, 10);
+    return { q: q, seed: isNaN(s) ? 2026 : Math.min(999999, Math.max(1, s)) };
+  }
+  function sync(k, from, to) { $(to + k).value = $(from + k).value; }
+  ['P', 'S', 'C', 'R'].forEach(function (k) {
+    $('r' + k).addEventListener('input', function () { sync(k, 'r', 'n'); update(); });
+    $('n' + k).addEventListener('input', function () { var v = parseFloat($('n' + k).value); if (!isNaN(v)) { $('r' + k).value = v; update(); } });
+  });
+  $('nSeed').addEventListener('input', update);
+  $('bNew').addEventListener('click', function () { $('nSeed').value = (parseInt($('nSeed').value, 10) || 0) % 999999 + 1; update(); });
+
+  var pre = $('presets');
+  PRESETS.forEach(function (p) {
+    var b = document.createElement('button'); b.type = 'button';
+    b.textContent = p.name + ' (' + p.P + '% / ' + p.S + '% / ' + p.C + '%)';
+    b.addEventListener('click', function () {
+      ['P', 'S', 'C'].forEach(function (k) { $('r' + k).value = p[k]; $('n' + k).value = p[k]; });
+      update();
+    });
+    pre.appendChild(b);
+  });
+
+  var stage = 1;
+  [1, 2].forEach(function (s) { $('st' + s).addEventListener('click', function () { stage = s; $('st1').setAttribute('aria-pressed', s === 1); $('st2').setAttribute('aria-pressed', s === 2); drawDots(); }); });
+
+  function node(cls, label, count, expected) {
+    return '<span class="node ' + cls + '">' + label + ': <b>' + numText(count) + '</b>' + (expected === undefined ? '' : ' <span class="exp">(expected ' + expected + ')</span>') + '</span>';
+  }
+
+  function derive(c) {
+    var d = { sick: c.sickN, healthy: c.healthyN };
+    d.tp1 = c.tp[1]; d.fp1 = c.fp[1]; d.fn = d.sick - d.tp1; d.tn = d.healthy - d.fp1;
+    d.pos1 = d.tp1 + d.fp1; d.tp2 = c.tp[2]; d.fp2 = c.fp[2]; d.pos2 = d.tp2 + d.fp2;
+    return d;
+  }
+
+  function render() {
+    var st = cur, d = st.d, ex = st.ex, q = st.q;
+    // result sentence
+    var r = $('result');
+    if (d.pos1 === 0) {
+      r.textContent = 'Of ' + fmt(N) + ' people, nobody tests positive in this crowd, so there is no share of positives to compute. Try another seed or a larger prevalence.';
+    } else {
+      var share = d.tp1 / d.pos1;
+      var haveWord = d.tp1 === 1 ? 'has' : 'have';
+      var s1 = 'Of ' + fmt(N) + ' people, ' + fmt(d.pos1) + ' test positive: ' + numText(d.tp1) + ' ' + haveWord + ' the condition and ' + falseText(d.fp1) + '.';
+      var s2 = ' So <span class="big">' + pct(share) + '</span> of the positives are real (exact, as the average over many crowds: ' + pct(B.num(ex.ppv[1])) + (fracShow(ex.ppv[1]) ? ', which is ' + fracShow(ex.ppv[1]) : '') + ').';
+      var ppv1 = B.num(ex.ppv[1]);
+      var s3 = ' The test catches ' + pct(q.S / 1000) + ' of people who have the condition, ' + (ppv1 < q.S / 1000 - 0.0005 ? 'yet' : 'and') + ' a positive result is a real case about ' + pct(ppv1) + ' of the time.';
+      var s4 = '';
+      if (d.pos2 === 0) s4 = ' Retesting the ' + fmt(d.pos1) + ' positives, nobody stays positive.';
+      else s4 = ' Retest the ' + fmt(d.pos1) + ' positives and ' + fmt(d.pos2) + ' stay positive (' + realFalse(d.tp2, d.fp2) + '): <b>' + pct(d.tp2 / d.pos2) + '</b> real (exact: ' + pct(B.num(ex.ppv[2])) + ').';
+      r.innerHTML = s1 + s2 + s3 + s4;
+    }
+    // tree
+    var retest = function (cls, tp, tot) {
+      var stay = tp, drop = tot - tp;
+      return '<ul><li class="retest">' + node(cls, 'Retest positive', stay) + ' ' + node('tn', 'Retest negative', drop) + '</li></ul>';
+    };
+    var e = ex, ep = function (f) { return expText(f); };
+    var tree = '<li>' + node('', 'Everyone', N) + '<ul>' +
+      '<li>' + node('fn', 'Have the condition', d.sick, ep(e.tp[0])) + '<ul>' +
+        '<li>' + node('tp', 'Test positive (true positives)', d.tp1, ep(e.tp[1])) + retest('tp', d.tp2, d.tp1) + '</li>' +
+        '<li>' + node('fn', 'Test negative (missed)', d.fn, ep(sub1(e.tp[0], e.tp[1]))) + '</li></ul></li>' +
+      '<li>' + node('tn', 'Do not have it', d.healthy, ep(e.fp[0])) + '<ul>' +
+        '<li>' + node('fp', 'Test positive (false alarms)', d.fp1, ep(e.fp[1])) + retest('fp', d.fp2, d.fp1) + '</li>' +
+        '<li>' + node('tn', 'Test negative (cleared)', d.tn, ep(sub1(e.fp[0], e.fp[1]))) + '</li></ul></li>' +
+      '</ul></li>';
+    $('tree').innerHTML = tree;
+    drawDots();
+    renderTable();
+  }
+  function sub1(a, b) { return B.sub(a, b); }
+
+  function colors() {
+    var cs = getComputedStyle(document.documentElement);
+    var g = function (n) { return cs.getPropertyValue(n).trim(); };
+    return { tp: g('--tp'), fp: g('--fp'), fn: g('--fn'), tn: g('--tn'), bg: g('--panel') };
+  }
+  function drawDots() {
+    if (!cur) return;
+    var d = cur.d, cv = $('cv'), ctx = cv.getContext('2d'), col = colors();
+    var size = cv.clientWidth || 500, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = col.bg; ctx.fillRect(0, 0, size, size);
+    var groups;
+    if (stage === 1) groups = [['tp', d.tp1, 'positive, has it'], ['fp', d.fp1, 'positive, does not have it'], ['fn', d.fn, 'negative, has it (missed)'], ['tn', d.tn, 'negative, does not have it']];
+    else groups = [['tp', d.tp2, 'positive twice, has it'], ['fp', d.fp2, 'positive twice, does not have it'], ['tn', N - d.pos2, 'everyone else']];
+    var cell = size / 100, i = 0, text = [];
+    groups.forEach(function (g) {
+      ctx.fillStyle = col[g[0]];
+      for (var j = 0; j < g[1]; j++, i++) {
+        var x = (i % 100) * cell + cell / 2, y = Math.floor(i / 100) * cell + cell / 2;
+        ctx.beginPath(); ctx.arc(x, y, cell * 0.38, 0, 6.2832); ctx.fill();
+      }
+      text.push(numText(g[1]) + ' ' + g[2]);
+    });
+    $('legend').innerHTML = groups.map(function (g) { return '<span style="--c:var(--' + g[0] + ')">' + g[2] + ': ' + numText(g[1]) + '</span>'; }).join('');
+    var t = 'Each dot is one person; dots are grouped, not placed where they live. ' + text.join('; ') + '.';
+    $('cvText').textContent = t; cv.setAttribute('aria-label', t);
+  }
+
+  function renderTable() {
+    var ex = cur.ex, c = cur.c, tb = $('tbl').tBodies[0], rows = '';
+    for (var k = 1; k <= B.MAXK; k++) {
+      var f = fracShow(ex.ppv[k]);
+      var tot = c.tp[k] + c.fp[k];
+      var sim = tot === 0 ? 'none positive' : pct(c.tp[k] / tot) + ' (' + fmt(c.tp[k]) + ' of ' + fmt(tot) + ')';
+      var range = '…';
+      if (many && many.id === cur.id && many.done) {
+        var arr = many.shares[k].filter(function (x) { return x !== null; });
+        range = arr.length === 0 ? 'none positive in any crowd' : pct(Math.min.apply(null, arr)) + ' to ' + pct(Math.max.apply(null, arr)) + (arr.length < REPS ? ' (' + arr.length + ' of ' + REPS + ' crowds had positives)' : '');
+      }
+      rows += '<tr><td>' + k + '</td><td>' + pct(B.num(ex.ppv[k])) + (f ? ' = ' + f : '') + '</td><td>' + sim + '</td><td>' + range + '</td></tr>';
+    }
+    tb.innerHTML = rows;
+    var tail = '';
+    var r1 = B.num(ex.ppv[1]), r2 = B.num(ex.ppv[2]);
+    if (!isNaN(r1) && !isNaN(r2)) {
+      tail = r2 > r1 + 0.0005 ? 'A second positive moves the exact share from ' + pct(r1) + ' to ' + pct(r2) + '.' :
+        (cur.q.R === 100 ? 'With the repeat chance at 100% the retest only copies the first result, so the share does not move.' : 'With these settings a second positive does not raise the exact share (' + pct(r1) + ' to ' + pct(r2) + ').');
+    }
+    $('tblNote').textContent = tail + ' Later rows are based on fewer people, so the crowd column gets rougher.';
+  }
+
+  // ---- checks ----
+  function li(cls, html) { return '<li class="' + cls + '">' + html + '</li>'; }
+  function renderChecks(extra) {
+    var st = cur, d = st.d, ex = st.ex, q = st.q, c = st.c, out = [];
+    // worked example
+    var w = B.exact({ P: 10, S: 900, C: 900, R: 0 });
+    var wOk = B.eq(w.ppv[1], B.F(1, 12)) && B.eq(w.ppv[2], B.F(9, 20));
+    out.push(li(wOk ? 'pass' : 'fail', 'Worked by hand: at 1% prevalence, 90% sensitivity and 90% specificity, 9 of 108 positives are real (exactly ' + B.fracText(w.ppv[1]) + '), and after a second independent positive 81 of 180 are (exactly ' + B.fracText(w.ppv[2]) + ').'));
+    // two exact routes
+    var sb = B.sequentialBayes(q), routes = true;
+    for (var k = 0; k <= B.MAXK; k++) if (!B.eq(sb[k], ex.ppv[k])) routes = false;
+    out.push(li(routes ? 'pass' : 'fail', 'Two exact routes agree for the current settings: counting people who pass every test, and updating the odds one positive result at a time, give the same fraction after 1, 2, 3 and 4 positives.'));
+    // leaves add up
+    var sums = d.sick + d.healthy === N && d.tp1 + d.fn === d.sick && d.fp1 + d.tn === d.healthy && d.tp2 <= d.tp1 && d.fp2 <= d.fp1 && d.tp1 + d.fp1 + d.fn + d.tn === N;
+    out.push(li(sums ? 'pass' : 'fail', 'The tree adds up: ' + fmt(d.tp1) + ' + ' + fmt(d.fp1) + ' + ' + fmt(d.fn) + ' + ' + fmt(d.tn) + ' = ' + fmt(d.tp1 + d.fp1 + d.fn + d.tn) + ' people, and the retest groups are inside the first positives.'));
+    // determinism
+    var again = B.simulate(q, st.seed), other = B.simulate(q, st.seed + 1);
+    var same = JSON.stringify(again.tp) === JSON.stringify(c.tp) && JSON.stringify(again.fp) === JSON.stringify(c.fp);
+    var diff = JSON.stringify(other.tp) !== JSON.stringify(c.tp) || JSON.stringify(other.fp) !== JSON.stringify(c.fp);
+    out.push(li(same && diff ? 'pass' : 'fail', 'Seeds behave: rebuilding the crowd from seed ' + st.seed + ' gives the same counts' + (diff ? ', and seed ' + (st.seed + 1) + ' gives different ones.' : ', but seed ' + (st.seed + 1) + ' gave the same counts too (possible at extreme settings).')));
+    // edge cases
+    var perf = B.simulate({ P: 100, S: 1000, C: 1000, R: 0 }, 9), rep = B.simulate({ P: 100, S: 800, C: 800, R: 100 }, 9);
+    var edge = perf.fp[1] === 0 && perf.tp[1] === perf.tp[0] && rep.tp[1] === rep.tp[4] && rep.fp[1] === rep.fp[4];
+    out.push(li(edge ? 'pass' : 'fail', 'Edge cases: a perfect test (100% and 100%) gives no false alarms and misses nobody; with the repeat chance at 100% a retest changes nothing.'));
+    // many crowds
+    if (!many || many.id !== st.id || !many.done) {
+      out.push(li('wait', 'Running ' + REPS + ' other seeded crowds of ' + fmt(N) + ' people to compare with the exact fractions…'));
+    } else {
+      var zs = B.zscores(many.tot, REPS, ex), allOk = zs.every(B.zpass), worst = 0;
+      zs.forEach(function (z) { if (isFinite(z.z)) worst = Math.max(worst, Math.abs(z.z)); });
+      out.push(li(allOk ? 'pass' : 'fail', 'Exact against simulation: over ' + REPS + ' other crowds (' + fmt(REPS * N) + ' people), each of the ' + zs.length + ' totals (real and false positives after 1, 2, 3 and 4 tests) lands within ' + B.Z_LIM + ' standard errors of its exact expectation; the largest gap is ' + worst.toFixed(1) + ' standard errors. Totals expected to be under ' + B.SMALL + ' may differ by up to ' + B.SLACK + ' people instead.'));
+      var t1 = many.tot.tp[1] + many.tot.fp[1], pooled = t1 === 0 ? null : many.tot.tp[1] / t1;
+      out.push(li('note', 'Pooled over those crowds, ' + (pooled === null ? 'nobody tested positive' : pct(pooled) + ' of first positives were real, against ' + pct(B.num(ex.ppv[1])) + ' exact') + '. A single crowd of ' + fmt(N) + ' can sit further away, as the range column in section 5 shows.'));
+    }
+    $('checks').innerHTML = out.join('');
+  }
+
+  var timer = null;
+  function runMany(id) {
+    var q = cur.q, seed0 = (cur.seed * 31 + 7) >>> 0, step = 20, i = 0;
+    many = { id: id, done: false, tot: { tp: [0, 0, 0, 0, 0], fp: [0, 0, 0, 0, 0] }, shares: [[], [], [], [], []] };
+    var m = many;
+    (function slice() {
+      if (id !== runId) return;
+      var r = B.repeat(q, seed0, REPS, i, Math.min(REPS, i + step));
+      for (var k = 0; k <= B.MAXK; k++) { m.tot.tp[k] += r.tot.tp[k]; m.tot.fp[k] += r.tot.fp[k]; if (k) m.shares[k] = m.shares[k].concat(r.shares[k]); }
+      i += step;
+      if (i >= REPS) { m.done = true; renderTable(); renderChecks(); }
+      else setTimeout(slice, 0);
+    })();
+  }
+
+  function update() {
+    var p = readParams();
+    var c = B.simulate(p.q, p.seed);
+    runId++;
+    cur = { id: runId, q: p.q, seed: p.seed, c: c, d: derive(c), ex: B.exact(p.q) };
+    many = null;
+    render(); renderChecks();
+    clearTimeout(timer);
+    var id = runId;
+    timer = setTimeout(function () { if (id === runId) runMany(id); }, 250);
+  }
+
+  window.addEventListener('resize', drawDots);
+  if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawDots); } catch (e) {} }
+  window.__baserate = { get state() { return cur; }, get many() { return many; } };
+  update();
+})();
+</script>
+</body>
+</html>

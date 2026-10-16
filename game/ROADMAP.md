@@ -79,9 +79,12 @@ working features.
     with others, a keeper's note finished together. Counted and saved in your own browser; your rank (a small number)
     is told to the room and drawn as a trim on your lantern and a title beside the generated name (no text crosses the
     network, receivers clamp the number). Cosmetic only: a modified client can claim any rank, and the page says so.
-11. **NEXT: A look step: weather and the shades' sky.** Drifting mist and light rain from the seed and the clock, a sky strip
-    that darkens when a wave of shades arrives; cheap on phones, still under reduced motion.
-12. **Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as gathered
+11. **Done (2026-10-16, a look step): weather and the shades' sky.** Drifting mist and light rain from the seed and the clock (4-minute
+    weather slots: about 45% clear, 30% misty, 25% rainy, easing over 40 s), a sky strip that clouds over in mist and rain and
+    darkens under a violet-black cloud while a wave of shades is out; cheap on phones (cached mist sprite, one batched stroke
+    for the rain, fewer at governor level 1, only a flat veil at level 0), still under reduced motion (no falling drops, mist
+    stands still). Nothing is sent. `?weather=clear|mist|rain` pins it for tests. Frame cost measured only in headless Chromium.
+12. **NEXT: Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as gathered
     items (kinds added to the saved lists, every cap tested full and expired, a peer leaving midway).
 13. **A second way to find each other.** When the Nostr relays cannot be reached, try a second free signalling path
     with no sign-up (BitTorrent trackers or MQTT through Trystero), say on the page which one connected, and test the
@@ -116,6 +119,6 @@ working features.
   pictures per visit (5 of 5 afterwards, 63 checks); if it fails again, look at which pixels differ.
 
 ## Ideas parked (no order)
-Fishing at the jetty; shades that follow a lone lantern slowly; a shade that can only be driven off by a lit beacon at the end of a long night; a shared music stone players can play together with preset notes; weather; a
+Fishing at the jetty; shades that follow a lone lantern slowly; a shade that can only be driven off by a lit beacon at the end of a long night; a shared music stone players can play together with preset notes; weather that changes the game (fog hiding far players, rain slowing shades); a
 world-changing event when every beacon in a room is lit; trading with fair offers; giving crafted lanterns (needs the same offer, accept and receipt rules, with kinds added to the saved lists); seasonal islands (a new
 seed each month, the old ones kept as "past islands").

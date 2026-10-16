@@ -7,6 +7,7 @@ import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
 import { createRenderer } from "./render.js";
 import { createMinimap, describeNearest } from "./minimap.js";
+import { skyAt, pickWeather } from "./weather.js";
 import { hourAt, lightFor, pickHour, HOURS } from "./nightclock.js";
 import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
 import { surfaceAt, landmarkFingerprint, BEACON_SIDES } from "./world.js";
@@ -84,6 +85,7 @@ const minimap = createMinimap($("minimap"), world);
 const steps = createFootsteps();
 const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
+const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain (tests, screenshots); otherwise from the seed and the clock
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 let rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
@@ -171,7 +173,7 @@ function frame(t) {
   footsteps(light);
   const reach = gather.reach();
   const fires = fireList();
-  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list());
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather));
   paintShades();
   paintRank();
   paintBeacon();
@@ -540,6 +542,7 @@ window.__longWatch = {
   world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world), landmarks: landmarkFingerprint(world), landmarkList: world.landmarks.map(l => ({ kind: l.kind, x: l.x, y: l.y })) }),
   teleport: (x, y) => { if (Number.isFinite(x) && Number.isFinite(y) && !isBlocked(world, x, y)) { me.x = x; me.y = y; return true; } return false; }, // tests only: no network message can reach this
   light: () => lightNow(),
+  sky: () => skyAt(world, shadeNow(), pinnedWeather),
   hud: () => ({ rebuilds: net ? net.status().rebuilds | 0 : 0, where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
   linkHistory: () => net ? (net.status().history || []) : [],
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),

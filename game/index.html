@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
+<meta name="description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
+<meta property="og:description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A peer-to-peer night-island game, with no server, where players gather, craft, give, fuel beacons, finish the keeper&#x27;s notes and drive off shades together and earn a lamplighter rank by helping each other (online play over public relays untested).">
+<meta name="twitter:description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -201,6 +201,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.14</b> · milestone 11 (weather and the shades' sky) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> see mist and rain drift over the island. The weather changes every few minutes, easing from one to the next over about 40 seconds: roughly half the time it is clear, otherwise misty or rainy, and everyone on the island sees the same sky if their device clocks agree. Mist is a thin pale veil with a few soft banks that drift across; rain is a cool tint and fine slanting streaks. Lanterns, paths and players stay easy to see in both. The small sky strip at the top clouds over in mist and rain (stars fade, the moon dims), and when a wave of shades is out it darkens under a violet-black cloud and its frame turns pale violet, so you can tell a wave is coming or going before you see a shade. With reduced motion on, nothing falls or drifts: the grey tint and still mist stay. On a slow phone the game draws fewer drops and banks, then only a flat thin veil. It is only a look: weather changes no rule.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the weather and the darker sky look and perform on a real phone (frame costs were seen only in headless Chromium without a GPU), and whether the mist hides too much on a bright screen outdoors.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.13</b> · milestone 10 (the lamplighter rank) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> earn a lamplighter rank by helping other players. Five kinds of help give one point each: relighting a friend's snuffed lantern early by standing beside them, driving off a shade together, a gift of yours that arrives, lighting a beacon together, and finishing a keeper's note together (only when you added to it yourself; walking back into a beacon that is already lit earns nothing). Three points make you a Lamplighter, then 10, 25 and 60 points bring Beacon keeper, Warden of the watch and Long watcher. Your rank shows as a small gold title over your name, as gold marks on your lantern (one per rank) and beside your name in the player list, for everyone in the lantern, and a new panel tells you your points and what the last point was for. Receiving a gift earns nothing; giving does, at most one point every 4 seconds, and a relight at most one every 10 seconds. Your points are saved in your own browser. The rank is decoration only and gives no advantage; a modified game could claim any rank, so a title proves nothing.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the gold title and marks look and the panel reads on a real phone and with a screen reader, whether the steps (3, 10, 25, 60 points) feel right in real play, and whether points are easy to farm with a second browser (nothing stops that; the page says the rank proves nothing).</p>

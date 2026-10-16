@@ -201,6 +201,14 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   there is nothing to win from others, and peers bound what they accept (positions on the island, speeds within
   reason, preset ids only).
 
+## Weather and the shades' sky (milestone 11, `js/weather.js`, drawn in `js/render.js`)
+Look only, nothing sent. The weather is a pure function of the island's seed and the UTC clock (4-minute slots, each a clear, misty or
+rainy target that the last 40 s of the previous slot eases into), so everyone in a lantern sees the same sky without a message. The
+sky strip also darkens by how many shades the same plans (`shadeAt`) have out. Mist: a thin flat veil under the players plus drifting
+banks from one cached sprite; rain: a cool tint and slanted streaks in one stroke; both drawn below the night layer or above it so lanterns
+stay clear. Governor level 1 halves the drops and uses 3 banks, level 0 keeps only the flat veil, `?look=plain` draws none, reduced
+motion draws no drops and holds the banks still. `?weather=clear|mist|rain` pins it (cosmetic; works for anyone). No new messages.
+
 ## The living look (milestone 7, `js/living.js` and `js/render.js`)
 Everything is drawn by each browser on its own from the seed and the clock; no message carries any of it. Per frame, only
 the visible tiles are walked, using two byte arrays built once (`classify`: which tile glints, grows grass or is a tree;
@@ -271,6 +279,7 @@ game/
   js/living.js          the living island, pure parts: which tiles glint, foam or sway, sway and foam motion, moon and stars by hour, fireflies, soft light edges, the slow-device governor
   js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
   js/shades.js          the shades: slots, waves, a shade's path (pure), light-seconds shares counter, `hp` `hq` `hs` `sf` messages, snuffing and relighting, `?shadeclock=`
+  js/weather.js         weather and the shades' sky, pure: mist and rain from seed and clock, rain drops, mist banks, how dark a shade wave makes the sky strip
   js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing

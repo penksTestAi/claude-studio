@@ -10,6 +10,7 @@ import { titleFor, MAX_RANK } from "./rank.js";
 import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
 import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
+import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks } from "./weather.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -92,7 +93,12 @@ export function createRenderer(canvas, world, opts = {}) {
   const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
   const plain = opts.look === "plain";
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
-  let flyCount = 0;
+  let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null;
+  // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
+  const mistSprite = document.createElement("canvas"); mistSprite.width = mistSprite.height = 64;
+  { const mg = mistSprite.getContext("2d"), gr = mg.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(190,205,225,0.9)"); gr.addColorStop(0.5, "rgba(190,205,225,0.35)"); gr.addColorStop(1, "rgba(190,205,225,0)");
+    mg.fillStyle = gr; mg.fillRect(0, 0, 64, 64); }
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -282,9 +288,38 @@ export function createRenderer(canvas, world, opts = {}) {
   }
 
   // A small strip at the top centre: stars and the moon crossing from dusk to dawn.
-  function drawSky(t, reduce, light, dpr) {
+  // Mist: a thin flat veil plus (above level 0) a few soft banks drifting across; always thin enough that lanterns, paths
+  // and players stay easy to see. Reduced motion: the banks stand still.
+  function drawMist(t, reduce, level, W, H, mist) {
+    mistCount = 0;
+    if (mist <= 0.02) return;
+    g.fillStyle = `rgba(150,170,195,${(mist * MAX_MIST * 0.45).toFixed(3)})`; g.fillRect(0, 0, W, H);
+    const n = MIST_BLOBS[level];
+    if (!n) return;
+    g.globalAlpha = Math.min(1, mist * MAX_MIST * 1.6);
+    for (const b of mistBanks(n, t, reduce)) {
+      const r = b.r * Math.max(W, H) * 0.9, x = b.x * (W + 2 * r) - r, y = b.y * H;
+      g.drawImage(mistSprite, x - r, y - r * 0.55, r * 2, r * 1.1); mistCount++;
+    }
+    g.globalAlpha = 1;
+  }
+  // Rain: a cool tint and thin slanted streaks (none under reduced motion, where only the tint stays).
+  function drawRain(t, reduce, level, W, H, rain, dpr) {
+    dropCount = 0;
+    if (rain <= 0.02) return;
+    g.fillStyle = `rgba(20,32,56,${(0.14 * rain).toFixed(3)})`; g.fillRect(0, 0, W, H);
+    const drops = rainDrops(RAIN_DROPS[level], t, rain, reduce);
+    if (!drops.length) return;
+    g.strokeStyle = "rgba(190,210,235,0.38)"; g.lineWidth = Math.max(1, dpr);
+    g.beginPath();
+    for (const d of drops) { const x = d.x * W, y = d.y * H, l = d.len * H; g.moveTo(x, y); g.lineTo(x - l * 0.25, y + l); }
+    g.stroke(); dropCount = drops.length;
+  }
+
+  function drawSky(t, reduce, light, dpr, env) {
     const W = canvas.width, bw = Math.min(150 * dpr, W * 0.36), bh = 40 * dpr, x = W / 2 - bw / 2, y = 8 * dpr, hor = y + bh * 0.82;
-    const moon = moonAt(light.hour), sa = starAlpha(light.dark);
+    const moon = moonAt(light.hour), sh = env ? env.shades : 0, wet = env ? Math.min(1, env.mist * 0.6 + env.rain * 0.5) : 0;
+    const sa = starAlpha(light.dark) * (1 - 0.8 * sh) * (1 - 0.6 * wet);
     g.save();
     g.beginPath(); if (g.roundRect) g.roundRect(x, y, bw, bh, 8 * dpr); else g.rect(x, y, bw, bh);
     g.fillStyle = "rgba(5,8,18,0.62)"; g.fill();
@@ -299,13 +334,23 @@ export function createRenderer(canvas, world, opts = {}) {
       g.globalAlpha = Math.min(1, a); g.fillRect(x + s.x * bw, y + 3 * dpr + s.y * bh * 0.85, s.s * dpr, s.s * dpr);
     }
     g.globalAlpha = 1;
+    if (wet > 0.05) { // cloud over the strip in mist and rain: a grey wash, with a few short streaks when it rains
+      g.fillStyle = `rgba(120,135,160,${(0.22 * wet).toFixed(3)})`; g.fillRect(x, y, bw, bh);
+      if (env.rain > 0.1 && !reduce) { g.strokeStyle = "rgba(190,210,235,0.45)"; g.lineWidth = Math.max(1, dpr * 0.8); g.beginPath(); for (let i = 0; i < 7; i++) { const u = ((i * 0.37 + t / 900) % 1), sx = x + ((i * 0.61) % 1) * bw; g.moveTo(sx, y + u * bh * 0.8); g.lineTo(sx - 2 * dpr, y + u * bh * 0.8 + 6 * dpr); } g.stroke(); }
+    }
     const mx = x + bw * (0.1 + 0.8 * moon.x), my = hor - moon.h * bh * 0.62, mr = 6 * dpr;
     g.fillStyle = "rgba(244,236,208,0.16)"; g.beginPath(); g.arc(mx, my, mr * 2, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "#f4ecd0"; g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#f4ecd0"; g.globalAlpha = 1 - 0.55 * Math.max(sh, wet); g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
     g.fillStyle = "rgba(160,150,120,0.55)"; g.beginPath(); g.arc(mx - mr * 0.3, my - mr * 0.2, mr * 0.28, 0, Math.PI * 2); g.arc(mx + mr * 0.35, my + mr * 0.3, mr * 0.2, 0, Math.PI * 2); g.fill();
+    if (sh > 0.02) { // a wave of shades: a violet-black darkness gathers over the strip, with dark banks creeping in from both sides
+      g.fillStyle = `rgba(14,4,28,${(0.5 * sh).toFixed(3)})`; g.fillRect(x, y, bw, bh);
+      g.fillStyle = `rgba(4,2,12,${(0.7 * sh).toFixed(3)})`;
+      const drift = reduce ? 0 : Math.sin(t / 2400) * 0.04;
+      for (const [fx, fy, fr] of [[0.08, 0.35, 0.3], [0.92, 0.3, 0.3], [0.3 + drift, 0.12, 0.22], [0.7 - drift, 0.14, 0.22]]) { g.beginPath(); g.ellipse(x + bw * fx, y + bh * fy, bw * fr * sh * 1.2, bh * 0.28 * sh, 0, 0, Math.PI * 2); g.fill(); }
+    }
     g.fillStyle = "rgba(5,8,18,0.9)"; g.fillRect(x, hor, bw, y + bh - hor); // the dark horizon
     g.restore();
-    g.strokeStyle = "rgba(255,243,214,0.4)"; g.lineWidth = Math.max(1, dpr);
+    g.strokeStyle = sh > 0.3 ? `rgba(200,170,235,${(0.4 + 0.2 * sh).toFixed(2)})` : "rgba(255,243,214,0.4)"; g.lineWidth = Math.max(1, dpr);
     g.beginPath(); if (g.roundRect) g.roundRect(x, y, bw, bh, 8 * dpr); else g.rect(x, y, bw, bh); g.stroke();
   }
 
@@ -314,18 +359,18 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky };
   }
 
-  function draw(me, peers, stick, t, light, nodes, reach, fires, shades) {
+  function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env) {
     const t0 = performance.now();
-    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades);
+    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades, env);
     const i = nSamp % 240; samples[i] = performance.now() - t0; frames[i] = prevT ? t - prevT : 0; nSamp++;
     if (prevT) gov.note(t - prevT);
     prevT = t;
   }
 
-  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = []) {
+  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = [], env = null) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     const level = plain ? 0 : gov.level;
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
@@ -338,6 +383,8 @@ export function createRenderer(canvas, world, opts = {}) {
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
     const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2, hour: 3 };
     drawGround(t, reduce, level, camX, camY, tile, W, H, lt);
+    lastSky = env ? { mist: env.mist, rain: env.rain, kind: env.kind, shades: env.shades } : null;
+    if (env && !plain) drawMist(t, reduce, level, W, H, env.mist);
 
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
 
@@ -396,6 +443,7 @@ export function createRenderer(canvas, world, opts = {}) {
     g.globalCompositeOperation = "source-over";
     drawShades(t, reduce, camX, camY, tile, shades, all, lt, me);
     if (!plain) drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires);
+    if (env && !plain) drawRain(t, reduce, level, W, H, env.rain, dpr);
 
     // Landmark names when one is close (words from our own list).
     g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
@@ -438,7 +486,7 @@ export function createRenderer(canvas, world, opts = {}) {
       drawBubble(g, PHRASES[p.say.id], p.say, p.x * tile - camX, p.y * tile - camY - tile * 0.62 - fontPx * 1.5, fontPx, dpr, t, W);
     }
 
-    if (!plain) drawSky(t, reduce, lt, dpr);
+    if (!plain) drawSky(t, reduce, lt, dpr, env);
 
     // Arrows at the screen edge toward players who are off screen.
     lastArrows = edgeArrows(me, peers.values(), tile, W, H, 22 * dpr);

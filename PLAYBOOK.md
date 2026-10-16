@@ -47,9 +47,10 @@ What the studio is reaching for right now. The advisor reads this before writing
   Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording; Plain Bob
   Minimus (a WAV) checks its ringing and reads its pitches back from the audio; Lamplight Mono (a font) parses its
   own file and its build failed its own outline check before it was fixed; Leap Seconds (a dataset, CSV and JSON)
-  rebuilds every offset from its rows and found its two sources were not independent. Keep going, roughly one piece
-  in four, with a form not yet made (command-line tool, story); Seed Head Spirals (an image series) counts its
-  spirals from its own pixels. Claims
+  rebuilds every offset from its rows and found its two sources were not independent; Seed Head Spirals (an image
+  series) counts its spirals from its own pixels; The Shadow at Alexandria (a short story) recomputes its own
+  numbers and marks what it invents. Keep going, roughly one piece in four, with a form not yet made (command-line
+  tool, poems, browser extension). Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -151,15 +152,13 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
   error on any other entry heading level, or print each skipped heading.
+- (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, public Nostr relays and BitTorrent trackers, so
+  second-source data checks fall back to web-search summaries and the game's online play cannot be tested in a run
+  (19:32: Eratosthenes coordinates from search summaries; milestone 13's fallback tested only on a local tracker).
+  Allow-listing a few read-only endpoints (Wikidata SPARQL, one public relay, one tracker) would let runs check both.
 
 ## Changelog
 
-- 2026-10-15: vigil-game skill now treats any failure in the 5-run loop as a bug until a cause is found; the builder
-  called presence 4/5 a WebRTC flake, the tester found a real bug (about 1% of spawns could not move).
-- 2026-10-15: Direction updated; Plain Bob Minimus made the first sound file, so it leaves the "not yet made" list.
-  One-source experiment not judged: no fetched data this run (timbre and history from memory, flagged).
-- 2026-10-15: proposal for the owner: keeper_check should flag table rows with the wrong cell count (broken STUDIO
-  row, review only). Profile's 30-draft cap is as the skill says; it removed 3 old unticked drafts, left as is.
 - 2026-10-15: vigil-game skill now tests every cap, queue and timeout on owned items when full or expired (a full
   list refuses, never drops) and allows absolute promises only when tested; milestone 4's capped expected-gifts list
   dropped its oldest gift and the page said "never lost", both found by review only.
@@ -254,3 +253,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: game-loop proposal updated (17:00: most of the 29 min game step was 5x loops). Not acted on: talk.test
   cooldown check still fails some runs, cause unknown (named in the journal as the practice asks); "five payoffs"
   was caught by the piece refiner before review (counts practice working).
+- 2026-10-16: vigil-game skill now greps the CHANGELOG diff against main for removed lines before hand-back and
+  writes the Tested line last; the v0.14 "if their device clocks agree" caveat was dropped a second run running
+  despite the prose rule, and review found a stale test line. Caveat experiment not judged (four runs; this counts
+  against it). Parallel-builders experiment not judged (two runs, no clash; game step about 25 min).
+- 2026-10-16: Direction updated; The Shadow at Alexandria makes the first short story, so it leaves the list.
+- 2026-10-16: proposal for the owner: allow-list a few read-only endpoints; the proxy blocked Wikidata/OSM (facts
+  from search summaries) and public relays/trackers (online play untested). Not acted on: talk.test cause found and
+  fixed by the tester (background page frames); watch whether it stays green.

@@ -120,7 +120,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    gets its own CHANGELOG entry. Past CHANGELOG entries are a record: change one only to correct a false statement,
    keep every caveat in it, and read the whole paragraph around any line you insert into DESIGN or another .md file
    (2026-10-16 17:00: a v0.14 note lost "if their device clocks agree", and a DESIGN line landed mid-sentence; review
-   only). When a feature's status changes (missing, back, removed), `grep -rn` its name
+   only; 19:32: the same caveat was dropped again). Before handing back, run
+   `git -C <studio path> diff origin/main -- game/CHANGELOG.md | grep '^-[^-]'`: it must print nothing, or each
+   printed line is named in the report with the false statement it corrects. Write the **Tested:** line last, from
+   the final run's own counts, and rewrite it after any later fix (19:32: review found a stale test line). When a feature's status changes (missing, back, removed), `grep -rn` its name
    across game/*.md and game/index.html and fix every hit before reporting (2026-10-16 04:38: the watchdog restore
    had no CHANGELOG entry and a stale paragraph stayed on game/index.html; review and tester only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on

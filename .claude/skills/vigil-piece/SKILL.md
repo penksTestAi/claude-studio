@@ -67,6 +67,11 @@ Or, when the brief says so, one real improvement to an existing piece.
   alongside", never "uses". Then force every verdict or message branch to fire once and read its wording.
   Vigenère's blurbs said Kasiski fed the break (it did not) and its "repeated key" branch never fired in testing;
   builder and refiner missed both, the review caught them.
+- Verdict wording: each verdict claims only what its branch's code tested. A result from a limited search says
+  "none found among <what was searched>", never "fails" or "impossible"; a physical verdict holds for every input
+  that reaches the branch (other loads, sizes, settings), or names the case it covers. List what the model ignores
+  (for example the material's own weight) beside the verdict. Arch said "fails" after a chain-length-only search and
+  worded a "different line" verdict that was wrong for other loads; review only.
 - Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
   README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy

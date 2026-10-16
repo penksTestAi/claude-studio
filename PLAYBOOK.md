@@ -34,7 +34,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
   Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
-  42°) and an earth-science piece (Locating a Quake) now exist, so check the piece table
+  42°), an earth-science piece (Locating a Quake) and an engineering piece (Hanging Chain, Standing Arch) now
+  exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -118,14 +119,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work.
+- (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
+  silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
+  error on any other entry heading level, or print each skipped heading.
 
 ## Changelog
 
-- 2026-10-15: Direction updated; Element Timeline is now checked against a second dataset (91 of 118 agree).
-- 2026-10-15: new practice, screenshots in the scratchpad and meta tags only from site_meta.py; the keeper again
-  deleted stray screenshots from the root and hand-edited meta tag counts outside its list (site_meta ran after).
-- 2026-10-15: vigil-refine skill now lists duplicate ids and never writes the journal; Easter's duplicate
-  id="limits" passed builder, refiner and page_check (review only), and the toy refiner appended its own entry.
 - 2026-10-15: new practice, only the chair writes the journal and says so in every role's brief; keeper (10-14),
   toy refiner and fixer (10-15 02:35) each appended one. One-source experiment not judged (two tests, both pass).
 - 2026-10-15: proposal for the owner: page_check should flag duplicate ids (same Easter evidence).
@@ -213,3 +212,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   stayed on game/index.html (tester).
 - 2026-10-16: Direction updated; Lamplight Mono makes the first font, so "font" leaves the "not yet made" list.
   Status-words experiment not judged (three runs; review found a tense and a change note, no overclaim).
+- 2026-10-16: vigil-piece skill now limits each verdict to what its branch tested ("none found among ...", not
+  "fails") and lists ignored factors beside it; Arch's "fails" and "different line" verdicts overclaimed (review
+  only). Status-words experiment not judged (four runs; review found these plus "nobody can finish alone").
+- 2026-10-16: proposal for the owner: game_patchnotes.py should reject or report non-`###` CHANGELOG headings; the
+  watchdog restore note, written under `##`, vanished from the patch notes (review only).
+- 2026-10-16: Direction updated; Hanging Chain, Standing Arch adds engineering. Not acted on: after review fixes only
+  one of nine game test files was re-run, and the Workbench "long project" paragraph omits milestone 8; watch next run.

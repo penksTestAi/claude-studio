@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
+<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -157,6 +157,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <p class="small" id="shadestate"></p>
       <p class="small heard" id="shadeinfo" role="status" aria-live="polite"></p>
     </div>
+    <div class="craft" id="watch" hidden>
+      <p class="small" id="watch-label">The ruined lighthouse lights for everyone in a lantern while all four old beacons burn at once. It is worked out by each browser from the beacons, nothing extra is sent, and it goes dark again when the lantern empties.</p>
+      <p class="small" id="watchstate"></p>
+      <p class="small heard" id="watchinfo" role="status" aria-live="polite"></p>
+    </div>
     <div class="craft" id="beacon" hidden>
       <p class="small" id="beacon-label">Old beacon: players fuel it together. The fuel you add is used up and counted as your share.</p>
       <p class="small" id="beaconstate"></p>
@@ -201,6 +206,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.17</b> · milestone 14 (the long watch kept) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> light the ruined lighthouse together. When all four old beacons in a lantern burn at the same time, the lighthouse lights for everyone in that lantern: a wide pool of light clears the night around it, two long beams turn slowly (still, with reduced motion), a bright lamp shines at the top of the tower, it shows lit on the minimap, and a new line in the panel says how many beacons are lit (for example "3 of 4") and then that the long watch is kept. It stays lit while anyone is in the lantern and goes dark when the lantern empties, like the beacons. Shades keep out of its beam: one that was making for the lighthouse fades away as the light grows, one passing through is held at the edge of the light, and nobody standing inside the beam can be snuffed. The beam grows over a couple of seconds; with reduced motion it is there at once. Everyone sees the same shade places only if their device clocks agree.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (only relays and trackers running on the same machine were used), how the beams and the lamp look and perform on a real phone, whether 14 tiles of light and a safe zone of 90% of it are the right size for real play, and what players whose clocks differ by minutes see (shades would stand in different places for them, so the edge of the beam would not match). The first frames after Footsteps is turned on stalled about 0.9 s in headless Chromium; whether players feel this on slow devices was not checked.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.16</b> · milestone 13 (a second way to find each other) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> get into the game on networks that block the Nostr relays. If no relay can be reached within a few seconds, the game tries public BitTorrent trackers instead, and the page says which way it connected ("Nostr relays (connected)" or "BitTorrent trackers (connected; the Nostr relays could not be reached)"), or that neither could be reached. You only meet players who connected the same way: a player on Nostr and a player on BitTorrent do not see each other.</p>
     <p><span class="tag t-not">Not yet checked</span> both public ways in real life (the build sandbox could not reach any public relay or tracker, so the fallback was tried only against a relay and a tracker running on the same machine), whether a slow relay (over 7 seconds to open) makes the game switch although it would have worked, and how often players end up on different paths.</p>
@@ -212,7 +222,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   </details>
   <details class="ver">
     <summary><b>v0.14</b> · milestone 11 (weather and the shades' sky) <span class="when">2026-10-16</span></summary>
-    <p><span class="tag t-new">New</span> see mist and rain drift over the island. The weather changes every few minutes, easing from one to the next over about 40 seconds: roughly half the time it is clear, otherwise misty or rainy, and everyone on the island sees the same sky if their device clocks agree. Mist is a thin pale veil with a few soft banks that drift across; rain is a cool tint and fine slanting streaks. Lanterns, paths and players stay easy to see in both. The small sky strip at the top clouds over in mist and rain (stars fade, the moon dims), and when a wave of shades is out it darkens under a violet-black cloud and its frame turns pale violet, so you can tell a wave is coming or going before you see a shade. With reduced motion on, nothing falls or drifts: the grey tint and still mist stay. On a slow phone the game draws fewer drops and banks, then only a flat thin veil. It is only a look: weather changes no rule.</p>
+    <p><span class="tag t-new">New</span> see mist and rain drift over the island. The weather changes every few minutes, easing from one to the next over about 40 seconds: roughly half the time it is clear, otherwise misty or rainy, and everyone in the same lantern sees the same sky if their device clocks agree. Mist is a thin pale veil with a few soft banks that drift across; rain is a cool tint and fine slanting streaks. Lanterns, paths and players stay easy to see in both. The small sky strip at the top clouds over in mist and rain (stars fade, the moon dims), and when a wave of shades is out it darkens under a violet-black cloud and its frame turns pale violet, so you can tell a wave is coming or going before you see a shade. With reduced motion on, nothing falls or drifts: the grey tint and still mist stay. On a slow phone the game draws fewer drops and banks, then only a flat thin veil. It is only a look: weather changes no rule.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the weather and the darker sky look and perform on a real phone (frame costs were seen only in headless Chromium without a GPU), and whether the mist hides too much on a bright screen outdoors.</p>
   </details>
   <details class="ver">

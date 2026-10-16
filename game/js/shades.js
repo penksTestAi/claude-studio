@@ -94,7 +94,7 @@ export function shadeAt(world, ms, k) {
   else if (u < p.t1 + LINGER_S) { const ang = p.ang0 + p.dir * (u - p.t1) * 0.3; x = p.a.x + Math.cos(ang) * ORBIT_R; y = p.a.y + Math.sin(ang) * ORBIT_R; phase = "linger"; }
   else { const v = (u - p.t1 - LINGER_S) * SPEED; x = p.ex + p.ux * v; y = p.ey + p.uy * v; phase = "leave"; }
   const alpha = Math.max(0, Math.min(1, u / FADE_S, (p.life - u) / FADE_S));
-  return { k, slot, x, y, alpha, phase, u };
+  return { k, slot, x, y, alpha, phase, u, at: p.a };
 }
 // Seconds from `ms` until the next slot that holds shades (0 if this one does and its first shade is not yet gone).
 export function nextWaveIn(seed, ms) {
@@ -133,6 +133,7 @@ export function createShades(net, world, me, peers, opts = {}) {
   const clock = opts.clock || (() => Date.now());
   const reachFor = opts.reachFor || (() => 3);
   const safeAt = opts.safeAt || (() => false);
+  const holdOutAt = opts.holdOut || ((sh) => ({ x: sh.x, y: sh.y, fade: 1 })); // the lit lighthouse keeps shades out of its beam: (shade) -> { x, y }
   const onEvent = opts.onEvent || (() => {});
   let slot = slotOf(clock());
   let shares = createLightShares();
@@ -235,6 +236,7 @@ export function createShades(net, world, me, peers, opts = {}) {
       for (let i = 0; i < count; i++) {
         const sh = shadeAt(world, ms, i);
         if (!sh) continue;
+        { const h = holdOutAt(sh); sh.x = h.x; sh.y = h.y; sh.alpha *= h.fade; }
         sh.gone = shares.done(i); sh.total = shares.total(i); sh.players = shares.players(i); sh.own = shares.own(i, me.seed);
         sh.safe = safeAt(sh.x, sh.y);
         current.push(sh);

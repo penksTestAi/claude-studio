@@ -362,15 +362,15 @@ export function createRenderer(canvas, world, opts = {}) {
     return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky };
   }
 
-  function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env) {
+  function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch) {
     const t0 = performance.now();
-    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades, env);
+    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch);
     const i = nSamp % 240; samples[i] = performance.now() - t0; frames[i] = prevT ? t - prevT : 0; nSamp++;
     if (prevT) gov.note(t - prevT);
     prevT = t;
   }
 
-  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = [], env = null) {
+  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = [], env = null, watch = null) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     const level = plain ? 0 : gov.level;
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
@@ -421,6 +421,11 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(0,0,0,0.98)"); grad.addColorStop(0.6, f.lit ? "rgba(0,0,0,0.8)" : "rgba(0,0,0,0.5)"); grad.addColorStop(1, "rgba(0,0,0,0)");
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
+    if (watch) { // the lit lighthouse clears a wide pool of night
+      const sx = watch.x * tile - camX, sy = watch.y * tile - camY, r = tile * watch.r * watch.f, grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
+      grad.addColorStop(0, "rgba(0,0,0,0.98)"); grad.addColorStop(0.7, "rgba(0,0,0,0.75)"); grad.addColorStop(1, "rgba(0,0,0,0)");
+      dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
+    }
     g.drawImage(dark, 0, 0);
     // The glow of a coloured lantern: a soft pool of its colour on the ground, for everyone who can see it.
     g.globalCompositeOperation = "lighter";
@@ -440,6 +445,7 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(255,170,70,0.28)"); grad.addColorStop(0.5, "rgba(255,150,60,0.10)"); grad.addColorStop(1, "rgba(255,150,60,0)");
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
+    if (watch) drawLighthouse(g, watch, watch.x * tile - camX, watch.y * tile - camY, tile, t, reduce, plain);
     g.globalCompositeOperation = "source-over";
     drawShades(t, reduce, camX, camY, tile, shades, all, lt, me);
     if (!plain) drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires);
@@ -454,7 +460,7 @@ export function createRenderer(canvas, world, opts = {}) {
       g.globalAlpha = Math.min(1, (7 - d) / 2);
       g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#f2d9a0";
       const f = l.kind === "beacon" ? fires.find(q => q.x === l.x && q.y === l.y) : null;
-      const label = LANDMARK_NAMES[l.kind] + (f ? (f.lit ? ": lit" : `: fuel ${f.fuel} of ${BEACON_NEED}`) : ""); // words and numbers from our own code
+      const label = LANDMARK_NAMES[l.kind] + (f ? (f.lit ? ": lit" : `: fuel ${f.fuel} of ${BEACON_NEED}`) : (l.kind === "lighthouse" && watch && watch.f >= 1 ? ": lit" : "")); // words and numbers from our own code
       g.strokeText(label, lx, ly); g.fillText(label, lx, ly);
       g.globalAlpha = 1;
     }
@@ -501,6 +507,25 @@ export function createRenderer(canvas, world, opts = {}) {
   }
 
   return { draw, resize, burst, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+}
+
+// The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn
+// slowly (still, one pointing out to sea, with reduced motion). Drawn in the additive pass; cost is a few fills.
+function drawLighthouse(g, w, sx, sy, tile, t, reduce, plain) {
+  const R = tile * w.r * w.f, top = sy - tile * 1.9, a0 = reduce ? 0.6 : t / 4200;
+  let grad = g.createRadialGradient(sx, sy, 0, sx, sy, R * 0.9);
+  grad.addColorStop(0, "rgba(255,225,150,0.26)"); grad.addColorStop(0.5, "rgba(255,200,110,0.09)"); grad.addColorStop(1, "rgba(255,200,110,0)");
+  g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, R * 0.9, 0, Math.PI * 2); g.fill();
+  if (!plain) for (let i = 0; i < 2; i++) {
+    const a = a0 + i * Math.PI;
+    grad = g.createRadialGradient(sx, top, 0, sx, top, R);
+    grad.addColorStop(0, "rgba(255,244,200,0.40)"); grad.addColorStop(1, "rgba(255,244,200,0)");
+    g.fillStyle = grad; g.beginPath(); g.moveTo(sx, top); g.arc(sx, top, R, a - 0.14, a + 0.14); g.closePath(); g.fill();
+  }
+  const pulse = reduce ? 1 : 1 + Math.sin(t / 260) * 0.08, lr = tile * 0.55 * pulse * Math.min(1, w.f * 1.2);
+  grad = g.createRadialGradient(sx, top, 0, sx, top, lr);
+  grad.addColorStop(0, "rgba(255,250,225,0.95)"); grad.addColorStop(0.4, "rgba(255,226,150,0.5)"); grad.addColorStop(1, "rgba(255,200,110,0)");
+  g.fillStyle = grad; g.beginPath(); g.arc(sx, top, lr, 0, Math.PI * 2); g.fill();
 }
 
 // A beacon basket's fire: nothing without fuel, embers while it fills, a tall flame once lit.

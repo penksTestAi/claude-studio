@@ -183,6 +183,18 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   to each newcomer and every 5 s; a receiver needs a known sender, allows 2 a second, and shows only the title looked up in
   `TITLES` (a trim of r gold marks on the lantern, a gold line over the name, and a suffix in the player list). Accepted weakness:
   a modified client can claim any rank, and a second tab or alt character can farm points; the page says the rank proves nothing.
+- **The long watch kept** (`js/lighthouse.js`, milestone 14): no new message. Each browser already holds the beacons' shares; when
+  every beacon of the island is lit (`watchKept`, real booleans, an empty list is not kept) the ruined lighthouse is lit, and it
+  stays lit for as long as anyone in the lantern holds the shares (an emptied lantern forgets them, so it goes dark). The beam
+  (`LIGHTHOUSE_RADIUS` 14 tiles) is eased 0 to 1 over `EASE_S` (2.5 s; at once with reduced motion) by `createBeam`. Shades: a shade whose
+  plan makes for the lighthouse (`shadeAt` now returns `at`, the landmark it circles) fades with `1 - f`; any other shade whose path is
+  inside the beam is held on its edge along the line from the lighthouse (`holdOut`, passed to `createShades` as `holdOut`), so
+  shades slide out as the beam grows (checked in node: at most 1.5 tiles per 10% of growth) and none that can be seen is ever
+  inside a full beam. Players inside 90% of the full beam are safe from a snuff, like inside a lit beacon (`insideBeam`, added to
+  `safeAt`). Weakness accepted: shade places come from each device's UTC clock, so with clocks minutes apart players see shades in
+  different places, and the beam's edge is only as consistent as the beacon state they have heard; for a moment after the fourth
+  beacon lights, pages that have not yet heard it show the old shade places. Cosmetic part in `render.js` (`drawLighthouse`, a
+  pool in the night layer) and `minimap.js`; `__longWatch.watch()` is the read-only test view.
 - **Presence watchdog** (milestone 6, in `js/presence.js`): over real WebRTC a link can come up on one side before the
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
@@ -282,6 +294,7 @@ game/
   js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
   js/shades.js          the shades: slots, waves, a shade's path (pure), light-seconds shares counter, `hp` `hq` `hs` `sf` messages, snuffing and relighting, `?shadeclock=`
   js/weather.js         weather and the shades' sky, pure: mist and rain from seed and clock, rain drops, mist banks, how dark a shade wave makes the sky strip
+  js/lighthouse.js      the long watch kept: all beacons lit lights the lighthouse (pure), beam easing, shades held out of the beam
   js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing

@@ -29,12 +29,12 @@ export function createMinimap(canvas, world) {
   for (const l of world.landmarks) if (l.planks) { bg.fillStyle = "#c28a4a"; for (const [px, py] of l.planks) bg.fillRect(px, py, 1, 1); }
   let marks = 0;
 
-  function mark(l, fire) {
+  function mark(l, fire, watch) {
     const x = l.x, y = l.y;
     if (l.kind === "beacon") {
       if (fire && fire.lit) { g.fillStyle = "rgba(255,170,70,0.28)"; g.beginPath(); g.arc(x, y, 9, 0, Math.PI * 2); g.fill(); }
       g.fillStyle = fire && fire.lit ? "#fff0b0" : fire && fire.fuel > 0 ? "#ff9a2e" : "#ffcf5a"; g.beginPath(); g.moveTo(x, y - 3.5); g.lineTo(x + 3, y); g.lineTo(x, y + 3.5); g.lineTo(x - 3, y); g.closePath(); g.fill(); }
-    else if (l.kind === "lighthouse") { g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 3.5, y + 3); g.lineTo(x - 3.5, y + 3); g.closePath(); g.fill(); }
+    else if (l.kind === "lighthouse") { if (watch) { g.fillStyle = "rgba(255,226,150,0.30)"; g.beginPath(); g.arc(x, y, watch.r * watch.f, 0, Math.PI * 2); g.fill(); } g.fillStyle = watch ? "#fff0b0" : "#ffffff"; g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 3.5, y + 3); g.lineTo(x - 3.5, y + 3); g.closePath(); g.fill(); }
     else if (l.kind === "well") { g.strokeStyle = "#7fd0ff"; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 2.5, 0, Math.PI * 2); g.stroke(); }
     else { g.fillStyle = "#c28a4a"; g.fillRect(x - 2.5, y - 2.5, 5, 5); }
     marks++;
@@ -42,10 +42,10 @@ export function createMinimap(canvas, world) {
 
   return {
     // me and peers carry x, y, colour, d. Peers' x, y are the eased drawn positions.
-    draw(me, peers, fires = [], shades = []) {
+    draw(me, peers, fires = [], shades = [], watch = null) {
       marks = 0;
       g.drawImage(base, 0, 0);
-      for (const l of world.landmarks) mark(l, l.kind === "beacon" ? fires.find(f => f.x === l.x && f.y === l.y) : null);
+      for (const l of world.landmarks) mark(l, l.kind === "beacon" ? fires.find(f => f.x === l.x && f.y === l.y) : null, l.kind === "lighthouse" ? watch : null);
       for (const sh of shades) { if (sh.gone || sh.alpha < 0.3) continue; g.fillStyle = "rgba(150,120,230,0.9)"; g.strokeStyle = "#05081a"; g.lineWidth = 1; g.beginPath(); g.moveTo(sh.x, sh.y - 3.2); g.lineTo(sh.x + 2.6, sh.y + 2.4); g.lineTo(sh.x - 2.6, sh.y + 2.4); g.closePath(); g.fill(); g.stroke(); }
       for (const p of peers) { g.fillStyle = p.colour; g.strokeStyle = "#05081a"; g.lineWidth = 1; g.beginPath(); g.arc(p.x, p.y, 3, 0, Math.PI * 2); g.fill(); g.stroke(); }
       g.strokeStyle = "#fff3d6"; g.fillStyle = me.colour; g.lineWidth = 1.6;

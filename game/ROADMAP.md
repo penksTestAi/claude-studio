@@ -91,9 +91,11 @@ working features.
 13. **Done (2026-10-16, local servers only): A second way to find each other.** Default path `auto`: Nostr first, BitTorrent trackers (Trystero's torrent strategy) if no relay opens in 7 s; the page shows which path connected; players meet only others on the same path. Tested against a Nostr relay and a tracker on 127.0.0.1; neither public path is reachable from the sandbox (HTTP 403 from the proxy), so public-relay and public-tracker play is untested. Was: When the Nostr relays cannot be reached, try a second free signalling path
     with no sign-up (BitTorrent trackers or MQTT through Trystero), say on the page which one connected, and test the
     fallback locally; record whether the public ones were reachable.
-14. **NEXT: The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
-    everyone there until the room empties, and the shades stay away from its beam (derived, nothing new sent).
-15. **A look step: people.** Better character figures with a walk cycle, lantern swing and gesture poses drawn in code.
+14. **Done (2026-10-16, local relay only): The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
+    everyone there (a pool of light 14 tiles wide, two slow beams, a lamp at the top, a mark on the minimap) until the lantern empties. It is worked out by each browser from the
+    beacon state it already holds; nothing new is sent. Shades keep out of the beam: one making for the lighthouse fades away as the beam grows, one passing through is held at its
+    edge, and nobody inside the beam can be snuffed. Tested in `watch.test.mjs`; the rule holds if players' device clocks agree (shades are placed by the clock).
+15. **NEXT: A look step: people.** Better character figures with a walk cycle, lantern swing and gesture poses drawn in code.
 16. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.
 
 ## Known problems

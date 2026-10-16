@@ -178,7 +178,12 @@ console.log("\n# two pages, local transport, Lantern 5");
   ok(hudOn.stepsOn && await a.textContent("#stepstoggle") === "Footsteps: on" && await a.getAttribute("#stepstoggle", "aria-pressed") === "true", "the Footsteps button turns them on");
   const p1 = hudOn.stepsPlayed;
   await a.locator("#view").focus();
-  await walk(a, "ArrowLeft", 1000);
+  // Hold the key until about 4 tiles are walked, not for a fixed time: the first frames after the Footsteps button
+  // is clicked can stall while the sound is set up, and a fixed hold then walks too little.
+  const xs = (await get(a)).self.x;
+  await a.keyboard.down("ArrowLeft");
+  for (let i = 0; i < 50 && xs - (await get(a)).self.x < 3.5; i++) await a.waitForTimeout(100);
+  await a.keyboard.up("ArrowLeft");
   const p2 = (await get(a)).hud.stepsPlayed;
   ok(p2 - p1 >= 3, `walking about 4 tiles plays steps (${p2 - p1})`);
   // B walks next to A; A hears B's steps (B is within earshot).

@@ -18,6 +18,7 @@ import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS, ITEMS } from "./i
 import { createBeacons, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
+import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RADIUS } from "./lighthouse.js";
 import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 
@@ -121,12 +122,12 @@ async function enter() {
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
-  shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe });
+  shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
   rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
-  paintBeacon(true); $("beaconinfo").textContent = "";
+  paintBeacon(true); $("beaconinfo").textContent = ""; beam.reset(); wasKept = false; $("watchinfo").textContent = ""; paintWatch(true);
   paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
@@ -177,6 +178,7 @@ function frame(t) {
   craft.tick();
   beacon.tick();
   quests.tick();
+  beam.update(watchIsKept(), dt, reducedMotion());
   shades.tick(dt);
   rankNet.tick();
   watchBaselines();
@@ -185,14 +187,15 @@ function frame(t) {
   footsteps(light);
   const reach = gather.reach();
   const fires = fireList();
-  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather));
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather), watchView());
   paintShades();
   paintRank();
   paintBeacon();
+  paintWatch();
   paintQuests();
   $("gather").disabled = !reach;
   paintGive();
-  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list()); }
+  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list(), watchView()); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); updateStatus(); }
   if (t - lastSave > 3000) { save(); lastSave = t; }
   requestAnimationFrame(frame);
@@ -230,6 +233,23 @@ function watchBaselines() {
   if (beacon) beaconList.forEach((_, b) => grew("b" + b, beacon.shares.own(b, me.seed), beacon.synced()));
   if (quests) quests.notes.forEach((_, q) => grew(`q${quests.day}.${q}`, quests.shares.own(q, me.seed), quests.synced()));
   if (shades) for (let i = 0; i < 4; i++) grew(`s${shades.slot}.${i}`, shades.shares.own(i, me.seed), shades.synced());
+}
+// ---- the long watch kept: every beacon lit at once lights the ruined lighthouse (worked out from the beacon state; nothing is sent) ----
+const lighthouse = lighthouseOf(world), beam = createBeam();
+const watchIsKept = () => !!beacon && !!lighthouse && watchKept(beaconList.map((_, b) => beacon.shares.lit(b)));
+const watchView = () => lighthouse && beam.f > 0 ? { x: lighthouse.x, y: lighthouse.y, f: beam.f, r: LIGHTHOUSE_RADIUS } : null;
+let lastWatchKey = "", wasKept = false;
+function paintWatch(force) {
+  if (force) lastWatchKey = "";
+  const kept = watchIsKept(), n = beacon ? beaconList.filter((_, b) => beacon.shares.lit(b)).length : 0;
+  const key = !!beacon + "|" + kept + "|" + n;
+  if (key === lastWatchKey) return;
+  lastWatchKey = key;
+  $("watch").hidden = !beacon || !lighthouse;
+  $("watchstate").textContent = kept ? `The long watch is kept: all ${beaconList.length} beacons burn, so the ruined lighthouse is lit for everyone in this lantern (${LIGHTHOUSE_RADIUS} tiles of light). Shades keep out of its beam, and nobody inside it can be snuffed. It stays lit while anyone is here.`
+    : `The long watch: ${n} of ${beaconList.length} beacons lit. Light all ${beaconList.length} at once and the ruined lighthouse lights for everyone in this lantern.`;
+  if (kept && !wasKept) $("watchinfo").textContent = "All the beacons burn. The ruined lighthouse is lit!";
+  wasKept = kept;
 }
 const FUEL_ITEMS = ["driftwood", "berries"];
 const fireList = () => beaconList.map((l, b) => beacon ? { x: l.x, y: l.y, n: b, fuel: beacon.shares.fuel(b), frac: Math.min(1, beacon.shares.fuel(b) / BEACON_NEED), lit: beacon.shares.lit(b) } : { x: l.x, y: l.y, n: b, fuel: 0, frac: 0, lit: false });
@@ -297,7 +317,8 @@ function paintQuests(force) {
 let shadeOffset = pickClockOffset(location.search, onLoopback);
 const shadeNow = () => Date.now() + shadeOffset;
 const shadeReach = (p) => (p.snuffed ? EMBER_TILES : lightNow().reach * lampOf(p.lamp).mult);
-const shadeSafe = (x, y) => !!beacon && beaconList.some((l, b) => beacon.shares.lit(b) && Math.hypot(l.x - x, l.y - y) <= LIT_RADIUS * SAFE_FRACTION);
+const shadeSafe = (x, y) => (!!beacon && beaconList.some((l, b) => beacon.shares.lit(b) && Math.hypot(l.x - x, l.y - y) <= LIT_RADIUS * SAFE_FRACTION)) || insideBeam(x, y, lighthouse, beam.f);
+const shadeHold = (sh) => holdOut(sh, lighthouse, beam.f);
 const compassWord = (dx, dy) => ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"][((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
 let drivenOff = 0, snuffCount = 0, lastShadeKey = "";
 const snuffLog = []; // the last few snuffs (slot, shade, where), for the tests' failure messages; numbers only, kept in this page
@@ -573,6 +594,7 @@ window.__longWatch = {
   setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
   snuffCount: () => snuffCount,
   snuffLog: () => snuffLog.map(e => ({ ...e })),
+  watch: () => ({ kept: watchIsKept(), f: beam.f, view: watchView(), lighthouse: lighthouse ? { x: lighthouse.x, y: lighthouse.y } : null, radius: LIGHTHOUSE_RADIUS, panel: !$("watch").hidden, text: $("watchstate").textContent, info: $("watchinfo").textContent }),
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

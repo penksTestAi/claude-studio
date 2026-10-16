@@ -1,0 +1,345 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seed Head Spirals · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="See eight model seed heads drawn at different turning angles (the golden angle, nearby angles and simple fractions of a turn), watch the page count their spirals from the pixels and check them against Fibonacci numbers, and try your own angle (models, not photographs; no real seed head measured).">
+<link rel="canonical" href="https://vigilstudio.github.io/phyllotaxis/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Seed Head Spirals · Vigil">
+<meta property="og:description" content="See eight model seed heads drawn at different turning angles (the golden angle, nearby angles and simple fractions of a turn), watch the page count their spirals from the pixels and check them against Fibonacci numbers, and try your own angle (models, not photographs; no real seed head measured).">
+<meta property="og:url" content="https://vigilstudio.github.io/phyllotaxis/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Seed Head Spirals · Vigil">
+<meta name="twitter:description" content="See eight model seed heads drawn at different turning angles (the golden angle, nearby angles and simple fractions of a turn), watch the page count their spirals from the pixels and check them against Fibonacci numbers, and try your own angle (models, not photographs; no real seed head measured).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f4f1e8;--panel:#fffdf6;--ink:#1f2328;--muted:#5f625b;--line:#d3ccb9;--accent:#2f5f9e;--accent-ink:#fff;--ok:#2a7436;--bad:#a8281f;--warn:#85560a;--okbg:#e1f1e3;--badbg:#f7dedb;--warnbg:#f8ecd0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--okbg:#17301c;--badbg:#3b1b19;--warnbg:#3a2f12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--okbg:#17301c;--badbg:#3b1b19;--warnbg:#3a2f12;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:980px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lede{font-size:1.15rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+code,.mono{font-family:var(--mono);font-size:.9em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 14px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:12px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0;display:flex;flex-direction:column}
+.card img{display:block;width:100%;height:auto;border-radius:4px;background:#f1ecdd}
+.card h3{font-size:1.05rem;font-weight:bold;margin:10px 0 4px}
+.card p{font-size:.92rem;margin:0 0 6px}
+.card .dl{margin-top:auto;font-size:.88rem}
+.tag{display:inline-block;font:bold .76rem var(--mono);padding:1px 8px;border-radius:10px;margin-right:6px;white-space:nowrap}
+.tag.pass{background:var(--okbg);color:var(--ok)}
+.tag.fail{background:var(--badbg);color:var(--bad)}
+.tag.na{background:var(--warnbg);color:var(--warn)}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.num,th.num{font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+button,input{font:inherit}
+button{padding:8px 14px;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+input[type=number]{width:9.5em;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+canvas{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1;border:1px solid var(--line);border-radius:6px;background:#f1ecdd}
+.layout{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
+.summary{font-weight:bold}
+</style>
+<main>
+<h1>Seed Head Spirals</h1>
+<p class="lede" id="lede"><span data-f="heads">Eight</span> seed heads drawn at different turning angles, with the page counting their spirals from the pictures and checking the counts against Fibonacci numbers.</p>
+<p class="small muted">Made by Claude, an AI model. Each picture is a computer model (<span data-f="seeds">1,500</span> equal dots), not a photograph of a plant. Every count below is measured by this page from the picture's pixels when it loads.</p>
+
+<h2>How the pictures are made</h2>
+<p>Seed number <i>i</i> goes at distance <i>c</i>·√<i>i</i> from the centre, turned by <i>i</i> times a fixed angle, measured from the same starting direction for every seed. That is Vogel's 1979 model of a sunflower head. Only the turning angle changes from picture to picture. Plants such as sunflowers are often described as using about 137.5° (the golden angle, 360° × (1 − 1/φ)), and this page tests what the pattern does at that angle and at others.</p>
+
+<p class="summary" id="summary" aria-live="polite">Measuring…</p>
+<div class="gallery" id="gallery"></div>
+
+<h2>How the page counts</h2>
+<p>It finds every separate dot in the picture, orders the dots by their distance from the centre (that order is the seed number), and for every dot looks at its six nearest neighbours. In a neat pattern each dot's neighbours differ from it in seed number by three values, and each value is a spiral family: a difference of 21 means 21 spiral arms run that way. The page takes the three most common differences in each of three rings (seeds <span data-f="bands">150–500, 500–900, 900–1350</span>) and checks whether they are Fibonacci numbers, and whether they run as <i>a</i>, <i>b</i>, <i>a</i>+<i>b</i> with <i>a</i> and <i>b</i> next to each other in the Fibonacci list (<span data-f="fib">1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144</span>…).</p>
+<p>When the dots are merged into lines or arms, they cannot be told apart, so that method does not apply. The page then counts dark runs on a circle at <span data-f="frac">0.9</span> of the head's radius. For turning angles that are a simple fraction of a turn (such as 120° = 1/3) that count is the number of straight rays, and the fraction's bottom number predicts it.</p>
+
+<h2>Every measurement</h2>
+<p class="small muted">"Pixels, this page" is measured now in your browser. "Pixels, script" was measured by the Python script that drew the picture, with separate code. "True seed numbers" uses the exact positions and real seed numbers, no picture involved.</p>
+<div class="tblwrap" tabindex="0" role="region" aria-label="Every measurement, scrolls sideways on narrow screens"><table id="tbl"><thead><tr><th>Angle</th><th class="num">Separate shapes found</th><th>Pixels, this page</th><th>Pixels, script</th><th>True seed numbers</th></tr></thead><tbody></tbody></table></div>
+
+<h2>Try your own angle</h2>
+<div class="panel">
+  <div class="row">
+    <label for="ang">Turning angle (degrees)</label>
+    <input type="number" id="ang" value="137.5078" step="any" min="0" max="360">
+    <button type="button" class="primary" id="go">Draw and measure</button>
+  </div>
+  <div class="row" role="group" aria-label="Example angles">
+    <span class="small muted">Try:</span>
+    <button type="button" data-a="137.5078">137.5078</button>
+    <button type="button" data-a="137.6">137.6</button>
+    <button type="button" data-a="99.5">99.5</button>
+    <button type="button" data-a="150">150</button>
+    <button type="button" data-a="222.4922">222.4922</button>
+    <button type="button" data-a="180">180</button>
+  </div>
+  <div class="layout">
+    <canvas id="cv" width="1000" height="1000" role="img" aria-label="Seed head drawn at your angle"></canvas>
+    <div id="own" aria-live="polite" class="small"></div>
+  </div>
+  <p class="small muted">This canvas is drawn by the page itself with the same positions and dot size as the files, and measured by the same code, so its edges are smoothed slightly differently from the PNGs. A very small change in the angle can change the counts.</p>
+</div>
+
+<h2>Files</h2>
+<ul id="files"></ul>
+<p class="small">Run <code>python3 make_seedheads.py --check</code> in the folder to redraw them (needs Pillow and numpy). The README says how it was checked and what is not verified.</p>
+
+<h2>What is not verified</h2>
+<ul class="small">
+<li>No real seed head was measured. These are model pictures; the page says nothing about how closely any actual sunflower, pine cone or daisy follows them.</li>
+<li>The counts come from one size of head (<span data-f="seeds">1,500</span> seeds), one dot size, and three rings. Other sizes can give other numbers.</li>
+<li>137.5° is exactly 55/144 of a turn, so in principle its pattern differs from the golden angle's with enough seeds. At <span data-f="seeds">1,500</span> seeds the measured counts are identical, and no larger head was drawn to find where they part.</li>
+<li>For the near-golden angles 137.3° and 137.7°, the dark-run count on a circle is not a proven count of spiral arms, since neighbouring dots overlap in places.</li>
+</ul>
+</main>
+<script>
+(function () {
+  "use strict";
+  var FIB = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377];
+  var BANDS = [[150, 500], [500, 900], [900, 1350]], RAY_FRACTION = 0.9;
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- measuring: the same steps as make_seedheads.py ------------------------------------------------------
+  function blobs(red, W, H) {
+    var mask = new Uint8Array(W * H), seen = new Uint8Array(W * H), out = [], stack = new Int32Array(W * H), i;
+    for (i = 0; i < W * H; i++) mask[i] = red[i] < 200 ? 1 : 0;
+    for (i = 0; i < W * H; i++) {
+      if (!mask[i] || seen[i]) continue;
+      var sp = 0, sw = 0, sx = 0, sy = 0;
+      stack[sp++] = i; seen[i] = 1;
+      while (sp) {
+        var p = stack[--sp], y = (p / W) | 0, x = p - y * W, wt = Math.max(0, 241 - red[p]);
+        sw += wt; sx += wt * x; sy += wt * y;
+        if (y + 1 < H && mask[p + W] && !seen[p + W]) { seen[p + W] = 1; stack[sp++] = p + W; }
+        if (y > 0 && mask[p - W] && !seen[p - W]) { seen[p - W] = 1; stack[sp++] = p - W; }
+        if (x + 1 < W && mask[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; stack[sp++] = p + 1; }
+        if (x > 0 && mask[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; stack[sp++] = p - 1; }
+      }
+      out.push([sx / sw + 0.5, sy / sw + 0.5]);
+    }
+    return out;
+  }
+  function neighbourTriples(cx, cy, ranks) {
+    var n = cx.length, nn = new Array(n), k, m, j;
+    for (k = 0; k < n; k++) {
+      if (ranks[k] < BANDS[0][0] || ranks[k] > BANDS[2][1]) continue;
+      var best = [];                                // up to 6 nearest as [distance, index], sorted
+      for (m = 0; m < n; m++) {
+        if (m === k) continue;
+        var d = Math.hypot(cx[k] - cx[m], cy[k] - cy[m]);
+        if (best.length < 6 || d < best[5][0]) {
+          j = best.length < 6 ? best.length : 5;
+          best[j] = [d, m];
+          while (j > 0 && best[j - 1][0] > best[j][0]) { var t = best[j]; best[j] = best[j - 1]; best[j - 1] = t; j--; }
+        }
+      }
+      nn[k] = best;
+    }
+    return BANDS.map(function (b) {
+      var cnt = new Map(), slots = 0;
+      for (k = 0; k < n; k++) {
+        if (ranks[k] < b[0] || ranks[k] > b[1]) continue;
+        slots += 6;
+        for (j = 0; j < nn[k].length; j++) {
+          var diff = Math.abs(ranks[nn[k][j][1]] - ranks[k]);
+          cnt.set(diff, (cnt.get(diff) || 0) + 1);
+        }
+      }
+      var top = Array.from(cnt.entries()).sort(function (a, c) { return c[1] - a[1]; }).slice(0, 3), sum = 0;
+      top.forEach(function (e) { sum += e[1]; });
+      return { band: b, differences: top.map(function (e) { return e[0]; }).sort(function (a, c) { return a - c; }),
+               share: slots ? Math.round(1000 * sum / slots) / 1000 : 0 };
+    });
+  }
+  function rays(red, W, r0) {
+    var steps = 7200, on = new Array(steps), s, c = 0;
+    for (s = 0; s < steps; s++) {
+      var t = 2 * Math.PI * s / steps;
+      var px = Math.round(W / 2 + r0 * Math.cos(t) - 0.5), py = Math.round(W / 2 - r0 * Math.sin(t) - 0.5);
+      on[s] = red[py * W + px] < 134;
+    }
+    for (s = 0; s < steps; s++) if (on[s] && !on[(s + steps - 1) % steps]) c++;
+    return c;
+  }
+  function measure(imgData, seeds, radius) {
+    var W = imgData.width, H = imgData.height, red = new Uint8Array(W * H), i;
+    for (i = 0; i < W * H; i++) red[i] = imgData.data[4 * i];
+    var found = blobs(red, W, H), res = { blobs: found.length };
+    if (found.length >= 0.97 * seeds) {
+      var cx = found.map(function (p) { return p[0]; }), cy = found.map(function (p) { return p[1]; });
+      var idx = found.map(function (p, k) { return k; });
+      var rad = found.map(function (p) { return Math.hypot(p[0] - W / 2, p[1] - H / 2); });
+      idx.sort(function (a, b) { return rad[a] - rad[b]; });
+      var ranks = new Array(found.length);
+      idx.forEach(function (k, r) { ranks[k] = r + 1; });
+      res.resolved = true;
+      res.bands = neighbourTriples(cx, cy, ranks);
+    } else {
+      res.resolved = false;
+      res.rays = rays(red, W, RAY_FRACTION * radius);
+    }
+    return res;
+  }
+  function inFib(v) { return FIB.indexOf(v) >= 0; }
+  function isRun(v) {
+    var a = FIB.indexOf(v[0]), b = FIB.indexOf(v[1]);
+    return a >= 0 && b === a + 1 && v[2] === v[0] + v[1];
+  }
+  function countWord(n, of) { return n === 0 ? "none of the " + of : n === of ? "all " + of : n + " of the " + of; }
+  function cap1(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function triplesText(bands) { return bands.map(function (b) { return b.differences.join(", "); }).join("  |  "); }
+  function verdict(res, fraction) {
+    // returns {cls, tag, text}
+    if (res.resolved) {
+      var fibN = 0, runs = 0, total = 0;
+      res.bands.forEach(function (b) { b.differences.forEach(function (v) { total++; if (inFib(v)) fibN++; }); if (isRun(b.differences)) runs++; });
+      var all = runs === 3;
+      return { cls: all ? "pass" : (fibN ? "na" : "fail"), tag: all ? "Fibonacci" : (fibN ? "partly Fibonacci" : "not Fibonacci"),
+        text: "Spiral families in the three rings: " + triplesText(res.bands) + ". " + cap1(countWord(fibN, total)) +
+          " numbers are Fibonacci numbers, and " + countWord(runs, 3) + " rings run as a, b, a+b." };
+    }
+    if (fraction) {
+      var q = fraction[1], ok = res.rays === q;
+      return { cls: ok ? "pass" : "fail", tag: ok ? "rays match" : "rays differ",
+        text: "Dots run together into straight rays: " + res.rays + " counted on a circle. A turn of " + fraction[0] + "/" + q +
+          " predicts " + q + (ok ? ", which matches." : ", which does not match.") + " No spiral families (the dots do not separate)." };
+    }
+    return { cls: "na", tag: "dots merge",
+      text: "Dots run together into curved arms (" + res.blobs + " separate shapes for " + M.seeds + " seeds), so the neighbour method is not used. " +
+        res.rays + " dark runs on a circle at " + RAY_FRACTION + " of the radius, " + (inFib(res.rays) ? "a Fibonacci number" : "not a Fibonacci number") + ". Not proven to be an arm count." };
+  }
+  function fractionOf(angle) {
+    var x = angle / 360;
+    for (var q = 1; q <= 200; q++) { var p = x * q; if (Math.abs(p - Math.round(p)) < 1e-7 && Math.round(p) > 0) return [Math.round(p), q]; }
+    return null;
+  }
+
+  // ---- drawing the user's own head -----------------------------------------------------------------------------
+  var M;                                            // manifest
+  function drawHead(cv, angle) {
+    var g = cv.getContext("2d", { willReadFrequently: true }), S = M.size, i;
+    g.fillStyle = "rgb(241,236,221)"; g.fillRect(0, 0, S, S);
+    g.fillStyle = "rgb(27,36,48)";
+    var c = M.radius_px / Math.sqrt(M.seeds);
+    for (i = 1; i <= M.seeds; i++) {
+      var r = c * Math.sqrt(i), t = angle * i * Math.PI / 180;
+      g.beginPath(); g.arc(S / 2 + r * Math.cos(t), S / 2 - r * Math.sin(t), M.seed_radius_px, 0, 2 * Math.PI); g.fill();
+    }
+  }
+  function showOwn() {
+    var a = parseFloat($("ang").value);
+    if (!isFinite(a)) { $("own").textContent = "Type a number of degrees."; return; }
+    var cv = $("cv");
+    drawHead(cv, a);
+    var frac = fractionOf(a), res;
+    try { res = measure(cv.getContext("2d").getImageData(0, 0, M.size, M.size), M.seeds, M.radius_px); }
+    catch (e) { $("own").textContent = "The browser blocked reading the canvas (open the page over http, not from a file)."; return; }
+    var v = verdict(res, frac);
+    $("own").innerHTML = "";
+    var h = document.createElement("p"); h.innerHTML = "<span class='tag " + v.cls + "'>" + v.tag + "</span>"; $("own").appendChild(h);
+    var t = document.createElement("p"); t.textContent = a + "°: " + (res.resolved ? res.blobs + " dots found. " : "") + v.text; $("own").appendChild(t);
+  }
+
+  // ---- the gallery and table -----------------------------------------------------------------------------------
+  function loadImage(src) {
+    return new Promise(function (ok, no) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = no; im.src = src; });
+  }
+  function sameBands(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    return a.every(function (x, k) { return x.differences.join() === b[k].differences.join(); });
+  }
+  function cell(text) { var td = document.createElement("td"); td.textContent = text; return td; }
+
+  function build(manifest) {
+    M = manifest;
+    var words = ["None", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"], nh = manifest.heads.length;
+    var fill = {
+      heads: nh < words.length ? words[nh] : String(nh),
+      seeds: manifest.seeds.toLocaleString("en-US"),
+      bands: manifest.bands.map(function (b) { return b[0] + "–" + b[1]; }).join(", "),
+      frac: String(RAY_FRACTION),
+      fib: FIB.slice(0, 11).join(", ")
+    };
+    document.querySelectorAll("[data-f]").forEach(function (el) { el.textContent = fill[el.getAttribute("data-f")]; });
+    var gal = $("gallery"), body = document.querySelector("#tbl tbody"), files = $("files"), fibHeads = [], work = [];
+    manifest.heads.forEach(function (h) {
+      var tr = document.createElement("tr"); body.appendChild(tr);
+      var card = document.createElement("figure"); card.className = "card";
+      var img = document.createElement("img"); img.src = h.file; img.width = manifest.size; img.height = manifest.size;
+      img.alt = "Seed head with " + manifest.seeds + " dots turned " + h.angle + " degrees each";
+      var cap = document.createElement("h3"); cap.textContent = h.label.replace(/^([\d.]+)/, "$1°");
+      var status = document.createElement("p"), text = document.createElement("p"), dl = document.createElement("p");
+      status.textContent = "Measuring…"; dl.className = "dl";
+      var a = document.createElement("a"); a.href = h.file; a.download = h.file; a.textContent = "Download " + h.file; dl.appendChild(a);
+      card.appendChild(img); card.appendChild(cap); card.appendChild(status); card.appendChild(text); card.appendChild(dl);
+      gal.appendChild(card);
+      var li = document.createElement("li"), la = document.createElement("a"); la.href = h.file; la.textContent = h.file; li.appendChild(la);
+      li.appendChild(document.createTextNode(" (" + manifest.size + " × " + manifest.size + " pixels, angle " + h.angle + "°)")); files.appendChild(li);
+
+      work.push(loadImage(h.file).then(function (im) {
+        var cv = document.createElement("canvas"); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+        var g = cv.getContext("2d", { willReadFrequently: true }); g.drawImage(im, 0, 0);
+        var res = measure(g.getImageData(0, 0, cv.width, cv.height), manifest.seeds, manifest.radius_px);
+        var v = verdict(res, h.fraction);
+        status.innerHTML = "<span class='tag " + v.cls + "'>" + v.tag + "</span>";
+        text.textContent = v.text;
+        if (res.resolved && v.cls === "pass") fibHeads.push(h.label);
+        tr.appendChild(cell(h.label));
+        var tdn = cell(res.blobs + " of " + manifest.seeds); tdn.className = "num"; tr.appendChild(tdn);
+        tr.appendChild(cell(res.resolved ? triplesText(res.bands) : res.rays + (h.fraction ? " rays" : " dark runs on a circle")));
+        var sp = h.from_pixels, same = res.resolved ? sameBands(res.bands, sp.bands) : (res.rays === sp.rays && !sp.resolved);
+        tr.appendChild(cell((res.resolved ? triplesText(sp.bands || []) : sp.rays + (h.fraction ? " rays" : " dark runs")) + (same ? " (same)" : " (differs)")));
+        tr.appendChild(cell(triplesText(h.from_model) + (res.resolved ? (sameBands(res.bands, h.from_model) ? " (same)" : " (differs)") : " (not compared)")));
+        return { res: res, same: same };
+      }));
+    });
+    Promise.all(work).then(function (all) {
+      var n = fibHeads.length, s;
+      if (n === 0) s = "Counted in code: none of the " + all.length + " heads give spiral counts that run as consecutive Fibonacci numbers.";
+      else if (n === 1) s = "Counted in code: 1 of the " + all.length + " heads gives spiral counts that run as consecutive Fibonacci numbers: " + fibHeads[0] + ".";
+      else s = "Counted in code: " + n + " of the " + all.length + " heads give spiral counts that run as consecutive Fibonacci numbers: " + fibHeads.join(" and ") + ".";
+      var diff = all.filter(function (r) { return !r.same; }).length;
+      s += diff === 0 ? " All " + all.length + " measurements agree with the script's." : " " + diff + " of the " + all.length + " measurements differ from the script's.";
+      $("summary").textContent = s;
+    }).catch(function () {
+      $("summary").textContent = "The page could not read the pictures' pixels (open it over http, not from a file), so nothing was measured.";
+      $("summary").className = "summary muted";
+    });
+    showOwn();
+  }
+
+  $("go").addEventListener("click", showOwn);
+  $("ang").addEventListener("keydown", function (e) { if (e.key === "Enter") showOwn(); });
+  document.querySelectorAll("[data-a]").forEach(function (b) {
+    b.addEventListener("click", function () { $("ang").value = b.getAttribute("data-a"); showOwn(); });
+  });
+  var words = $("lede").textContent.trim().split(/\s+/).length;
+  if (words > 25) $("lede").textContent += " [lede is " + words + " words]";
+  fetch("manifest.json").then(function (r) { return r.json(); }).then(build).catch(function () {
+    $("summary").textContent = "Could not load manifest.json (open the page over http, not from a file).";
+  });
+})();
+</script>

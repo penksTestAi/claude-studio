@@ -1,0 +1,512 @@
+{
+ "seeds": 1500,
+ "size": 1000,
+ "radius_px": 480.0,
+ "seed_radius_px": 6.5,
+ "bands": [
+  [
+   150,
+   500
+  ],
+  [
+   500,
+   900
+  ],
+  [
+   900,
+   1350
+  ]
+ ],
+ "model": "seed i at distance c*sqrt(i), turned i*angle",
+ "heads": [
+  {
+   "name": "golden",
+   "file": "golden.png",
+   "label": "137.5078 (golden angle)",
+   "angle": 137.507764,
+   "fraction": null,
+   "from_pixels": {
+    "blobs": 1500,
+    "resolved": true,
+    "bands": [
+     {
+      "band": [
+       150,
+       500
+      ],
+      "differences": [
+       21,
+       34,
+       55
+      ],
+      "share": 0.841
+     },
+     {
+      "band": [
+       500,
+       900
+      ],
+      "differences": [
+       34,
+       55,
+       89
+      ],
+      "share": 0.914
+     },
+     {
+      "band": [
+       900,
+       1350
+      ],
+      "differences": [
+       55,
+       89,
+       144
+      ],
+      "share": 0.889
+     }
+    ]
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      21,
+      34,
+      55
+     ],
+     "share": 0.842
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      34,
+      55,
+      89
+     ],
+     "share": 0.97
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      55,
+      89,
+      144
+     ],
+     "share": 0.993
+    }
+   ]
+  },
+  {
+   "name": "a1373",
+   "file": "a1373.png",
+   "label": "137.3",
+   "angle": 137.3,
+   "fraction": null,
+   "from_pixels": {
+    "blobs": 1346,
+    "resolved": false,
+    "rays": 83
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      21,
+      42,
+      97
+     ],
+     "share": 0.778
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      21,
+      97,
+      118
+     ],
+     "share": 0.969
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      21,
+      97,
+      118
+     ],
+     "share": 1.0
+    }
+   ]
+  },
+  {
+   "name": "a1377",
+   "file": "a1377.png",
+   "label": "137.7",
+   "angle": 137.7,
+   "fraction": null,
+   "from_pixels": {
+    "blobs": 703,
+    "resolved": false,
+    "rays": 87
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      34,
+      47,
+      68
+     ],
+     "share": 0.796
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      34,
+      68,
+      115
+     ],
+     "share": 0.837
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      34,
+      68,
+      149
+     ],
+     "share": 0.856
+    }
+   ]
+  },
+  {
+   "name": "a1375",
+   "file": "a1375.png",
+   "label": "137.5 exactly",
+   "angle": 137.5,
+   "fraction": [
+    55,
+    144
+   ],
+   "from_pixels": {
+    "blobs": 1500,
+    "resolved": true,
+    "bands": [
+     {
+      "band": [
+       150,
+       500
+      ],
+      "differences": [
+       21,
+       34,
+       55
+      ],
+      "share": 0.859
+     },
+     {
+      "band": [
+       500,
+       900
+      ],
+      "differences": [
+       34,
+       55,
+       89
+      ],
+      "share": 0.896
+     },
+     {
+      "band": [
+       900,
+       1350
+      ],
+      "differences": [
+       55,
+       89,
+       144
+      ],
+      "share": 0.902
+     }
+    ]
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      21,
+      34,
+      55
+     ],
+     "share": 0.859
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      34,
+      55,
+      89
+     ],
+     "share": 0.919
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      55,
+      89,
+      144
+     ],
+     "share": 1.0
+    }
+   ]
+  },
+  {
+   "name": "a135",
+   "file": "a135.png",
+   "label": "135 (3/8 of a turn)",
+   "angle": 135.0,
+   "fraction": [
+    3,
+    8
+   ],
+   "from_pixels": {
+    "blobs": 16,
+    "resolved": false,
+    "rays": 8
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      8,
+      16,
+      24
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      8,
+      16,
+      24
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      8,
+      16,
+      24
+     ],
+     "share": 1.0
+    }
+   ]
+  },
+  {
+   "name": "a144",
+   "file": "a144.png",
+   "label": "144 (2/5 of a turn)",
+   "angle": 144.0,
+   "fraction": [
+    2,
+    5
+   ],
+   "from_pixels": {
+    "blobs": 7,
+    "resolved": false,
+    "rays": 5
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      5,
+      10,
+      15
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      5,
+      10,
+      15
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      5,
+      10,
+      15
+     ],
+     "share": 1.0
+    }
+   ]
+  },
+  {
+   "name": "a120",
+   "file": "a120.png",
+   "label": "120 (1/3 of a turn)",
+   "angle": 120.0,
+   "fraction": [
+    1,
+    3
+   ],
+   "from_pixels": {
+    "blobs": 3,
+    "resolved": false,
+    "rays": 3
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      3,
+      6,
+      9
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      3,
+      6,
+      9
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      3,
+      6,
+      9
+     ],
+     "share": 1.0
+    }
+   ]
+  },
+  {
+   "name": "a90",
+   "file": "a90.png",
+   "label": "90 (1/4 of a turn)",
+   "angle": 90.0,
+   "fraction": [
+    1,
+    4
+   ],
+   "from_pixels": {
+    "blobs": 5,
+    "resolved": false,
+    "rays": 4
+   },
+   "from_model": [
+    {
+     "band": [
+      150,
+      500
+     ],
+     "differences": [
+      4,
+      8,
+      12
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      500,
+      900
+     ],
+     "differences": [
+      4,
+      8,
+      12
+     ],
+     "share": 1.0
+    },
+    {
+     "band": [
+      900,
+      1350
+     ],
+     "differences": [
+      4,
+      8,
+      12
+     ],
+     "share": 1.0
+    }
+   ]
+  }
+ ]
+}

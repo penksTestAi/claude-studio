@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why the Other Line Moves Faster · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Set arrival rate, service rate and tills in a seeded shop, watch the same customers in one shared line and in a line per till (see who gets overtaken), and see the page measure waits over many seeds and check itself against Little&#x27;s law, M/M/1 and Erlang C, including where those formulas stop.">
+<link rel="canonical" href="https://vigilstudio.github.io/queues/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why the Other Line Moves Faster · Vigil">
+<meta property="og:description" content="Set arrival rate, service rate and tills in a seeded shop, watch the same customers in one shared line and in a line per till (see who gets overtaken), and see the page measure waits over many seeds and check itself against Little&#x27;s law, M/M/1 and Erlang C, including where those formulas stop.">
+<meta property="og:url" content="https://vigilstudio.github.io/queues/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why the Other Line Moves Faster · Vigil">
+<meta name="twitter:description" content="Set arrival rate, service rate and tills in a seeded shop, watch the same customers in one shared line and in a line per till (see who gets overtaken), and see the page measure waits over many seeds and check itself against Little&#x27;s law, M/M/1 and Erlang C, including where those formulas stop.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#222420;--muted:#5a5d55;--line:#cdcbc0;--accent:#1c6a82;--accent-ink:#ffffff;--tag:#c2570c;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:36px 0 8px;font-weight:normal}
+h3{font-size:1rem;margin:12px 0 4px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:10px}
+.fld{display:flex;flex-direction:column;gap:2px}
+label{font-size:.9rem}
+button{font-size:.92rem;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=number]{width:6.2em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+select{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:calc(100vw - 32px)}
+.fld{min-width:0;max-width:100%}
+input[type=range]{width:100%;min-height:32px;accent-color:var(--accent)}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.stat div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.85rem}
+.stat b{display:block;font-weight:normal;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.msg{min-height:1.4em;font-size:.92rem;margin:8px 0 0}
+.banner{border:1px solid var(--warn);border-left-width:5px;border-radius:6px;padding:8px 12px;margin-top:10px;font-size:.92rem;background:var(--bg)}
+.scenes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.scenes{grid-template-columns:1fr}}
+svg.scene{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+svg text{fill:var(--ink);font:10px Georgia,serif}
+svg .dw{fill:var(--muted)} svg .dv{fill:var(--tag)} svg .ds{fill:var(--accent)}
+svg .till{fill:none;stroke:var(--line);stroke-width:1.5}
+svg .more{fill:var(--muted)}
+svg .axis{stroke:var(--line)} svg .zero{stroke:var(--ink);stroke-width:1.5} svg .meanl{stroke:var(--tag);stroke-width:2;stroke-dasharray:4 2}
+svg .pt{fill:var(--accent);opacity:.75}
+.sw{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+ul.chk,ul.verdicts{padding-left:1.2em;margin:6px 0}
+.chk li,.verdicts li{margin:4px 0}
+code{font-family:var(--mono);font-size:.88em}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){#bPlay{display:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why the Other Line Moves Faster</h1>
+<p class="lede">A seeded shop with the same customers sent two ways: into one shared line, or into a line per till. Set how fast customers arrive, how fast a till works and how many tills there are, then watch someone who arrived after you get served first.</p>
+<p class="small">Made by Claude, an AI model. Nothing is fetched. Every customer, wait, count and percentage on this page is computed in your browser by <a href="queue-core.js">queue-core.js</a>, and the same file is run by a separate check script (<a href="check.mjs">check.mjs</a>). The textbook formulas were typed from memory; the page's only check on them is its own simulation, and the last section says what that does and does not prove.</p>
+
+<h2>The shop</h2>
+<div class="panel">
+  <div class="row">
+    <div class="fld"><label for="inL">Arrivals per minute</label><input id="inL" type="number" min="0.05" max="20" step="0.05" value="1.6"></div>
+    <div class="fld"><label for="inMu">Service rate of one till, per minute</label><input id="inMu" type="number" min="0.05" max="20" step="0.05" value="0.5"></div>
+    <div class="fld"><label for="inC">Tills</label><input id="inC" type="number" min="1" max="12" step="1" value="4"></div>
+    <div class="fld"><label for="inShape">Service times</label><select id="inShape"></select></div>
+  </div>
+  <div class="row">
+    <div class="fld"><label for="inPolicy">Separate lines: how people pick</label><select id="inPolicy"></select></div>
+    <div class="fld"><label for="inSeed">Seed</label><input id="inSeed" type="number" min="0" max="999999" step="1" value="7"></div>
+    <div class="fld"><label for="inN">Customers per run</label><select id="inN"><option value="1000">1,000</option><option value="5000" selected>5,000</option><option value="20000">20,000</option></select></div>
+    <div class="fld"><label for="inR">Seeds</label><select id="inR"><option value="10">10</option><option value="40" selected>40</option><option value="100">100</option></select></div>
+    <button class="primary" id="bRun">Run again</button>
+  </div>
+  <div class="stat" id="readout" aria-live="polite"></div>
+  <div class="banner" id="loadBanner" hidden></div>
+</div>
+
+<h2>Watch the same customers in both shops</h2>
+<p>Both shops get exactly the same arrivals and the same amount of work per customer (seed <span id="sceneSeed"></span>). Move the slider, or jump to the next moment a later arrival is served before an earlier one in another line. Grey dots are waiting, blue dots are at a till, orange dots are waiting and have already been overtaken.</p>
+<div class="panel">
+  <div class="scenes">
+    <div><h3>One shared line</h3><svg class="scene" id="svgShared" role="img" aria-label="Shared line"></svg></div>
+    <div><h3 id="sepTitle">A line per till</h3><svg class="scene" id="svgSep" role="img" aria-label="Separate lines"></svg></div>
+  </div>
+  <p class="small"><span class="sw" style="background:var(--muted)"></span>waiting<span class="sw" style="background:var(--accent)"></span>at a till<span class="sw" style="background:var(--tag)"></span>waiting and overtaken</p>
+  <div class="row" style="align-items:center">
+    <div class="fld" style="flex:1 1 220px"><label for="tScrub">Minute in the shop</label><input type="range" id="tScrub" min="0" max="1" step="any" value="0"></div>
+    <button id="bPlay">Play</button><button id="bNext">Next overtake</button><button id="bReset">Back to start</button>
+  </div>
+  <p class="msg" id="sceneRead"></p>
+  <p class="msg" id="evtRead" aria-live="polite"></p>
+</div>
+
+<h2>Many seeds, not one</h2>
+<p id="counting"></p>
+<div class="panel">
+  <p class="msg" id="runmsg" role="status" aria-live="polite"></p>
+  <ul class="verdicts" id="verdicts"></ul>
+  <div class="scroll" tabindex="0" role="region" aria-label="Results by arrangement"><table id="tbl"></table></div>
+  <p class="small" id="tblnote"></p>
+  <h3 id="stripTitle"></h3>
+  <svg class="scene" id="svgStrip" role="img" aria-label="Difference in mean wait for each seed"></svg>
+  <p class="small" id="stripNote"></p>
+</div>
+
+<h2>Little's law, counted</h2>
+<p id="littleIntro"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Little's law table"><table id="tLittle"></table></div>
+<p class="small" id="littleNote"></p>
+
+<h2>Closed forms against the page's own simulation</h2>
+<p id="gridIntro"></p>
+<p class="msg" id="gridmsg" role="status" aria-live="polite"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Formula comparison table"><table id="tGrid"></table></div>
+<p class="small" id="gridNote"></p>
+
+<h2>Where the formulas stop</h2>
+<h3>Load at or above one</h3>
+<p id="loadIntro"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Load table"><table id="tLoad"></table></div>
+<p class="small" id="loadNote"></p>
+<h3>Service times that are not exponential</h3>
+<p id="shapeIntro"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Service shape table"><table id="tShape"></table></div>
+<p class="small" id="shapeNote"></p>
+
+<h2>The page checks itself</h2>
+<p class="small">These run on load, on fixed settings that do not depend on the boxes above. The heavier checks are in <code>check.mjs</code>.</p>
+<ul class="chk" id="checks"></ul>
+
+<h2>What is not verified</h2>
+<ul class="chk" id="limits"></ul>
+
+<footer>Part of <a href="../">Vigil</a>. Code is in <a href="queue-core.js">queue-core.js</a> and this page, with no libraries. Made by Claude, an AI model.</footer>
+</main>
+<script src="queue-core.js"></script>
+<script>
+"use strict";
+const Q = QueueCore;
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 2) => Number.isFinite(x) ? x.toFixed(d) : "n/a";
+const pct = (x, d = 1) => (100 * x).toFixed(d) + "%";
+const plural = (n, one, many) => n + " " + (n === 1 ? one : (many || one + "s"));
+const sci = x => x === 0 ? "0" : x.toExponential(1);
+const FALLBACK_RHO = 0.8;               // load used by the service-shape table when the visitor's own load is 1 or more
+const WARM_FRAC = 0.2;                  // share of each run thrown away as start-up
+const COIN = 0.5;                       // the "pure chance" reference for a pair: either customer equally likely to go first
+const POLICIES = { shortest: "the shortest line (counting people)", random: "any line at random" };
+const SHAPE_KEYS = Object.keys(Q.SHAPES);
+const SYS = [["shared", "One shared line"], ["shortest", "Separate lines, shortest"], ["random", "Separate lines, random"]];
+
+for (const k of SHAPE_KEYS) { const o = document.createElement("option"); o.value = k; o.textContent = Q.SHAPES[k].label; if (k === "exponential") o.selected = true; $("inShape").appendChild(o); }
+for (const k of Object.keys(POLICIES)) { const o = document.createElement("option"); o.value = k; o.textContent = POLICIES[k]; $("inPolicy").appendChild(o); }
+
+function readParams() {
+  const num = (id, lo, hi, def) => { let v = parseFloat($(id).value); if (!isFinite(v)) v = def; return Math.min(hi, Math.max(lo, v)); };
+  const N = +$("inN").value;
+  for (const [id, lo, hi, def, whole] of [["inL", 0.05, 20, 1.6], ["inMu", 0.05, 20, 0.5], ["inC", 1, 12, 4, 1], ["inSeed", 0, 999999, 7, 1]]) {
+    let v = num(id, lo, hi, def); if (whole) v = Math.round(v);
+    if (parseFloat($(id).value) !== v) $(id).value = v;      // show the value actually used
+  }
+  return { lambda: num("inL", 0.05, 20, 1.6), mu: num("inMu", 0.05, 20, 0.5), c: Math.round(num("inC", 1, 12, 4)),
+    seed: Math.round(num("inSeed", 0, 999999, 7)), N, warm: Math.round(N * WARM_FRAC), R: +$("inR").value,
+    shape: $("inShape").value, policy: $("inPolicy").value };
+}
+const rhoOf = p => p.lambda / (p.c * p.mu);
+const cv2Of = p => Q.SHAPES[p.shape].cv2;
+const sleep = () => new Promise(r => setTimeout(r, 0));
+async function slices(count, fn, isStale) {       // run fn(i) for i < count, yielding to the browser every ~30 ms
+  let t0 = performance.now();
+  for (let i = 0; i < count; i++) {
+    if (isStale()) return false;
+    fn(i);
+    if (performance.now() - t0 > 30) { await sleep(); t0 = performance.now(); }
+  }
+  return !isStale();
+}
+
+/* ---------- theory for one arrangement ---------- */
+function theoryWait(p, sys) {
+  const cv2 = cv2Of(p);
+  if (sys === "shortest") return { v: null, text: "no formula known to this page", kind: "none" };
+  if (sys === "random") {
+    const v = Q.mg1Wq(p.lambda / p.c, p.mu, cv2);
+    return v === null ? { v: null, text: "none: load at or above 1", kind: "none" } : { v, text: fmt(v), kind: "exact" };
+  }
+  const m = Q.mmc(p.lambda, p.mu, p.c);
+  if (!m.stable) return { v: null, text: "none: load at or above 1", kind: "none" };
+  if (p.shape === "exponential") return { v: m.Wq, text: fmt(m.Wq), kind: "exact" };
+  const v = Q.leeLongtonWq(p.lambda, p.mu, p.c, cv2);
+  return { v, text: fmt(v), kind: "approx" };
+}
+
+/* ---------- readout and banner ---------- */
+function renderReadout(p) {
+  const rho = rhoOf(p), m = Q.mmc(p.lambda, p.mu, p.c);
+  $("readout").innerHTML =
+    `<div>Load per till, ρ = λ/(c·μ)<b>${fmt(rho, 3)}</b></div>` +
+    `<div>Mean service time<b>${fmt(1 / p.mu)} min</b></div>` +
+    `<div>Tills' worth of work, λ/μ<b>${fmt(p.lambda / p.mu)}</b></div>` +
+    `<div>Chance of waiting, Erlang C (exponential service)<b>${m.stable ? pct(m.C) : "none"}</b></div>`;
+  const b = $("loadBanner");
+  if (rho >= 1) {
+    b.hidden = false;
+    b.textContent = `Load is ${fmt(rho, 3)}, at or above 1: customers arrive at least as fast as the tills can serve them, so no steady state exists and the closed forms below give no answer. The simulated waits are only for the first ${p.N.toLocaleString("en")} customers and would be longer in a longer run.`;
+  } else b.hidden = true;
+}
+
+/* ---------- the picture ---------- */
+let scene = null, playing = false, playLast = 0;
+function buildScene(p) {
+  const n = 360, nShow = 300, sim = Q.simulate(p, p.seed, n), sep = sim[p.policy];
+  const scS = Q.scan(sim.st, sep, 0, n), T = sim.st.arr[nShow - 1];
+  const byJ = new Map();
+  for (let k = 0; k < n; k++) if (scS.firstJ[k] >= 0) {
+    const j = scS.firstJ[k], cur = byJ.get(j);
+    if (cur === undefined || k < cur) byJ.set(j, k);
+  }
+  const events = [...byJ.entries()].map(([j, k]) => ({ t: sep.start[j], j, k })).filter(e => e.t <= T).sort((a, b) => a.t - b.t);
+  scene = { p, sim, sep, T, events, ovt: scS.ovt, t: 0 };
+  $("sceneSeed").textContent = p.seed;
+  $("sepTitle").textContent = "A line per till, " + (p.policy === "shortest" ? "joining the shortest" : "joining a random one");
+  const sc = $("tScrub"); sc.max = T; sc.value = 0; sc.step = T / 1000;
+  $("bNext").disabled = events.length === 0;
+  drawScene(0); $("evtRead").textContent = "";
+}
+function svgEl(name, attrs, text) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+const VW = 360, ROWH = 22, DOTX = 13, FRONT = 292, TILLX = 304;
+function drawScene(t) {
+  const { p, sim, sep, ovt } = scene, st = sim.st, c = p.c, sh = sim.shared;
+  scene.t = t;
+  const waitingSh = [], atTillSh = [], waitingSep = Array.from({ length: c }, () => []), atTillSep = new Array(c).fill(null);
+  for (let k = 0; k < 360; k++) {
+    if (st.arr[k] > t) break;
+    if (t < sh.start[k]) waitingSh.push(k);
+    else if (t < sh.start[k] + st.svc[k]) atTillSh.push(k);
+    if (t < sep.start[k]) waitingSep[sep.line[k]].push(k);
+    else if (t < sep.start[k] + st.svc[k]) atTillSep[sep.line[k]] = k;
+  }
+  // shared panel
+  const H = Math.max(c * ROWH, 72) + 8, svg = $("svgShared"); svg.replaceChildren();
+  svg.setAttribute("viewBox", `0 0 ${VW} ${H}`);
+  for (let i = 0; i < c; i++) {
+    svg.appendChild(svgEl("rect", { class: "till", x: TILLX, y: 4 + i * ROWH, width: 44, height: ROWH - 4, rx: 4 }));
+  }
+  for (const k of atTillSh) svg.appendChild(svgEl("circle", { class: "ds", cx: TILLX + 22, cy: 4 + sh.line[k] * ROWH + (ROWH - 4) / 2, r: 5 }));
+  const rows = Math.max(1, Math.floor((H - 8) / 14)), cols = 19;
+  waitingSh.slice(0, rows * cols).forEach((k, idx) => {
+    svg.appendChild(svgEl("circle", { class: "dw", cx: FRONT - Math.floor(idx / rows) * DOTX, cy: 11 + (idx % rows) * 14, r: 5 }));
+  });
+  if (waitingSh.length > rows * cols) svg.appendChild(svgEl("text", { class: "more", x: 6, y: H - 4 }, `+${waitingSh.length - rows * cols} more`));
+  svg.setAttribute("aria-label", `Shared line at minute ${fmt(t, 1)}: ${plural(waitingSh.length, "customer")} waiting, ${plural(atTillSh.length, "customer")} at a till.`);
+  // separate panel
+  const svg2 = $("svgSep"); svg2.replaceChildren();
+  const H2 = Math.max(c * ROWH, 72) + 8; svg2.setAttribute("viewBox", `0 0 ${VW} ${H2}`);
+  let waitTotal = 0, overTotal = 0;
+  for (let i = 0; i < c; i++) {
+    const y = 4 + i * ROWH, cy = y + (ROWH - 4) / 2;
+    svg2.appendChild(svgEl("rect", { class: "till", x: TILLX, y, width: 44, height: ROWH - 4, rx: 4 }));
+    if (atTillSep[i] !== null) svg2.appendChild(svgEl("circle", { class: "ds", cx: TILLX + 22, cy, r: 5 }));
+    const list = waitingSep[i]; waitTotal += list.length;
+    list.slice(0, 19).forEach((k, idx) => {
+      const over = ovt[k] <= t; if (over) overTotal++;
+      svg2.appendChild(svgEl("circle", { class: over ? "dv" : "dw", cx: FRONT - idx * DOTX, cy, r: 5 }));
+    });
+    for (let idx = 19; idx < list.length; idx++) if (ovt[list[idx]] <= t) overTotal++;
+    if (list.length > 19) svg2.appendChild(svgEl("text", { class: "more", x: 4, y: cy + 3 }, `+${list.length - 19}`));
+  }
+  const lens = waitingSep.map(l => l.length);
+  svg2.setAttribute("aria-label", `Separate lines at minute ${fmt(t, 1)}: waiting per line ${lens.join(", ")}; ${overTotal} of ${waitTotal} waiting already overtaken.`);
+  $("tScrub").setAttribute("aria-valuetext", `minute ${fmt(t, 1)}`);
+  $("sceneRead").textContent =
+    `Minute ${fmt(t, 1)}. Shared line: ${plural(waitingSh.length, "customer")} waiting, ${atTillSh.length} of ${c} tills busy. ` +
+    `Separate lines: ${plural(waitTotal, "customer")} waiting (per line: ${lens.join(", ")}), ` +
+    (waitTotal === 0 ? "so nobody has been overtaken." : `of whom ${overTotal === 0 ? "none has" : overTotal === 1 ? "1 has" : overTotal + " have"} been overtaken by a later arrival from another line.`);
+}
+function sceneStep(ts) {
+  if (!playing) return;
+  const dt = Math.min(0.1, (ts - playLast) / 1000); playLast = ts;
+  const next = scene.t + dt * scene.T / 45;
+  if (next >= scene.T) { setPlay(false); setTime(scene.T); return; }
+  setTime(next); requestAnimationFrame(sceneStep);
+}
+function setTime(t) { $("tScrub").value = t; drawScene(t); }
+function setPlay(on) { playing = on; $("bPlay").textContent = on ? "Pause" : "Play"; if (on) { if (scene.t >= scene.T) setTime(0); playLast = performance.now(); requestAnimationFrame(sceneStep); } }
+$("tScrub").addEventListener("input", e => { setPlay(false); drawScene(+e.target.value); });
+$("bPlay").addEventListener("click", () => setPlay(!playing));
+$("bReset").addEventListener("click", () => { setPlay(false); setTime(0); $("evtRead").textContent = ""; });
+$("bNext").addEventListener("click", () => {
+  setPlay(false);
+  const ev = scene.events.find(e => e.t > scene.t + 1e-9) || scene.events[0];
+  if (!ev) return;
+  const st = scene.sim.st, sep = scene.sep;
+  setTime(ev.t);
+  const d = k => `customer ${k + 1} (arrived at minute ${fmt(st.arr[k], 1)}, line ${sep.line[k] + 1})`;
+  $("evtRead").textContent = `At minute ${fmt(ev.t, 1)}, ${d(ev.j)} starts at a till while ${d(ev.k)} is still waiting.`;
+});
+
+/* ---------- many seeds ---------- */
+let runId = 0, results = null;
+async function runMain() {
+  const my = ++runId, p = readParams(); renderReadout(p);
+  setPlay(false); buildScene(p);
+  $("counting").innerHTML =
+    `<b>Counting rule.</b> A customer is <i>overtaken</i> if some customer who arrived later starts service earlier. ` +
+    `The pair version looks at every pair in different lines where the second customer arrives while the first is still waiting, and counts the pair as "the other line was faster" if the second starts first. ` +
+    `The shared line cannot do that (first come, first served), so its count must be zero; the page checks that count rather than assuming it. ` +
+    `Every figure below is a mean over ${plural(p.R, "seed")} (seeds ${p.seed} to ${p.seed + p.R - 1}), each seed a separate shop of ${p.N.toLocaleString("en")} customers measured after the first ${p.warm.toLocaleString("en")} are discarded. ` +
+    `For the pair share the reference line for pure chance is ${pct(COIN, 0)}, meaning either customer was as likely to go first. It is only a reference: the pair is chosen because the first customer is already waiting, which favours slow lines, so the share can sit above it. ` +
+    `For "which arrangement was faster", chance is a fair coin per seed: if the two were equally fast, the shared line would win about half the seeds, and the page prints the range a fair coin allows.`;
+  const runs = [];
+  $("runmsg").textContent = "Running seeds…";
+  const done = await slices(p.R, i => { runs.push(Q.runOne(p, p.seed + i)); if (i % 5 === 0) $("runmsg").textContent = `Running seeds… ${i + 1} of ${p.R}`; }, () => my !== runId);
+  if (!done) return;
+  results = { p, runs }; renderResults(results); renderLittle(results);
+  $("runmsg").textContent = `Done: ${plural(p.R, "seed")}, ${(p.R * (p.N + p.warm + Q.TAIL) * 3).toLocaleString("en")} simulated customer visits.`;
+  slowTables(p, my);
+}
+function renderResults({ p, runs }) {
+  const S = {}; for (const [k] of SYS) {
+    S[k] = {}; for (const m of ["meanWait", "meanSojourn", "pWait", "p90Wait", "overtaken", "pairShare"]) {
+      const v = runs.map(r => r[k][m]).filter(x => x !== null);
+      S[k][m] = v.length ? Q.summarise(v) : null;
+    }
+  }
+  const half = s => 1.96 * s.se;
+  let h = `<tr><th>Arrangement</th><th>Mean wait, min (mean over seeds ± 95%)</th><th>Seed range</th><th>Waited at all</th><th>90th percentile wait</th><th>Overtaken</th><th>Formula for mean wait</th></tr>`;
+  for (const [k, name] of SYS) {
+    const s = S[k], th = theoryWait(p, k);
+    const note = th.kind === "exact" ? " (exact for this setting)" : th.kind === "approx" ? " (approximation only)" : "";
+    h += `<tr><td>${name}</td><td>${fmt(s.meanWait.mean)} ± ${fmt(half(s.meanWait))}</td><td>${fmt(s.meanWait.min)} to ${fmt(s.meanWait.max)}</td>` +
+      `<td>${pct(s.pWait.mean)}</td><td>${fmt(s.p90Wait.mean)}</td><td>${pct(s.overtaken.mean)}</td><td>${th.text}${note}</td></tr>`;
+  }
+  $("tbl").innerHTML = h;
+  const pairs = S[p.policy].pairShare;
+  $("tblnote").textContent = `Overtaken is the share of all customers (not only those who waited). Waits are in minutes. "±" is 1.96 standard errors of the mean over seeds. The "approximation only" label means the formula is the M/M/c wait scaled by (1 + service variation)/2, a rule of thumb typed from memory; "exact" means the formula holds for this setting if it is typed correctly, which the grid below tests.`;
+
+  // verdicts
+  const v = $("verdicts"); v.replaceChildren();
+  const add = html => { const li = document.createElement("li"); li.innerHTML = html; v.appendChild(li); };
+  const sepName = p.policy === "shortest" ? "separate lines where people join the shortest" : "separate lines chosen at random";
+  const diffs = runs.map(r => r[p.policy].meanWait - r.shared.meanWait);
+  const sharedWins = diffs.filter(d => d > 0).length, range = Q.binomRange(p.R, COIN);
+  const maxShOver = Math.max(...runs.map(r => r.shared.overtaken));
+  if (p.c === 1) {
+    add(`With one till the two arrangements are the same shop, so there is nothing to compare: every wait, count and difference above is identical or zero by construction.`);
+  } else {
+    let t1 = sharedWins === p.R ? `the shared line had the lower mean wait in all ${p.R} seeds`
+      : sharedWins === 0 ? `the shared line had the lower mean wait in none of the ${p.R} seeds`
+      : `the shared line had the lower mean wait in ${sharedWins} of ${p.R} seeds`;
+    const inside = sharedWins >= range[0] && sharedWins <= range[1];
+    add(`Against ${sepName}: ${t1}. If the two were equally fast, a fair coin would give between ${range[0]} and ${range[1]} of ${p.R} about 95% of the time; this count is ${inside ? "inside that range, so these seeds cannot tell the two apart" : "outside that range, so chance alone is an unlikely explanation"}.`);
+    const d = Q.summarise(diffs);
+    add(`The mean wait ${d.mean > 0 ? "saved by the shared line" : d.mean < 0 ? "lost by the shared line" : "difference"} was ${fmt(Math.abs(d.mean))} minutes per customer on average over seeds (seed range ${fmt(d.min)} to ${fmt(d.max)}; a positive number means the shared line was faster). A single seed can mislead: seed ${p.seed} alone gave ${fmt(diffs[0])}.`);
+    const own = S[p.policy].overtaken, sh0 = S.shared.pWait.mean;
+    add(`Separate lines: ${pct(own.mean)} of customers were overtaken by someone who arrived later in another line (seed range ${pct(own.min)} to ${pct(own.max)}). In the shared line the count was ${maxShOver === 0 ? "zero in every seed" : "up to " + pct(maxShOver) + ", which breaks the first-come first-served rule and means the code is wrong"}.`);
+    if (pairs) {
+      const rel = pairs.mean - COIN, z = rel / (pairs.se || 1e-12);
+      add(`Pairs in different lines where the second customer arrives while the first waits: the second went first in ${pct(pairs.mean)} of them (seed range ${pct(pairs.min)} to ${pct(pairs.max)}), against the ${pct(COIN, 0)} reference for pure chance; that is ${Math.abs(z) <= 2 ? "close to it" : z > 0 ? "above it" : "below it"} (${fmt(z, 1)} standard errors). Below the reference means arriving earlier still helps; above it means the early arrival is more often in a slow line.`);
+    }
+  }
+  if (rhoOf(p) >= 1) add(`Load is at or above 1, so these means describe only the first ${p.N.toLocaleString("en")} customers of each seed.`);
+
+  // strip plot
+  $("stripTitle").textContent = p.c === 1 ? "Per-seed difference in mean wait (identical shops, all zero)" : `Per seed: mean wait of ${sepName} minus mean wait of the shared line, minutes`;
+  const W = VW, H = 92, pad = 18, lo = Math.min(0, ...diffs), hi = Math.max(0, ...diffs), span = hi - lo || 1;
+  const x = d => pad + (d - lo) / span * (W - 2 * pad), svg = $("svgStrip"); svg.replaceChildren();
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.appendChild(svgEl("line", { class: "axis", x1: pad, x2: W - pad, y1: 62, y2: 62 }));
+  svg.appendChild(svgEl("line", { class: "zero", x1: x(0), x2: x(0), y1: 6, y2: 66 }));
+  const mean = Q.summarise(diffs).mean;
+  svg.appendChild(svgEl("line", { class: "meanl", x1: x(mean), x2: x(mean), y1: 6, y2: 66 }));
+  diffs.forEach((d, i) => svg.appendChild(svgEl("circle", { class: "pt", cx: x(d), cy: 12 + (i % 5) * 10, r: 3.2 })));
+  svg.appendChild(svgEl("text", { x: pad, y: 80 }, fmt(lo)));
+  svg.appendChild(svgEl("text", { x: W - pad, y: 80, "text-anchor": "end" }, fmt(hi)));
+  svg.appendChild(svgEl("text", { x: x(0), y: 88, "text-anchor": "middle" }, "0"));
+  svg.setAttribute("aria-label", `Per-seed difference in mean wait, ${p.R} seeds, from ${fmt(lo)} to ${fmt(hi)} minutes, average ${fmt(mean)}.`);
+  $("stripNote").textContent = `One dot per seed. Solid line: no difference. Dashed line: the average over seeds (${fmt(mean)}). Right of the solid line means the shared line was faster in that seed.`;
+}
+function renderLittle({ p, runs }) {
+  const r = runs[0];
+  $("littleIntro").textContent = `Little's law says that in a shop which starts empty and finishes empty, the average number of customers inside, L, equals the arrival rate times the average time each spends inside, W. Here L is found by sweeping through every arrival and departure of seed ${p.seed} and weighting by time, and W by averaging each customer's time inside. This uses no assumption about service times or about load.`;
+  let h = `<tr><th>Arrangement</th><th>L (time average)</th><th>Measured arrival rate, per min</th><th>W, min</th><th>Rate × W</th><th>Relative gap</th></tr>`;
+  let worst = 0;
+  for (const [k, name] of SYS) { const l = r[k].little; worst = Math.max(worst, l.gap);
+    h += `<tr><td>${name}</td><td>${fmt(l.L, 4)}</td><td>${fmt(l.lam, 4)}</td><td>${fmt(l.W, 4)}</td><td>${fmt(l.lamW, 4)}</td><td>${sci(l.gap)}</td></tr>`; }
+  $("tLittle").innerHTML = h;
+  $("littleNote").textContent = `The gaps are rounding errors. L and rate × W are computed by different loops over the same customers, so this catches bookkeeping mistakes; it does not show that the shop is realistic. It holds at load above 1 too, because the law is about a finished run, not a steady state. The planned arrival rate is ${fmt(p.lambda)} per minute; the measured one differs because arrivals are random.`;
+  return worst;
+}
+
+/* ---------- formula grid ---------- */
+let gridRun = 0, gridDone = false;
+async function runGrid() {
+  const my = ++gridRun, mu = 0.5, R = 16, N = 10000, warm = 2000;
+  const cs = [1, 2, 4, 8], rhos = [0.5, 0.8, 0.9], cases = [];
+  for (const c of cs) for (const rho of rhos) cases.push({ c, rho, lambda: rho * c * mu });
+  $("gridIntro").textContent = `Exponential service, ${plural(cs.length, "size")} of shop (${cs.join(", ")} tills, each till serving ${fmt(mu)} customers per minute) at loads ${rhos.join(", ")}. Each row is ${plural(R, "seed")} of ${N.toLocaleString("en")} measured customers. For the shared line the formula is Erlang C; for separate lines with a random choice, each line is an M/M/1 shop fed 1/c of the arrivals. z is (simulation mean − formula) ÷ standard error over seeds; the page calls |z| of at most ${Q.Z_LIMIT} "agrees". The shortest-line rule has no formula here, so it is not in this table.`;
+  const rows = []; let agree = 0, total = 0;
+  const done = await slices(cases.length, i => {
+    const cs_ = cases[i], p = { lambda: cs_.lambda, mu, c: cs_.c, shape: "exponential", N, warm };
+    const list = []; for (let s = 0; s < R; s++) list.push(Q.runQuick(p, 5000 + s));
+    const col = (sys, m) => Q.summarise(list.map(o => o[sys][m]));
+    const th = Q.mmc(cs_.lambda, mu, cs_.c), m1 = Q.mm1(cs_.lambda / cs_.c, mu);
+    const comps = [[col("shared", "meanWait"), th.Wq], [col("shared", "pWait"), th.C], [col("shared", "meanSojourn"), th.W], [col("random", "meanWait"), m1.Wq]]
+      .map(([s, f]) => { const z = (s.mean - f) / s.se; total++; if (Math.abs(z) <= Q.Z_LIMIT) agree++; return { s, f, z }; });
+    rows.push({ cs_, comps });
+    $("gridmsg").textContent = `Running… ${i + 1} of ${cases.length}`;
+  }, () => my !== gridRun);
+  if (!done) return;
+  const zc = z => `<span class="${Math.abs(z) <= Q.Z_LIMIT ? "ok" : "bad"}">${fmt(z, 1)}</span>`;
+  let h = `<tr><th>Tills, load</th><th>Shared: mean wait (sim / Erlang C)</th><th>z</th><th>Shared: chance of waiting (sim / Erlang C)</th><th>z</th><th>Shared: time in shop (sim / formula)</th><th>z</th><th>Random lines: mean wait (sim / M/M/1)</th><th>z</th></tr>`;
+  for (const { cs_, comps } of rows) {
+    h += `<tr><td>${cs_.c}, ${fmt(cs_.rho)}</td>` + comps.map(({ s, f, z }, i) => `<td>${fmt(s.mean, i === 1 ? 3 : 2)} / ${fmt(f, i === 1 ? 3 : 2)}</td><td>${zc(z)}</td>`).join("") + `</tr>`;
+  }
+  $("tGrid").innerHTML = h; gridDone = true;
+  $("gridmsg").innerHTML = `<b>${agree} of ${total}</b> comparisons agree within ${Q.Z_LIMIT} standard errors.`;
+  $("gridNote").textContent = `With one till the shared and random-line shops are the same shop, so those two rows test the M/M/1 and Erlang C formulas against each other as well as against the simulation. Agreement means the formulas as typed and the simulation as written tell the same story; it does not rule out a mistake that both share, such as a wrong idea of what "waiting" means. The page's grid is lighter than the script's (${plural(R, "seed")} here; check.mjs uses more and more customers).`;
+}
+
+/* ---------- where the formulas stop ---------- */
+async function slowTables(p, my) {
+  // load table: shared line, current tills and service rate, several loads, three run lengths
+  const mu = p.mu, c = p.c, rhos = [0.5, 0.8, 0.95, 1.0, 1.1, 1.5], lens = [500, 2000, 8000], S = 12;
+  $("loadIntro").textContent = `The same ${plural(c, "till")} (each serving ${fmt(mu)} per minute, exponential service), one shared line, at loads from ${rhos[0]} up to ${rhos[rhos.length - 1]}. The table gives the mean wait of the first ${lens.join(", ")} customers, averaged over ${plural(S, "seed")}, next to Erlang C. Below 1 the simulated wait settles near the formula as the run gets longer. At 1 and above it keeps growing with the run length, so there is no number for the formula to be.`;
+  const rows = [];
+  let ok = await slices(rhos.length, i => {
+    const lambda = rhos[i] * c * mu, sums = lens.map(() => []);
+    for (let s = 0; s < S; s++) {
+      const st = Q.makeStream(9000 + s, lens[lens.length - 1], lambda, mu, "exponential"), r = Q.simShared(st, c);
+      lens.forEach((L, j) => { let t = 0; for (let k = 0; k < L; k++) t += r.start[k] - st.arr[k]; sums[j].push(t / L); });
+    }
+    const m = Q.mmc(lambda, mu, c);
+    rows.push({ rho: rhos[i], lambda, sims: sums.map(a => Q.summarise(a)), m, fluid: Q.fluidMeanWait(lambda, mu, c, lens[lens.length - 1]) });
+  }, () => my !== runId);
+  if (!ok) return;
+  let h = `<tr><th>Load</th><th>Arrivals per min</th>${lens.map(L => `<th>Mean wait, first ${L.toLocaleString("en")}</th>`).join("")}<th>Erlang C wait</th><th>Overload estimate at ${lens[lens.length - 1].toLocaleString("en")}</th></tr>`;
+  for (const r of rows) h += `<tr><td>${fmt(r.rho)}</td><td>${fmt(r.lambda)}</td>${r.sims.map(s => `<td>${fmt(s.mean)}</td>`).join("")}<td>${r.m.stable ? fmt(r.m.Wq) : "none"}</td><td>${r.rho > 1 ? fmt(r.fluid) : "not used"}</td></tr>`;
+  $("tLoad").innerHTML = h;
+  const top = rows[rows.length - 1];
+  $("loadNote").textContent = `The overload estimate (typed from memory) is: the k-th customer waits about k × (1/(c·μ) − 1/λ), so a run of N customers averages N/2 times that. It is a straight-line rule for a shop that never catches up, and it is shown only where load is above 1. At load ${fmt(top.rho)} it gave ${fmt(top.fluid)} against a simulated ${fmt(top.sims[2].mean)}. Near load 1 and just below it the short runs sit under the formula because the shop has not yet built up its usual queue.`;
+
+  // shape table
+  const rho0 = rhoOf(p) < 1 ? rhoOf(p) : FALLBACK_RHO, lambda = rho0 * c * mu, R2 = 40, N2 = 10000, W2 = 2000;
+  $("shapeIntro").textContent = `${plural(c, "till")}, load ${fmt(rho0, 3)}${rhoOf(p) < 1 ? " (your setting)" : " (your load is 1 or more, so " + fmt(FALLBACK_RHO, 1) + " is used here)"}, the same mean service time, three shapes of service time. Erlang C assumes exponential. Separate random lines are still exact for any shape, by the Pollaczek-Khinchine formula, because each line is a single till fed at random.`;
+  const rows2 = [];
+  ok = await slices(SHAPE_KEYS.length, i => {
+    const shape = SHAPE_KEYS[i], pp = { lambda, mu, c, shape, N: N2, warm: W2 }, list = [];
+    for (let s = 0; s < R2; s++) list.push(Q.runQuick(pp, 300 + s));
+    const sh = Q.summarise(list.map(o => o.shared.meanWait)), rd = Q.summarise(list.map(o => o.random.meanWait));
+    const st = Q.makeStream(1, 20000, lambda, mu, shape); let m = 0, q = 0;
+    for (const x of st.svc) m += x; m /= st.n; for (const x of st.svc) q += (x - m) * (x - m);
+    rows2.push({ shape, cv2: q / st.n / (m * m), sh, rd, ecW: Q.mmc(lambda, mu, c).Wq, ll: Q.leeLongtonWq(lambda, mu, c, Q.SHAPES[shape].cv2), pk: Q.mg1Wq(lambda / c, mu, Q.SHAPES[shape].cv2) });
+  }, () => my !== runId);
+  if (!ok) return;
+  const verdict = (s, f) => { const z = (s.mean - f) / s.se, d = s.mean / f - 1, pr = Math.round(Math.abs(d) * 100), txt = pr === 0 ? "0%" : (d >= 0 ? "+" : "−") + pr + "%"; return Math.abs(z) <= Q.Z_LIMIT ? `<span class="ok">within noise (${txt})</span>` : `<span class="bad">off, ${txt}</span>`; };
+  let h2 = `<tr><th>Service times</th><th>Measured variation (σ²/mean²)</th><th>Shared line, simulated</th><th>Erlang C</th><th>Sim against Erlang C</th><th>Rule of thumb</th><th>Sim against rule</th><th>Random lines, simulated</th><th>Pollaczek-Khinchine</th><th>Sim against P-K</th></tr>`;
+  for (const r of rows2) h2 += `<tr><td>${r.shape}</td><td>${fmt(r.cv2, 2)}</td><td>${fmt(r.sh.mean)}</td><td>${fmt(r.ecW)}</td><td>${verdict(r.sh, r.ecW)}</td><td>${fmt(r.ll)}</td><td>${verdict(r.sh, r.ll)}</td><td>${fmt(r.rd.mean)}</td><td>${fmt(r.pk)}</td><td>${verdict(r.rd, r.pk)}</td></tr>`;
+  $("tShape").innerHTML = h2;
+  $("shapeNote").textContent = `${plural(R2, "seed")} of ${N2.toLocaleString("en")} customers each. "Rule of thumb" is the Erlang C wait multiplied by (1 + variation)/2, typed from memory and shown only to see how far it is off. "Within noise" means within ${Q.Z_LIMIT} standard errors over seeds, which a small gap can satisfy by hiding in the spread; the percentage is the simulated mean against the formula (plus means the simulation is higher). Heavy-tailed service times make the spread large, so a big percentage can still be within noise.`;
+}
+
+/* ---------- self-checks on load ---------- */
+function selfChecks() {
+  const out = [], add = (ok, text) => out.push([ok, text]);
+  // Erlang C against a direct factorial sum, written separately here
+  const direct = (c, a) => { let term = 1, sum = 0; for (let k = 0; k < c; k++) { sum += term; term *= a / (k + 1); } const top = term / (1 - a / c); return top / (sum + top); };
+  let worst = 0, n = 0;
+  for (const c of [1, 2, 4, 8, 12]) for (const rho of [0.2, 0.6, 0.9]) { worst = Math.max(worst, Math.abs(Q.erlangC(c, rho * c) - direct(c, rho * c))); n++; }
+  add(worst < 1e-12, `Erlang C by recursion equals a direct factorial sum on ${n} cases (largest difference ${sci(worst)}).`);
+  const e1 = Q.erlangC(1, 0.7);
+  add(Math.abs(e1 - 0.7) < 1e-12, `With one till, Erlang C equals the load (${fmt(e1, 3)} for load ${fmt(0.7, 1)}).`);
+  add(Q.mmc(2, 0.5, 4).stable === false && Q.erlangC(4, 4) === null, "A load of exactly 1 gives no steady-state answer, not a large number.");
+  // same seed, same run; first come first served; Little; brute-force counting
+  const p = { lambda: 1.6, mu: 0.5, c: 4, shape: "bursty", N: 1500, warm: 300 };
+  add(JSON.stringify(Q.runOne(p, 3)) === JSON.stringify(Q.runOne(p, 3)), "The same seed gives an identical run.");
+  const r = Q.runOne(p, 3);
+  add(r.shared.overtaken === 0, `The shared line overtook nobody in ${p.N.toLocaleString("en")} customers (first come, first served).`);
+  let wl = 0; for (const k of Object.keys(r)) wl = Math.max(wl, r[k].little.gap);
+  add(wl < 1e-9, `Little's law holds to ${sci(wl)} in all three arrangements.`);
+  const sim = Q.simulate({ lambda: 1.3, mu: 0.5, c: 3, shape: "exponential" }, 31, 400);
+  let all = true, cnt = 0;
+  for (const key of ["shortest", "random"]) {
+    const res = sim[key], s = Q.scan(sim.st, res, 0, 300); let over = 0, pr = 0, po = 0;
+    for (let k = 0; k < 300; k++) { let hit = false; for (let j = k + 1; j < 400; j++) if (sim.st.arr[j] < res.start[k]) { if (res.start[j] < res.start[k]) hit = true; if (res.line[j] !== res.line[k]) { pr++; if (res.start[j] < res.start[k]) po++; } } if (hit) over++; }
+    if (s.overtaken !== over || s.pairs !== pr || s.pairOver !== po) all = false; cnt += over;
+  }
+  add(all, `The overtaking counts equal an independent brute-force count on two separate-line runs (${cnt} overtaken customers in total).`);
+  $("checks").innerHTML = out.map(([ok, t]) => `<li><span class="${ok ? "ok" : "bad"}">${ok ? "pass" : "FAIL"}</span> ${t}</li>`).join("");
+}
+
+function renderLimits() {
+  const items = [
+    `<b>Formulas from memory.</b> Little's law, M/M/1, Erlang C, Pollaczek-Khinchine, the (1 + variation)/2 rule of thumb and the overload estimate were typed without looking anything up. Their only check is the page's own simulation (grid above, and the heavier ${"<code>check.mjs</code>"}), which agrees where it should; that is not an independent source, and a misunderstanding shared by formula and simulation would pass unnoticed. The simulation itself was checked against a second algorithm (an event list) on the shared line, and against brute-force counts.`,
+    `<b>Not modelled.</b> People who switch lines, walk away, or hesitate; express lanes; customers who know how long the person in front will take; tills that open or close; a rush hour. Arrivals are random with a steady rate and service times are drawn independently.`,
+    `<b>The line-choice rules are guesses about shoppers.</b> "Shortest" counts people in each line, including the one at the till, and breaks ties at random; "random" ignores the lines. Real choices lie somewhere else and were not measured.`,
+    `<b>Statistical limits.</b> Agreement is judged by a ${Q.Z_LIMIT}-standard-error rule over independent seeds, with the first ${pct(WARM_FRAC, 0)} of each run thrown away to let the queue fill. Near a load of 1 that start-up bias is larger and the page's run lengths may be too short; the load table shows the effect rather than correcting it.`,
+    `<b>No real data.</b> Nothing here was compared with a real shop. The page says why the model's other line can move faster, not how often yours does.`,
+    `<b>Not checked:</b> real phones and screen readers, other browsers than headless Chromium, and speed on slow devices (the largest seed and customer settings are the slowest).`
+  ];
+  $("limits").innerHTML = items.map(t => `<li>${t}</li>`).join("");
+}
+
+for (const id of ["inL", "inMu", "inC", "inShape", "inPolicy", "inSeed", "inN", "inR"]) $(id).addEventListener("change", () => runMain());
+$("bRun").addEventListener("click", () => runMain());
+selfChecks(); renderLimits(); runMain(); runGrid();
+</script>
+</body>
+</html>

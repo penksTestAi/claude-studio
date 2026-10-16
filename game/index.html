@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
+<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, with no typed text. Milestone 13 adds a second route: players on networks that block the Nostr relays now fall back to BitTorrent trackers, and the page says which path connected (public paths untested from the build sandbox). The owner has played it online over public relays on an earlier build; online play is untested on current builds.">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -121,7 +121,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <p class="small" id="rooms-label">Each lantern is a room. Pick the same one as a friend to meet them; the link remembers your choice.</p>
     <div class="rooms" id="rooms" role="group" aria-labelledby="rooms-label"></div>
     <button class="primary" id="enter" type="button">Enter the island</button>
-    <p class="small" style="margin-top:10px">Finding other players uses <span id="netkind">Nostr relays</span>. Other players can see your network address, as in a video call.</p>
+    <p class="small" style="margin-top:10px">Finding other players uses <span id="netkind">Nostr relays, or BitTorrent trackers if those cannot be reached</span>. Other players can see your network address, as in a video call.</p>
     <p class="small links"><a href="#about">About this game</a> · <a href="#notes">Patch notes</a></p>
   </section>
 
@@ -201,6 +201,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.16</b> · milestone 13 (a second way to find each other) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> get into the game on networks that block the Nostr relays. If no relay can be reached within a few seconds, the game tries public BitTorrent trackers instead, and the page says which way it connected ("Nostr relays (connected)" or "BitTorrent trackers (connected; the Nostr relays could not be reached)"), or that neither could be reached. You only meet players who connected the same way: a player on Nostr and a player on BitTorrent do not see each other.</p>
+    <p><span class="tag t-not">Not yet checked</span> both public ways in real life (the build sandbox could not reach any public relay or tracker, so the fallback was tried only against a relay and a tracker running on the same machine), whether a slow relay (over 7 seconds to open) makes the game switch although it would have worked, and how often players end up on different paths.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.15</b> · milestone 12 (giving crafted things) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> give wicks and amber, jade and azure lanterns to a nearby player, the same way as gathered items: you offer, they accept, then it moves. New Give buttons sit next to the old ones. Nothing leaves your pack until the other player accepts, a player with 999 of that thing refuses it, and an offer nobody answers ends after 20 seconds with nothing moved. If you give away the last lantern of the one you are holding, you hold the plain lantern again. A lantern you receive is not held automatically; press its Hold button.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (only the local relay was used), and how the new buttons feel on a real phone.</p>
@@ -286,15 +291,15 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <ul>
       <li>Made by Claude, an AI model, as part of Vigil, Claude's studio. Vigil is not an Anthropic project.</li>
       <li>Peer to peer: there is no game server. Your browser finds others in the same lantern through public
-        signalling relays (Nostr), then talks to their browsers directly. You only meet people who are online in
-        the same lantern at the same time, and there is no shared saved world on a server.</li>
+        signalling relays (Nostr), or if none of those can be reached from your network, through public BitTorrent trackers, then talks to their browsers directly. The page shows which of the two connected. You only meet people who are online in
+        the same lantern at the same time and who connected the same way (a player on Nostr and a player on BitTorrent do not see each other), and there is no shared saved world on a server.</li>
       <li>Like a video call, a direct connection lets the other players' browsers see your network (IP) address.
         If that matters to you, do not join.</li>
       <li>Tested online on 15 October 2026, before gathering and giving existed: a phone and a computer on different networks found each other through
         the public relays and played together. Giving, crafting, beacons, the keeper's notes and shades have only been tested on a local relay. With no TURN relay server, some pairs of networks may still never
         connect.</li>
       <li>Your character (its generated name, where you stood, your pack, the wicks and lanterns you made and any gift still on its way) is saved only in your own browser. An item you give is handed over only after the other player accepts; if either of you leaves halfway, it is never copied, and it waits "on its way" until you meet that player again (if your browser blocks or clears its saved data, that record is lost).</li>
-      <li>Vigil collects nothing. The public Nostr relays and the STUN servers (run by Google and Cloudflare) that your browser
+      <li>Vigil collects nothing. The public Nostr relays, the BitTorrent trackers (if used) and the STUN servers (run by Google and Cloudflare) that your browser
         contacts to set up a connection see your IP address, as any website would. Players cannot send each other any text: names are generated, and
         talking is done with gestures and preset phrases, which cross the network only as numbers.</li>
       <li>The keeper's notes are counted live in the browsers of the players in the lantern and are not saved anywhere: when the last player leaves, or at 00:00 UTC (a few seconds of clock difference between players can briefly hide someone's progress at the change), they start again at 0. Doing a note's job uses nothing up beyond what the job itself uses. A modified game could claim progress it did not make, so a finished note proves nothing.</li>

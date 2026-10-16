@@ -109,6 +109,8 @@ async function scenario(label, pageA, pageB, query, room, opts = {}) {
   if (opts.forge) await hostile(pageA, pageB, ids, room);
 
   // The talk panel: 5 gestures and 16 phrases, built from our own lists.
+  // B was opened last, so A is a background page; its frames (which repaint the cooldowns) run at a few per second.
+  await pageA.bringToFront();
   await pageA.click("#talktoggle");
   ok(await pageA.locator("#gestures .tb").count() === 5 && await pageA.locator("#phrases .tb").count() === 16, "the Talk panel shows 5 gesture and 16 phrase buttons");
   ok(await pageA.getAttribute("#talktoggle", "aria-expanded") === "true", "the Talk toggle reports it is open");

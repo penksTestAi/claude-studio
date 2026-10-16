@@ -32,7 +32,7 @@ lights burning), never player against player harm.
 |---|---|---|
 | Rendering | Plain Canvas 2D, no engine | A top-down tile island is the right shape for a slow co-operative RPG on phones: it is cheap to draw, needs no assets, no build and no download. three.js (the owner's suggestion) was considered; see below. |
 | Networking | Trystero 0.25.4 (MIT), vendored in `vendor/` | Serverless WebRTC with pluggable public signalling, end-to-end encrypted data channels, rooms, targeted sends, peer join/leave events. One small ES-module library with one dependency (`@noble/secp256k1` 3.2.0, MIT, for signing Nostr events). |
-| Signalling | Nostr relays (Trystero default, 5 of ~30 public relays at once) | Many independent public relays, no sign-up, no key; the most redundant of the free options per Trystero's own advice. `?net=torrent` switches to public BitTorrent WebSocket trackers as a fallback. |
+| Signalling | Nostr relays (Trystero default, 5 of ~30 public relays at once) | Many independent public relays, no sign-up, no key; the most redundant of the free options per Trystero's own advice. Since milestone 13 the default is `auto`: if no Nostr relay socket opens within 7 s, the game leaves Nostr and joins the same room through public BitTorrent WebSocket trackers (Trystero's `torrent` strategy), alternating at most 5 times until one connects; the page shows which path connected. `?net=nostr` or `?net=torrent` pins one path. MQTT was not added: the torrent strategy already is a second independent family, and MQTT brokers have terms the open trackers do not. |
 | Shared world | Generated from a fixed seed (`js/world.js`) | Everyone gets the same island without sending it. Only exactly-rounded arithmetic is used (no `Math.sin`/`exp`/`pow`), so the tiles are identical in every JS engine; the tests compare a fingerprint. |
 | Save | `localStorage` key `vigil.longwatch.v1` (seed and position) | "Saved only in your browser", as the landing promises. `?net=local` uses `sessionStorage` so two test tabs are two different players. |
 
@@ -67,7 +67,7 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   about a dozen players. Later: when a room is full, suggest the next lantern.
 - **Transport interface** (`js/net/transport.js`): `send(msg, peerId?)`, `onMessage`, `onPeerJoin`,
   `onPeerLeave`, `status()`, `leave()`. Messages are small JSON objects; one Trystero action `"m"` carries them,
-  with a kind field `k`. Implementations: `local.js` (BroadcastChannel), `trystero.js` (Nostr or torrent).
+  with a kind field `k`. Implementations: `local.js` (BroadcastChannel), `trystero.js` (Nostr or torrent), `auto.js` (tries one, then the other).
 - **Authority.** Each player is the sole authority over their own avatar and inventory. Others draw what that
   player last reported (eased toward it, snapping if it jumps more than 4 tiles). No one can move or change
   someone else's character.
@@ -251,6 +251,7 @@ frame with a shade on screen. Own drawing, no outside art.
   played together. Later entries need not mark basic online play as unverified; still unverified are networks that
   need TURN (some strict mobile or corporate networks) and each new feature over the real network until a person
   tries it.
+- **Re-checked 2026-10-16 (milestone 13):** relay.damus.io, nos.lol and the trackers tracker.webtorrent.dev, tracker.openwebtorrent.com, open.ftorrent.com and tracker.btorrent.xyz were tried again with a WebSocket upgrade request; the proxy answered 403 to CONNECT for every one. Neither public path is reachable from the sandbox, so neither was tested; the BitTorrent path was tested only against a tracker the test starts on 127.0.0.1 (`tests/tracker-server.mjs`).
 - What *is* tested: the full real code path (vendored Trystero, Nostr signalling messages, WebRTC data channels
   in Chromium) between two separate browser contexts, with signalling through `tests/nostr-relay.mjs`, a tiny
   Nostr relay the test starts on 127.0.0.1 (the page accepts `?relay=` only for 127.0.0.1/localhost, and main.js ignores it entirely when the page itself is served from any other host, such as the live site). Only the
@@ -286,6 +287,7 @@ game/
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
   js/net/trystero.js    Trystero transport (nostr, torrent); link watchdog and offer-renewal fix
+  js/net/auto.js        the default transport: Nostr first, BitTorrent trackers if no relay opens in 7 s (one transport object whose kind is the current path)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
@@ -300,8 +302,10 @@ game/
   tests/rank.test.mjs      node checks of the rank (deeds, gaps, caps, the message on a fake mesh, the shades module's "helped" event), then local and WebRTC pages: three gifts that arrive make a Lamplighter, the other player sees the title, a reload keeps the points, a gift too soon earns nothing, forged rank messages (local run)
   tests/craftgive.test.mjs node checks of giving wicks and lanterns on a fake mesh (every cap full and expired, a peer leaving, every message dropped or either side restarted, the lantern in hand), then local and WebRTC pages: Give buttons, full stack declined, a held lantern given, take-back, a player leaving
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
+  tests/tracker-server.mjs minimal BitTorrent WebSocket tracker (announce, offers, answers) used by the fallback test
+  tests/fallback.test.mjs  flags, then real WebRTC: Nostr dead and tracker alive (falls back, page says so, game traffic crosses), Nostr alive (no switch), both dead, `?net=torrent` by hand
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
+URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 

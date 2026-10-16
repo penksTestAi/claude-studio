@@ -88,10 +88,10 @@ working features.
     gathered items (item numbers 3 to 6 added to the saved lists, so old saves read as before). Giving away the last lantern of the one in hand puts the
     plain lantern back. Every cap tested full and expired (receiver stack, receiver expected list, giver on-its-way list, 20 s offer, late accept,
     pack emptied between offer and accept), a peer leaving at each step, and each message dropped or either side restarted (`craftgive.test.mjs`).
-13. **NEXT: A second way to find each other.** When the Nostr relays cannot be reached, try a second free signalling path
+13. **Done (2026-10-16, local servers only): A second way to find each other.** Default path `auto`: Nostr first, BitTorrent trackers (Trystero's torrent strategy) if no relay opens in 7 s; the page shows which path connected; players meet only others on the same path. Tested against a Nostr relay and a tracker on 127.0.0.1; neither public path is reachable from the sandbox (HTTP 403 from the proxy), so public-relay and public-tracker play is untested. Was: When the Nostr relays cannot be reached, try a second free signalling path
     with no sign-up (BitTorrent trackers or MQTT through Trystero), say on the page which one connected, and test the
     fallback locally; record whether the public ones were reachable.
-14. **The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
+14. **NEXT: The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
     everyone there until the room empties, and the shades stay away from its beam (derived, nothing new sent).
 15. **A look step: people.** Better character figures with a walk cycle, lantern swing and gesture poses drawn in code.
 16. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.

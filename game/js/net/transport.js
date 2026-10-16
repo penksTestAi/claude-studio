@@ -1,7 +1,8 @@
 // The one networking interface the game uses. Two kinds of implementation:
 //   local   - BroadcastChannel between tabs of one browser (tests, offline development)
-//   nostr   - Trystero over public Nostr relays, real WebRTC between browsers (the default)
-//   torrent - Trystero over public BitTorrent WebSocket trackers (fallback strategy)
+//   nostr   - Trystero over public Nostr relays, real WebRTC between browsers
+//   torrent - Trystero over public BitTorrent WebSocket trackers
+//   auto    - the default: Nostr first; if no Nostr relay can be reached, BitTorrent trackers (js/net/auto.js)
 //
 // Every transport returns the same object:
 //   { kind, selfId,
@@ -12,17 +13,17 @@
 // Game code never imports Trystero or BroadcastChannel directly.
 
 export const APP_ID = "vigilstudio-long-watch-v1";
-export const KINDS = ["nostr", "torrent", "local"];
+export const KINDS = ["auto", "nostr", "torrent", "local"];
 
 export function pickKind(search) {
   const k = new URLSearchParams(search).get("net");
-  return KINDS.includes(k) ? k : "nostr";
+  return KINDS.includes(k) ? k : "auto";
 }
 
 // A test-only relay override: accepted only for a relay on this machine, so a shared link cannot point
 // a player at someone else's server.
-export function pickTestRelay(search) {
-  const r = new URLSearchParams(search).get("relay");
+export function pickTestRelay(search, param = "relay") {
+  const r = new URLSearchParams(search).get(param);
   if (!r) return null;
   try {
     const u = new URL(r);
@@ -30,6 +31,9 @@ export function pickTestRelay(search) {
   } catch { /* ignore */ }
   return null;
 }
+
+// Test-only: the same for a BitTorrent tracker on this machine (?tracker=ws://127.0.0.1:PORT).
+export const pickTestTracker = (search) => pickTestRelay(search, "tracker");
 
 // Test-only: seconds (1 to 30) during which a page neither sends nor hears anything, imitating a half-open link.
 // Like ?relay=, main.js uses it only on a page served from this machine.
@@ -43,8 +47,13 @@ export async function createTransport(kind, room, opts = {}) {
     const { createLocalTransport } = await import("./local.js");
     return createLocalTransport(room);
   }
+  if (kind === "auto") {
+    const { createAutoTransport } = await import("./auto.js");
+    return createAutoTransport(room, opts);
+  }
   const { createTrysteroTransport } = await import("./trystero.js");
-  return createTrysteroTransport(kind, room, opts);
+  // a test relay (Nostr) or tracker (BitTorrent) on this machine replaces the public list for that path
+  return createTrysteroTransport(kind, room, { ...opts, relay: (kind === "torrent" ? opts.tracker : opts.relay) || undefined });
 }
 
 // The biggest message the game will look at, measured as JSON bytes. Real messages are under 100 bytes;

@@ -1,7 +1,7 @@
 // Boot and glue: identity, room choice, the game loop, and the small status panel.
 import { generateWorld, spawnFor, isBlocked, tileAt, T, worldFingerprint } from "./world.js";
 import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
-import { createTransport, pickKind, pickTestRelay, pickTestMute } from "./net/transport.js";
+import { createTransport, pickKind, pickTestRelay, pickTestTracker, pickTestMute } from "./net/transport.js";
 import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
@@ -31,6 +31,7 @@ const world = generateWorld();
 const netKind = pickKind(location.search);
 const onLoopback = location.hostname === "127.0.0.1" || location.hostname === "localhost";
 const testRelay = onLoopback ? pickTestRelay(location.search) : null; // ?relay= is ignored on the live site
+const testTracker = onLoopback ? pickTestTracker(location.search) : null; // ?tracker= likewise (a BitTorrent tracker on this machine)
 const testMute = onLoopback ? pickTestMute(location.search) : 0;     // so is ?mute=
 const nodes = generateNodes(world);
 const respawnPin = (() => { const v = Number(new URLSearchParams(location.search).get("respawn")); return Number.isInteger(v) && v >= 1 && v <= 600 ? v : 0; })(); // tests: shorter respawn
@@ -73,7 +74,18 @@ function markRoom() { for (const b of roomButtons.children) b.setAttribute("aria
 markRoom();
 $("you").textContent = me.name;
 $("you").style.setProperty("--c", me.colour);
-$("netkind").textContent = netKind === "local" ? "local test mode (tabs of this browser only)" : netKind === "torrent" ? "BitTorrent trackers" : "Nostr relays";
+const PATH_NAME = { nostr: "Nostr relays", torrent: "BitTorrent trackers" };
+function paintPath(s) {
+  let t;
+  if (netKind === "local") t = "local test mode (tabs of this browser only)";
+  else if (!s) t = netKind === "auto" ? "Nostr relays, or BitTorrent trackers if those cannot be reached" : PATH_NAME[netKind];
+  else if (netKind !== "auto") t = `${PATH_NAME[netKind]}${s.relaysOpen ? " (connected)" : " (not reached)"}`;
+  else if (s.path) t = `${PATH_NAME[s.path]} (connected${s.path === "torrent" ? "; the Nostr relays could not be reached" : ""})`;
+  else if (s.exhausted) t = "neither Nostr relays nor BitTorrent trackers could be reached";
+  else t = s.tried.length > 1 || s.trying === "torrent" ? "BitTorrent trackers (trying; the Nostr relays could not be reached)" : "Nostr relays (trying)";
+  if ($("netkind").textContent !== t) $("netkind").textContent = t;
+}
+paintPath(null);
 
 // ---- the game ----
 const canvas = $("view");
@@ -95,7 +107,7 @@ async function enter() {
   if (playing) return;
   $("enter").disabled = true;
   try {
-    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, mute: testMute });
+    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, tracker: testTracker, mute: testMute });
   } catch (e) {
     console.error(e);
     $("status").textContent = "Could not start networking in this browser.";
@@ -181,8 +193,8 @@ function frame(t) {
   $("gather").disabled = !reach;
   paintGive();
   if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list()); }
-  if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
-  if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
+  if (t - lastHud > 1000) { lastHud = t; paintHud(light); updateStatus(); }
+  if (t - lastSave > 3000) { save(); lastSave = t; }
   requestAnimationFrame(frame);
 }
 
@@ -528,8 +540,9 @@ function updateStatus() {
   let line;
   if (n > 0) line = n === 1 ? "1 other player is here with you." : `${n} other players are here with you.`;
   else if (net.kind === "local") line = "No one else yet. Open this page in another tab with the same room to meet yourself.";
-  else if (s.relaysOpen === 0) line = performance.now() - joinedAt < 8000 ? "Connecting to the signalling relays…" : "Could not reach any signalling relay. Your network may block them; the island is still yours to walk.";
-  else line = `No one else in this lantern yet (listening on ${s.relaysOpen} relay${s.relaysOpen === 1 ? "" : "s"}). Others appear here when they enter the same lantern.`;
+  else if (s.relaysOpen === 0) line = performance.now() - joinedAt < 8000 ? "Connecting to the signalling relays…" : s.exhausted ? "Could not reach any signalling relay or tracker. Your network may block them; the island is still yours to walk." : s.tried && s.tried.length > 1 ? "Nostr relays could not be reached; trying BitTorrent trackers…" : "Could not reach any signalling relay yet. Your network may block them; the island is still yours to walk.";
+  else line = `No one else in this lantern yet (listening on ${s.relaysOpen} ${s.relaysOpen === 1 ? "relay" : "relays"}, ${PATH_NAME[net.kind] || "relays"}). Others appear here when they enter the same lantern. Players meet only others who connected the same way.`;
+  paintPath(s);
   $("status").textContent = line;
 }
 
@@ -540,6 +553,7 @@ addEventListener("hashchange", () => { if (!playing) { roomNo = roomFromHash(); 
 
 // Read-only view for the tests (and the curious): plain copies, no handles into the game.
 window.__longWatch = {
+  netStatus: () => (net ? JSON.parse(JSON.stringify(net.status())) : null),
   world: () => ({ seed: world.seed, fingerprint: worldFingerprint(world), landmarks: landmarkFingerprint(world), landmarkList: world.landmarks.map(l => ({ kind: l.kind, x: l.x, y: l.y })) }),
   teleport: (x, y) => { if (Number.isFinite(x) && Number.isFinite(y) && !isBlocked(world, x, y)) { me.x = x; me.y = y; return true; } return false; }, // tests only: no network message can reach this
   light: () => lightNow(),

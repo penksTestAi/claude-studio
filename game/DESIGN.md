@@ -183,6 +183,10 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   to each newcomer and every 5 s; a receiver needs a known sender, allows 2 a second, and shows only the title looked up in
   `TITLES` (a trim of r gold marks on the lantern, a gold line over the name, and a suffix in the player list). Accepted weakness:
   a modified client can claim any rank, and a second tab or alt character can farm points; the page says the rank proves nothing.
+- **Figures** (`js/figure.js`, milestone 15, a look step): no message. `figurePose(moving, t, phase, gesture, k, reduce)` gives, from a player's `moving` flag (already sent
+  in `st`), facing and current gesture, the feet's step (`STRIDE_MS` 520 ms a cycle, the per-player phase comes from the seed), the lantern's swing (at most 0.55 rad),
+  head lean, and gesture poses (bow, wave, cheer, point, sit). `js/render.js` `drawAvatar` draws two feet, a head dot and the lantern on a swinging arm from it.
+  With reduced motion the walk cycle and lantern swing stop (a walking figure stands still); gesture poses (bow, wave, cheer, point, sit) still apply. Cost: a few extra arcs per player. Art is drawn in code; no assets.
 - **The long watch kept** (`js/lighthouse.js`, milestone 14): no new message. Each browser already holds the beacons' shares; when
   every beacon of the island is lit (`watchKept`, real booleans, an empty list is not kept) the ruined lighthouse is lit, and it
   stays lit for as long as anyone in the lantern holds the shares (an emptied lantern forgets them, so it goes dark). The beam
@@ -294,6 +298,7 @@ game/
   js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
   js/shades.js          the shades: slots, waves, a shade's path (pure), light-seconds shares counter, `hp` `hq` `hs` `sf` messages, snuffing and relighting, `?shadeclock=`
   js/weather.js         weather and the shades' sky, pure: mist and rain from seed and clock, rain drops, mist banks, how dark a shade wave makes the sky strip
+  js/figure.js          character figure poses, pure: walk cycle (feet, lantern swing, head lean) and gesture poses; still with reduced motion
   js/lighthouse.js      the long watch kept: all beacons lit lights the lighthouse (pure), beam easing, shades held out of the beam
   js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)

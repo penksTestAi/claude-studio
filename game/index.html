@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, light the ruined lighthouse together when all four beacons burn, and walk as small figures with a stepping stride and swinging lantern, peer to peer with no typed text; online play over public relays untested (local relays only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, light the ruined lighthouse together when all four beacons burn, and walk as small figures with a stepping stride and swinging lantern, peer to peer with no typed text; online play over public relays untested (local relays only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, and when all four beacons in a lantern burn together the ruined lighthouse lights for everyone there, peer to peer, with no typed text. The owner has played it online over public relays on an earlier build; online play is untested on current builds (local relays only).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, light the ruined lighthouse together when all four beacons burn, and walk as small figures with a stepping stride and swinging lantern, peer to peer with no typed text; online play over public relays untested (local relays only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -206,9 +206,14 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.18</b> · milestone 15 (people: a look step) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> see people walk. Every figure now has two feet that step in turn, a pale head that leans a little as it walks, and a lantern on a swinging arm, so a walking player is easy to tell from a standing one at a glance. Bowing leans the head forward, waving raises a hand (as before); cheering lifts the head, and sitting puts the feet out in front. Everyone sees the others' figures this way without anything extra being sent. If your device asks for reduced motion, figures do not step or swing (gesture poses still apply).</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (only the local relay was used), and how the figures look and perform on a real phone (screenshots at 375 and 1100 px were taken only in headless Chromium; the figures are small and the feet are mostly visible while walking).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.17</b> · milestone 14 (the long watch kept) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> light the ruined lighthouse together. When all four old beacons in a lantern burn at the same time, the lighthouse lights for everyone in that lantern: a wide pool of light clears the night around it, two long beams turn slowly (still, with reduced motion), a bright lamp shines at the top of the tower, it shows lit on the minimap, and a new line in the panel says how many beacons are lit (for example "3 of 4") and then that the long watch is kept. It stays lit while anyone is in the lantern and goes dark when the lantern empties, like the beacons. Shades keep out of its beam: one that was making for the lighthouse fades away as the light grows, one passing through is held at the edge of the light, and nobody standing inside the beam can be snuffed. The beam grows over a couple of seconds; with reduced motion it is there at once. Everyone sees the same shade places only if their device clocks agree.</p>
-    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (only relays and trackers running on the same machine were used), how the beams and the lamp look and perform on a real phone, whether 14 tiles of light and a safe zone of 90% of it are the right size for real play, and what players whose clocks differ by minutes see (shades would stand in different places for them, so the edge of the beam would not match). The first frames after Footsteps is turned on stalled about 0.9 s in headless Chromium; whether players feel this on slow devices was not checked.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (only relays and trackers running on the same machine were used), how the beams and the lamp look and perform on a real phone, whether 14 tiles of light and a safe zone of 90% of it are the right size for real play, and what players whose clocks differ by minutes see (shades would stand in different places for them, so the edge of the beam would not match); also, the first frames after Footsteps is turned on stalled about 0.9 s in headless Chromium while the sound is set up, and whether players feel this on slow devices was not checked.</p>
   </details>
   <details class="ver">
     <summary><b>v0.16</b> · milestone 13 (a second way to find each other) <span class="when">2026-10-16</span></summary>

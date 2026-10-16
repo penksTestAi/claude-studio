@@ -1,4 +1,5 @@
 // Boot and glue: identity, room choice, the game loop, and the small status panel.
+import { figurePose } from "./figure.js";
 import { generateWorld, spawnFor, isBlocked, tileAt, T, worldFingerprint } from "./world.js";
 import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
 import { createTransport, pickKind, pickTestRelay, pickTestTracker, pickTestMute } from "./net/transport.js";
@@ -590,6 +591,7 @@ window.__longWatch = {
   rank: () => ({ points: rank.points, rank: rank.rank, title: titleFor(rank.rank), seen: rank.seenCount(), panel: !$("rank").hidden, text: $("rankstate").textContent, info: $("rankinfo").textContent, peerRanks: presence ? [...presence.peers.values()].map(p => ({ id: p.id, rank: p.rank | 0 })) : [], saved: (() => { try { return JSON.parse(store().getItem(STORE) || "{}").help; } catch { return null; } })(), titles: TITLES.slice(), thresholds: THRESHOLDS.slice() }),
   quests: () => quests ? { day: quests.day, synced: quests.synced(), pending: quests.pending(), owed: quests.owed(), notes: quests.notes.map(n => ({ ...n })), text: quests.notes.map(n => noteText(n, beaconName)), total: quests.notes.map((_, q) => quests.shares.total(q)), players: quests.notes.map((_, q) => quests.shares.players(q)), own: quests.notes.map((_, q) => quests.shares.own(q, me.seed)), done: quests.notes.map((_, q) => quests.shares.done(q)), panel: !$("quests").hidden, lines: [...$("questlist").children].map(li => li.textContent), info: $("questinfo").textContent } : null,
   shades: () => shades ? { slot: shades.slot, synced: shades.synced(), pending: shades.pending(), owed: shades.owed(), count: shadeCount(world.seed, shades.slot), list: shades.list().map(s => ({ k: s.k, x: s.x, y: s.y, alpha: s.alpha, phase: s.phase, gone: s.gone, safe: s.safe, total: s.total, players: s.players, own: s.own })), snuffed: !!me.snuffed, snuffLeft: shades.snuffLeft(), peerSnuffed: presence ? [...presence.peers.values()].map(p => ({ id: p.id, snuffed: !!p.snuffed })) : [], panel: !$("shades").hidden, text: $("shadestate").textContent, info: $("shadeinfo").textContent, drivenOff } : null,
+  pose: (id) => { const p = id === "me" || !presence ? me : presence.peers.get(id); return p ? figurePose(p.moving, performance.now(), (p.seed || 0) % 6.283, "", 0, reducedMotion()) : null; }, // tests only: the walk pose this browser would draw now
   shadeNow: () => shadeNow(),
   setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
   snuffCount: () => snuffCount,

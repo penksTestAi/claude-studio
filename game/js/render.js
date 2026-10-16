@@ -1,6 +1,7 @@
 // Drawing: the island is painted once into an offscreen canvas (8 px per tile), then each frame the
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
+import { figurePose } from "./figure.js";
 import { T, LANDMARK_NAMES } from "./world.js";
 import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
@@ -574,13 +575,24 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   if (name === "sit") { r = r0 * 0.82; dip = r0 * 0.25; }
   g.fillStyle = "rgba(0,0,0,0.35)";
   g.beginPath(); g.ellipse(sx, sy + r0 * 0.9, r0 * 0.9, r0 * 0.35, 0, 0, Math.PI * 2); g.fill();
+  const pose = figurePose(p.moving, t, (p.seed || 0) % 6.283, name, k, reduce);
+  const fx = Math.cos(p.d), fy = Math.sin(p.d); // facing; the feet step along it and across it
+  g.fillStyle = "#0e1220"; // two feet, stepping in turn
+  for (const f of [pose.footL, pose.footR]) {
+    g.beginPath(); g.arc(sx + (fx * f.fwd - fy * f.side) * r, sy + r0 * 0.5 + (fy * f.fwd + fx * f.side) * r * 0.5 - pose.footLift * r, r * 0.26, 0, Math.PI * 2); g.fill();
+  }
   g.fillStyle = "#1c2233";
   g.beginPath(); g.arc(sx, sy + bob + dip, r, 0, Math.PI * 2); g.fill();
   g.lineWidth = Math.max(2, tile * 0.07); g.strokeStyle = p.colour;
   g.stroke();
-  // The lantern, held toward the facing direction (set down in front when sitting).
-  let lx = sx + Math.cos(p.d) * r * 1.15, ly = sy + bob + dip + Math.sin(p.d) * r * 1.15;
+  // The head: a pale dot that leans toward the facing direction (further in a bow, up in a cheer).
+  g.fillStyle = "#e8d3b0";
+  g.beginPath(); g.arc(sx + fx * r * pose.headLean, sy + bob + dip + fy * r * pose.headLean * 0.6 - r * (0.1 + pose.headUp), r * 0.34, 0, Math.PI * 2); g.fill();
+  // The lantern, held toward the facing direction on a swinging arm (set down in front when sitting).
+  const la = p.d + pose.lanternSwing, reach = r * pose.armReach;
+  let lx = sx + Math.cos(la) * reach, ly = sy + bob + dip + Math.sin(la) * reach;
   if (name === "sit") { lx = sx + Math.cos(p.d) * r * 1.5; ly = sy + r0 * 0.75 + Math.sin(p.d) * r * 0.6; }
+  else { g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(1.5, tile * 0.05); g.beginPath(); g.moveTo(sx + fx * r * 0.5, sy + bob + dip + fy * r * 0.5); g.lineTo(lx, ly); g.stroke(); }
   const glow = p.snuffed ? null : lampOf(p.lamp).glow;
   if (p.snuffed) { // the flame is out: a dull ember and a curl of smoke
     g.fillStyle = "#5a3322"; g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();

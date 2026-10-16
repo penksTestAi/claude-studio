@@ -95,8 +95,8 @@ working features.
     everyone there (a pool of light 14 tiles wide, two slow beams, a lamp at the top, a mark on the minimap) until the lantern empties. It is worked out by each browser from the
     beacon state it already holds; nothing new is sent. Shades keep out of the beam: one making for the lighthouse fades away as the beam grows, one passing through is held at its
     edge, and nobody inside the beam can be snuffed. Tested in `watch.test.mjs`; the rule holds if players' device clocks agree (shades are placed by the clock).
-15. **NEXT: A look step: people.** Better character figures with a walk cycle, lantern swing and gesture poses drawn in code.
-16. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.
+15. **Done (2026-10-16, a look step; local relay only): people.** Figures have two feet that step in turn, a head that leans, and a lantern on a swinging arm; bow, wave, cheer, point and sit have their own poses. Drawn by each browser from the walking flag and gesture it already holds; nothing is sent. Reduced motion stops the walk cycle and lantern swing; gesture poses still apply. Waving raises a hand (as before); cheering lifts the head. Tested in `figure.test.mjs`.
+16. **NEXT: Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.
 
 ## Known problems
 - `shades.test.mjs` failed once in a tester run (then passed) at "neither player was ever snuffed". The roadmap guessed

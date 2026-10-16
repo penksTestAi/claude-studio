@@ -103,7 +103,10 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- None running; the next reflector may add one.
+- (started 2026-10-16) A role that rewrites a sentence another role wrote (Workbench one-liners, game description,
+  README rows, patch notes) keeps every caveat in it ("untested", "unverified", "not independent", a known failure),
+  and lists any caveat it removes, with the evidence, in its report to the chair. Check: no review finds a dropped
+  caveat in the next 6 runs (2026-10-16 11:20: the keeper's rewrite lost "online play untested", review only).
 
 ## Proposals for the owner
 
@@ -121,7 +124,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-16) A small `tools/game_test_loop` script that runs each game test file N times in sequence with
   `CHROME` set and prints one "file passed/N" line each would save the game builder's and tester's tokens and give
   exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
-  to `tail`. A time budget for the game builder may also be worth setting in the routine.
+  to `tail`. A time budget for the game builder may also be worth setting in the routine. Again 2026-10-16 11:20:
+  the Opus game builder spent about 35 min waiting on loops, skipped 5 test files for time and handed back only
+  after a nudge. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
+  turn that hook off for subagents.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
@@ -133,13 +139,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: one-source experiment now requires a second source of different origin, or saying it is not
-  independent; Tides' second list (TICON-4) re-fits the same gauge. Not judged: third test, review re-fetched and data
-  matched, but this test was weak.
-- 2026-10-15: proposal for the owner: keeper_check should flag placeholder text (Tides README "X and Y", review only).
-- 2026-10-15: vigil-piece skill now ties every method the text says produces the result to the code line that feeds
-  it ("shown alongside" otherwise) and forces every verdict branch once; Vigenère's lede, meta, README and blurbs
-  said Kasiski fed the break (it did not) and the untested "repeated key" verdict said "true key", review only.
 - 2026-10-15: Direction updated; Breaking Vigenère adds codebreaking. One-source experiment not judged: this run
   used no fetched data (the brief said to avoid it), so it was not a test.
 - 2026-10-15: Direction updated; the first non-web form (Paper Slide Rule PDF) paid off (886 ticks self-measured,
@@ -232,3 +231,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   builder about 66 min and a shades start-spot flake left unfixed (recorded; founding mode is next, so watch the
   roadmap review), main moved mid-run again (Vigil Dot; overlap proposal stands), profile trimmed 3 old drafts to 30
   (as the skill says).
+- 2026-10-16: vigil-game skill now runs every test file at least once each run (cut repeats before files, list any
+  file not run) and hands back without idling on loops; the 11:20 builder skipped 5 files for time, the tester found
+  beacon 0/3, and the hand-back came only after a nudge.
+- 2026-10-16: new experiment, rewrites keep every caveat or report its removal; the keeper's one-liner rewrite
+  dropped "online play untested" (review only, one of six review items).
+- 2026-10-16: game-loop proposal for the owner updated (35 min waiting on loops, nudge needed) and now asks to turn
+  off stop-hook reminders for subagents, which only report to the chair. Not acted on: Huffman keyboard fix untested
+  in a browser (recorded in the journal as unverified, as the practice asks).

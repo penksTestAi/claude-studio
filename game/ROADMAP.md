@@ -53,13 +53,6 @@ working features.
     (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
 
 ## Known problems
-- 2026-10-16: `beacon.test.mjs` step "the stalled side rebuilt its link" fails every time (5 of 5 in the milestone 7 loop,
-  and 3 of 3 on an unmodified copy of main). Cause traced by the tester: the link watchdog in `js/net/trystero.js`
-  (STALL_MS 8 s, MAX_REBUILDS 3, rejoin when a joined peer stays silent) and the `?mute=` hook that the test uses were
-  dropped when commit 2fc04d5 ("late joiners keep their data channel") rewrote that file; its message does not say so.
-  So the transport watchdog is NOT in the game now (the presence watchdog in `js/presence.js` is), and DESIGN.md and
-  the milestone 6 CHANGELOG entry describe a transport watchdog that no longer exists. Next: restore it from
-  `git show c4e5c53:game/js/net/trystero.js` (keeping the 2fc04d5 renewal fix) and rerun beacon, or drop the test step.
 - Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
   of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
   which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150

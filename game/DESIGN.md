@@ -138,13 +138,13 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
   greeted is answered with ours (once), and movement from an unknown peer makes us send our `hi` (once every 2 s, 64
-  strangers at most). (Not in the game since commit 2fc04d5, which dropped it by accident; see ROADMAP.md, Known problems. What it did:) A second, lower watchdog was added to the Trystero transport (`js/net/trystero.js`): in a stress run
+  strangers at most). A second, lower watchdog was added to the Trystero transport (`js/net/trystero.js`): in a stress run
   of 150 three-player meshes two failed because a link came up on one side only (that side got a join event, the other
   side's handshake timed out and it never sent anything), and the first side stayed "joined" for ever. A peer that has
   been joined for `STALL_MS` (8 s) without any message from it (every client sends one at least every 2 s) makes the
   transport leave and rejoin its room (the game is told each peer left, then each that returns joins again), at most
   `MAX_REBUILDS` (3) times and `MIN_GAP_MS` (10 s) apart, so a silent hostile peer can cost a few reconnects but not a
-  loop. `?mute=N` (also dropped in 2fc04d5; loopback pages only, 1 to 30 s) made a page neither send nor hear for N seconds, for the test.
+  loop. `?mute=N` (loopback pages only, 1 to 30 s) makes a page neither send nor hear for N seconds, for the test.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -211,7 +211,7 @@ game/
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
-  js/net/trystero.js    Trystero transport (nostr, torrent); the link watchdog is missing since 2fc04d5, see ROADMAP.md
+  js/net/trystero.js    Trystero transport (nostr, torrent); link watchdog and offer-renewal fix
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)

@@ -1,0 +1,391 @@
+{
+ "unitsPerEm": 1000,
+ "advance": 600,
+ "count": 95,
+ "range": [
+  32,
+  126
+ ],
+ "glyphs": {
+  "32": {
+   "contours": 0,
+   "advance": 600
+  },
+  "33": {
+   "contours": 2,
+   "advance": 600
+  },
+  "34": {
+   "contours": 2,
+   "advance": 600
+  },
+  "35": {
+   "contours": 2,
+   "advance": 600
+  },
+  "36": {
+   "contours": 3,
+   "advance": 600
+  },
+  "37": {
+   "contours": 5,
+   "advance": 600
+  },
+  "38": {
+   "contours": 3,
+   "advance": 600
+  },
+  "39": {
+   "contours": 1,
+   "advance": 600
+  },
+  "40": {
+   "contours": 1,
+   "advance": 600
+  },
+  "41": {
+   "contours": 1,
+   "advance": 600
+  },
+  "42": {
+   "contours": 1,
+   "advance": 600
+  },
+  "43": {
+   "contours": 1,
+   "advance": 600
+  },
+  "44": {
+   "contours": 1,
+   "advance": 600
+  },
+  "45": {
+   "contours": 1,
+   "advance": 600
+  },
+  "46": {
+   "contours": 1,
+   "advance": 600
+  },
+  "47": {
+   "contours": 1,
+   "advance": 600
+  },
+  "48": {
+   "contours": 3,
+   "advance": 600
+  },
+  "49": {
+   "contours": 1,
+   "advance": 600
+  },
+  "50": {
+   "contours": 1,
+   "advance": 600
+  },
+  "51": {
+   "contours": 1,
+   "advance": 600
+  },
+  "52": {
+   "contours": 2,
+   "advance": 600
+  },
+  "53": {
+   "contours": 1,
+   "advance": 600
+  },
+  "54": {
+   "contours": 2,
+   "advance": 600
+  },
+  "55": {
+   "contours": 1,
+   "advance": 600
+  },
+  "56": {
+   "contours": 3,
+   "advance": 600
+  },
+  "57": {
+   "contours": 2,
+   "advance": 600
+  },
+  "58": {
+   "contours": 2,
+   "advance": 600
+  },
+  "59": {
+   "contours": 2,
+   "advance": 600
+  },
+  "60": {
+   "contours": 1,
+   "advance": 600
+  },
+  "61": {
+   "contours": 2,
+   "advance": 600
+  },
+  "62": {
+   "contours": 1,
+   "advance": 600
+  },
+  "63": {
+   "contours": 2,
+   "advance": 600
+  },
+  "64": {
+   "contours": 2,
+   "advance": 600
+  },
+  "65": {
+   "contours": 2,
+   "advance": 600
+  },
+  "66": {
+   "contours": 3,
+   "advance": 600
+  },
+  "67": {
+   "contours": 1,
+   "advance": 600
+  },
+  "68": {
+   "contours": 2,
+   "advance": 600
+  },
+  "69": {
+   "contours": 1,
+   "advance": 600
+  },
+  "70": {
+   "contours": 1,
+   "advance": 600
+  },
+  "71": {
+   "contours": 1,
+   "advance": 600
+  },
+  "72": {
+   "contours": 1,
+   "advance": 600
+  },
+  "73": {
+   "contours": 1,
+   "advance": 600
+  },
+  "74": {
+   "contours": 1,
+   "advance": 600
+  },
+  "75": {
+   "contours": 1,
+   "advance": 600
+  },
+  "76": {
+   "contours": 1,
+   "advance": 600
+  },
+  "77": {
+   "contours": 1,
+   "advance": 600
+  },
+  "78": {
+   "contours": 1,
+   "advance": 600
+  },
+  "79": {
+   "contours": 2,
+   "advance": 600
+  },
+  "80": {
+   "contours": 2,
+   "advance": 600
+  },
+  "81": {
+   "contours": 2,
+   "advance": 600
+  },
+  "82": {
+   "contours": 2,
+   "advance": 600
+  },
+  "83": {
+   "contours": 1,
+   "advance": 600
+  },
+  "84": {
+   "contours": 1,
+   "advance": 600
+  },
+  "85": {
+   "contours": 1,
+   "advance": 600
+  },
+  "86": {
+   "contours": 1,
+   "advance": 600
+  },
+  "87": {
+   "contours": 1,
+   "advance": 600
+  },
+  "88": {
+   "contours": 1,
+   "advance": 600
+  },
+  "89": {
+   "contours": 1,
+   "advance": 600
+  },
+  "90": {
+   "contours": 1,
+   "advance": 600
+  },
+  "91": {
+   "contours": 1,
+   "advance": 600
+  },
+  "92": {
+   "contours": 1,
+   "advance": 600
+  },
+  "93": {
+   "contours": 1,
+   "advance": 600
+  },
+  "94": {
+   "contours": 1,
+   "advance": 600
+  },
+  "95": {
+   "contours": 1,
+   "advance": 600
+  },
+  "96": {
+   "contours": 1,
+   "advance": 600
+  },
+  "97": {
+   "contours": 2,
+   "advance": 600
+  },
+  "98": {
+   "contours": 2,
+   "advance": 600
+  },
+  "99": {
+   "contours": 1,
+   "advance": 600
+  },
+  "100": {
+   "contours": 2,
+   "advance": 600
+  },
+  "101": {
+   "contours": 2,
+   "advance": 600
+  },
+  "102": {
+   "contours": 1,
+   "advance": 600
+  },
+  "103": {
+   "contours": 2,
+   "advance": 600
+  },
+  "104": {
+   "contours": 1,
+   "advance": 600
+  },
+  "105": {
+   "contours": 2,
+   "advance": 600
+  },
+  "106": {
+   "contours": 2,
+   "advance": 600
+  },
+  "107": {
+   "contours": 1,
+   "advance": 600
+  },
+  "108": {
+   "contours": 1,
+   "advance": 600
+  },
+  "109": {
+   "contours": 1,
+   "advance": 600
+  },
+  "110": {
+   "contours": 1,
+   "advance": 600
+  },
+  "111": {
+   "contours": 2,
+   "advance": 600
+  },
+  "112": {
+   "contours": 2,
+   "advance": 600
+  },
+  "113": {
+   "contours": 2,
+   "advance": 600
+  },
+  "114": {
+   "contours": 1,
+   "advance": 600
+  },
+  "115": {
+   "contours": 1,
+   "advance": 600
+  },
+  "116": {
+   "contours": 1,
+   "advance": 600
+  },
+  "117": {
+   "contours": 1,
+   "advance": 600
+  },
+  "118": {
+   "contours": 1,
+   "advance": 600
+  },
+  "119": {
+   "contours": 1,
+   "advance": 600
+  },
+  "120": {
+   "contours": 1,
+   "advance": 600
+  },
+  "121": {
+   "contours": 1,
+   "advance": 600
+  },
+  "122": {
+   "contours": 1,
+   "advance": 600
+  },
+  "123": {
+   "contours": 1,
+   "advance": 600
+  },
+  "124": {
+   "contours": 1,
+   "advance": 600
+  },
+  "125": {
+   "contours": 1,
+   "advance": 600
+  },
+  "126": {
+   "contours": 1,
+   "advance": 600
+  }
+ }
+}

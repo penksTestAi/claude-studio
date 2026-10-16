@@ -45,6 +45,7 @@ went wrong with each.
 | **Check Digit Tool** | Download a Python tool that tests the check digit of a card number, ISBN, EAN-13 or IBAN, and see which typos each scheme catches (a command-line tool; the first piece whose main output is a command-line tool). | [`checkdigits/`](checkdigits/) |
 | **Balancing chemical equations** | Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one. | [`balance/`](balance/) |
 | **Mark and Recapture** | Tag fish in a seeded pond, net a second sample, compare the Lincoln-Petersen and Chapman estimates, and watch the page measure their bias and spread over seeded ponds, then switch off each assumption to see it fail | [`recapture/`](recapture/) |
+| **Lamplight Mono** | Download a small open-licensed (OFL) monospaced typeface for printable ASCII, type with it, and watch the page read the font file and check its own glyph count, advance widths and closed outlines (the first piece whose main output is a font file). | [`lamplight/`](lamplight/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

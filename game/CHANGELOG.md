@@ -248,7 +248,7 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
 - **Unverified:** beacons over the public Nostr relays and across real home and mobile networks (the sandbox's proxy
   refuses them; only the local relay was used), how the panel, flame and light look on a real phone, screen readers. A modified
   client can claim shares it did not add, or another player's seed (so "two players" can be faked); there is nothing to
-  win from others. Correction (2026-10-16): the transport link watchdog and the `?mute=` hook were dropped by accident in the next commit (2fc04d5); only the presence watchdog is in the game, see ROADMAP, known problems. The link watchdog fixed the half-open link seen in the stress run; whether it removes every
+  win from others. The link watchdog fixed the half-open link seen in the stress run; whether it removes every
   "never met" failure is not proven (180 clean meshes), and one `give` failure ("when both are back, the reeds arrive",
   both pages had lost each other) has no captured cause.
 
@@ -285,6 +285,8 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
 - **Unverified:** how it looks and runs on a real phone (frame rates above are from headless Chromium on software
   rendering), whether the sky strip crowds the top of a small screen with the arrows and the minimap, online play over
   the public Nostr relays (the sandbox cannot reach them; only the local relay was used), and reduced motion on a real device
-  (checked with the browser's emulated setting). The `beacon` test fails at one existing step (see ROADMAP, known
-  problems), identically on an unmodified copy of main.
+  (checked with the browser's emulated setting). At the time of writing the `beacon` test failed at one existing step; fixed in the 2026-10-16 entry below.
 
+## 2026-10-16, link watchdog restored
+
+The transport link watchdog and the `?mute=` test hook were dropped by accident in commit 2fc04d5 and are restored from c4e5c53; the Trystero offer-renewal fix from 2fc04d5 is kept. The `beacon` test passed 5 of 5 runs on a local relay. Online play over the public relays was not tested. Players see no change.

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vigil Dot · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="A 5 by 7 pixel display font: type your own text, download the TTF or WOFF, and watch the page check the font&#x27;s character count and widths against the file itself.">
+<link rel="canonical" href="https://vigilstudio.github.io/vigildot/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Vigil Dot · Vigil">
+<meta property="og:description" content="A 5 by 7 pixel display font: type your own text, download the TTF or WOFF, and watch the page check the font&#x27;s character count and widths against the file itself.">
+<meta property="og:url" content="https://vigilstudio.github.io/vigildot/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Vigil Dot · Vigil">
+<meta name="twitter:description" content="A 5 by 7 pixel display font: type your own text, download the TTF or WOFF, and watch the page check the font&#x27;s character count and widths against the file itself.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+@font-face{font-family:"Vigil Dot";src:url("VigilDot-Regular.woff") format("woff"),url("VigilDot-Regular.ttf") format("truetype");font-display:block}
+:root{--bg:#f4f2ec;--panel:#fffdf8;--ink:#1d2330;--muted:#565c68;--line:#cbc6b8;--accent:#2b4f9c;--accent-ink:#fff;--ok:#26652f;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1220;--panel:#161b2c;--ink:#e7e8ee;--muted:#a4a9b8;--line:#363d52;--accent:#8fb2f2;--accent-ink:#0b1224;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1220;--panel:#161b2c;--ink:#e7e8ee;--muted:#a4a9b8;--line:#363d52;--accent:#8fb2f2;--accent-ink:#0b1224;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:780px;margin:0 auto;padding:22px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:2rem;line-height:1.15;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.3rem;line-height:1.25;margin:32px 0 8px;font-weight:normal;border-top:1px solid var(--line);padding-top:16px}
+p{margin:0 0 12px}.lede{font-size:1.15rem}.small{font-size:.86rem;color:var(--muted)}
+a{color:var(--accent)}:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dot{font-family:"Vigil Dot",monospace;font-kerning:none;font-variant-ligatures:none;letter-spacing:0;line-height:1.2}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;overflow-wrap:anywhere}
+.hero .big{font-size:clamp(28px,9vw,64px);overflow-wrap:anywhere}
+.hero .mid{font-size:24px;margin-top:10px;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.cell{background:var(--panel);border:1px solid var(--line);border-radius:6px;text-align:center;padding:6px 0 3px}
+.cell .g{font-size:30px;display:block}.cell .u{font:.68rem ui-monospace,Menlo,Consolas,monospace;color:var(--muted)}
+label{display:block;font-size:.88rem;color:var(--muted);margin:8px 0 3px}
+input[type=text]{width:100%;font-family:"Vigil Dot",monospace;font-size:28px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+input[type=range]{width:100%;max-width:340px}
+.dl{display:inline-block;margin:4px 8px 4px 0;padding:10px 16px;min-height:44px;border-radius:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none}
+.dl.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.note{background:var(--panel);border-left:4px solid var(--accent);padding:8px 12px;margin:10px 0;font-size:.95rem}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);margin:8px 0 12px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:5px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:normal;color:var(--muted);font-size:.82rem;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tr:last-child td{border-bottom:0}
+.ok{color:var(--ok)}.bad{color:var(--bad);font-weight:bold}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
+#probe{position:absolute;left:-9999px;top:0;white-space:pre;font-size:40px;visibility:hidden}
+</style>
+</head>
+<body>
+<main>
+<h1>Vigil Dot</h1>
+<p class="lede" id="lede">Reading the font file to count its characters.</p>
+<p class="small">Made by Claude, an AI model, for Vigil. A 5 by 7 pixel font: every number below is read from the font file by the page or by a Python script, not typed.</p>
+
+<div class="hero dot" aria-label="Specimen">
+  <div class="big" id="spec1">VIGIL KEEPS THE SMALL HOURS</div>
+  <div class="mid" id="spec2">Pack my box with five dozen liquor jugs. 0123456789 !?&quot;'()*+,-./:;=_#</div>
+</div>
+
+<p><a class="dl" href="VigilDot-Regular.ttf" download>Download TTF</a><a class="dl alt" href="VigilDot-Regular.woff" download>WOFF (web)</a><a class="dl alt" href="build_font.py" download>build_font.py</a><a class="dl alt" href="verify_font.py" download>verify_font.py</a></p>
+
+<h2>Type your own</h2>
+<label for="txt">Your text</label>
+<input type="text" id="txt" class="dot" value="Hello, night shift" autocomplete="off" spellcheck="false">
+<label for="size">Size for the measurement: <span id="sizeOut" class="mono">40</span> px</label>
+<input type="range" id="size" min="12" max="96" value="40">
+<p id="live" class="small" aria-live="polite"></p>
+<div class="hero dot" id="prev" style="font-size:40px"></div>
+
+<h2>Every character</h2>
+<p class="small" id="gridnote"></p>
+<div class="grid" id="grid"></div>
+
+<h2>Widths: expected from the file, measured in this browser</h2>
+<p>Expected width is the sum of the advance widths the page reads out of the font file (hmtx table), scaled to the size. Measured width is the box of the same text in this browser, with kerning and ligatures off. The last row is a control: the same text in a fallback serif should <em>not</em> match, which shows the test can fail.</p>
+<div class="tw"><table id="wt"><thead><tr><th>Text</th><th class="n">Characters</th><th class="n">Expected px</th><th class="n">Measured px</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<p id="wsum"></p>
+
+<h2>Checks on the file</h2>
+<p>Two readers look at the same file: <code>verify_font.py</code> (fontTools, results in <code>results.json</code>) and the small parser in this page. They must agree.</p>
+<div class="tw"><table id="ct"><thead><tr><th>Check</th><th>Detail</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+
+<h2>What is not checked, and the licence</h2>
+<div class="note"><strong>Not tested in other apps or for print.</strong> I only checked it in the headless Chromium browser that runs this page. I did not install it in a word processor, a design tool, an operating system or a printer, and I did not look at it printed. Lowercase letters use the same shapes as capitals. There is no kerning, no accented letters, and no hinting. The shapes are my own design on a 5 by 7 grid; I have not compared them with other pixel fonts for look-alikes.</div>
+<p><strong>Licence:</strong> Vigil Dot is licensed under the SIL Open Font License, Version 1.1 (no Reserved Font Name); the full text is in <a href="OFL.txt">OFL.txt</a> (more at <a href="https://openfontlicense.org">openfontlicense.org</a>) and the licence line is stored in the font's name table. The Python scripts are under the repository's MIT licence. Built with <code id="ftv">fontTools</code>.</p>
+<p class="small"><a href="../workbench/">Back to the Workbench</a></p>
+</main>
+<span id="probe" class="dot"></span>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+function parseFont(buf) {
+  const v = new DataView(buf), tag = o => String.fromCharCode(v.getUint8(o), v.getUint8(o+1), v.getUint8(o+2), v.getUint8(o+3));
+  const nt = v.getUint16(4), T = {};
+  for (let i = 0; i < nt; i++) { const o = 12 + 16*i; T[tag(o)] = v.getUint32(o+8); }
+  const upm = v.getUint16(T.head + 18);
+  const numG = v.getUint16(T.maxp + 4), nH = v.getUint16(T.hhea + 34);
+  const asc = v.getInt16(T.hhea + 4), desc = v.getInt16(T.hhea + 6);
+  const adv = [];
+  for (let g = 0; g < numG; g++) adv.push(v.getUint16(T.hmtx + 4 * Math.min(g, nH - 1)));
+  const cm = T.cmap, n = v.getUint16(cm + 2); let off = null;
+  for (let i = 0; i < n; i++) { const p = cm + 4 + 8*i, o = cm + v.getUint32(p + 4); if (v.getUint16(o) === 4 && v.getUint16(p) === 3) off = o; }
+  if (off === null) throw new Error("no (3,x) format 4 cmap");
+  const segX2 = v.getUint16(off + 6), seg = segX2 / 2;
+  const endO = off + 14, startO = endO + segX2 + 2, deltaO = startO + segX2, rangeO = deltaO + segX2;
+  const map = new Map();
+  for (let s = 0; s < seg; s++) {
+    const end = v.getUint16(endO + 2*s), start = v.getUint16(startO + 2*s), d = v.getInt16(deltaO + 2*s), ro = v.getUint16(rangeO + 2*s);
+    for (let c = start; c <= end && c < 0xFFFF; c++) {
+      let g = ro === 0 ? (c + d) & 0xFFFF : v.getUint16(rangeO + 2*s + ro + 2*(c - start));
+      if (ro !== 0 && g !== 0) g = (g + d) & 0xFFFF;
+      if (g) map.set(c, g);
+    }
+  }
+  return { upm, numG, asc, desc, adv, map };
+}
+function expectedUnits(F, text) { let u = 0, miss = []; for (const ch of text) { const g = F.map.get(ch.codePointAt(0)); if (g === undefined) { miss.push(ch); u += F.adv[0]; } else u += F.adv[g]; } return { u, miss }; }
+const probe = $("probe");
+function measure(text, size, family) { probe.style.fontSize = size + "px"; probe.style.fontFamily = family || ""; probe.textContent = text; const w = probe.getBoundingClientRect().width; probe.style.fontFamily = ""; return w; }
+const hex = c => "U+" + c.toString(16).toUpperCase().padStart(4, "0");
+const TOL = 0.5, tolTxt = "match (within " + TOL + " px)";
+const show = ch => ch === " " ? "space" : ch;
+
+(async function main() {
+  const [buf, res] = await Promise.all([fetch("VigilDot-Regular.ttf").then(r => r.arrayBuffer()), fetch("results.json").then(r => r.json())]);
+  const F = parseFont(buf);
+  await document.fonts.load('40px "Vigil Dot"', "A");
+  const loaded = document.fonts.check('40px "Vigil Dot"', "A");
+  const cps = [...F.map.keys()].sort((a, b) => a - b);
+  const letters = cps.filter(c => /\p{L}/u.test(String.fromCharCode(c))).length;
+  const digits = cps.filter(c => c >= 48 && c <= 57).length;
+  const distinct = new Set(F.map.values()).size;
+  const widths = new Set(F.adv);
+  $("lede").textContent = `Vigil Dot is a pixel font whose file maps ${cps.length} characters (${letters} letters, ${digits} digits) to ${distinct} shapes, each ${[...widths][0]} units wide.`;
+  $("ftv").textContent = "fontTools " + res.fonttools;
+  $("gridnote").textContent = `${plural(cps.length, "code point", "code points")} in the cmap, listed from the file. Lowercase letters repeat the capital shapes, so ${distinct} shapes cover ${cps.length}.`;
+  const grid = $("grid");
+  for (const c of cps) { const d = document.createElement("div"); d.className = "cell"; d.innerHTML = '<span class="g dot"></span><span class="u"></span>'; d.firstChild.textContent = String.fromCharCode(c); d.lastChild.textContent = hex(c); grid.appendChild(d); }
+
+  // widths table
+  const rows = [["VIGIL"], ["Hello, night shift"], ["0123456789"], ["!?\"'()*+,-./:;=_#"], ["The quick brown fox jumps over the lazy dog"], ["i"], [" "]];
+  const tb = $("wt").tBodies[0]; let pass = 0, fail = 0;
+  const addRow = (cells, cls) => { const tr = document.createElement("tr"); cells.forEach((t, i) => { const td = document.createElement("td"); if (i === 1 || i === 2 || i === 3) td.className = "n"; td.textContent = t; if (i === 4 && cls) td.className = cls; tr.appendChild(td); }); tb.appendChild(tr); };
+  for (const [t] of rows) {
+    const size = 40, e = expectedUnits(F, t).u * size / F.upm, m = measure(t, size);
+    const ok = loaded && Math.abs(e - m) <= TOL; ok ? pass++ : fail++;
+    addRow([JSON.stringify(t), [...t].length, e.toFixed(2), m.toFixed(2), ok ? tolTxt : "differs"], ok ? "ok" : "bad");
+  }
+  const sz = [17, 23, 64, 96]; const tt = "Small hours";
+  for (const s of sz) { const e = expectedUnits(F, tt).u * s / F.upm, m = measure(tt, s), ok = loaded && Math.abs(e - m) <= TOL; ok ? pass++ : fail++; addRow([JSON.stringify(tt) + " at " + s + " px", [...tt].length, e.toFixed(2), m.toFixed(2), ok ? tolTxt : "differs"], ok ? "ok" : "bad"); }
+  const ctlE = expectedUnits(F, "Hello, night shift").u * 40 / F.upm, ctlM = measure("Hello, night shift", 40, "Georgia, 'Times New Roman', serif");
+  const ctlDiffers = Math.abs(ctlE - ctlM) > TOL;
+  addRow(["control: same text in serif", 18, ctlE.toFixed(2), ctlM.toFixed(2), ctlDiffers ? "differs, as it should" : "matches by accident: control is weak"], ctlDiffers ? "ok" : "bad");
+  $("wsum").textContent = (loaded ? "" : "The font did not load in this browser, so widths are not comparable. ") + (fail === 0 ? `${plural(pass, "measurement", "measurements")} matched the widths read from the file.` : `${plural(fail, "measurement", "measurements")} did not match.`);
+
+  // checks table
+  const ctb = $("ct").tBodies[0];
+  const addCheck = (label, detail, ok) => { const tr = document.createElement("tr"); [label, detail, ok ? "agree" : "DISAGREE"].forEach((t, i) => { const td = document.createElement("td"); td.textContent = t; if (i === 2) td.className = ok ? "ok" : "bad"; tr.appendChild(td); }); ctb.appendChild(tr); };
+  addCheck("Code points in the cmap: page parser vs fontTools", `${cps.length} vs ${res.code_points}`, cps.length === res.code_points);
+  addCheck("Shapes used by the cmap", `${distinct} vs ${res.distinct_glyphs_in_cmap}`, distinct === res.distinct_glyphs_in_cmap);
+  addCheck("Glyphs in the file including .notdef", `${F.numG} vs ${res.glyphs_incl_notdef}`, F.numG === res.glyphs_incl_notdef);
+  addCheck("Units per em, advance, ascent, descent", `${F.upm}, ${[...widths].join("/")}, ${F.asc}, ${F.desc} vs ${res.units_per_em}, ${res.advance}, ${res.ascent}, ${res.descent}`, F.upm === res.units_per_em && widths.size === 1 && F.adv[0] === res.advance && F.asc === res.ascent && F.desc === res.descent);
+  addCheck("File size (TTF, bytes) from the download itself", `${buf.byteLength} vs ${res.bytes_ttf}`, buf.byteLength === res.bytes_ttf);
+  for (const c of res.checks) addCheck("verify_font.py: " + c.label, c.detail, c.ok);
+
+  // type your own
+  const txt = $("txt"), size = $("size"), prev = $("prev");
+  function update() {
+    const t = txt.value, s = +size.value; $("sizeOut").textContent = s;
+    prev.style.fontSize = s + "px"; prev.textContent = t || " ";
+    const { u, miss } = expectedUnits(F, t), e = u * s / F.upm, m = measure(t, s), chars = [...t].length;
+    const uniq = [...new Set(miss)].map(show);
+    let msg = `${plural(chars, "character", "characters")}. Expected width ${e.toFixed(2)} px, measured ${m.toFixed(2)} px: ` + (!loaded ? "font not loaded." : Math.abs(e - m) <= TOL ? "match." : "differ.");
+    msg += uniq.length === 0 ? " Every character is in the font." : uniq.length === 1 ? ` Not in the font (the browser borrows another font for it, so the width may differ): ${uniq[0]}.` : ` Not in the font (the browser borrows another font for them, so the width may differ): ${uniq.join(" ")} (${uniq.length} different).`;
+    $("live").textContent = msg;
+  }
+  txt.addEventListener("input", update); size.addEventListener("input", update); update();
+  window.VIGIL_DOT = { pass, fail, ctlDiffers, loaded, checksOk: res.checks.every(c => c.ok), update };
+  document.body.dataset.ready = "1";
+})().catch(e => { $("lede").textContent = "The page could not read the font file: " + e.message; document.body.dataset.ready = "err"; });
+</script>
+</body>
+</html>

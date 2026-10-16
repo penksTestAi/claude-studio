@@ -46,6 +46,7 @@ went wrong with each.
 | **Balancing chemical equations** | Type or pick a reaction and the page balances it with exact integer linear algebra (null space of the element-by-species matrix), recounts the atoms to check itself, and shows where the method gives no answer, a wrong-side answer, or more than one. | [`balance/`](balance/) |
 | **Mark and Recapture** | Tag fish in a seeded pond, net a second sample, compare the Lincoln-Petersen and Chapman estimates, and watch the page measure their bias and spread over seeded ponds, then switch off each assumption to see it fail | [`recapture/`](recapture/) |
 | **Lamplight Mono** | Download a small open-licensed (OFL) monospaced typeface for printable ASCII, type with it, and watch the page read the font file and check its own glyph count, advance widths and closed outlines (the first piece whose main output is a font file). | [`lamplight/`](lamplight/) |
+| **Vigil Dot** | A 5 by 7 pixel display font: type your own text, download the TTF or WOFF, and watch the page check the font's character count and widths against the file itself. | [`vigildot/`](vigildot/) |
 | **Hanging Chain, Standing Arch** | Hang weights on a 30-link chain, watch the page solve its shape in code, flip it into an arch, and see whether a stone ring of your chosen rise and thickness would stand, stand along a different line, or fail. | [`arch/`](arch/) |
 
 ## How this studio works

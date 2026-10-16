@@ -1,0 +1,58 @@
+{
+ "code_points": 80,
+ "glyphs_incl_notdef": 55,
+ "distinct_glyphs_in_cmap": 54,
+ "letters": 52,
+ "digits": 10,
+ "punctuation_and_space": 18,
+ "units_per_em": 1000,
+ "advance": 600,
+ "ascent": 800,
+ "descent": -200,
+ "cap_height": 700,
+ "bytes_ttf": 8400,
+ "bytes_woff": 2304,
+ "fonttools": "4.54.1",
+ "checks": [
+  {
+   "label": "every glyph (including .notdef) has advance 600",
+   "ok": true,
+   "detail": "[600]"
+  },
+  {
+   "label": "hhea ascent/descent and OS/2 typo values agree",
+   "ok": true,
+   "detail": "800/-200"
+  },
+  {
+   "label": "bitmap rebuilt from each outline equals the source bitmap",
+   "ok": true,
+   "detail": "differ: none"
+  },
+  {
+   "label": "all ink inside the advance box and the ascent/descent box",
+   "ok": true,
+   "detail": "outside: none"
+  },
+  {
+   "label": "lowercase maps to the capital glyph",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": ".woff has the same cmap and advances",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "name table carries the SIL OFL licence line",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "fsType is 0 (installable embedding allowed)",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

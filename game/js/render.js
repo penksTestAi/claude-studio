@@ -7,6 +7,7 @@ import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 import { lampOf } from "./craft.js";
 import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
+import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -64,8 +65,7 @@ export function paintWorld(world) {
       g.fillRect(x * TILE_SRC, y * TILE_SRC, TILE_SRC, TILE_SRC);
       const px = x * TILE_SRC, py = y * TILE_SRC;
       if (t === T.TREE) {
-        g.fillStyle = "#173b26"; g.beginPath(); g.arc(px + 4, py + 4, 3.6, 0, Math.PI * 2); g.fill();
-        g.fillStyle = "#215034"; g.beginPath(); g.arc(px + 3.3, py + 3.3, 2, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#173b26"; g.beginPath(); g.arc(px + 4, py + 4, 3.6, 0, Math.PI * 2); g.fill(); // the crown's lit side sways: drawn each frame by the renderer
       } else if (t === T.ROCK) {
         g.fillStyle = "#565c66"; g.fillRect(px + 1, py + 2, 6, 4); g.fillStyle = "#6b727d"; g.fillRect(px + 2, py + 2, 3, 2);
       } else if (t === T.MEADOW && s === 0) {
@@ -85,6 +85,12 @@ export function createRenderer(canvas, world, opts = {}) {
   const dark = document.createElement("canvas");
   const dg = dark.getContext("2d");
   let dpr = 1, cw = 0, ch = 0, lastArrows = [], lastLights = [];
+  // The living layer: animated water, foam, swaying trees and grass, fireflies, the moon. `?look=plain` switches it
+  // off, `?look=low` starts at the lowest level; by default a governor lowers it on a device that cannot keep up.
+  const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
+  const plain = opts.look === "plain";
+  const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
+  let flyCount = 0;
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -93,8 +99,129 @@ export function createRenderer(canvas, world, opts = {}) {
     dark.width = canvas.width; dark.height = canvas.height;
   }
 
-  function draw(me, peers, stick, t, light, nodes = [], reach = null, fires = []) {
+  // ---- the living layer: water glints, shore foam, swaying crowns and grass, all on the visible tiles only ----
+  function drawGround(t, reduce, level, camX, camY, tile, W, H, light) {
+    const k = tile / TILE_SRC, w = world.w, seed = world.seed;
+    const x0 = Math.max(0, Math.floor(camX / tile)), x1 = Math.min(w - 1, Math.floor((camX + W) / tile));
+    const y0 = Math.max(0, Math.floor(camY / tile)), y1 = Math.min(world.h - 1, Math.floor((camY + H) / tile));
+    const moon = moonAt(light.hour), glintK = 0.35 + 0.5 * moon.lit, th = Math.max(1, k * 0.55);
+    const lively = !plain;
+    const crowns = new Path2D(), flecks = new Path2D(), blades = new Path2D(), bladesM = new Path2D();
+    let nBlades = 0;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const i = y * w + x, d = living.deco[i], f = living.foam[i];
+        if (!d && !f) continue;
+        const px = x * tile - camX, py = y * tile - camY, ph = phaseOf(x, y, seed);
+        if (d === D.TREE) {
+          const sw = sway(t, ph, reduce || !lively);
+          crowns.moveTo(px + (3.3 + sw.x) * k + 2 * k, py + (3.3 + sw.y) * k); crowns.arc(px + (3.3 + sw.x) * k, py + (3.3 + sw.y) * k, 2 * k, 0, Math.PI * 2);
+          if (lively) { flecks.moveTo(px + (2.5 + sw.x * 1.7) * k + 0.9 * k, py + (2.6 + sw.y * 1.7) * k); flecks.arc(px + (2.5 + sw.x * 1.7) * k, py + (2.6 + sw.y * 1.7) * k, 0.9 * k, 0, Math.PI * 2); }
+        }
+        if (!lively) continue;
+        if (f) {
+          const fs = foamState(t, ph, reduce), off = fs.wash * 0.2 * tile;
+          g.fillStyle = `rgba(226,238,250,${fs.alpha.toFixed(2)})`;
+          const a0 = (ph % 1) * 0.1; // each tile's foam breaks in a slightly different place
+          if (f & EDGE.N) { g.fillRect(px + (0.05 + a0) * tile, py + off, 0.45 * tile, th); g.fillRect(px + (0.58 - a0) * tile, py + off + th, 0.37 * tile, th); }
+          if (f & EDGE.S) { g.fillRect(px + (0.05 + a0) * tile, py + tile - off - th, 0.4 * tile, th); g.fillRect(px + (0.55 - a0) * tile, py + tile - off - 2 * th, 0.4 * tile, th); }
+          if (f & EDGE.W) { g.fillRect(px + off, py + (0.05 + a0) * tile, th, 0.45 * tile); g.fillRect(px + off + th, py + (0.58 - a0) * tile, th, 0.37 * tile); }
+          if (f & EDGE.E) { g.fillRect(px + tile - off - th, py + (0.05 + a0) * tile, th, 0.4 * tile); g.fillRect(px + tile - off - 2 * th, py + (0.55 - a0) * tile, th, 0.4 * tile); }
+        }
+        if (d === D.SPARKLE && level >= 2) {
+          const sp = sparkle(t, ph, reduce);
+          if (sp > 0.02) {
+            g.fillStyle = `rgba(205,224,255,${(sp * glintK).toFixed(2)})`;
+            g.fillRect(px + (1 + (ph % 3.1)) * k, py + (1 + ((ph * 7) % 5)) * k, 2.2 * k, Math.max(1, 0.7 * k));
+          }
+        } else if (d === D.GRASS && level >= 2 && nBlades < 220) {
+          nBlades++;
+          const sw = sway(t, ph, reduce), bx = px + (1.5 + (ph * 3) % 5) * k, by = py + 6.6 * k, p = world.tiles[i] === T.MEADOW ? bladesM : blades;
+          p.moveTo(bx, by); p.lineTo(bx + sw.x * 1.5 * k, by - 2.5 * k);
+          p.moveTo(bx + k, by); p.lineTo(bx + k + sw.x * 1.5 * k + 0.4 * k, by - 1.8 * k);
+        }
+      }
+    }
+    g.fillStyle = "#215034"; g.fill(crowns);
+    if (lively) { g.fillStyle = "#2f6a44"; g.fill(flecks); }
+    if (nBlades) {
+      g.lineWidth = Math.max(1, k * 0.5); g.lineCap = "round";
+      g.strokeStyle = "rgba(96,148,86,0.8)"; g.stroke(blades);
+      g.strokeStyle = "rgba(168,178,92,0.8)"; g.stroke(bladesM);
+      g.lineCap = "butt";
+    }
+  }
+
+  // Fireflies drift round lit beacons and every lantern; coloured lanterns draw more, in their colour.
+  function drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires) {
+    if (level < 1) { flyCount = 0; return; }
+    const r = tile * 0.075; let n = 0;
+    const draw = (list, sx, sy, rgb) => {
+      for (const f of list) {
+        const x = f.x * tile - camX, y = f.y * tile - camY;
+        if (x < -r * 4 || y < -r * 4 || x > W + r * 4 || y > H + r * 4) continue;
+        g.fillStyle = `rgba(${rgb},${(0.2 * f.a).toFixed(2)})`; g.beginPath(); g.arc(x, y, r * 3, 0, Math.PI * 2); g.fill();
+        g.fillStyle = `rgba(${rgb},${f.a.toFixed(2)})`; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+        n++;
+      }
+    };
+    g.globalCompositeOperation = "lighter";
+    for (const f of fires) if (f.lit) draw(fireflies(level >= 2 ? 7 : 3, 100 + f.n, f.x, f.y - 0.4, 3.4, t, reduce), 0, 0, "255,222,130");
+    for (const p of all) {
+      const gl = lampOf(p.lamp).glow, cnt = gl ? (level >= 2 ? 3 : 1) : (level >= 2 ? 1 : 0);
+      if (cnt) draw(fireflies(cnt, 500 + ((p.seed || 0) % 997), p.x, p.y, gl ? 2.0 : 1.5, t, reduce), 0, 0, gl ? gl.join(",") : "240,226,160");
+    }
+    g.globalCompositeOperation = "source-over";
+    flyCount = n;
+  }
+
+  // A small strip at the top centre: stars and the moon crossing from dusk to dawn.
+  function drawSky(t, reduce, light, dpr) {
+    const W = canvas.width, bw = Math.min(150 * dpr, W * 0.36), bh = 40 * dpr, x = W / 2 - bw / 2, y = 8 * dpr, hor = y + bh * 0.82;
+    const moon = moonAt(light.hour), sa = starAlpha(light.dark);
+    g.save();
+    g.beginPath(); if (g.roundRect) g.roundRect(x, y, bw, bh, 8 * dpr); else g.rect(x, y, bw, bh);
+    g.fillStyle = "rgba(5,8,18,0.62)"; g.fill();
+    g.clip();
+    const sky = g.createLinearGradient(0, y, 0, hor);
+    sky.addColorStop(0, "rgba(10,18,44,0.0)"); sky.addColorStop(1, `rgba(${light.tint[0] * 2 + 20},${light.tint[1] * 2 + 20},${light.tint[2] * 2 + 40},0.55)`);
+    g.fillStyle = sky; g.fillRect(x, y, bw, hor - y);
+    g.fillStyle = "#fff6dc";
+    for (const s of STARS) {
+      const a = sa * (reduce ? 0.8 : 0.55 + 0.45 * Math.sin(t / 700 + s.ph));
+      if (a < 0.05 || s.y > 0.7) continue;
+      g.globalAlpha = Math.min(1, a); g.fillRect(x + s.x * bw, y + 3 * dpr + s.y * bh * 0.85, s.s * dpr, s.s * dpr);
+    }
+    g.globalAlpha = 1;
+    const mx = x + bw * (0.1 + 0.8 * moon.x), my = hor - moon.h * bh * 0.62, mr = 6 * dpr;
+    g.fillStyle = "rgba(244,236,208,0.16)"; g.beginPath(); g.arc(mx, my, mr * 2, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#f4ecd0"; g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgba(160,150,120,0.55)"; g.beginPath(); g.arc(mx - mr * 0.3, my - mr * 0.2, mr * 0.28, 0, Math.PI * 2); g.arc(mx + mr * 0.35, my + mr * 0.3, mr * 0.2, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgba(5,8,18,0.9)"; g.fillRect(x, hor, bw, y + bh - hor); // the dark horizon
+    g.restore();
+    g.strokeStyle = "rgba(255,243,214,0.4)"; g.lineWidth = Math.max(1, dpr);
+    g.beginPath(); if (g.roundRect) g.roundRect(x, y, bw, bh, 8 * dpr); else g.rect(x, y, bw, bh); g.stroke();
+  }
+
+  // Frame and draw times of the last 240 frames, for the tests and for measuring (never sent anywhere).
+  function stats() {
+    const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
+    const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
+    const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount };
+  }
+
+  function draw(me, peers, stick, t, light, nodes, reach, fires) {
+    const t0 = performance.now();
+    drawFrame(me, peers, stick, t, light, nodes, reach, fires);
+    const i = nSamp % 240; samples[i] = performance.now() - t0; frames[i] = prevT ? t - prevT : 0; nSamp++;
+    if (prevT) gov.note(t - prevT);
+    prevT = t;
+  }
+
+  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = []) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
+    const level = plain ? 0 : gov.level;
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
     const tile = (cw < 520 ? 30 : 36) * dpr; // screen px per tile
     const W = canvas.width, H = canvas.height;
@@ -103,6 +230,8 @@ export function createRenderer(canvas, world, opts = {}) {
     g.fillStyle = PAL[T.DEEP][0]; g.fillRect(0, 0, W, H);
     const k = tile / TILE_SRC;
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
+    const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2, hour: 3 };
+    drawGround(t, reduce, level, camX, camY, tile, W, H, lt);
 
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
 
@@ -118,7 +247,6 @@ export function createRenderer(canvas, world, opts = {}) {
     // Night layer with light pools.
     dg.globalCompositeOperation = "source-over";
     dg.clearRect(0, 0, W, H);
-    const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2 };
     dg.fillStyle = `rgba(${lt.tint[0]},${lt.tint[1]},${lt.tint[2]},${lt.dark.toFixed(3)})`; dg.fillRect(0, 0, W, H);
     dg.globalCompositeOperation = "destination-out";
     lastLights = [];
@@ -128,7 +256,8 @@ export function createRenderer(canvas, world, opts = {}) {
       const tiles = lt.reach * lamp.mult * flick, r = tile * tiles;
       lastLights.push({ id: p.id === "me" || p === me ? "me" : p.id, tiles: Math.round(tiles * 100) / 100, lamp: p.lamp | 0 });
       const grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
-      grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)");
+      if (lamp.glow && !plain) for (const [s, a] of softStops(0.95)) grad.addColorStop(s, `rgba(0,0,0,${a.toFixed(3)})`); // coloured lanterns: a soft edge
+      else { grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)"); }
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
     // Beacons: a lit one clears a wide pool of night; one that is taking fuel gives a small ember light.
@@ -147,7 +276,8 @@ export function createRenderer(canvas, world, opts = {}) {
       if (!lamp.glow) continue;
       const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach * lamp.mult * 0.85, [cr, cg, cb] = lamp.glow;
       const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
-      grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.30)`); grad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`); grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      if (plain) { grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.30)`); grad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`); grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`); }
+      else for (const [s, a] of softStops(0.30)) grad.addColorStop(s, `rgba(${cr},${cg},${cb},${a.toFixed(3)})`);
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
     for (const f of fires) {
@@ -158,6 +288,7 @@ export function createRenderer(canvas, world, opts = {}) {
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
     g.globalCompositeOperation = "source-over";
+    if (!plain) drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires);
 
     // Landmark names when one is close (words from our own list).
     g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
@@ -193,6 +324,8 @@ export function createRenderer(canvas, world, opts = {}) {
       drawBubble(g, PHRASES[p.say.id], p.say, p.x * tile - camX, p.y * tile - camY - tile * 0.62 - fontPx * 1.5, fontPx, dpr, t, W);
     }
 
+    if (!plain) drawSky(t, reduce, lt, dpr);
+
     // Arrows at the screen edge toward players who are off screen.
     lastArrows = edgeArrows(me, peers.values(), tile, W, H, 22 * dpr);
     for (const a of lastArrows) drawArrow(g, a, fontPx, dpr);
@@ -205,7 +338,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })) };
+  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // A beacon basket's fire: nothing without fuel, embers while it fills, a tall flame once lit.
@@ -233,7 +366,7 @@ function drawNode(g, n, sx, sy, tile, inReach, t, reduce) {
     g.restore();
   } else if (n.kind === "reeds") {
     g.strokeStyle = "#8fb06a"; g.lineWidth = Math.max(1.5, u * 0.55);
-    for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(sx + i * u * 0.7, sy + 2.5 * u); g.lineTo(sx + i * u * 1.1, sy - (2.8 - Math.abs(i) * 0.4) * u); g.stroke(); }
+    for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(sx + i * u * 0.7, sy + 2.5 * u); g.lineTo(sx + i * u * 1.1 + (reduce ? 0 : Math.sin(t / 700 + n.id + i * 0.6) * u * 0.45), sy - (2.8 - Math.abs(i) * 0.4) * u); g.stroke(); }
     g.fillStyle = "#6b4a2a"; g.fillRect(sx - 0.5 * u, sy - 3.2 * u, u, 1.4 * u);
   } else {
     g.fillStyle = "#2f5a3a"; g.beginPath(); g.arc(sx, sy + 0.3 * u, 2.6 * u, 0, Math.PI * 2); g.fill();

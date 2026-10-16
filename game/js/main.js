@@ -74,7 +74,8 @@ $("netkind").textContent = netKind === "local" ? "local test mode (tabs of this 
 const canvas = $("view");
 const motionQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
 const reducedMotion = () => !!(motionQuery && motionQuery.matches);
-const renderer = createRenderer(canvas, world, { reducedMotion });
+const lookFlag = new URLSearchParams(location.search).get("look"); // "plain" or "low" (tests, slow devices); anything else = full
+const renderer = createRenderer(canvas, world, { reducedMotion, look: lookFlag === "plain" || lookFlag === "low" ? lookFlag : "full" });
 const minimap = createMinimap($("minimap"), world);
 const steps = createFootsteps();
 const strides = createStrideTracker();
@@ -422,6 +423,8 @@ window.__longWatch = {
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },
   holdLamp: (n) => !!craft && craft.hold(n),
   lights: () => renderer.lights(),
+  perf: () => renderer.stats(),
+  setLevel: (l) => renderer.setLevel(l),
   offer: (i) => !!give && give.offer(i),
   accept: () => !!give && give.accept(),
   decline: () => !!give && give.decline(),

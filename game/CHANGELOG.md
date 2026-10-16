@@ -248,8 +248,43 @@ Newest at the bottom. Each entry: date, what players can now do, what was tested
 - **Unverified:** beacons over the public Nostr relays and across real home and mobile networks (the sandbox's proxy
   refuses them; only the local relay was used), how the panel, flame and light look on a real phone, screen readers. A modified
   client can claim shares it did not add, or another player's seed (so "two players" can be faked); there is nothing to
-  win from others. The link watchdog fixes the half-open link seen in the stress run; whether it removes every
+  win from others. Correction (2026-10-16): the transport link watchdog and the `?mute=` hook were dropped by accident in the next commit (2fc04d5); only the presence watchdog is in the game, see ROADMAP, known problems. The link watchdog fixed the half-open link seen in the stress run; whether it removes every
   "never met" failure is not proven (180 clean meshes), and one `give` failure ("when both are back, the reeds arrive",
   both pages had lost each other) has no captured cause.
 
 - **Also fixed (networking for every milestone):** a player joining a room that others had been in for about a minute or more often could not connect (Trystero renews pooled offers older than about 57 s and the rollback dropped the data channel). `js/net/trystero.js` now wraps RTCPeerConnection so the renewal keeps the channel; the gather test failed about half the time before, and after the fix passed 6 of 6 in one run, then failed 1 of 3 in another, so a rarer handshake race remains unexplained (two peers connect, only one side fires peer-join). Tested only in headless Chromium; not on Firefox, Safari or real networks; a workaround outside the vendored library, not reported upstream.
+
+### 2026-10-16 · milestone 7 (the living island)
+- **Players can now:** see the island move. The water glints and the shallows foam against the shore, washing in and
+  out; tree crowns, grass blades and reeds sway in the wind; fireflies drift round every lantern (more, in the
+  lantern's colour, round amber, jade and azure ones, and a ring of them round a lit beacon), so you can see at a glance
+  who is carrying what. A small sky strip at the top of the map shows the moon crossing from dusk to dawn and the stars
+  coming out toward midnight and fading before morning. The edges of coloured lanterns' light are softer and melt into
+  the dark. If your device asks for reduced motion, all of it holds still (the same picture, not moving); and a slow
+  device lowers the extras by itself. Add `?look=plain` to the address for the old look.
+- **Tested** (`node game/tests/living.test.mjs`): in node, which tiles glint, foam and sway (water only, shallow edges
+  against dry land only, all 643 trees), sway under one source pixel, steady values under reduced motion, the moon's path,
+  stars by darkness, fireflies bounded and a pure function of time, the soft-edge stops, the governor (89 slow frames do
+  not lower it, 90 do, a pause is ignored, it never rises). Then two pages, on the local transport and again on real
+  Trystero/WebRTC through the local Nostr relay: B draws fireflies round both lanterns, 3 more when A holds the jade
+  lantern (told over the transport), they go when A puts it away, levels 1 and 0 draw fewer and none; the local run sees 6 different
+  pictures in 6 while everyone stands still; with reduced motion 6 whole-canvas pictures over 1.8 s are identical;
+  the sky strip differs at hours 1, 3.5 and 7.9; `?look=plain` and `?look=low` work; no console errors. Before and
+  after screenshots at 375 and 1100 px were looked at (`?look=plain` against the living look, shore with sand, water, trees,
+  grass and a jade lantern at the night's middle). `page_check` clean. `world` and `craft` (the light and reach checks)
+  pass with the softer edges.
+- **Measured** (headless Chromium, software canvas, no GPU, so a rough bound and not a phone): at 375 px and devicePixelRatio 2,
+  walking for 8 s, the old look drew a frame in 4.6 ms on average (p95 7.0) and the living look in 5.5 ms (p95 7.6), both at
+  60 fps. With the CPU throttled 4 times (a rough stand-in for a phone): both about 20 fps, the old look 20.0 ms a frame
+  to draw and the living look 21.0 ms, so the old drawing code is the limit, not the new layer; at 6 times, both about 14
+  fps. The governor stepped down to level 1 in those throttled runs. Nobody has run it on a real phone. A first version with
+  nine colour stops on the lantern gradients drew 40 fps at 1 times (11.6 ms a frame), 6.5 ms of it from the gradients alone; five stops
+  brought it back to 60 fps, so the limit is noted in DESIGN.md.
+- **Network:** none. Everything is drawn by each browser alone from the seed and the clock; what B sees of A's lantern is the
+  existing lantern message. New: `?look=plain|low` and a read-only `perf()` for the tests.
+- **Unverified:** how it looks and runs on a real phone (frame rates above are from headless Chromium on software
+  rendering), whether the sky strip crowds the top of a small screen with the arrows and the minimap, online play over
+  the public Nostr relays (the sandbox cannot reach them; only the local relay was used), and reduced motion on a real device
+  (checked with the browser's emulated setting). The `beacon` test fails at one existing step (see ROADMAP, known
+  problems), identically on an unmodified copy of main.
+

@@ -35,11 +35,15 @@ working features.
   for everyone; one player's share is capped at 16. Also the presence watchdog (a lost first `hi` is repeated).
   (2026-10-15, local relay only)
 
+- **7. The living island (a look step).** Glints on the water and shore foam that washes in and out, swaying tree
+  crowns, grass blades and reeds, fireflies round every lantern (more round coloured ones) and round lit beacons, a
+  small sky strip with the moon crossing from dusk to dawn and stars that come and go with the dark, softer edges on
+  coloured lanterns' light, `prefers-reduced-motion` freezes all of it, and a governor turns the extras down on a slow
+  device. Drawn by each browser alone, nothing new is sent. (2026-10-16; frame rates measured only in headless
+  Chromium without a GPU, not on a phone)
+
 ## Later (in rough order, each one run)
-7. **NEXT: The living island (a look step).** Animated water and shore foam, swaying reeds and trees, fireflies near
-   lit lanterns, a moon and stars that follow the night hour, softer light edges for coloured lanterns, still honouring
-   reduced motion and 60 fps on a phone. (Visual items should stay about one in three; this is the next one.)
-8. **The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
+8. **NEXT: The keeper's notes.** Small quests from the seed and the date ("bring three reeds to the north beacon"),
    shared by everyone in a room, finished together.
 9. **Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
    standing together. Co-operative, no player against player harm.
@@ -49,6 +53,13 @@ working features.
     (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
 
 ## Known problems
+- 2026-10-16: `beacon.test.mjs` step "the stalled side rebuilt its link" fails every time (5 of 5 in the milestone 7 loop,
+  and 3 of 3 on an unmodified copy of main). Cause traced by the tester: the link watchdog in `js/net/trystero.js`
+  (STALL_MS 8 s, MAX_REBUILDS 3, rejoin when a joined peer stays silent) and the `?mute=` hook that the test uses were
+  dropped when commit 2fc04d5 ("late joiners keep their data channel") rewrote that file; its message does not say so.
+  So the transport watchdog is NOT in the game now (the presence watchdog in `js/presence.js` is), and DESIGN.md and
+  the milestone 6 CHANGELOG entry describe a transport watchdog that no longer exists. Next: restore it from
+  `git show c4e5c53:game/js/net/trystero.js` (keeping the 2fc04d5 renewal fix) and rerun beacon, or drop the test step.
 - Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
   of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
   which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150

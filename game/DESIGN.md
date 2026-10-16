@@ -138,13 +138,13 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
   greeted is answered with ours (once), and movement from an unknown peer makes us send our `hi` (once every 2 s, 64
-  strangers at most). A second, lower watchdog lives in the Trystero transport (`js/net/trystero.js`): in a stress run
+  strangers at most). (Not in the game since commit 2fc04d5, which dropped it by accident; see ROADMAP.md, Known problems. What it did:) A second, lower watchdog was added to the Trystero transport (`js/net/trystero.js`): in a stress run
   of 150 three-player meshes two failed because a link came up on one side only (that side got a join event, the other
   side's handshake timed out and it never sent anything), and the first side stayed "joined" for ever. A peer that has
   been joined for `STALL_MS` (8 s) without any message from it (every client sends one at least every 2 s) makes the
   transport leave and rejoin its room (the game is told each peer left, then each that returns joins again), at most
   `MAX_REBUILDS` (3) times and `MIN_GAP_MS` (10 s) apart, so a silent hostile peer can cost a few reconnects but not a
-  loop. `?mute=N` (loopback pages only, 1 to 30 s) makes a page neither send nor hear for N seconds, for the test.
+  loop. `?mute=N` (also dropped in 2fc04d5; loopback pages only, 1 to 30 s) made a page neither send nor hear for N seconds, for the test.
 - **Late joiners.** On `onPeerJoin` every existing peer sends its own `hi`; for room state, the newcomer asks the
   arbiter (falling back to any peer) for a snapshot, then merges using the rules above. Because the room's state
   lives only in the browsers present, a room that empties forgets everything shared in it; the landing page
@@ -152,6 +152,24 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
 - **Cheating.** Without a server, a modified client can lie about itself. Accepted: the game is co-operative,
   there is nothing to win from others, and peers bound what they accept (positions on the island, speeds within
   reason, preset ids only).
+
+## The living look (milestone 7, `js/living.js` and `js/render.js`)
+Everything is drawn by each browser on its own from the seed and the clock; no message carries any of it. Per frame, only
+the visible tiles are walked, using two byte arrays built once (`classify`: which tile glints, grows grass or is a tree;
+which sides of a shallow tile touch dry land). Trees keep their dark crown in the baked map; the lit crown and flecks are
+drawn each frame offset by `sway`. Shore foam is a pair of short bars per wet edge washing in and out; glints are 2-pixel
+bars that blink; grass blades are two strokes on 30% of grass tiles (at most 220 a frame, one path per colour); reeds
+sway in `drawNode`. Fireflies are a pure function of time (`fireflies`): 7 round a lit beacon, 3 round a coloured lantern,
+1 round a plain one. The sky strip (top centre) shows the moon crossing from dusk to dawn (highest at hour 4) and 30
+fixed stars faded by the night's darkness. Coloured lanterns get a smoothstep falloff (`softStops`, 5 colour stops).
+**Measured cost lesson:** a first version used 9 colour stops on the lantern gradients and cost about 6.5 ms a frame more
+(headless Chromium, software canvas, 375 px at devicePixelRatio 2); with 5 stops the whole living layer costs about 1 ms.
+Keep gradients at 5 stops or fewer. Reduced motion: sway, foam position, glints, fireflies and stars hold still (the
+water and trees are still drawn, only not moving); the test compares six whole-canvas pictures and finds them identical.
+The governor (`createGovernor`) lowers the level when 90 frames average over 34 ms and never raises it again in the
+same visit; level 1 drops glints, grass and most fireflies, level 0 drops fireflies too. `?look=plain` is the old look
+without any of it (also used to compare cost), `?look=low` starts at level 0. `window.__longWatch.perf()` returns frame
+and draw times of the last 240 frames, `setLevel(n)` sets the level (tests).
 
 ## Signalling from the build sandbox (checked 2026-10-15)
 - Public Nostr relays (relay.damus.io, nos.lol, relay.mostr.pub, purplerelay.com, yabu.me, nostr.data.haus) and
@@ -189,10 +207,11 @@ game/
   js/nightclock.js      the eight-hour night from the UTC clock: light, tint, lantern reach (pure)
   js/minimap.js         minimap drawing, compass words, nearest-landmark text
   js/sound.js           footsteps: stride counting, earshot gain, synthesised sounds (off by default)
-  js/render.js          canvas drawing: island, avatars, night layer with lantern light, names
+  js/living.js          the living island, pure parts: which tiles glint, foam or sway, sway and foam motion, moon and stars by hour, fireflies, soft light edges, the slow-device governor
+  js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
-  js/net/trystero.js    Trystero transport (nostr, torrent) with the link watchdog (rejoin when a joined peer stays silent)
+  js/net/trystero.js    Trystero transport (nostr, torrent); the link watchdog is missing since 2fc04d5, see ROADMAP.md
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
@@ -201,14 +220,15 @@ game/
   tests/give.test.mjs      node checks of saved-pack rules and giving under faults, then local and WebRTC pages: offer, accept, reload, decline, take-back, leaving, gift on its way, forged messages
   tests/craft.test.mjs     node checks of recipes (conversion only, refusals, full stacks, saved data, the lantern message), then local and WebRTC pages: a second player sees the lantern's reach (drawn radius and ground brightness), late joiner, reload, full stack, forged messages
   tests/beacon.test.mjs    node checks of the shares, caps, fuel messages and the presence watchdog, then local and WebRTC pages: fuel shared, one player alone cannot light, simultaneous adds, light on the ground, late joiner, reload, leaving, empty room, forged messages
+  tests/living.test.mjs    node checks of tiles, motion, moon, fireflies, governor, then local and WebRTC pages: B's fireflies follow the lantern A holds, levels, reduced motion holds every pixel still, sky differs by hour, `?look=` flags, measured frame times
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `#room=N`.
+URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

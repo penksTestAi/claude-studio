@@ -126,6 +126,9 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    the final run's own counts, and rewrite it after any later fix (19:32: review found a stale test line). When a feature's status changes (missing, back, removed), `grep -rn` its name
    across game/*.md and game/index.html and fix every hit before reporting (2026-10-16 04:38: the watchdog restore
    had no CHANGELOG entry and a stale paragraph stayed on game/index.html; review and tester only).
+   A tester (or anyone after the builder's hand-back) who changes a test or code, or finds a new problem, adds it to
+   this run's CHANGELOG entry (**Changed code:**, **Unverified:**, **Tested:**) before handing back (2026-10-16
+   21:04: the world.test fix and a 0.9 s stall reached the CHANGELOG only through review).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
    game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
    Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks
@@ -134,4 +137,6 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
 ## Report (at most 8 lines)
 Mode, what players can now do, files changed, test results, whether online play was tested, the next roadmap item,
 and one plain sentence for the Workbench line describing the game as it is now (no change notes such as "restored"
-or "now has" in it; those go in the CHANGELOG; 2026-10-16 04:38 review).
+or "now has" in it; those go in the CHANGELOG; 2026-10-16 04:38 review). The sentence ends with the online-play
+status as the CHANGELOG states it (for example "online play over public relays untested"); 21:04 review found the
+summary line had lost it.

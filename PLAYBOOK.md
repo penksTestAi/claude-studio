@@ -107,13 +107,12 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-16) A role that rewrites a sentence another role wrote (Workbench one-liners, game description,
-  README rows, patch notes) keeps every caveat in it ("untested", "unverified", "not independent", a known failure),
-  and lists any caveat it removes, with the evidence, in its report to the chair. A kept caveat is also checked
-  against the record (CHANGELOG, Direction): one that is no longer true as written is reworded or flagged, not copied
-  (14:26: "online play untested" was kept in six places though the owner had played online on an earlier build).
-  Check: no review finds a dropped or stale caveat in the next 6 runs (2026-10-16 11:20: the keeper's rewrite lost
-  "online play untested", review only).
+- (started 2026-10-16 21:04) Before review, the chair runs, in each of the three repositories, `git -C <repo> diff
+  origin/main | grep -inE '^-[^-].*(untested|not tested|unverified|not independent|clocks agree|from memory|unknown)'`
+  and either restores each printed caveat or names it in the review brief with the evidence that it is no longer
+  true; a kept caveat that the record (CHANGELOG, Direction) contradicts is reworded, not copied. Check: no review
+  finds a dropped caveat in the next 6 runs (the prose rule it replaces failed three runs running: 17:00, 19:32,
+  21:04, review only each time).
 - (started 2026-10-16) Every run the keeper compares each game passage on the Workbench (the Long Watch paragraph,
   the letter) with game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates the passages it may
   edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
@@ -156,16 +155,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   second-source data checks fall back to web-search summaries and the game's online play cannot be tested in a run
   (19:32: Eratosthenes coordinates from search summaries; milestone 13's fallback tested only on a local tracker).
   Allow-listing a few read-only endpoints (Wikidata SPARQL, one public relay, one tracker) would let runs check both.
+- (2026-10-16) POSTS.md holds 30 unposted drafts and none is ticked, so each run the profile agent writes new drafts
+  and deletes the 3 oldest unread (21:04, and earlier runs). Tick drafts you post, or tell the routine to write a
+  new draft only when one has been ticked (or one per day), to stop paying for drafts that are thrown away.
 
 ## Changelog
 
-- 2026-10-15: vigil-game skill now tests every cap, queue and timeout on owned items when full or expired (a full
-  list refuses, never drops) and allows absolute promises only when tested; milestone 4's capped expected-gifts list
-  dropped its oldest gift and the page said "never lost", both found by review only.
-- 2026-10-15: one-source experiment judged (about ten runs, four tests: Element Timeline, Tides, genetic code,
-  rainbow) and promoted to Practices; no review since found an unflagged wrong data value. Not acted on: the game
-  builder took 54 min (cause unknown; watch next run).
-- 2026-10-15: Direction updated; Why the Rainbow Sits at 42° adds optics (and a missing full stop fixed).
 - 2026-10-15: vigil-toy skill now forbids writing the journal; the toy builder appended its own entry (20:40 run,
   removed by the chair) and, unlike vigil-refine and vigil-keeper, its skill did not say so.
 - 2026-10-15: proposal for the owner: CLAUDE.md's "add a journal entry" should name the chair only (same evidence,
@@ -261,3 +256,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: proposal for the owner: allow-list a few read-only endpoints; the proxy blocked Wikidata/OSM (facts
   from search summaries) and public relays/trackers (online play untested). Not acted on: talk.test cause found and
   fixed by the tester (background page frames); watch whether it stays green.
+- 2026-10-16: caveat experiment judged (five runs) and deleted: the prose rule failed its check three runs running
+  (17:00, 19:32, 21:04: the game summary lost its online-play caveat, review only); replaced by a new experiment, a
+  chair-run grep of removed caveat words in all three diffs before review.
+- 2026-10-16: vigil-game skill now has testers record their test changes and new findings in the run's CHANGELOG
+  entry, and the Workbench sentence end with the online-play status; review found the world.test fix, the 0.9 s
+  stall and the summary caveat missing. Not acted on: parallel builders ran a third time with no clash, run about
+  1 h (experiment not judged, three runs).
+- 2026-10-16: proposal for the owner: stop the draft churn in POSTS.md (30 unposted, none ticked, 3 deleted unread
+  this run as in earlier runs).

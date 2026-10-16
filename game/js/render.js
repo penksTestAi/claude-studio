@@ -7,6 +7,7 @@ import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
 import { lampOf } from "./craft.js";
 import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
+import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 
 const TILE_SRC = 8;
@@ -153,6 +154,110 @@ export function createRenderer(canvas, world, opts = {}) {
   }
 
   // Fireflies drift round lit beacons and every lantern; coloured lanterns draw more, in their colour.
+
+  // ---- the shades: a hooded wisp of cold mist with two pale eyes, drawn over the night so it is always found. Light
+  // thins it, shrinks it and bends it away from the lantern; sparks fly off it where light burns it; a ring at its feet
+  // fills with the light the players have put on it. A driven-off shade bursts into drifting motes. ----
+  const bursts = [];
+  function burst(x, y, t) { if (bursts.length < 12) bursts.push({ x, y, t0: t }); }
+  function shadeBody(u, s, lean, sw, hemT, k, reduce) {
+    const p = new Path2D(), top = -13 * u * s, hw = 5 * u;
+    p.moveTo(lean + sw * 0.8 * u, top);
+    p.bezierCurveTo(lean * 0.8 - 1.8 * u, top + 2.5 * u, -4.6 * u + lean * 0.3, -7.5 * u * s, -hw, -1 * u);
+    const n = 5, step = (2 * hw) / n;
+    for (let i = 0; i < n; i++) {
+      const x0 = -hw + i * step, x1 = x0 + step, w = reduce ? 0 : Math.sin(hemT / 260 + i * 1.3 + k) * 0.9 * u;
+      p.quadraticCurveTo((x0 + x1) / 2, (i % 2 ? 1.6 : -1.8) * u + w, x1, (i === n - 1 ? -1 : (i % 2 ? -1.4 : 0.2)) * u);
+    }
+    p.bezierCurveTo(4.6 * u + lean * 0.3, -7.5 * u * s, lean * 0.8 + 1.8 * u, top + 2.5 * u, lean + sw * 0.8 * u, top);
+    p.closePath();
+    return p;
+  }
+  function drawShades(t, reduce, camX, camY, tile, shades, all, lt, me) {
+    const u = tile / 8, fontPx = Math.round(12 * dpr), SC = 1.25; // a shade stands about two tiles tall
+    for (const sh of shades) {
+      if (sh.gone) continue;
+      const sx = sh.x * tile - camX, sy = sh.y * tile - camY;
+      if (sx < -tile * 3 || sy < -tile * 3 || sx > canvas.width + tile * 3 || sy > canvas.height + tile * 3) continue;
+      let c = 0, ax = 0;
+      for (const p of all) {
+        const tiles = p.snuffed ? EMBER_TILES : lt.reach * lampOf(p.lamp).mult, d = Math.hypot(p.x - sh.x, p.y - sh.y);
+        const v = Math.max(0, Math.min(1, (tiles * 0.9 - d) / (tiles * 0.6)));
+        if (v > c) { c = v; ax = Math.sign(sh.x - p.x) || 1; }
+      }
+      const a = sh.alpha * (sh.safe ? 0.35 : 1) * (1 - 0.5 * c), s = 1 - 0.3 * c, lean = ax * c * 1.8 * u;
+      const sw = reduce ? 0 : Math.sin(t / 520 + sh.k * 1.7), fy = reduce ? 0 : Math.sin(t / 900 + sh.k * 2.3) * 0.5 * u; // it floats a little
+      g.save();
+      g.translate(sx, sy + fy); g.scale(SC, SC);
+      g.globalAlpha = a * 0.35; g.fillStyle = "#000"; // ground shadow
+      g.beginPath(); g.ellipse(0, 0.8 * u, 5.5 * u * s, 1.9 * u, 0, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = a * 0.5; g.fillStyle = "rgb(58,46,112)"; // mist round its feet
+      for (let i = 0; i < 3; i++) { const o = reduce ? 0 : Math.sin(t / 700 + i * 2.1 + sh.k) * 1.4 * u; g.beginPath(); g.ellipse((i - 1) * 3.2 * u + o, 0.2 * u, 3.2 * u, 1.3 * u, 0, 0, Math.PI * 2); g.fill(); }
+      // trailing arms: thin wisps that reach out and sway
+      g.globalAlpha = a * 0.7; g.strokeStyle = "rgb(124,104,190)"; g.lineWidth = Math.max(1, 0.8 * u); g.lineCap = "round";
+      for (const side of [-1, 1]) {
+        const w = sw * side * 0.9 * u;
+        g.beginPath(); g.moveTo(side * 3.2 * u, -7 * u * s);
+        g.quadraticCurveTo(side * 7.4 * u + w, -6 * u * s, side * 7.6 * u + w * 1.4, -2.2 * u * s + Math.abs(w) * 0.4);
+        g.stroke();
+        for (let f = -1; f <= 1; f++) { g.beginPath(); g.moveTo(side * 7.6 * u + w * 1.4, -2.2 * u * s + Math.abs(w) * 0.4); g.lineTo(side * (8.4 + 0.3 * f) * u + w * 1.5, (-0.6 + f * 0.9) * u * s); g.stroke(); }
+      }
+      // the cloak
+      const body = shadeBody(u, s, lean, sw, t, sh.k, reduce);
+      const gr = g.createLinearGradient(0, -13 * u * s, 0, 1.5 * u);
+      gr.addColorStop(0, "rgba(104,82,162,0.96)"); gr.addColorStop(0.55, "rgba(52,38,98,0.9)"); gr.addColorStop(1, "rgba(24,16,52,0.35)");
+      g.globalAlpha = a; g.fillStyle = gr; g.fill(body);
+      g.globalAlpha = a * 0.8; g.strokeStyle = c > 0.5 ? "rgb(255,226,160)" : "rgb(150,232,228)"; g.lineWidth = Math.max(1, 0.45 * u); g.lineJoin = "round"; g.stroke(body); // a cold rim keeps it readable on dark ground
+      // the hood's void and the eyes
+      g.globalAlpha = a; g.fillStyle = "rgba(3,2,10,0.96)";
+      g.beginPath(); g.ellipse(lean * 0.7 + sw * 0.5 * u, -9.4 * u * s, 2.3 * u, 2.9 * u * s, 0, 0, Math.PI * 2); g.fill();
+      const blink = !reduce && (t / 1000 + sh.k * 1.3) % 4.2 < 0.14, squint = c > 0.3 || blink ? 0.35 : 1;
+      for (const ex of [-1, 1]) {
+        const cx = lean * 0.7 + sw * 0.5 * u + ex * 1.0 * u, cy = -9.6 * u * s;
+        g.fillStyle = "rgba(160,245,236,0.22)"; g.beginPath(); g.arc(cx, cy, 1.7 * u, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#bff8ee"; g.beginPath(); g.ellipse(cx, cy, 0.62 * u, 0.95 * u * squint, 0, 0, Math.PI * 2); g.fill();
+      }
+      // sparks where light burns it
+      if (c > 0.05) {
+        const n = reduce ? 3 : Math.round(3 + 6 * c);
+        g.fillStyle = "#ffe9a8";
+        for (let i = 0; i < n; i++) {
+          const ph = reduce ? i / n : ((t / 900 + i * 0.37 + sh.k * 0.2) % 1), px = (((i * 37 + sh.k * 11) % 9) - 4) * 0.8 * u + lean * ph, py = -(1 + ph * 12) * u * s;
+          g.globalAlpha = a * (1 - ph) * Math.min(1, c * 2.2); g.fillRect(px - 0.4 * u, py - 0.4 * u, 0.8 * u, 0.8 * u);
+        }
+      }
+      g.restore();
+      // the ring of light put on it, and its count when you are near
+      if (sh.total > 0 || c > 0.05) {
+        g.save(); g.translate(sx, sy + 1.2 * u); g.scale(SC, SC); g.globalAlpha = Math.min(1, sh.alpha * 1.2);
+        g.strokeStyle = "rgba(255,233,168,0.28)"; g.lineWidth = Math.max(1.5, 0.7 * u);
+        g.beginPath(); g.ellipse(0, 0, 7.2 * u, 2.9 * u, 0, 0, Math.PI * 2); g.stroke();
+        g.strokeStyle = "rgb(255,224,130)";
+        g.beginPath(); g.ellipse(0, 0, 7.2 * u, 2.9 * u, 0, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, sh.total / SHADE_NEED)); g.stroke();
+        g.restore();
+      }
+      if (Math.hypot(me.x - sh.x, me.y - sh.y) < 6 && sh.alpha > 0.5) {
+        g.font = `${fontPx}px Georgia, serif`; g.textAlign = "center";
+        const lab = `Shade: light ${Math.min(sh.total, SHADE_NEED)} of ${SHADE_NEED}`, ly = sy - 18.5 * u * s;
+        g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#d6cdf5";
+        g.strokeText(lab, sx, ly); g.fillText(lab, sx, ly);
+      }
+    }
+    // motes of a shade that was driven off
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const b = bursts[i], age = (t - b.t0) / 1800;
+      if (age >= 1 || age < 0) { bursts.splice(i, 1); continue; }
+      const bx = b.x * tile - camX, by = b.y * tile - camY;
+      g.save(); g.translate(bx, by);
+      for (let j = 0; j < 16; j++) {
+        const ang = j * 0.3927 + (j % 3) * 0.2, d = (reduce ? 0.5 : age) * (4 + (j % 4)) * u, up = (reduce ? 0.5 : age) * (6 + (j % 5)) * u;
+        g.globalAlpha = (1 - age) * 0.9; g.fillStyle = j % 2 ? "#ffe9a8" : "#e8e4ff";
+        g.fillRect(Math.cos(ang) * d - 0.6 * u, Math.sin(ang) * d * 0.5 - up - 0.6 * u, 1.2 * u, 1.2 * u);
+      }
+      g.restore();
+    }
+  }
+
   function drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires) {
     if (level < 1) { flyCount = 0; return; }
     const r = tile * 0.075; let n = 0;
@@ -211,15 +316,15 @@ export function createRenderer(canvas, world, opts = {}) {
     return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount };
   }
 
-  function draw(me, peers, stick, t, light, nodes, reach, fires) {
+  function draw(me, peers, stick, t, light, nodes, reach, fires, shades) {
     const t0 = performance.now();
-    drawFrame(me, peers, stick, t, light, nodes, reach, fires);
+    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades);
     const i = nSamp % 240; samples[i] = performance.now() - t0; frames[i] = prevT ? t - prevT : 0; nSamp++;
     if (prevT) gov.note(t - prevT);
     prevT = t;
   }
 
-  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = []) {
+  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = []) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     const level = plain ? 0 : gov.level;
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
@@ -251,12 +356,12 @@ export function createRenderer(canvas, world, opts = {}) {
     dg.globalCompositeOperation = "destination-out";
     lastLights = [];
     for (const p of all) {
-      const sx = p.x * tile - camX, sy = p.y * tile - camY, lamp = lampOf(p.lamp);
+      const sx = p.x * tile - camX, sy = p.y * tile - camY, lamp = p.snuffed ? lampOf(0) : lampOf(p.lamp);
       const flick = reduce || !lamp.glow ? 1 : 1 + Math.sin(t / 140 + (p.seed || 0) % 7) * 0.012; // coloured lanterns flicker a very little
-      const tiles = lt.reach * lamp.mult * flick, r = tile * tiles;
-      lastLights.push({ id: p.id === "me" || p === me ? "me" : p.id, tiles: Math.round(tiles * 100) / 100, lamp: p.lamp | 0 });
+      const tiles = p.snuffed ? EMBER_TILES : lt.reach * lamp.mult * flick, r = tile * tiles;
+      lastLights.push({ id: p.id === "me" || p === me ? "me" : p.id, tiles: Math.round(tiles * 100) / 100, lamp: p.lamp | 0, snuffed: !!p.snuffed });
       const grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
-      if (lamp.glow && !plain) for (const [s, a] of softStops(0.95)) grad.addColorStop(s, `rgba(0,0,0,${a.toFixed(3)})`); // coloured lanterns: a soft edge
+      if (lamp.glow && !plain && !p.snuffed) for (const [s, a] of softStops(0.95)) grad.addColorStop(s, `rgba(0,0,0,${a.toFixed(3)})`); // coloured lanterns: a soft edge
       else { grad.addColorStop(0, "rgba(0,0,0,0.95)"); grad.addColorStop(0.55, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0)"); }
       dg.fillStyle = grad; dg.beginPath(); dg.arc(sx, sy, r, 0, Math.PI * 2); dg.fill();
     }
@@ -273,7 +378,7 @@ export function createRenderer(canvas, world, opts = {}) {
     g.globalCompositeOperation = "lighter";
     for (const p of all) {
       const lamp = lampOf(p.lamp);
-      if (!lamp.glow) continue;
+      if (!lamp.glow || p.snuffed) continue;
       const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach * lamp.mult * 0.85, [cr, cg, cb] = lamp.glow;
       const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
       if (plain) { grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.30)`); grad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`); grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`); }
@@ -288,6 +393,7 @@ export function createRenderer(canvas, world, opts = {}) {
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
     g.globalCompositeOperation = "source-over";
+    drawShades(t, reduce, camX, camY, tile, shades, all, lt, me);
     if (!plain) drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires);
 
     // Landmark names when one is close (words from our own list).
@@ -338,7 +444,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // A beacon basket's fire: nothing without fuel, embers while it fills, a tall flame once lit.
@@ -394,10 +500,14 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   // The lantern, held toward the facing direction (set down in front when sitting).
   let lx = sx + Math.cos(p.d) * r * 1.15, ly = sy + bob + dip + Math.sin(p.d) * r * 1.15;
   if (name === "sit") { lx = sx + Math.cos(p.d) * r * 1.5; ly = sy + r0 * 0.75 + Math.sin(p.d) * r * 0.6; }
-  const glow = lampOf(p.lamp).glow;
-  if (glow) { g.fillStyle = `rgba(${glow[0]},${glow[1]},${glow[2]},0.35)`; g.beginPath(); g.arc(lx, ly, r * 0.75, 0, Math.PI * 2); g.fill(); }
-  g.fillStyle = glow ? `rgb(${glow[0]},${glow[1]},${glow[2]})` : p.colour;
-  g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();
+  const glow = p.snuffed ? null : lampOf(p.lamp).glow;
+  if (p.snuffed) { // the flame is out: a dull ember and a curl of smoke
+    g.fillStyle = "#5a3322"; g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "rgba(190,190,205,0.55)"; g.lineWidth = Math.max(1, tile * 0.04);
+    for (let i = 0; i < 2; i++) { const w = reduce ? 0 : Math.sin(t / 300 + i * 2) * r * 0.25; g.beginPath(); g.moveTo(lx, ly - r * 0.3); g.quadraticCurveTo(lx + w + r * 0.2 * (i ? 1 : -1), ly - r * 0.9, lx + w * 1.5, ly - r * (1.5 + i * 0.4)); g.stroke(); }
+  }
+  else if (glow) { g.fillStyle = `rgba(${glow[0]},${glow[1]},${glow[2]},0.35)`; g.beginPath(); g.arc(lx, ly, r * 0.75, 0, Math.PI * 2); g.fill(); }
+  if (!p.snuffed) { g.fillStyle = glow ? `rgb(${glow[0]},${glow[1]},${glow[2]})` : p.colour; g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill(); }
   if (name === "wave") { // a raised hand swinging side to side
     const hx = sx + r * 1.1 + (reduce ? 0 : Math.sin(t / 80) * r * 0.5), hy = sy - r * 1.35;
     g.strokeStyle = "#e8d3b0"; g.lineWidth = Math.max(2, tile * 0.06);

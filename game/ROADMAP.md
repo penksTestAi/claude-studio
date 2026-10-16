@@ -47,15 +47,25 @@ working features.
   joiners get a snapshot; progress is not saved and starts again at 0 when the lantern empties and at 00:00 UTC.
   (2026-10-16, local relay only)
 
+- **9. The shades.** Waves of 0 to 4 slow hooded creatures (a pure function of the seed and the UTC clock, so nothing about
+  where they are is sent) circle landmarks and snuff a lantern for 14 s; light-seconds put on a shade are a grow-only
+  counter per player, a shade is driven off at 20 from at least 2 players (one alone adds at most 19), a friend's lit
+  lantern on a shade holds it back, a friend nearby relights you, a lit beacon is safe ground. Drawn with a real figure
+  (hood, eyes, arms, swaying hem, sparks where light burns it, a ring that fills). (2026-10-16, local relay only)
+
 ## Later (in rough order, each one run)
-9. **NEXT: Shades.** Slow night creatures that put out lights; driven off only by light, and best by several players
-   standing together. Co-operative, no player against player harm.
-10. **Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
+**A roadmap review is due** (10 increments since the founding: milestones 1 to 9 and the watchdog restore). The next run
+is in founding mode: read the CHANGELOG, rewrite this file, then build item 10 if time allows.
+10. **NEXT: Progression.** Lamplighter ranks and cosmetic lantern styles earned by helping others (lighting someone
    else's lantern counts for more than your own).
 11. **Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned, consider rendering
     (three.js?), signalling fallbacks (MQTT), room sizes and what players actually do.
+12. **A look step: weather and the shades' sky.** Drifting mist and rain on the island, soft thunder-less storms that thin
+    the light, a night sky that darkens when a wave of shades arrives; keep it cheap on phones (one in three increments is
+    mainly about the look; the last one was milestone 7).
 
 ## Known problems
+- `shades.test.mjs` failed once in a tester run (then passed) at "neither player was ever snuffed": the start spots are up to 3 tiles apart from a shade's side, so a lone arrival can snuff before the friend's light reaches it. Decide whether the rule or the spots should change.
 - Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
   of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
   which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150
@@ -66,7 +76,11 @@ working features.
   Still to watch: `give` step "when both are back, the reeds arrive" failed 3 times in about 100 WebRTC runs
   (both pages had lost each other; before link history existed), and a real network with TURN needs is untested.
 
+- `living.test.mjs` "the sky strip at one hour looks the same each time" failed about 3 of 10 runs on the code before
+  milestone 9 (not caused by it): the strip holds twinkling stars and the glints under it. The check now compares three
+  pictures per visit (5 of 5 afterwards, 63 checks); if it fails again, look at which pixels differ.
+
 ## Ideas parked (no order)
-Fishing at the jetty; a shared music stone players can play together with preset notes; weather; a
+Fishing at the jetty; shades that follow a lone lantern slowly; a shade that can only be driven off by a lit beacon at the end of a long night; a shared music stone players can play together with preset notes; weather; a
 world-changing event when every beacon in a room is lit; trading with fair offers; giving crafted lanterns (needs the same offer, accept and receipt rules, with kinds added to the saved lists); seasonal islands (a new
 seed each month, the old ones kept as "past islands").

@@ -249,9 +249,12 @@ async function scenario(label, mk, query, room, opts = {}) {
   const b = []; for (let i = 0; i < 6; i++) { b.push(await canvasSum(F, false)); await sleep(300); }
   ok(new Set(b).size >= 4, `without it the same place changes from frame to frame (${new Set(b).size} different in 6)`);
   // the moon and stars follow the hour
-  const stripAt = async (hour) => { const p = await full.newPage(); watch(p, "sky"); await p.goto(`${base}?net=local&hour=${hour}#room=2`); await p.click("#enter"); await sleep(700); const v = await canvasSum(p, true); await p.close(); return v; };
-  const s1 = await stripAt(1), s35 = await stripAt(3.5), s7 = await stripAt(7.9), s1b = await stripAt(1);
-  ok(s1 === s1b || Math.abs(s1 - s1b) < s1 * 0.01, "the sky strip at one hour looks the same each time");
+  // The strip also holds twinkling stars and the glints under it, so one picture at one instant can differ by more than 1%
+  // (this check failed 3 of 10 runs on the untouched code before milestone 9). Take three pictures per visit; the visits
+  // look the same when some picture of one is within 1% of some picture of the other.
+  const stripAt = async (hour, n = 1) => { const p = await full.newPage(); watch(p, "sky"); await p.goto(`${base}?net=local&hour=${hour}#room=2`); await p.click("#enter"); await sleep(700); const v = []; for (let i = 0; i < n; i++) { v.push(await canvasSum(p, true)); await sleep(230); } await p.close(); return v; };
+  const s1v = await stripAt(1, 3), s1bv = await stripAt(1, 3), s35 = (await stripAt(3.5))[0], s7 = (await stripAt(7.9))[0], s1 = s1v[0];
+  ok(s1v.some(x => s1bv.some(y => x === y || Math.abs(x - y) < x * 0.01)), "the sky strip at one hour looks the same each time");
   ok(s1 !== s35 && s35 !== s7 && s1 !== s7, `the sky strip differs at hour 1, 3.5 and 7.9 (the moon moves, the stars come and go)`);
   const plain = await full.newPage(); watch(plain, "plain");
   await plain.goto(`${base}?net=local&hour=${HOUR}&look=plain#room=2`); await plain.click("#enter"); await sleep(800);

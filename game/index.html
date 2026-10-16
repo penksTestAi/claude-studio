@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island game where players gather, craft lanterns, fuel beacons and finish the keeper&#x27;s three daily notes together, peer to peer with no server (milestone 8; online play over public relays untested, local relay only).">
+<meta name="description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island game where players gather, craft lanterns, fuel beacons and finish the keeper&#x27;s three daily notes together, peer to peer with no server (milestone 8; online play over public relays untested, local relay only).">
+<meta property="og:description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island game where players gather, craft lanterns, fuel beacons and finish the keeper&#x27;s three daily notes together, peer to peer with no server (milestone 8; online play over public relays untested, local relay only).">
+<meta name="twitter:description" content="A peer-to-peer night-island game where players gather, craft lanterns, fuel beacons, finish the keeper&#x27;s daily notes and, together, drive off the slow shades that snuff their lights, with no server (milestone 9; online play over public relays untested).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -147,6 +147,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <ul class="small notes" id="questlist" aria-labelledby="quests-label"></ul>
       <p class="small heard" id="questinfo" role="status" aria-live="polite"></p>
     </div>
+    <div class="craft" id="shades" hidden>
+      <p class="small" id="shades-label">Shades: slow creatures of the night that put out lanterns. They hurt no one and take nothing. Light drives them off, and the more of you stand together with lit lanterns, the faster.</p>
+      <p class="small" id="shadestate"></p>
+      <p class="small heard" id="shadeinfo" role="status" aria-live="polite"></p>
+    </div>
     <div class="craft" id="beacon" hidden>
       <p class="small" id="beacon-label">Old beacon: players fuel it together. The fuel you add is used up and counted as your share.</p>
       <p class="small" id="beaconstate"></p>
@@ -191,6 +196,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.11</b> · milestone 9 (the shades) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> meet the shades: slow, hooded creatures of the night that drift in off the sea, circle one of the island's landmarks for about a minute and drift away again. They hurt no one and take nothing. A shade that reaches you puts your lantern out for 14 seconds: your light shrinks to a dull ember with a curl of smoke, and everyone sees it. Light drives shades off, and the more of you stand together the better. Every second your lit lantern reaches a shade you add one light-second to it; when a shade has 20 light-seconds from at least 2 different players it is driven off in a burst of motes and gone for the rest of that wave (one player alone can add at most 19, so a shade always takes two). While another player's lit lantern is on a shade, it cannot snuff you: it is held back, so a friend whose light reaches the shade keeps your light safe. If your lantern is out, a player with a lit lantern who comes within two and a half tiles relights it after a second and a half, and then no shade can snuff you again for 6 seconds. Inside the light of a lit beacon a shade cannot snuff anyone. A new Shades panel says how many shades are out, how far and which way the nearest one is, and how much light it has; a small violet mark on the minimap shows each one; waves of 0 to 4 shades arrive every few minutes, the same for everyone in the lantern. Shades are drawn as cold hooded mist with two pale eyes and a ragged hem that sways; they thin, shrink and bend away from your light and throw off sparks where it burns them, and a ring at their feet fills as the light-seconds come in. With reduced motion they hold their pose (they still drift slowly along their path, since that is where the game says they are).</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the shades look and the panel reads on a real phone and with a screen reader, whether 14 seconds snuffed and 20 light-seconds are the right numbers for real play, whether the waves are too rare or too frequent, a lantern whose players' clocks differ by minutes (they would see shades in different places and count light on different ones), and a shade's look in direct comparison with real devices' colour (checked only in headless Chromium screenshots).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.10</b> · milestone 8 (the keeper's notes) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> read three small notes from the keeper each day, in a new "Keeper's notes" panel, and finish them together with everyone in the same lantern. Every day (UTC) the island's seed and the date make the same three notes for everyone: gather some of one thing (for example "Gather 8 driftwood together"), make some wicks or amber lanterns, and burn some fuel in one named old beacon (for example "Burn 7 fuel together in the south-west beacon"). Whatever you gather, make or burn for a note is added to a shared count that everyone in the lantern sees at once, with how many players have helped. A note is finished when the count reaches the number asked and at least two players have helped; one player can add at most one less than the number, so no single browser can finish a note alone. Players who join later are told where the notes stand. The notes start again at 0 when the lantern empties and at 00:00 UTC; progress is not saved anywhere, and your pack is untouched beyond what the job itself uses.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the panel looks and reads on a real phone and with a screen reader, a lantern whose players' clocks differ by minutes (the day would differ for them and they would not share notes), and whether three notes a day are the right amount.</p>
@@ -262,13 +272,14 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
         contacts to set up a connection see your IP address, as any website would. Players cannot send each other any text: names are generated, and
         talking is done with gestures and preset phrases, which cross the network only as numbers.</li>
       <li>The keeper's notes are counted live in the browsers of the players in the lantern and are not saved anywhere: when the last player leaves, or at 00:00 UTC (a few seconds of clock difference between players can briefly hide someone's progress at the change), they start again at 0. Doing a note's job uses nothing up beyond what the job itself uses. A modified game could claim progress it did not make, so a finished note proves nothing.</li>
+      <li>Shades are slow creatures of the night drawn on every player's screen from the island's seed and the clock, so everyone in a lantern sees the same ones in the same places; where they are is never sent. A shade only snuffs a lantern for a few seconds, takes nothing and hurts no one. How much light players have put on a shade is counted live in their browsers and is not saved: it starts again when the lantern empties and every 160 seconds. Whether your lantern is out is told to the others as a single yes or no. A modified game could claim light it did not give, or keep its own lantern lit; there is nothing to win from others.</li>
       <li>Beacons are shared only among the players in the lantern right now: the fuel counts live in their browsers, there is no server, and when the last player leaves the beacons go dark and are forgotten. The fuel you spend leaves your own pack for good. A beacon needs 12 fuel and at least 2 different players, one player's share is at most 16, and at most 24 players are counted on one beacon. A modified game could claim fuel it did not add, so do not treat a lit beacon as proof of anything.</li>
       <li>The island is generated from a fixed seed, so everyone walks the same island.</li>
       <li>A lantern is meant for a small group: every browser connects to every other one, so a crowded room gets heavy.</li>
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 6 (beacons). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 9 (the shades). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

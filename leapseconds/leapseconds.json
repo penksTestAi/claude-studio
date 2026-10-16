@@ -1,0 +1,198 @@
+[
+ {
+  "effective_utc_date": "1972-01-01",
+  "mjd": 41317,
+  "tai_minus_utc_s": 10,
+  "change_s": null,
+  "leap_second_at_utc": null
+ },
+ {
+  "effective_utc_date": "1972-07-01",
+  "mjd": 41499,
+  "tai_minus_utc_s": 11,
+  "change_s": 1,
+  "leap_second_at_utc": "1972-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1973-01-01",
+  "mjd": 41683,
+  "tai_minus_utc_s": 12,
+  "change_s": 1,
+  "leap_second_at_utc": "1972-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1974-01-01",
+  "mjd": 42048,
+  "tai_minus_utc_s": 13,
+  "change_s": 1,
+  "leap_second_at_utc": "1973-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1975-01-01",
+  "mjd": 42413,
+  "tai_minus_utc_s": 14,
+  "change_s": 1,
+  "leap_second_at_utc": "1974-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1976-01-01",
+  "mjd": 42778,
+  "tai_minus_utc_s": 15,
+  "change_s": 1,
+  "leap_second_at_utc": "1975-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1977-01-01",
+  "mjd": 43144,
+  "tai_minus_utc_s": 16,
+  "change_s": 1,
+  "leap_second_at_utc": "1976-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1978-01-01",
+  "mjd": 43509,
+  "tai_minus_utc_s": 17,
+  "change_s": 1,
+  "leap_second_at_utc": "1977-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1979-01-01",
+  "mjd": 43874,
+  "tai_minus_utc_s": 18,
+  "change_s": 1,
+  "leap_second_at_utc": "1978-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1980-01-01",
+  "mjd": 44239,
+  "tai_minus_utc_s": 19,
+  "change_s": 1,
+  "leap_second_at_utc": "1979-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1981-07-01",
+  "mjd": 44786,
+  "tai_minus_utc_s": 20,
+  "change_s": 1,
+  "leap_second_at_utc": "1981-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1982-07-01",
+  "mjd": 45151,
+  "tai_minus_utc_s": 21,
+  "change_s": 1,
+  "leap_second_at_utc": "1982-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1983-07-01",
+  "mjd": 45516,
+  "tai_minus_utc_s": 22,
+  "change_s": 1,
+  "leap_second_at_utc": "1983-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1985-07-01",
+  "mjd": 46247,
+  "tai_minus_utc_s": 23,
+  "change_s": 1,
+  "leap_second_at_utc": "1985-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1988-01-01",
+  "mjd": 47161,
+  "tai_minus_utc_s": 24,
+  "change_s": 1,
+  "leap_second_at_utc": "1987-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1990-01-01",
+  "mjd": 47892,
+  "tai_minus_utc_s": 25,
+  "change_s": 1,
+  "leap_second_at_utc": "1989-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1991-01-01",
+  "mjd": 48257,
+  "tai_minus_utc_s": 26,
+  "change_s": 1,
+  "leap_second_at_utc": "1990-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1992-07-01",
+  "mjd": 48804,
+  "tai_minus_utc_s": 27,
+  "change_s": 1,
+  "leap_second_at_utc": "1992-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1993-07-01",
+  "mjd": 49169,
+  "tai_minus_utc_s": 28,
+  "change_s": 1,
+  "leap_second_at_utc": "1993-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1994-07-01",
+  "mjd": 49534,
+  "tai_minus_utc_s": 29,
+  "change_s": 1,
+  "leap_second_at_utc": "1994-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1996-01-01",
+  "mjd": 50083,
+  "tai_minus_utc_s": 30,
+  "change_s": 1,
+  "leap_second_at_utc": "1995-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1997-07-01",
+  "mjd": 50630,
+  "tai_minus_utc_s": 31,
+  "change_s": 1,
+  "leap_second_at_utc": "1997-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "1999-01-01",
+  "mjd": 51179,
+  "tai_minus_utc_s": 32,
+  "change_s": 1,
+  "leap_second_at_utc": "1998-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "2006-01-01",
+  "mjd": 53736,
+  "tai_minus_utc_s": 33,
+  "change_s": 1,
+  "leap_second_at_utc": "2005-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "2009-01-01",
+  "mjd": 54832,
+  "tai_minus_utc_s": 34,
+  "change_s": 1,
+  "leap_second_at_utc": "2008-12-31T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "2012-07-01",
+  "mjd": 56109,
+  "tai_minus_utc_s": 35,
+  "change_s": 1,
+  "leap_second_at_utc": "2012-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "2015-07-01",
+  "mjd": 57204,
+  "tai_minus_utc_s": 36,
+  "change_s": 1,
+  "leap_second_at_utc": "2015-06-30T23:59:60Z"
+ },
+ {
+  "effective_utc_date": "2017-01-01",
+  "mjd": 57754,
+  "tai_minus_utc_s": 37,
+  "change_s": 1,
+  "leap_second_at_utc": "2016-12-31T23:59:60Z"
+ }
+]

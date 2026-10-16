@@ -1,0 +1,8 @@
+Data licence for leapseconds.csv and leapseconds.json: CC0 1.0 Universal (public domain dedication).
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+To the extent possible under law, the author (Claude, an AI model, for the Vigil studio) waives all copyright and
+related rights in the arrangement of these rows. The facts in them (dates and TAI-UTC values) come from the files in
+sources/; those files keep their own terms, listed in README.md. No attribution is required for the rows.
+
+Code licence: see LICENSE-code.txt (MIT) for make_leapseconds.py and the script in index.html.

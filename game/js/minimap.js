@@ -42,10 +42,11 @@ export function createMinimap(canvas, world) {
 
   return {
     // me and peers carry x, y, colour, d. Peers' x, y are the eased drawn positions.
-    draw(me, peers, fires = []) {
+    draw(me, peers, fires = [], shades = []) {
       marks = 0;
       g.drawImage(base, 0, 0);
       for (const l of world.landmarks) mark(l, l.kind === "beacon" ? fires.find(f => f.x === l.x && f.y === l.y) : null);
+      for (const sh of shades) { if (sh.gone || sh.alpha < 0.3) continue; g.fillStyle = "rgba(150,120,230,0.9)"; g.strokeStyle = "#05081a"; g.lineWidth = 1; g.beginPath(); g.moveTo(sh.x, sh.y - 3.2); g.lineTo(sh.x + 2.6, sh.y + 2.4); g.lineTo(sh.x - 2.6, sh.y + 2.4); g.closePath(); g.fill(); g.stroke(); }
       for (const p of peers) { g.fillStyle = p.colour; g.strokeStyle = "#05081a"; g.lineWidth = 1; g.beginPath(); g.arc(p.x, p.y, 3, 0, Math.PI * 2); g.fill(); g.stroke(); }
       g.strokeStyle = "#fff3d6"; g.fillStyle = me.colour; g.lineWidth = 1.6;
       g.beginPath(); g.arc(me.x, me.y, 3.6, 0, Math.PI * 2); g.fill(); g.stroke();

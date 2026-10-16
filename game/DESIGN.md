@@ -147,6 +147,27 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   starts the new day's notes at 0 (so clock differences of seconds can briefly hide progress). Nothing is saved: a room that
   empties forgets its notes; the pack is not touched by a note. Accepted weakness: a modified client can claim shares (or
   another player's seed, faking the second player); there is nothing to win from others.
+- **Shades protocol v1** (`js/shades.js`, milestone 9): a shade's whole life is a pure function of the island seed and the UTC
+  clock, so no position is ever sent. A slot is 160 s (`SLOT_S`); `shadeCount(seed, slot)` gives 0 to `MAX_SHADES` (4), a quarter
+  of the slots none; `shadePlan(world, slot, k)` picks the landmark `a` it circles, the landmark `b` it leaves toward, an entry
+  point about 26 tiles out, and a stagger of `k * 12` s; `shadeAt(world, ms, k)` is its position: in at 0.9 tiles a second
+  (`SPEED`), 55 s on a circle of radius 1.8 round `a`, then off toward `b` for 35 s, fading in and out over 3 s; it always
+  leaves inside its own slot. Players share only the light put on each shade: a per-player grow-only counter keyed by the
+  player's seed, exactly like the beacons' fuel and the notes' shares (`createLightShares`, merge keeps the larger); a shade is
+  gone for the rest of the slot when the total reaches `SHADE_NEED` (20 light-seconds) with at least `MIN_PLAYERS` (2) holders;
+  one share is at most `MAX_SHARE` (19); 24 players per shade, a full list refuses and drops nobody. A player counts a
+  light-second for every second their own lit (not snuffed) lantern reaches (within 90% of its reach) a shade that is out and
+  not gone. Messages: `hp {s,i,n}`, `hq {s}`, `hs {s,i[],p[],n[],f}` (as the notes' `qp`, `qq`, `qs` with the slot number in
+  place of the day; a message of another slot is dropped) and `sf {z}` (lantern out 1 or lit 0, on change, to each newcomer and
+  every 5 s; a receiver trusts a 1 for `SNUFF_S + 6` s at most). Credits earned before a present peer's counters are heard are
+  held (`owed`) and added after the snapshot. Being snuffed (`me.snuffed`, decided by each browser only about itself): a shade that
+  is out (alpha at least 0.5), not gone, within `SNUFF_R` (1 tile), snuffs the player unless some other player whose lantern is
+  not out has their light on that shade (then the page is told "held"), unless the player stands within 90% of the radius of a lit
+  beacon (`safeAt`), or is in the `GRACE_S` (6 s) after the last time. It ends after `SNUFF_S` (14 s) or when a player with a lit
+  lantern stays within `RELIGHT_R` (2.5 tiles) for `RELIGHT_S` (1.5 s). A snuffed lantern gives a pool of `EMBER_TILES` (0.9) and
+  no glow. Nothing is lost and nothing is saved. Accepted weakness: a modified client can claim light-seconds or never be
+  snuffed; clocks that differ by more than a few seconds show shades in slightly different places (and by minutes, in different
+  slots). `?shadeclock=N` (loopback pages only) shifts the shades' clock; `__longWatch.setShadeClock(ms)` does the same for tests.
 - **Presence watchdog** (milestone 6, in `js/presence.js`): over real WebRTC a link can come up on one side before the
   other and the single `hi` sent at that moment is lost, so the two never see each other. Now a peer we have greeted
   but not heard a `hi` from gets our `hi` again after 3 s (three repeats at most), a `hi` from a peer we have not
@@ -183,6 +204,19 @@ The governor (`createGovernor`) lowers the level when 90 frames average over 34 
 same visit; level 1 drops glints, grass and most fireflies, level 0 drops fireflies too. `?look=plain` is the old look
 without any of it (also used to compare cost), `?look=low` starts at level 0. `window.__longWatch.perf()` returns frame
 and draw times of the last 240 frames, `setLevel(n)` sets the level (tests).
+
+## The shades' look (milestone 9, `drawShades` in `js/render.js`)
+Drawn per frame by each browser from the shade list (`shades.list()`), over the night layer so it is always found: a ground
+shadow and three drifting mist ovals; two arm wisps with three finger strokes each that sway; a cloak path (hood point, two
+bezier sides, a hem of five scallops that ripple) filled with a vertical gradient from violet to nothing, with a thin cold-teal
+rim that keeps it readable on dark ground (gold only where light is strong); a near-black hood void with two pale eyes that
+blink every few seconds and narrow in light; light from any lantern within reach thins the body (alpha down to half), shrinks it to
+70% and bends the hood away from the nearest light, and throws off 3 to 9 rising sparks. A ring at the feet fills with the
+light-seconds put on it, and "Shade: light n of 20" shows above it within 6 tiles. A driven-off shade bursts into 16 motes
+(`renderer.burst`, 1.8 s). Everything is scaled 1.25 so a shade stands about two tiles tall. A snuffed player's lantern is drawn as a
+dull ember with two curls of smoke. Reduced motion: no sway, ripple, blink, float or moving sparks (the shade still moves along its
+path, because that is its place in the game). Cost measured in headless Chromium (software canvas): the draw averages about 1.3 ms a
+frame with a shade on screen. Own drawing, no outside art.
 
 ## Signalling from the build sandbox (checked 2026-10-15)
 - Public Nostr relays (relay.damus.io, nos.lol, relay.mostr.pub, purplerelay.com, yabu.me, nostr.data.haus) and
@@ -222,6 +256,7 @@ game/
   js/sound.js           footsteps: stride counting, earshot gain, synthesised sounds (off by default)
   js/living.js          the living island, pure parts: which tiles glint, foam or sway, sway and foam motion, moon and stars by hour, fireflies, soft light edges, the slow-device governor
   js/quests.js          the keeper's notes: notes from seed and day (pure), shares counter, `qp` `qq` `qs` messages, held-back credits, midnight change
+  js/shades.js          the shades: slots, waves, a shade's path (pure), light-seconds shares counter, `hp` `hq` `hs` `sf` messages, snuffing and relighting, `?shadeclock=`
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -236,14 +271,15 @@ game/
   tests/beacon.test.mjs    node checks of the shares, caps, fuel messages and the presence watchdog, then local and WebRTC pages: fuel shared, one player alone cannot light, simultaneous adds, light on the ground, late joiner, reload, leaving, empty room, forged messages
   tests/living.test.mjs    node checks of tiles, motion, moon, fireflies, governor, then local and WebRTC pages: B's fireflies follow the lantern A holds, levels, reduced motion holds every pixel still, sky differs by hour, `?look=` flags, measured frame times
   tests/quests.test.mjs    node checks of the notes, shares and the module on a fake mesh, then local and WebRTC pages: three notes worked by two players, late joiner, reload, another day, forged messages
+  tests/shades.test.mjs    node checks of the shades' paths, shares, caps and the module on a fake mesh (snuffing, ward, relight, flags, floods, slot change), then local and WebRTC pages: two players drive a circling shade off together without being snuffed, a lone player is snuffed and a friend relights, late joiner, forged messages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
-URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `#room=N`.
+URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

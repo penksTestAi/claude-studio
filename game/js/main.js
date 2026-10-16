@@ -14,9 +14,10 @@ import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.j
 import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventory.js";
-import { createBeacons, BEACON_NEED, BEACON_RANGE, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
+import { createBeacons, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
-import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText } from "./craft.js";
+import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
+import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -83,7 +84,7 @@ const strides = createStrideTracker();
 const pinnedHour = pickHour(location.search);
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
-let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -104,6 +105,8 @@ async function enter() {
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
+  shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe });
+  me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
   paintBeacon(true); $("beaconinfo").textContent = "";
@@ -123,8 +126,8 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null;
-  paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; me.snuffed = false;
+  paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
@@ -157,17 +160,19 @@ function frame(t) {
   craft.tick();
   beacon.tick();
   quests.tick();
+  shades.tick(dt);
   paintCooldowns(t);
   const light = lightNow();
   footsteps(light);
   const reach = gather.reach();
   const fires = fireList();
-  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires);
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list());
+  paintShades();
   paintBeacon();
   paintQuests();
   $("gather").disabled = !reach;
   paintGive();
-  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires); }
+  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list()); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); }
   if (t - lastSave > 3000) { save(); lastSave = t; updateStatus(); }
   requestAnimationFrame(frame);
@@ -255,6 +260,49 @@ function paintQuests(force) {
   $("quests").hidden = !quests;
   const ul = $("questlist"); ul.textContent = "";
   for (const l of lines) { const li = document.createElement("li"); li.textContent = l.line; li.dataset.done = l.done ? "1" : "0"; ul.append(li); }
+}
+// ---- shades: slow night creatures that snuff lanterns; light drives them off, best by several players together ----
+let shadeOffset = pickClockOffset(location.search, onLoopback);
+const shadeNow = () => Date.now() + shadeOffset;
+const shadeReach = (p) => (p.snuffed ? EMBER_TILES : lightNow().reach * lampOf(p.lamp).mult);
+const shadeSafe = (x, y) => !!beacon && beaconList.some((l, b) => beacon.shares.lit(b) && Math.hypot(l.x - x, l.y - y) <= LIT_RADIUS * SAFE_FRACTION);
+const compassWord = (dx, dy) => ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"][((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
+let drivenOff = 0, snuffCount = 0, lastShadeKey = "";
+function shadeEvent(type, k, sh) {
+  const say = {
+    snuffed: `A shade snuffed your lantern. Stay near another player: their light can bring yours back, or it relights by itself in ${SNUFF_S} seconds. Nothing is lost.`,
+    relit: "Your lantern is lit again. A shade cannot snuff it for a few seconds.",
+    expired: "Your lantern is lit again. A shade cannot snuff it for a few seconds.",
+    held: "A shade is held back by a friend's light. Stay together.",
+    banished: "A shade is driven off by the light of you all. Well done.",
+  }[type];
+  if (type === "snuffed") snuffCount++;
+  if (type === "banished") { drivenOff++; if (sh) renderer.burst(sh.x, sh.y, performance.now()); }
+  if (say) $("shadeinfo").textContent = say;
+  lastShadeKey = "";
+}
+function shadeLines() {
+  if (!shades) return [];
+  const ms = shadeNow(), out = [], list = shades.list().filter(s => !s.gone && s.alpha > 0.2);
+  if (me.snuffed) out.push(`Your lantern is out (${Math.ceil(shades.snuffLeft())} s left). Another player's light nearby brings it back sooner.`);
+  if (list.length) {
+    list.sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y));
+    const n = list[0], d = Math.round(Math.hypot(n.x - me.x, n.y - me.y));
+    out.push(`${list.length} shade${list.length === 1 ? " is" : "s are"} out on the island. The nearest is ${d} tiles ${compassWord(n.x - me.x, n.y - me.y)}: light ${Math.min(n.total, SHADE_NEED)} of ${SHADE_NEED} from ${n.players} player${n.players === 1 ? "" : "s"}${n.safe ? " (it cannot snuff anyone inside a lit beacon's light)" : ""}. A shade is driven off at ${SHADE_NEED} light-seconds from at least ${SHADE_PLAYERS} players; you add one for every second your lit lantern reaches it (at most ${SHADE_CAP}).`);
+  } else {
+    const w = nextWaveIn(world.seed, ms);
+    out.push(w > 1 ? `No shades out right now. The next ones come in about ${Math.ceil(w / 10) * 10} seconds.` : "No shades out right now.");
+  }
+  if (drivenOff) out.push(`You have seen ${drivenOff} driven off since you came in.`);
+  return out;
+}
+function paintShades(force) {
+  if (force) lastShadeKey = "";
+  const lines = shadeLines(), key = shades ? lines.join("|") : "";
+  if (key === lastShadeKey) return;
+  lastShadeKey = key;
+  $("shades").hidden = !shades;
+  $("shadestate").textContent = lines.join(" ");
 }
 // ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
 const craftBox = $("craftbtns"), holdBox = $("holdbtns");
@@ -454,6 +502,10 @@ window.__longWatch = {
   give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
   beacon: () => beacon ? { fuel: beaconList.map((_, b) => beacon.shares.fuel(b)), players: beaconList.map((_, b) => beacon.shares.players(b)), lit: beaconList.map((_, b) => beacon.shares.lit(b)), own: beaconList.map((_, b) => beacon.shares.own(b, me.seed)), near: beacon.near(), synced: beacon.synced(), pending: beacon.pending(), inv: { ...inv }, info: $('beaconinfo').textContent, panel: !$('beacon').hidden, list: beaconList.map(l => ({ x: l.x, y: l.y })), fires: fireList() } : null,
   quests: () => quests ? { day: quests.day, synced: quests.synced(), pending: quests.pending(), owed: quests.owed(), notes: quests.notes.map(n => ({ ...n })), text: quests.notes.map(n => noteText(n, beaconName)), total: quests.notes.map((_, q) => quests.shares.total(q)), players: quests.notes.map((_, q) => quests.shares.players(q)), own: quests.notes.map((_, q) => quests.shares.own(q, me.seed)), done: quests.notes.map((_, q) => quests.shares.done(q)), panel: !$("quests").hidden, lines: [...$("questlist").children].map(li => li.textContent), info: $("questinfo").textContent } : null,
+  shades: () => shades ? { slot: shades.slot, synced: shades.synced(), pending: shades.pending(), owed: shades.owed(), count: shadeCount(world.seed, shades.slot), list: shades.list().map(s => ({ k: s.k, x: s.x, y: s.y, alpha: s.alpha, phase: s.phase, gone: s.gone, safe: s.safe, total: s.total, players: s.players, own: s.own })), snuffed: !!me.snuffed, snuffLeft: shades.snuffLeft(), peerSnuffed: presence ? [...presence.peers.values()].map(p => ({ id: p.id, snuffed: !!p.snuffed })) : [], panel: !$("shades").hidden, text: $("shadestate").textContent, info: $("shadeinfo").textContent, drivenOff } : null,
+  shadeNow: () => shadeNow(),
+  setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
+  snuffCount: () => snuffCount,
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

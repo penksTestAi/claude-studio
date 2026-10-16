@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Small Dilemma Tournament · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Build a strategy for the repeated prisoner&#x27;s dilemma and see how it scores in a small seeded tournament that checks its own arithmetic">
+<link rel="canonical" href="https://vigilstudio.github.io/dilemma/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="A Small Dilemma Tournament · Vigil">
+<meta property="og:description" content="Build a strategy for the repeated prisoner&#x27;s dilemma and see how it scores in a small seeded tournament that checks its own arithmetic">
+<meta property="og:url" content="https://vigilstudio.github.io/dilemma/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A Small Dilemma Tournament · Vigil">
+<meta name="twitter:description" content="Build a strategy for the repeated prisoner&#x27;s dilemma and see how it scores in a small seeded tournament that checks its own arithmetic">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#22221f;--muted:#5b5a52;--line:#cfcdc2;--accent:#1f6f78;--accent-ink:#fff;--coop:#1f6f78;--def:#b14a08;--ok:#2f7d3a;--bad:#b3261e;--bar:#9cc5c9;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121513;--panel:#1a1e1b;--ink:#e8ebe4;--muted:#a6aca1;--line:#383e39;--accent:#6cc4cc;--accent-ink:#06191b;--coop:#6cc4cc;--def:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--bar:#2f5d62;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121513;--panel:#1a1e1b;--ink:#e8ebe4;--muted:#a6aca1;--line:#383e39;--accent:#6cc4cc;--accent-ink:#06191b;--coop:#6cc4cc;--def:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--bar:#2f5d62;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:.9em}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+.notice{border-left:5px solid var(--def);background:var(--panel);padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;min-height:36px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+input[type=number],input[type=text],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px;min-height:34px}
+input[type=range]{accent-color:var(--accent);min-width:0}
+.ctl{display:grid;grid-template-columns:1fr;gap:2px;margin-bottom:12px}
+.ctl .line{display:flex;gap:10px;align-items:center}
+.ctl .line input[type=range]{flex:1}
+.ctl .val{min-width:3.4em;text-align:right;font-variant-numeric:tabular-nums}
+.field{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.field label.s{display:block;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--bg);cursor:pointer}
+.field label.s b{font-weight:normal;text-decoration:underline;text-decoration-color:var(--line)}
+.field label.s span{display:block;font-size:.82rem;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.pay td,.pay th{text-align:center}
+.bar{display:block;height:8px;background:var(--bar);border-radius:4px;margin-top:3px}
+.mx th{font-size:.78rem;font-weight:normal;color:var(--muted);min-width:4.6em}
+.mx td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mx td.w{font-weight:bold}
+.mx td.l{color:var(--muted)}
+.mx td.d{font-style:italic;color:var(--muted)}
+.log{font-family:var(--mono);font-size:.95rem;overflow-wrap:anywhere;line-height:1.7}
+.log .C{color:var(--coop)}
+.log .D{color:var(--def);font-weight:bold}
+.log b.lab{display:block;font-weight:normal;color:var(--muted);font-family:Georgia,serif;font-size:.9rem;line-height:1.3;margin-top:6px}
+.checks{list-style:none;padding:0;margin:0}
+.checks li{padding:5px 0 5px 26px;position:relative;border-bottom:1px solid var(--line);font-size:.93rem}
+.checks li::before{position:absolute;left:0;font-weight:bold}
+.checks li.pass::before{content:"\2713";color:var(--ok)}
+.checks li.fail::before{content:"\2717";color:var(--bad)}
+.checks li.note::before{content:"i";color:var(--muted);font-style:italic}
+.checks details{margin-top:4px}
+.mine{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 18px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>A Small Dilemma Tournament</h1>
+<p class="lede" id="lede">Build a strategy for the repeated prisoner's dilemma and see how it scores in a small seeded tournament that checks its own arithmetic.</p>
+<p class="small">Made by Claude, an AI model. Nothing is fetched. Every score, count and sentence of results on this page is computed in your browser by <a href="core.js">core.js</a> and the page's own script, and the page re-checks its totals every time you change something.</p>
+<div class="notice"><p style="margin:0"><b>What this is, and is not.</b> This page runs <i>its own</i> tournament, with the strategies listed below and any you add. It does <b>not</b> reproduce Robert Axelrod's 1980 tournament or its table, and I did not check that table against a second source. Which strategy comes out on top here depends on who is in the field, and you can change the field.</p></div>
+
+<h2>1. The game</h2>
+<p>Two players each choose, at the same moment, to <b>cooperate</b> (C) or <b>defect</b> (D). Whatever the other does, defecting pays you more that round, yet two cooperators each do better than two defectors. A match is <span data-k="rounds"></span> rounds of that choice, and each player sees every earlier move of the other. Points for one round, to the player named on the left:</p>
+<div class="scroll"><table class="pay" id="pay"></table></div>
+<p class="small" id="payNote"></p>
+
+<h2>2. Pick the field and the rules</h2>
+<p>Every strategy meets every other once. A strategy can also meet a twin of itself (its score there is the average of the twin's two sides).</p>
+<div class="panel">
+  <div class="field" id="field" role="group" aria-label="Strategies in the tournament"></div>
+  <div class="row"><button type="button" id="bAll">Select all</button><button type="button" id="bNone">Clear</button><span class="small" id="fieldCount"></span></div>
+  <div class="ctl"><label for="rRounds">Rounds in each match</label><div class="line"><input type="range" id="rRounds" min="10" max="500" step="10" value="200"><span class="val" id="vRounds"></span></div></div>
+  <div class="ctl"><label for="rNoise">Noise: chance that a move comes out the opposite of what the strategy chose (the other player sees the flipped move)</label><div class="line"><input type="range" id="rNoise" min="0" max="10" step="1" value="0"><span class="val" id="vNoise"></span></div></div>
+  <div class="ctl"><label for="nSeed">Seed (same seed, same tournament)</label><div class="line"><input type="number" id="nSeed" min="1" max="999999" step="1" value="2026" style="width:8em"><button type="button" id="bSeed">Next seed</button></div></div>
+  <div class="row"><label><input type="checkbox" id="cSelf" checked> Each strategy also meets a twin of itself</label></div>
+</div>
+
+<h2>3. Build your own</h2>
+<p>Your strategy looks only at the last round. Choose its first move and the chance that it cooperates after each of the four ways a round can end. Optionally give it a grudge. With the right numbers it becomes Tit for Tat, Pavlov and others (the buttons fill them in).</p>
+<div class="panel">
+  <div class="row"><label for="uName">Name</label><input type="text" id="uName" maxlength="24" value="Mine" style="width:12em"><label for="uFirst">First move</label><select id="uFirst"><option value="1">Cooperate</option><option value="0">Defect</option></select></div>
+  <div class="mine">
+    <div class="ctl"><label for="uCC">After we both cooperated, I cooperate</label><div class="line"><input type="range" id="uCC" min="0" max="100" step="5" value="100"><span class="val" id="vCC"></span></div></div>
+    <div class="ctl"><label for="uCD">After I cooperated and they defected, I cooperate</label><div class="line"><input type="range" id="uCD" min="0" max="100" step="5" value="0"><span class="val" id="vCD"></span></div></div>
+    <div class="ctl"><label for="uDC">After I defected and they cooperated, I cooperate</label><div class="line"><input type="range" id="uDC" min="0" max="100" step="5" value="100"><span class="val" id="vDC"></span></div></div>
+    <div class="ctl"><label for="uDD">After we both defected, I cooperate</label><div class="line"><input type="range" id="uDD" min="0" max="100" step="5" value="0"><span class="val" id="vDD"></span></div></div>
+  </div>
+  <div class="row"><label for="uGrudge">Grudge: defect for good once they have defected this many times in all (0 means never)</label><input type="number" id="uGrudge" min="0" max="20" step="1" value="0" style="width:5em"></div>
+  <div class="row" id="starts" role="group" aria-label="Fill in a known strategy"><span class="small">Fill in:</span></div>
+  <div class="row"><button type="button" class="primary" id="bAdd">Add to the field</button><span class="small" id="addNote" aria-live="polite"></span></div>
+  <div id="mineList"></div>
+</div>
+
+<h2>4. Results</h2>
+<div class="panel"><p id="summary" aria-live="polite" style="margin:0"></p></div>
+<div class="scroll"><table id="rank"><thead><tr><th>Rank</th><th>Strategy</th><th class="n">Points</th><th class="n">Per round</th><th class="n">Outscored</th><th class="n">Tied</th><th class="n">Outscored by</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="rankNote"></p>
+
+<h3 style="font-weight:normal;font-size:1.05rem;margin:22px 0 6px">Every match</h3>
+<p class="small">Each cell is the row strategy's score against the column strategy over <span data-k="rounds"></span> rounds. <b>Bold</b> means the row strategy outscored that column; grey means it was outscored; the italic diagonal is a strategy against its twin.</p>
+<div class="scroll"><table class="mx" id="mx"></table></div>
+
+<h2>5. Watch one match</h2>
+<div class="row"><label for="wA">Row</label><select id="wA"></select><label for="wB">against</label><select id="wB"></select></div>
+<div class="panel"><div class="log" id="watch" aria-live="polite"></div><p class="small" id="watchNote" style="margin:8px 0 0"></p></div>
+
+<h2>6. Other seeds</h2>
+<p>The same field and settings, run again under <span data-k="reps"></span> other seeds. A single tournament is one draw; this shows how much the answer moves when only the dice change.</p>
+<div class="scroll"><table id="rep"><thead><tr><th>Strategy</th><th class="n">Finished first</th><th class="n">Mean points</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="repNote" aria-live="polite"></p>
+
+<h2>7. Does the page agree with itself?</h2>
+<p>These checks run in your browser. The first <span id="nFixed"></span> use fixed settings of their own; the rest use your current field, rounds, noise and seed and run again whenever you change them.</p>
+<ul class="checks" id="checks"></ul>
+
+<h2>8. What this leaves out</h2>
+<ul>
+<li>It is <b>not Axelrod's tournament</b>. His entrants were programs submitted by researchers; here the field is a handful of well-known strategies that I chose and wrote, plus yours. I recall that his tournaments are widely cited and that Tit for Tat did well in them, but that is from memory and I did not check it, or his table, against any source.</li>
+<li>The four payoffs (<span data-k="pay"></span>) are the numbers usually used for this game, as far as I remember; I did not check that against a source. The dilemma conditions are checked by the page.</li>
+<li>Names and rules of Pavlov and Tit for Two Tats are my reading of the common definitions. Other sources describe them a little differently.</li>
+<li>The winner depends on the field and the noise. Nothing here says which strategy is best in general, or what people or animals do.</li>
+<li>No strategy uses the end of the match. For a game of known length, textbook theory says defecting every round is the only stable outcome of a single such match; the page does not test that.</li>
+<li>The dice are a seeded pseudo-random generator, and <span data-k="reps"></span> other seeds are a sample, not a proof. There is no evolution of a population here, only one round robin.</li>
+<li>The second scorer in the checks uses the same four payoffs as the first, so it catches counting slips, not a wrong payoff table. Not seen on a real phone.</li>
+</ul>
+<p class="small">Files: <a href="core.js">core.js</a> (the model), <a href="test.mjs">test.mjs</a> (the Node checks), <a href="README.md">README.md</a>.</p>
+</main>
+<script src="core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = window.Dilemma, PAY = D.PAY, REPS = 200, WATCH = 100;
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Number(n).toLocaleString('en-US', { maximumFractionDigits: 1 }); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var plural = function (n, one, many) { return fmt(n) + ' ' + (n === 1 ? one : many); };
+  var countText = function (n, one, many) { return n === 0 ? 'none' : plural(n, one, many); };
+  var MAX_CUSTOM = 3;
+
+  var customs = [], nextId = 1, selected = {}, cur = null, runId = 0, timer = 0;
+  D.BUILTIN.forEach(function (s) { selected[s.id] = true; });
+
+  // ---- static pieces ----
+  Array.prototype.forEach.call(document.querySelectorAll('[data-k="reps"]'), function (e) { e.textContent = REPS; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-k="pay"]'), function (e) { e.textContent = [PAY.T, PAY.R, PAY.P, PAY.S].join(', '); });
+  (function payTable() {
+    var C = 'Cooperate', Dd = 'Defect';
+    $('pay').innerHTML = '<thead><tr><th scope="col"></th><th scope="col">Other cooperates</th><th scope="col">Other defects</th></tr></thead><tbody>' +
+      '<tr><th scope="row">You cooperate</th><td>' + D.payoff(1, 1) + ' (reward)</td><td>' + D.payoff(1, 0) + ' (sucker)</td></tr>' +
+      '<tr><th scope="row">You defect</th><td>' + D.payoff(0, 1) + ' (temptation)</td><td>' + D.payoff(0, 0) + ' (punishment)</td></tr></tbody>';
+    $('payNote').textContent = 'The page checks the two conditions that make this a dilemma: ' + PAY.T + ' > ' + PAY.R + ' > ' + PAY.P + ' > ' + PAY.S +
+      ' (' + (PAY.T > PAY.R && PAY.R > PAY.P && PAY.P > PAY.S ? 'true' : 'false') + '), and 2 x ' + PAY.R + ' > ' + PAY.T + ' + ' + PAY.S + ' (' + (2 * PAY.R > PAY.T + PAY.S ? 'true' : 'false') + ').';
+  })();
+
+  function allStrategies() {
+    return D.BUILTIN.concat(customs);
+  }
+  function renderField() {
+    var h = '';
+    allStrategies().forEach(function (s) {
+      h += '<label class="s"><input type="checkbox" data-id="' + esc(s.id) + '"' + (selected[s.id] ? ' checked' : '') + '> <b>' + esc(s.name) + '</b><span>' + esc(s.custom ? describeCustom(s) : s.text) + '</span></label>';
+    });
+    $('field').innerHTML = h;
+    Array.prototype.forEach.call($('field').querySelectorAll('input'), function (c) {
+      c.addEventListener('change', function () { selected[c.getAttribute('data-id')] = c.checked; update(); });
+    });
+  }
+  function describeCustom(s) {
+    var p = s.spec.p.map(function (x) { return Math.round(x * 100) + '%'; });
+    return 'Yours. First move ' + (s.spec.first ? 'C' : 'D') + '; cooperates after CC ' + p[0] + ', CD ' + p[1] + ', DC ' + p[2] + ', DD ' + p[3] + (s.spec.grudge ? '; grudge after ' + plural(s.spec.grudge, 'defection', 'defections') : '') + '.';
+  }
+  function renderMine() {
+    var h = '';
+    customs.forEach(function (s) { h += '<div class="row"><b>' + esc(s.name) + '</b><button type="button" data-rm="' + esc(s.id) + '">Remove ' + esc(s.name) + '</button></div>'; });
+    $('mineList').innerHTML = h;
+    Array.prototype.forEach.call($('mineList').querySelectorAll('button'), function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-rm');
+        customs = customs.filter(function (s) { return s.id !== id; });
+        delete selected[id];
+        $('addNote').textContent = 'Removed.';
+        renderField(); renderMine(); update();
+      });
+    });
+    $('bAdd').disabled = customs.length >= MAX_CUSTOM;
+    if (customs.length >= MAX_CUSTOM) $('addNote').textContent = 'The field holds at most ' + MAX_CUSTOM + ' of your strategies; remove one to add another.';
+  }
+
+  // ---- builder ----
+  ['CC', 'CD', 'DC', 'DD'].forEach(function (k) {
+    var r = $('u' + k), v = $('v' + k);
+    var f = function () { v.textContent = r.value + '%'; };
+    r.addEventListener('input', f); f();
+  });
+  var STARTS = [['tft', 'Tit for Tat'], ['pavlov', 'Pavlov'], ['alld', 'Always Defect'], ['allc', 'Always Cooperate'], ['grudger', 'Grudger']];
+  STARTS.forEach(function (st) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = D.BUILTIN.filter(function (s) { return s.id === st[0]; })[0].name;
+    b.addEventListener('click', function () {
+      var t = D.TWIN_TABLES[st[0]];
+      $('uFirst').value = String(t.first);
+      ['CC', 'CD', 'DC', 'DD'].forEach(function (k, i) { $('u' + k).value = Math.round(t.p[i] * 100); $('v' + k).textContent = Math.round(t.p[i] * 100) + '%'; });
+      $('uGrudge').value = t.grudge;
+      $('addNote').textContent = 'Filled in the rule of ' + b.textContent + '. Add it to see it score like the original.';
+    });
+    $('starts').appendChild(b);
+  });
+  $('bAdd').addEventListener('click', function () {
+    if (customs.length >= MAX_CUSTOM) return;
+    var name = $('uName').value.replace(/\s+/g, ' ').trim() || 'Mine';
+    var taken = allStrategies().map(function (s) { return s.name; });
+    var base = name, k = 2;
+    while (taken.indexOf(name) >= 0) { name = base + ' ' + k; k++; }
+    var g = parseInt($('uGrudge').value, 10);
+    var spec = { first: $('uFirst').value === '1' ? 1 : 0, p: ['CC', 'CD', 'DC', 'DD'].map(function (k2) { return parseInt($('u' + k2).value, 10) / 100; }), grudge: isNaN(g) ? 0 : Math.max(0, Math.min(20, g)) };
+    var s = D.makeCustom('u' + nextId++, name, spec);
+    customs.push(s); selected[s.id] = true;
+    $('addNote').textContent = 'Added "' + name + '".';
+    renderField(); renderMine(); update();
+  });
+
+  // ---- settings ----
+  function settings() {
+    var seed = parseInt($('nSeed').value, 10);
+    return {
+      rounds: parseInt($('rRounds').value, 10),
+      noise: parseInt($('rNoise').value, 10) / 100,
+      selfPlay: $('cSelf').checked,
+      seed: String(isNaN(seed) ? 2026 : Math.min(999999, Math.max(1, seed)))
+    };
+  }
+  $('rRounds').addEventListener('input', update);
+  $('rNoise').addEventListener('input', update);
+  $('nSeed').addEventListener('input', update);
+  $('cSelf').addEventListener('change', update);
+  $('bSeed').addEventListener('click', function () { $('nSeed').value = (parseInt($('nSeed').value, 10) || 0) % 999999 + 1; update(); });
+  $('bAll').addEventListener('click', function () { allStrategies().forEach(function (s) { selected[s.id] = true; }); renderField(); update(); });
+  $('bNone').addEventListener('click', function () { allStrategies().forEach(function (s) { selected[s.id] = false; }); renderField(); update(); });
+
+  function chosen() { return allStrategies().filter(function (s) { return selected[s.id]; }); }
+
+  // ---- results ----
+  function ofThem(n) { return n === 0 ? 'none of them' : (n === 1 ? '1 of them' : fmt(n) + ' of them'); }
+  function outcomeText(t, i) {
+    var others = t.list.length - 1;
+    if (others === 0) return 'It had no other strategy to play.';
+    if (others === 1) return 'It played one other strategy and ' + (t.wins[i] ? 'outscored it.' : (t.ties[i] ? 'tied with it.' : 'was outscored by it.'));
+    return 'Against the other ' + plural(others, 'strategy', 'strategies') + ' it outscored ' + ofThem(t.wins[i]) + ', tied with ' + ofThem(t.ties[i]) + ' and was outscored by ' + ofThem(t.losses[i]) + '.';
+  }
+  function joinNames(names) {
+    if (names.length === 1) return names[0];
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+  function renderResults(t, o) {
+    var rows = D.ranking(t), n = t.list.length;
+    var per = t.perStrategyRounds;
+    $('summary').innerHTML = '';
+    var tops = rows.filter(function (r) { return r.rank === 1; });
+    var h = '';
+    if (n < 2) {
+      h = 'Pick at least two strategies to run a tournament.';
+    } else {
+      var names = tops.map(function (r) { return '<b>' + esc(r.name) + '</b>'; });
+      h = (tops.length === 1 ? names[0] + ' finished first' : joinNames(names) + ' tied for first') + ' with ' + fmt(tops[0].total) + ' points (' + (tops[0].total / per).toFixed(2) + ' a round, over ' + plural(per, 'round', 'rounds') + '). ';
+      if (tops.length === 1) {
+        var i = tops[0].i;
+        h += outcomeText(t, i) + (t.wins[i] === 0 && n > 1 ? ' It never outscored a single opponent, yet its total is the highest in the field.' : '');
+      }
+      var last = rows[rows.length - 1];
+      if (last.rank !== 1) h += ' Last: <b>' + esc(last.name) + '</b> with ' + fmt(last.total) + '.';
+      h += ' A score of ' + (PAY.R).toFixed(2) + ' a round is steady mutual cooperation and ' + (PAY.P).toFixed(2) + ' is steady mutual defection.';
+    }
+    $('summary').innerHTML = h;
+    var maxT = rows.length ? Math.max(1, rows[0].total) : 1;
+    var body = '';
+    rows.forEach(function (r) {
+      body += '<tr><td>' + r.rank + '</td><td>' + esc(r.name) + '<span class="bar" aria-hidden="true" style="width:' + Math.max(1, Math.round(100 * r.total / maxT)) + '%"></span></td><td class="n">' + fmt(r.total) + '</td><td class="n">' + (r.total / per).toFixed(2) + '</td><td class="n">' + t.wins[r.i] + '</td><td class="n">' + t.ties[r.i] + '</td><td class="n">' + t.losses[r.i] + '</td></tr>';
+    });
+    document.querySelector('#rank tbody').innerHTML = body;
+    $('rankNote').textContent = n < 2 ? '' : 'Points are each strategy\'s total over all its matches (' + plural(t.matches.length, 'match', 'matches') + ' in this tournament' + (o.noise > 0 ? ', with ' + Math.round(o.noise * 100) + '% noise' : ', no noise') + '). "Outscored", "Tied" and "Outscored by" count single matches against other strategies, twins not included.';
+    // matrix
+    var mx = '<thead><tr><th scope="col"></th>';
+    t.list.forEach(function (s) { mx += '<th scope="col">' + esc(s.name) + '</th>'; });
+    mx += '</tr></thead><tbody>';
+    t.list.forEach(function (s, i) {
+      mx += '<tr><th scope="row">' + esc(s.name) + '</th>';
+      t.list.forEach(function (u, j) {
+        var v = t.matrix[i][j];
+        if (i === j) { mx += '<td class="d">' + (v === null ? '-' : fmt(v)) + '</td>'; return; }
+        var c = v > t.matrix[j][i] ? 'w' : (v < t.matrix[j][i] ? 'l' : '');
+        mx += '<td class="' + c + '">' + fmt(v) + '</td>';
+      });
+      mx += '</tr>';
+    });
+    $('mx').innerHTML = mx + '</tbody>';
+  }
+
+  // ---- watch ----
+  function fillWatchSelects(list) {
+    var a = $('wA'), b = $('wB'), pa = a.value, pb = b.value;
+    var opts = list.map(function (s, i) { return '<option value="' + s.id + '">' + esc(s.name) + '</option>'; }).join('');
+    a.innerHTML = opts; b.innerHTML = opts;
+    var has = function (v) { return list.some(function (s) { return s.id === v; }); };
+    a.value = has(pa) ? pa : (list[0] ? list[0].id : '');
+    b.value = has(pb) ? pb : (list[1] ? list[1].id : (list[0] ? list[0].id : ''));
+  }
+  function spaced(log, n) {
+    var out = '';
+    for (var i = 0; i < Math.min(n, log.length); i++) {
+      out += (i && i % 10 === 0 ? ' ' : '') + '<span class="' + log[i] + '">' + log[i] + '</span>';
+    }
+    return out;
+  }
+  function renderWatch() {
+    if (!cur || cur.list.length < 2) { $('watch').innerHTML = ''; $('watchNote').textContent = ''; return; }
+    var ids = cur.list.map(function (s) { return s.id; });
+    var ia = ids.indexOf($('wA').value), ib = ids.indexOf($('wB').value);
+    if (ia < 0 || ib < 0) return;
+    var lo = Math.min(ia, ib), hi = Math.max(ia, ib);
+    var m = cur.matches.filter(function (x) { return x.i === lo && x.j === hi; })[0];
+    if (!m) { $('watch').innerHTML = ''; $('watchNote').textContent = 'A strategy does not meet its twin while the twin box is unticked.'; return; }
+    var la = ia <= ib ? m.a : m.b, lb = ia <= ib ? m.b : m.a, sa = ia <= ib ? m.sa : m.sb, sb = ia <= ib ? m.sb : m.sa;
+    var r = D.rescore(la, lb);
+    var shown = Math.min(WATCH, la.length);
+    var nameA = cur.list[ia].name + (ia === ib ? ' (first copy)' : ''), nameB = cur.list[ib].name + (ia === ib ? ' (second copy)' : '');
+    $('watch').innerHTML = '<div><b class="lab">' + esc(cur.list[ia].name) + '</b>' + spaced(la, WATCH) + '</div><div><b class="lab">' + esc(cur.list[ib].name) + '</b>' + spaced(lb, WATCH) + '</div>';
+    $('watchNote').textContent = 'First ' + plural(shown, 'round', 'rounds') + ' of ' + la.length + ' (C cooperate, D defect). Whole match: ' + nameA + ' ' + fmt(sa) + ', ' + nameB + ' ' + fmt(sb) + '. Rounds where both cooperated: ' + r.counts.CC + '; both defected: ' + r.counts.DD + '; only ' + nameA + ' defected: ' + r.counts.DC + '; only ' + nameB + ' defected: ' + r.counts.CD + '.' + '';
+  }
+  $('wA').addEventListener('change', renderWatch);
+  $('wB').addEventListener('change', renderWatch);
+
+  // ---- other seeds (in small slices) ----
+  function startRepeats(list, o, id) {
+    var body = document.querySelector('#rep tbody');
+    if (list.length < 2) { body.innerHTML = ''; $('repNote').textContent = ''; return; }
+    var acc = D.newRepeats(list), k = 0;
+    $('repNote').textContent = 'Running ' + REPS + ' tournaments...';
+    (function slice() {
+      if (id !== runId) return;
+      var t0 = Date.now();
+      while (k < REPS && Date.now() - t0 < 25) { D.repeatStep(acc, list, o, k); k++; }
+      if (k < REPS) { setTimeout(slice, 0); return; }
+      var rows = list.map(function (s, i) { return { s: s, first: acc.first[i], mean: acc.sum[i] / acc.reps }; });
+      rows.sort(function (a, b) { return b.first - a.first || b.mean - a.mean; });
+      body.innerHTML = rows.map(function (r) { return '<tr><td>' + esc(r.s.name) + '</td><td class="n">' + r.first + ' of ' + acc.reps + '</td><td class="n">' + fmt(r.mean) + '</td></tr>'; }).join('');
+      var topN = rows[0].first, topNames = rows.filter(function (r) { return r.first === topN; }).map(function (r) { return r.s.name; });
+      var none = rows.filter(function (r) { return r.first === 0; }).map(function (r) { return r.s.name; });
+      $('repNote').textContent = (topN === 0 ? '' : joinNames(topNames) + (topNames.length === 1 ? ' was' : ' were each') + ' first in ' + topN + ' of ' + acc.reps + ' tournaments. ') +
+        (none.length === 0 ? 'Every strategy was first at least once.' : 'Never first: ' + joinNames(none) + '.') + ' Ties count as first for every tied strategy, so these counts can add to more than ' + acc.reps + '.';
+      runChecks();
+    })();
+  }
+
+  // ---- checks ----
+  var fixedChecks = null;
+  function byId(id) { return D.BUILTIN.filter(function (s) { return s.id === id; })[0]; }
+  function mk(state, text, detail) { return { state: state, text: text, detail: detail || '' }; }
+  function computeFixed() {
+    var out = [];
+    // payoffs
+    out.push(mk(D.isDilemma() ? 'pass' : 'fail', 'The payoffs ' + PAY.T + ', ' + PAY.R + ', ' + PAY.P + ', ' + PAY.S + ' satisfy T > R > P > S and 2R > T + S.'));
+    // hand-worked matches, from formulas in the payoffs
+    var T = PAY.T, R = PAY.R, P = PAY.P, S = PAY.S;
+    var cases = [
+      ['tft', 'alld', 10, (10 - 1) * P + S, T + (10 - 1) * P],
+      ['grudger', 'alld', 10, (10 - 1) * P + S, T + (10 - 1) * P],
+      ['allc', 'alld', 10, 10 * S, 10 * T],
+      ['pavlov', 'alld', 10, 5 * S + 5 * P, 5 * T + 5 * P],
+      ['tf2t', 'alld', 10, 2 * S + 8 * P, 2 * T + 8 * P],
+      ['tft', 'tft', 200, 200 * R, 200 * R],
+      ['grudger', 'tft', 200, 200 * R, 200 * R],
+      ['pavlov', 'pavlov', 200, 200 * R, 200 * R],
+      ['alld', 'alld', 200, 200 * P, 200 * P]
+    ];
+    var bad = [], lines = [];
+    cases.forEach(function (c) {
+      var m = D.playMatch(byId(c[0]), byId(c[1]), c[2], 0, 'hand|' + c[0] + '|' + c[1]);
+      var good = m.sa === c[3] && m.sb === c[4];
+      if (!good) bad.push(byId(c[0]).name + ' v ' + byId(c[1]).name);
+      lines.push(byId(c[0]).name + ' v ' + byId(c[1]).name + ', ' + c[2] + ' rounds: worked out ' + c[3] + ' v ' + c[4] + ', page got ' + m.sa + ' v ' + m.sb);
+    });
+    out.push(mk(bad.length ? 'fail' : 'pass', 'Hand-worked matches: ' + (cases.length - bad.length) + ' of ' + cases.length + ' agree' + (bad.length ? ' (differ: ' + bad.join(', ') + ')' : '') + '. Each expected score is worked out from the four payoffs and the rule, not copied from the code.', lines));
+    // tit for tat v always defect at many lengths
+    var lens = [1, 2, 3, 10, 57, 200, 500], badL = [];
+    lens.forEach(function (r) { var m = D.playMatch(byId('tft'), byId('alld'), r, 0, 'len'); if (m.sa !== (r - 1) * P + S || m.sb !== T + (r - 1) * P) badL.push(r); });
+    out.push(mk(badL.length ? 'fail' : 'pass', 'Tit for Tat against Always Defect scores (n - 1) x ' + P + ' + ' + S + ' and ' + T + ' + (n - 1) x ' + P + ' at ' + lens.length + ' lengths (n = ' + lens.join(', ') + '): ' + (badL.length ? 'differs at ' + badL.join(', ') : 'none differ') + '.'));
+    // random v alld
+    var sr = 0, sd = 0, K = 400, N = 200;
+    for (var k = 0; k < K; k++) { var m2 = D.playMatch(byId('random'), byId('alld'), N, 0, 'ra' + k); sr += m2.sa; sd += m2.sb; }
+    var er = (S + P) / 2, ed = (T + P) / 2, mr = sr / (K * N), md = sd / (K * N);
+    var tolR = 5 * Math.sqrt(((P - S) / 2) * ((P - S) / 2) / (K * N)), tolD = 5 * Math.sqrt(((T - P) / 2) * ((T - P) / 2) / (K * N));
+    var okR = Math.abs(mr - er) < tolR && Math.abs(md - ed) < tolD;
+    out.push(mk(okR ? 'pass' : 'fail', 'Random against Always Defect over ' + K + ' seeded matches of ' + N + ' rounds: Random averages ' + mr.toFixed(3) + ' a round (expected ' + er.toFixed(2) + ', allowed gap ' + tolR.toFixed(3) + ') and Always Defect ' + md.toFixed(3) + ' (expected ' + ed.toFixed(2) + ', allowed gap ' + tolD.toFixed(3) + '). The gap allowed is 5 standard errors.'));
+    // noise rate
+    var rates = [0.01, 0.05, 0.1], rt = [], allOk = true;
+    rates.forEach(function (q) {
+      var fl = 0, tot = 0;
+      for (var kk = 0; kk < 200; kk++) { var mm = D.playMatch(byId('allc'), byId('allc'), 200, q, 'nz' + kk); fl += mm.flips; tot += 400; }
+      var tol = 5 * Math.sqrt(tot * q * (1 - q));
+      if (Math.abs(fl - tot * q) >= tol) allOk = false;
+      rt.push(Math.round(q * 100) + '%: ' + fmt(fl) + ' of ' + fmt(tot) + ' moves flipped (expected ' + fmt(tot * q) + ')');
+    });
+    out.push(mk(allOk ? 'pass' : 'fail', 'Noise flips the share of moves it says it does, within 5 standard errors (two Always Cooperate players, 200 matches of 200 rounds): ' + rt.join('; ') + '.'));
+    return out;
+  }
+  function computeChecks(t, o) {
+    var out = [];
+    var list = t.list, n = list.length;
+    if (n < 2) return [mk('note', 'Settings-dependent checks need at least two strategies in the field.')];
+    // second scorer on every match
+    var bad = 0, rounds = 0, tot2 = list.map(function () { return 0; }), outside = 0;
+    t.matches.forEach(function (m) {
+      var r = D.rescore(m.a, m.b);
+      if (r.a !== m.sa || r.b !== m.sb) bad++;
+      if (m.sa + m.sb > 2 * PAY.R * o.rounds || m.sa < PAY.S * o.rounds || m.sa > PAY.T * o.rounds || m.sb < PAY.S * o.rounds || m.sb > PAY.T * o.rounds) outside++;
+      rounds += m.a.length;
+      if (m.i === m.j) tot2[m.i] += (r.a + r.b) / 2; else { tot2[m.i] += r.a; tot2[m.j] += r.b; }
+    });
+    var badTot = list.filter(function (s, i) { return tot2[i] !== t.totals[i]; }).map(function (s) { return s.name; });
+    out.push(mk(bad === 0 && badTot.length === 0 ? 'pass' : 'fail', 'A second scorer re-counts ' + plural(t.matches.length, 'match', 'matches') + ' (' + fmt(rounds) + ' rounds) from the saved move logs: ' + (bad === 0 ? 'every match score agrees' : bad + ' differ') + ', and every strategy\'s total agrees (' + (badTot.length ? 'differ: ' + badTot.join(', ') : 'none differ') + ').'));
+    out.push(mk(outside === 0 ? 'pass' : 'fail', 'Scores stay in range: no player scores below ' + PAY.S + ' or above ' + PAY.T + ' a round, and no match gives the two together more than ' + 2 * PAY.R + ' a round (' + (outside === 0 ? 'none out of range' : outside + ' out of range') + ').'));
+    var wsum = t.wins.reduce(function (a, b) { return a + b; }, 0), lsum = t.losses.reduce(function (a, b) { return a + b; }, 0);
+    var wtl = list.every(function (s, i) { return t.wins[i] + t.ties[i] + t.losses[i] === n - 1; });
+    out.push(mk(wsum === lsum && wtl ? 'pass' : 'fail', 'Outscored/tied/outscored-by counts: ' + plural(wsum, 'match has', 'matches have') + ' a winner and ' + plural(lsum, 'match has', 'matches have') + ' a loser, and each strategy\'s three counts add up to its ' + plural(n - 1, 'opponent', 'opponents') + ': ' + (wtl ? 'yes' : 'no') + '.'));
+    // determinism
+    var t2 = D.tournament(list, o);
+    var same = JSON.stringify(t2.totals) === JSON.stringify(t.totals) && t2.matches.every(function (m, i) { return m.a === t.matches[i].a && m.b === t.matches[i].b; });
+    out.push(mk(same ? 'pass' : 'fail', 'Running the tournament again with seed ' + o.seed + ' gives the same move logs and totals: ' + (same ? 'yes' : 'no') + '.'));
+    var ri = list.map(function (s) { return s.id; }).indexOf('random');
+    if (ri >= 0) {
+      var diff = 0, tries = 6;
+      for (var k = 0; k < tries; k++) { var t3 = D.tournament(list, { rounds: o.rounds, noise: o.noise, selfPlay: o.selfPlay, seed: o.seed + 'x' + k }); if (t3.totals[ri] !== t.totals[ri]) diff++; }
+      out.push(mk(diff >= tries - 1 ? 'pass' : 'fail', 'Under ' + tries + ' other seeds Random\'s total differs from this seed\'s in ' + diff + ' of them (it should almost always differ).'));
+    } else {
+      out.push(mk('note', 'Random is not in the field, so the "other seeds change Random" check is skipped.'));
+    }
+    // twins
+    var compared = 0, differ = [], tabNames = [];
+    Object.keys(D.TWIN_TABLES).forEach(function (id) {
+      var orig = byId(id); tabNames.push(orig.name);
+      var twin = D.makeCustom('twin-' + id, 'Twin of ' + orig.name, D.TWIN_TABLES[id]);
+      list.forEach(function (opp) {
+        var seed = 'tw|' + id + '|' + opp.id;
+        var a = D.playMatch(orig, opp, o.rounds, o.noise, seed), b = D.playMatch(twin, opp, o.rounds, o.noise, seed);
+        compared++;
+        if (a.a !== b.a || a.b !== b.b || a.sa !== b.sa) differ.push(orig.name + ' v ' + opp.name);
+      });
+    });
+    out.push(mk(differ.length ? 'fail' : 'pass', 'A strategy built from the table of ' + joinNames(tabNames) + ' plays move for move like the original against each of the ' + plural(n, 'strategy', 'strategies') + ' in the field, at the current rounds and noise (' + plural(compared, 'pairing', 'pairings') + ' compared; ' + (differ.length ? 'differ: ' + differ.join(', ') : 'none differ') + ').'));
+    return out;
+  }
+  var lastChecks = [];
+  function runChecks() {
+    if (!cur) return;
+    var rows = fixedChecks.concat(lastChecks);
+    var h = '';
+    rows.forEach(function (c) {
+      h += '<li class="' + c.state + '">' + esc(c.text);
+      if (c.detail && c.detail.length) h += '<details><summary>Show each case</summary><div class="small">' + c.detail.map(esc).join('<br>') + '</div></details>';
+      h += '</li>';
+    });
+    $('checks').innerHTML = h;
+  }
+
+  // ---- update ----
+  function update() {
+    clearTimeout(timer);
+    var o = settings(), list = chosen();
+    $('vRounds').textContent = o.rounds;
+    $('vNoise').textContent = Math.round(o.noise * 100) + '%';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-k="rounds"]'), function (e) { e.textContent = o.rounds; });
+    $('fieldCount').textContent = countText(list.length, 'strategy selected', 'strategies selected').replace('none', 'No strategies selected');
+    var id = ++runId;
+    cur = D.tournament(list, o);
+    renderResults(cur, o);
+    fillWatchSelects(list);
+    renderWatch();
+    lastChecks = computeChecks(cur, o);
+    runChecks();
+    document.querySelector('#rep tbody').innerHTML = '';
+    timer = setTimeout(function () { startRepeats(list, o, id); }, 150);
+  }
+
+  fixedChecks = computeFixed();
+  $('nFixed').textContent = fixedChecks.length;
+  renderField(); renderMine();
+  update();
+})();
+</script>
+</body>
+</html>

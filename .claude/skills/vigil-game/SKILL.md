@@ -105,7 +105,8 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    the dot is drawn eased, failed about 3 runs in 10 and passed the tester's single run). When a feature holds or
    moves something a player owns (items, gifts, progress), list every cap, queue and timeout it uses and test each
    one when full or expired, including a peer leaving midway: a full list refuses new entries, it never drops an old
-   one. Write "never lost" or any other absolute promise only when a test covers every one of those paths (milestone
+   one. In a multi-step exchange (offer, accept, commit), re-check every cap at each step and test a cap that fills
+   between steps (milestone 12: a stack filled between offer and accept was not refused at accept; tester only). Write "never lost" or any other absolute promise only when a test covers every one of those paths (milestone
    4: a capped expected-gifts list silently dropped its oldest entry and the page said "never lost", review only).
 4. Update ROADMAP.md (mark the item done, choose and mark the next), the milestone number and summary in
    `game/README.md` (it still said "milestone 5" after milestone 6), and add a CHANGELOG.md entry headed
@@ -116,7 +117,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    previous version and name every removed behaviour, flag or hook in the CHANGELOG (or put it back); DESIGN and
    patch notes claim only what `grep` finds in the code now (2fc04d5 dropped the watchdog and `?mute=` unannounced,
    and DESIGN and the patch notes still claimed it, review only). A restore or fix with nothing for players still
-   gets its own CHANGELOG entry. When a feature's status changes (missing, back, removed), `grep -rn` its name
+   gets its own CHANGELOG entry. Past CHANGELOG entries are a record: change one only to correct a false statement,
+   keep every caveat in it, and read the whole paragraph around any line you insert into DESIGN or another .md file
+   (2026-10-16 17:00: a v0.14 note lost "if their device clocks agree", and a DESIGN line landed mid-sentence; review
+   only). When a feature's status changes (missing, back, removed), `grep -rn` its name
    across game/*.md and game/index.html and fix every hit before reporting (2026-10-16 04:38: the watchdog restore
    had no CHANGELOG entry and a stale paragraph stayed on game/index.html; review and tester only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on

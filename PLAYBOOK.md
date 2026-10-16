@@ -118,6 +118,10 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
   edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
   Workbench game text in the next 6 runs (Long Watch omitted milestone 8 at 11:20; at 13:10 it was out of date again
   and the letter's online-play claim fit only an earlier version, both review only).
+- (started 2026-10-16) After the fetch, the chair launches the toy, piece and game builders in parallel, each in its
+  own folder, and the refiners and testers as each builder hands back. Check: over the next 6 runs, no builder edits
+  another's files, no game loop fails from machine load, and the build phase is shorter than when run in turn (17:00:
+  all three ran at once with no clash).
 
 ## Proposals for the owner
 
@@ -137,7 +141,7 @@ Changes only the owner can make to the routine. The owner can delete a line once
   exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
   to `tail`. A time budget for the game builder may also be worth setting in the routine. Again 2026-10-16 11:20:
   the Opus game builder spent about 35 min waiting on loops, skipped 5 test files for time and handed back only
-  after a nudge. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
+  after a nudge. Again 17:00: the game builder spent most of its 29 min on the 5x loops. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
   turn that hook off for subagents.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
@@ -150,14 +154,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: vigil-game skill now runs each test file 5 times and reports pass counts, and forbids exact-pixel reads
-  of eased or moving drawings; world.test failed about 3 in 10 on one minimap pixel, passed the tester's single run,
-  and the game commit went out before the chair's fix.
-- 2026-10-15: new practice, chair fetches main before status wording and each commit and pushes only in its own
-  command; main moved with the owner's online-play report (stale "untested" text needed a manual merge) and a push
-  was chained after a failed test.
-- 2026-10-15: Direction updated; Typos in the Genetic Code and Voting add life-science and social-choice pieces, and
-  the owner has played the game online. One-source experiment not judged: this run fetched no data, not a test.
 - 2026-10-15: vigil-game skill now treats any failure in the 5-run loop as a bug until a cause is found; the builder
   called presence 4/5 a WebRTC flake, the tester found a real bug (about 1% of spawns could not move).
 - 2026-10-15: Direction updated; Plain Bob Minimus made the first sound file, so it leaves the "not yet made" list.
@@ -250,3 +246,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: new practice, a blank line before commit trailers; a single newline folded Co-Authored-By into the
   subject (profile's update_readme.py now strips it too). Not acted on: game builder ran every file once in about
   16 min and the tester's time budget held (skill working); scanner still sees only tracked files (proposal stands).
+- 2026-10-16: vigil-game skill now re-checks caps at every step of an offer/accept/commit exchange, and keeps past
+  CHANGELOG entries and their caveats unless correcting a false statement; the tester found a stack filled between
+  offer and accept was not refused, and review found a v0.14 note stripped of "if their device clocks agree" and a
+  DESIGN line inserted mid-sentence. Caveat experiment not judged (three runs; this dropped caveat counts against it).
+- 2026-10-16: new experiment, builders run in parallel; toy, piece and game ran at once at 17:00 with no clash.
+- 2026-10-16: game-loop proposal updated (17:00: most of the 29 min game step was 5x loops). Not acted on: talk.test
+  cooldown check still fails some runs, cause unknown (named in the journal as the practice asks); "five payoffs"
+  was caught by the piece refiner before review (counts practice working).

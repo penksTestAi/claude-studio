@@ -80,11 +80,13 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
-- The chair runs `git fetch` and checks what changed on main before writing any status wording (journal, game
-  notes, profile drafts) and again before each commit; the owner may have pushed or reported something meanwhile.
-  Push only in its own command after reading the test and scan output, never chained after them (2026-10-15 12:40:
-  main moved with the owner's online-play report, making "online play untested" stale, and a push followed a failed
-  test).
+- The chair runs `git fetch` and checks what changed on `origin/main` before launching the builders, again before
+  launching the game builder, before writing any status wording (journal, game notes, profile drafts) and before each
+  commit; the owner or another run may have pushed meanwhile. If main already has the brief's game milestone or a
+  piece of the same kind, the advisor redoes that part of the brief before anyone builds. Push only in its own command
+  after reading the test and scan output, never chained after them (2026-10-15 12:40: stale "untested" text and a
+  push after a failed test; 2026-10-16 08:40: about 70 min of beacon builder and tester work was wasted because main
+  already had milestones 6-8 and another font, seen only at the final fetch).
 - When a piece's data comes from one source, the builder checks at least 10 rows (oldest, newest, odd-looking)
   against a second free source of a different origin (not a copy or re-fit of the same record) before building and
   flags each disagreement on the page; when none is reachable, the page says the check is not independent (promoted
@@ -118,19 +120,15 @@ Changes only the owner can make to the routine. The owner can delete a line once
   to `tail`. A time budget for the game builder may also be worth setting in the routine.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
-  meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work.
+  meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
+  again: the run that started the evening of 2026-10-15 and ended about 08:40 on 10-16 built beacons while other
+  runs published milestones 6-8 and a font, so its game work was dropped too.
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
   error on any other entry heading level, or print each skipped heading.
 
 ## Changelog
 
-- 2026-10-15: new practice, only the chair writes the journal and says so in every role's brief; keeper (10-14),
-  toy refiner and fixer (10-15 02:35) each appended one. One-source experiment not judged (two tests, both pass).
-- 2026-10-15: proposal for the owner: page_check should flag duplicate ids (same Easter evidence).
-- 2026-10-15: vigil-refine skill now finds stated numbers by stripping tags and grepping static text for digits;
-  Illusions' builder reported all counts computed, yet "(0.40)" and "(1.5)" were typed and the refiner missed them
-  (review only). One-source experiment not judged: this run used no external data, so it was not a test.
 - 2026-10-15: Direction updated; Lightness Illusions adds a perception piece that checks itself, no source needed.
 - 2026-10-15: proposal for the owner: page_check should flag tables wider than their box at 375px (Illusions table
   clipped on phones, page_check clean, review only).
@@ -219,3 +217,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   watchdog restore note, written under `##`, vanished from the patch notes (review only).
 - 2026-10-16: Direction updated; Hanging Chain, Standing Arch adds engineering. Not acted on: after review fixes only
   one of nine game test files was re-run, and the Workbench "long project" paragraph omits milestone 8; watch next run.
+- 2026-10-16: chair's fetch practice now also fetches before launching the builders and the game builder, and has
+  the advisor redo the brief when main already holds its milestone or kind; the run ending 08:40 lost about 70 min of
+  beacon building and testing to milestones 6-8 and Lamplight Mono that other runs pushed, seen only at the end.
+- 2026-10-16: overlap proposal for the owner updated with the second overlapping run (same evidence).
+- 2026-10-16: vigil-piece skill now requires a licensed work to ship the licence's full text; Vigil Dot lacked
+  OFL.txt (review only). Not acted on: the scanner caught a `new Function` in a new game test (fixed with a node-side
+  poll, as the security skill intends). Status-words experiment not judged (five runs; review found wording only).

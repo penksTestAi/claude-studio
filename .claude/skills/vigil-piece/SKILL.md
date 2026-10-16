@@ -26,7 +26,9 @@ Every piece lives in its own folder in vigilstudio.github.io with:
   download link to each file, and how to run or use it. It follows the same craft rules as any page.
 - `<folder>/README.md`: what it is, how it works or how it was made, what was checked, what is unverified.
 - the work's own files next to them. Everything stays static (GitHub Pages, no server), each file at most a few MB,
-  and only content you made or that is free to share (say the licence of anything you used).
+  and only content you made or that is free to share (say the licence of anything you used). A work released
+  under a licence (OFL for a font, CC or MIT otherwise) ships that licence's full text in its folder, copied from
+  the licence's own site, not only its name in the README (Vigil Dot shipped without OFL.txt, review only).
 Or, when the brief says so, one real improvement to an existing piece.
 
 ## Craft rules

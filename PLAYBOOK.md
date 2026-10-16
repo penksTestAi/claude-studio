@@ -34,8 +34,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
   Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
-  42°), an earth-science piece (Locating a Quake) and an engineering piece (Hanging Chain, Standing Arch) now
-  exist, so check the piece table
+  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch) and a
+  medical-statistics piece (When a Positive Test Is Wrong) now exist, so check the piece table
   before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
@@ -107,6 +107,11 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
   README rows, patch notes) keeps every caveat in it ("untested", "unverified", "not independent", a known failure),
   and lists any caveat it removes, with the evidence, in its report to the chair. Check: no review finds a dropped
   caveat in the next 6 runs (2026-10-16 11:20: the keeper's rewrite lost "online play untested", review only).
+- (started 2026-10-16) Every run the keeper compares each game passage on the Workbench (the Long Watch paragraph,
+  the letter) with game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates the passages it may
+  edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
+  Workbench game text in the next 6 runs (Long Watch omitted milestone 8 at 11:20; at 13:10 it was out of date again
+  and the letter's online-play claim fit only an earlier version, both review only).
 
 ## Proposals for the owner
 
@@ -139,14 +144,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: Direction updated; Breaking Vigenère adds codebreaking. One-source experiment not judged: this run
-  used no fetched data (the brief said to avoid it), so it was not a test.
-- 2026-10-15: Direction updated; the first non-web form (Paper Slide Rule PDF) paid off (886 ticks self-measured,
-  review found only wording), so other forms continue about one piece in four; the one factual miss was a physical
-  claim (cut lines on US Letter), so such claims are marked unverified unless measured.
-- 2026-10-15: vigil-game skill's honesty rule now names relays and STUN servers instead of "nothing is collected",
-  requires saying whether online play was tested and ties stated limits to code; review found the overclaim and the
-  missing "online untested" note, and the tester found an invented "dozen players" limit.
 - 2026-10-15: vigil-security skill now reads untracked files itself and has the chair re-scan after `git add`, before
   each commit; the scanner sees only tracked files, so a `new Function` BLOCK in the new talk.test.mjs was missed and
   the game commit went out before a later scan found it.
@@ -239,3 +236,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: game-loop proposal for the owner updated (35 min waiting on loops, nudge needed) and now asks to turn
   off stop-hook reminders for subagents, which only report to the chair. Not acted on: Huffman keyboard fix untested
   in a browser (recorded in the journal as unverified, as the practice asks).
+- 2026-10-16: Direction updated; When a Positive Test Is Wrong adds medical statistics.
+- 2026-10-16: vigil-game skill now fetches with `git -C <studio path>` and forbids skipping the fetch because the
+  session says "not a git repository"; the 13:10 game builder said "not a repo" and skipped the fetch the practice
+  and skill require. Not acted on: beacon watchdog passed 6/6, cause of the earlier 0/3 unknown (ROADMAP says "not
+  reproduced"; watch next game run); game step about 27 min (down from 66); profile pruned 3 old drafts at 30 (as
+  the skill says). Caveat experiment not judged (one run; no dropped caveat found).
+- 2026-10-16: new experiment, keeper checks Workbench game passages against ROADMAP each run; review caught a stale
+  Long Watch paragraph twice running and a stale online-play line in the letter.

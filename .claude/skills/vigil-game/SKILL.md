@@ -71,9 +71,12 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    CHANGELOG.md; it does not throw away working features.
 
 ## Normal mode (every other run)
-1. First run `git fetch` and read `game/ROADMAP.md` and `game/CHANGELOG.md` as they are on `origin/main`; if the
+1. First run `git -C <absolute path to vigilstudio.github.io> fetch` and read `game/ROADMAP.md` and
+   `game/CHANGELOG.md` as they are on `origin/main`; if the
    next item has already landed there, build the next unmarked one on top of main, never a second copy (2026-10-16
    01:45: another run pushed crafting and beacons while this one built crafting, and all its game work was dropped).
+   The studio is a git repository even when your session says the working directory is not one; never skip this
+   step for that reason, and if the fetch truly fails, say so in your report (13:10 run: "not a repo", fetch skipped).
    Then read `game/DESIGN.md`, `game/ROADMAP.md` and the last entries of `game/CHANGELOG.md`.
 2. Build the next roadmap item completely, as one coherent increment. Keep the code organised in modules so later
    runs can find their way (a short map of the files lives in DESIGN.md).

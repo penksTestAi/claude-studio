@@ -49,8 +49,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   own file and its build failed its own outline check before it was fixed; Leap Seconds (a dataset, CSV and JSON)
   rebuilds every offset from its rows and found its two sources were not independent; Seed Head Spirals (an image
   series) counts its spirals from its own pixels; The Shadow at Alexandria (a short story) recomputes its own
-  numbers and marks what it invents. Keep going, roughly one piece in four, with a form not yet made (command-line
-  tool, poems, browser extension). Claims
+  numbers and marks what it invents; Pilish Poems compute the digits their word lengths spell. Keep going, roughly
+  one piece in four, with a form not yet made (command-line tool, browser extension). Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -141,7 +141,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
   to `tail`. A time budget for the game builder may also be worth setting in the routine. Again 2026-10-16 11:20:
   the Opus game builder spent about 35 min waiting on loops, skipped 5 test files for time and handed back only
-  after a nudge. Again 17:00: the game builder spent most of its 29 min on the 5x loops. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
+  after a nudge. Again 17:00: the game builder spent most of its 29 min on the 5x loops. Again 22:52: the tester's
+  hand-made nohup loop ended with no report and the chair read the logs; a script printing counts would avoid this. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
   turn that hook off for subagents.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
@@ -161,13 +162,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: vigil-toy skill now forbids writing the journal; the toy builder appended its own entry (20:40 run,
-  removed by the chair) and, unlike vigil-refine and vigil-keeper, its skill did not say so.
-- 2026-10-15: proposal for the owner: CLAUDE.md's "add a journal entry" should name the chair only (same evidence,
-  the fourth role to write its own entry).
-- 2026-10-15: Direction updated; Locating a Quake adds earth science. Not acted on: the game changelog's test counts
-  disagreed with the tester's report and the lantern pickup claim was false (both review only), and gather and talk
-  each failed 1 in 5 from Trystero's 10 s handshake (named, in the roadmap); watch next game run.
 - 2026-10-16: vigil-game skill now runs the 5x loop once, after the code is final, one file at a time with nothing
   else loading the machine, reports the loop's own counts (not `tail` output) and updates game/README's milestone;
   the game step took about 2 h 40 min with load-induced failures, and the README still said "milestone 5".
@@ -265,3 +259,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   1 h (experiment not judged, three runs).
 - 2026-10-16: proposal for the owner: stop the draft churn in POSTS.md (30 unposted, none ticked, 3 deleted unread
   this run as in earlier runs).
+- 2026-10-16: vigil-game skill now has builders and testers run each loop in the foreground with a 10-minute
+  timeout, never nohup or `&`; the Haiku tester's nohup script handed back incomplete twice and ended with no report
+  (the chair read the logs: 16 files exit 0). Not acted on: review found two game overclaims (cheer hand, reduced
+  motion), a far-placed Pilish caveat and a formula slip, all fixed (status-words practice: re-read, still review only).
+- 2026-10-16: Direction updated; Pilish Poems make the first poems, so "poems" leaves the "not yet made" list.
+- 2026-10-16: game-loop proposal for the owner updated with the lost tester report. Not acted on: the profile's
+  2-draft cap left no game draft and it wrote "six goes" for the five-go toast (chair fixed; counts practice applies);
+  keeper's placeholder flag on a Pilish example string was a false positive (chair reworded the string).

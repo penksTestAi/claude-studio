@@ -84,7 +84,9 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    (background loop) and report the pass count per file ("world 5/5"); one green run is not a pass. Any failure in
    those runs is a bug until its cause is found in the code or the log: never call it a network or WebRTC flake
    without evidence (presence failed 1 in 5, was dismissed as flake, and was a real bug stranding about 1% of
-   spawns). Run the 5x loop once, after the code is final, one file at a time, with no stress harness, build or
+   spawns). Nor call a failing test "stale" before running `git log -S '<function or flag it uses>' -- game/` to
+   see whether a commit removed what it tests (2026-10-16 03:15: beacon 0/5, guessed stale; commit 2fc04d5 had
+   silently dropped the transport watchdog). Run the 5x loop once, after the code is final, one file at a time, with no stress harness, build or
    other browser running alongside; a failure seen only under extra load is named as such, then re-checked alone
    (2026-10-16: loops overlapped stress runs, failures came from load, and the game step took about 2 h 40 min).
    Report the loop's own count lines, never output cut by `tail`. Time-box a failure you cannot explain: after about
@@ -103,7 +105,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
    **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,
    no file names, protocols or test details. Put technical detail in separate bullets such as **Network:** and
-   **Tested:**, which stay in the changelog only.
+   **Tested:**, which stay in the changelog only. When the increment rewrites a file, `git diff` it against the
+   previous version and name every removed behaviour, flag or hook in the CHANGELOG (or put it back); DESIGN and
+   patch notes claim only what `grep` finds in the code now (2fc04d5 dropped the watchdog and `?mute=` unannounced,
+   and DESIGN and the patch notes still claimed it, review only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
    game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
    Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks

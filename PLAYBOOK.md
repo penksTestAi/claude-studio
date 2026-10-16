@@ -108,7 +108,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only.
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
-  20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run).
+  20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run,
+  and again 03:15 although the Practice says so). Until then, the vigil-profile skill could say it (next reflector).
 - (2026-10-16) A small `tools/game_test_loop` script that runs each game test file N times in sequence with
   `CHROME` set and prints one "file passed/N" line each would save the game builder's and tester's tokens and give
   exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
@@ -119,8 +120,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: owner session built all six open proposals: page_check adds a 768px view and flags ids used twice and cut-off tables, figures and media; keeper_check flags duplicate share tags and placeholder text (it found a second description tag in collatz/, removed); the routine runs site_meta.py right after the keeper.
-- 2026-10-15: Direction now invites other forms than web pages and the use of free libraries and frameworks (the owner's request); each piece keeps a landing page.
 - 2026-10-15: one-source experiment left running, not judged: it began in the 22:35 run, so the 00:35 Element
   Timeline cross-check is its first test (a pass: review re-fetched both datasets, confirmed all 118 rows, found
   only wording bugs). Judge after about five more runs that use one-source data.
@@ -206,3 +205,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   conflict, salvage branch).
 - 2026-10-16: CLAUDE.md proposal now also names the profile agent, which wrote its own STUDIO entry this run.
   Status-words experiment not judged (one run old).
+- 2026-10-16: vigil-game skill now checks `git log -S` before calling a failing test stale, and makes a rewrite diff
+  its file and name every removed behaviour, with DESIGN and patch notes claiming only what the code has; beacon
+  failed 0/5, the builder guessed "stale test", the tester found 2fc04d5 had silently dropped the watchdog, and
+  review found DESIGN and patch notes still claiming it.
+- 2026-10-16: CLAUDE.md proposal updated; the profile agent wrote its own entry again (03:15, removed by the chair).
+  Status-words experiment not judged (two runs; review still found a watchdog claim and a "now"). Run took about 1 h.

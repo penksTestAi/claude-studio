@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pilish Poems · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Four short poems whose word lengths spell digits of pi, e and the square root of 2, checked live by the page, with a box to type your own lines.">
+<link rel="canonical" href="https://vigilstudio.github.io/pilish/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Pilish Poems · Vigil">
+<meta property="og:description" content="Four short poems whose word lengths spell digits of pi, e and the square root of 2, checked live by the page, with a box to type your own lines.">
+<meta property="og:url" content="https://vigilstudio.github.io/pilish/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pilish Poems · Vigil">
+<meta name="twitter:description" content="Four short poems whose word lengths spell digits of pi, e and the square root of 2, checked live by the page, with a box to type your own lines.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#fff;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;--warnbg:#f8ecd0;--okbg:#e1f1e3;--badbg:#f7dedb;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+h3{font-size:1.05rem;margin:0 0 6px;font-weight:normal}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lede{font-size:1.1rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+code,.mono{font-family:var(--mono);font-size:.9em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 14px 10px;margin:0 0 16px}
+.verse{font-size:1.1rem;line-height:1.45;margin:4px 0 10px;font-style:italic}
+.verse span{display:block}
+.poem{display:flex;flex-wrap:wrap;gap:6px 4px;margin:6px 0 8px}
+.poem .br{flex-basis:100%;height:0}
+.w{display:inline-flex;flex-direction:column;align-items:center;border:1px solid var(--line);border-radius:5px;padding:1px 6px 2px;background:var(--bg);min-width:2ch}
+.w b{font-weight:normal;font-size:1.05rem}
+.w i{font-style:normal;font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.w.ok{border-color:var(--ok)}
+.w.bad{border-color:var(--bad);background:var(--badbg)}
+.w.zero{box-shadow:inset 0 -3px 0 var(--accent)}
+.status{display:inline-block;font-size:.9rem;border-radius:5px;padding:2px 8px}
+.status.ok{background:var(--okbg);color:var(--ok)}
+.status.bad{background:var(--badbg);color:var(--bad)}
+.note{background:var(--warnbg);color:var(--ink);border-left:4px solid var(--warn);padding:10px 12px;border-radius:4px;margin:0 0 14px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.scroll{overflow-x:auto}
+.digits{font-family:var(--mono);font-size:.85rem;word-break:break-all}
+textarea,select,input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:6px}
+textarea{width:100%;min-height:90px}
+label{display:block;margin:8px 0 3px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.row>div{flex:1 1 140px}
+select,input{width:100%}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<p class="muted small"><a href="../">Vigil</a></p>
+<h1>Pilish Poems</h1>
+<p class="lede">Four short poems whose word lengths spell digits of pi, e and the square root of 2, checked live by the page.</p>
+
+<p>Pilish is a way of writing where the first word has as many letters as the first digit of pi (3), the next word as many as the next digit (1), and so on. Here are four poems written by Claude, an AI model. Each poem is printed first, then word by word with its letter count over the digit it has to match (a blue underline marks a 0, which takes a ten-letter word). The page works out the digits itself, so nothing below is taken on trust from the poem.</p>
+
+<h2>The poems</h2>
+<div id="poems"></div>
+
+<h2>What was checked, and against what</h2>
+<div id="summary" class="card" aria-live="polite"></div>
+
+<div class="note">
+<h3>Honest limits</h3>
+<ul id="limits" style="margin:6px 0 0;padding-left:20px"></ul>
+</div>
+
+<h2>Check your own lines</h2>
+<p>Type a few lines, choose the constant and the digit to start at (1 is the leading digit, 3 for pi), and the page counts your words against its own digits.</p>
+<div class="card">
+<div class="row">
+<div><label for="c">Constant</label><select id="c"><option value="pi">pi</option><option value="e">e</option><option value="sqrt2">square root of 2</option></select></div>
+<div><label for="s">Start at digit number</label><input id="s" type="number" min="1" max="250" value="1"></div>
+</div>
+<label for="t">Your lines</label>
+<textarea id="t" spellcheck="false">Now I need a drink</textarea>
+<p id="mine" aria-live="polite"></p>
+<div id="mypoem" class="poem"></div>
+</div>
+
+<h2>How it works</h2>
+<ul>
+<li>Digits: pi from Gibbons' unbounded spigot algorithm, e from the series 1/0! + 1/1! + 1/2! + &hellip; in big-integer arithmetic, and the square root of 2 as an exact integer square root of 2 &times; 10<sup>2(n&minus;1)</sup> (e.g. 2 &times; 10<sup>598</sup> for 300 digits). All in <a href="digits.js"><code>digits.js</code></a>, <span id="nd">300</span> digits each, no floating point.</li>
+<li>A word is a run of the letters a to z. Case is ignored. Poems here contain no apostrophes, hyphens or numerals, so nothing is ambiguous; in the box above an apostrophe or hyphen splits a word, and the page tells you when that happens.</li>
+<li>Files: <a href="digits.js">digits.js</a>, <a href="poems.js">poems.js</a> (the poems as data), <a href="check.mjs">check.mjs</a> (the same checks in Node), <a href="README.md">README.md</a>.</li>
+</ul>
+<p class="muted small">Made by Claude, an AI model. The poems are bent by the constraint and some lines read oddly; that is the price of the rule, not a claim of skill.</p>
+</main>
+<script src="digits.js"></script>
+<script src="poems.js"></script>
+<script>
+(function(){
+'use strict';
+var NAMES={pi:'pi',e:'e',sqrt2:'the square root of 2'};
+var N=300;
+var D={pi:PilishDigits.pi(N),e:PilishDigits.e(N),sqrt2:PilishDigits.sqrt2(N)};
+document.getElementById('nd').textContent=N;
+var REF=PilishPoems.listB; // second list, see limits
+function words(text){return text.match(/[A-Za-z]+/g)||[];}
+function expectedLen(ch){return ch==='0'?10:+ch;}
+// check: returns {rows:[{w,len,digit,exp,ok}], mism:n, over:bool}
+function check(text,k,start){
+  var ws=words(text),rows=[],mism=0;
+  for(var i=0;i<ws.length;i++){
+    var ix=start-1+i, dig=ix<N?D[k][ix]:null;
+    var exp=dig===null?null:expectedLen(dig);
+    var ok=exp!==null&&ws[i].length===exp;
+    if(!ok)mism++;
+    rows.push({w:ws[i],len:ws[i].length,digit:dig,exp:exp,ok:ok});
+  }
+  return {rows:rows,mism:mism};
+}
+function esc(s){return s.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function draw(el,res,lines){
+  var h='',idx=0;
+  lines.forEach(function(l){
+    var n=words(l).length;
+    for(var j=0;j<n;j++){var r=res.rows[idx++];
+      h+='<span class="w '+(r.ok?'ok':'bad')+(r.digit==='0'?' zero':'')+'" title="'+esc(r.w)+': '+r.len+' letters, digit '+(r.digit===null?'beyond 300 computed':r.digit)+'"><b>'+esc(r.w)+'</b><i>'+r.len+(r.ok?'=':'&ne;')+(r.digit===null?'?':r.digit)+'</i></span>';}
+    h+='<span class="br"></span>';
+  });
+  el.innerHTML=h;
+}
+var host=document.getElementById('poems');
+var totalWords=0,totalMism=0,rep=[];
+PilishPoems.poems.forEach(function(p,i){
+  var text=p.lines.join('\n');
+  var res=check(text,p.constant,p.start);
+  totalWords+=res.rows.length;totalMism+=res.mism;
+  var card=document.createElement('section');card.className='card';
+  var last=p.start+res.rows.length-1;
+  card.innerHTML='<h3>'+(i+1)+'. '+esc(p.title)+'</h3><p class="small muted">Digits of '+NAMES[p.constant]+', number '+p.start+' to '+last+' ('+res.rows.length+' words). '+
+   '<span class="status '+(res.mism?'bad':'ok')+'">'+(res.mism?res.mism+' mismatched':'all '+res.rows.length+' match')+'</span></p><p class="verse">'+p.lines.map(function(l){return '<span>'+esc(l)+'</span>';}).join('')+'</p><div class="poem" role="group" aria-label="Poem '+(i+1)+', word by word"></div>'+
+   '<p class="small muted">Digits wanted: <span class="digits">'+D[p.constant].slice(p.start-1,last)+'</span></p>';
+  host.appendChild(card);
+  draw(card.querySelector('.poem'),res,p.lines);
+  rep.push({title:p.title,k:p.constant,n:res.rows.length,m:res.mism});
+});
+
+// Check 1: spigots vs list B
+var rows1=[],allB=true;
+['pi','e','sqrt2'].forEach(function(k){
+  var b=REF[k],ok=D[k].slice(0,b.length)===b;
+  if(!ok)allB=false;
+  var firstDiff=-1;for(var i=0;i<b.length;i++){if(D[k][i]!==b[i]){firstDiff=i+1;break;}}
+  rows1.push('<tr><td>'+NAMES[k]+'</td><td>'+b.length+'</td><td>'+(ok?'<span class="status ok">agree</span>':'<span class="status bad">differ at digit '+firstDiff+'</span>')+'</td></tr>');
+});
+// Check 3: the checker catches a deliberate error
+var p0=PilishPoems.poems[0],t0=p0.lines.join('\n');
+var broken=t0.replace('moonlight','moon');
+var rb=check(broken,p0.constant,p0.start);
+var catches=rb.mism>=1;
+var rz=check('Cat a lamp a tiger',  'pi',1); // length-exact nonsense passes: lengths only
+var z0=D.pi.indexOf('0')+1,zero=z0>0&&z0<=40;
+var p1=PilishPoems.poems[1],zw=(p1.constant==='pi'&&z0>=p1.start)?words(p1.lines.join(' '))[z0-p1.start]:'';
+var okAll=totalMism===0&&allB&&catches&&rz.mism===0;
+var sum=document.getElementById('summary');
+sum.innerHTML=
+ '<p><b>'+(okAll?'All checks pass.':'A check fails: see below.')+'</b> '+totalWords+' words in '+PilishPoems.poems.length+' poems; '+(totalMism?totalMism+' have the wrong length.':'none has the wrong length.')+'</p>'+
+ '<ol style="margin:0 0 10px;padding-left:20px">'+
+ '<li><b>Poem words against the page’s own digits.</b> Each word’s letter count is compared with the spigot digit it must spell (see the grids above): '+(totalMism?totalMism+' mismatches':'no mismatches')+'.</li>'+
+ '<li><b>The page’s digits against a second list.</b> The three spigots are compared with a list of the first '+REF.pi.length+' digits of each constant (leading digit plus '+(REF.pi.length-1)+' decimals; typed from memory by Claude; see the limits below):</li></ol>'+
+ '<div class="scroll"><table><thead><tr><th>Constant</th><th>Digits compared</th><th>Result</th></tr></thead><tbody>'+rows1.join('')+'</tbody></table></div>'+
+ '<ol start="3" style="margin:10px 0 0;padding-left:20px"><li><b>Does the checker catch a mistake?</b> Poem 1 with “moonlight” cut to “moon”: '+(catches?rb.mism+' mismatches found, as it should (the one changed word).':'NOT caught, the checker is broken.')+'</li>'+
+ '<li><b>Where is the first zero?</b> '+(zero?'Digit '+z0+' of pi is 0, so a pi poem that long needs a ten-letter word there'+(zw?' (poem 2 has one: “'+esc(zw)+'”).':'.'):'No zero found in the first 40 digits of pi (unexpected).')+'</li></ol>';
+
+// limits
+var lim=[
+ '<b>The second list is typed from memory, not a published table.</b> '+PilishPoems.listBNote,
+ '<b>Agreement means less than it sounds.</b> The spigots and my memory agree for 51 digits of each constant. That is two routes to the same digits, which makes a slip in either unlikely, but no published digit table was checked on this page. Beyond digit 51 the digits come from the algorithms alone; the poems use at most '+Math.max.apply(null,PilishPoems.poems.map(function(p){return p.start+words(p.lines.join(' ')).length-1;}))+' digits.',
+ '<b>How a zero is written.</b> Pilish has no word of zero letters, so a 0 digit is written as a ten-letter word. That is the common Pilish convention as I remember it (not looked up). Another convention reads a ten-letter word as the two digits 1 and 0; this page does not, and a poem written for it would show mismatches here.',
+ '<b>Words longer than ten letters</b> can never match any digit and are always flagged. Words are counted as runs of letters; apostrophes and hyphens are avoided in the poems because books disagree on how to count them.',
+ '<b>The leading digit counts.</b> Pi starts with 3, e with 2 and the square root of 2 with 1, so the first word has that many letters. Some Pilish writers skip it; here it is digit number 1.',
+ '<b>Mismatches found:</b> '+(totalMism?totalMism+' in the poems (marked red above).':'none in the four poems as published.'),
+ '<b>The checker counts letters, not meaning.</b> It cannot tell you whether a line is good, or even a sentence. Some lines here are strained to fit.'
+];
+document.getElementById('limits').innerHTML=lim.map(function(x){return '<li>'+x+'</li>';}).join('');
+
+// editor
+var t=document.getElementById('t'),c=document.getElementById('c'),s=document.getElementById('s'),m=document.getElementById('mine'),mp=document.getElementById('mypoem');
+function upd(){
+  var start=Math.max(1,Math.min(250,parseInt(s.value,10)||1)),text=t.value;
+  var res=check(text,c.value,start),n=res.rows.length;
+  var odd=/['’\-‐-―\d]/.test(text);
+  if(!n){m.textContent='Type at least one word.';mp.innerHTML='';return;}
+  var bad=res.rows.filter(function(r){return !r.ok;}).map(function(r){return '“'+r.w+'” ('+r.len+(r.exp===null?', past digit 300':' letters, wanted '+r.exp)+')';});
+  m.innerHTML=(res.mism?'<span class="status bad">'+res.mism+' of '+n+' words wrong</span> '+esc(bad.slice(0,6).join('; '))+(bad.length>6?'; and '+(bad.length-6)+' more':''):'<span class="status ok">all '+n+(n===1?' word matches':' words match')+'</span>')+
+    (odd?' <span class="muted small">Note: apostrophes, hyphens and digits split or are ignored as described above.</span>':'');
+  draw(mp,res,text.split('\n'));
+}
+[t,c,s].forEach(function(e){e.addEventListener('input',upd);});
+upd();
+})();
+</script>
+</body>
+</html>

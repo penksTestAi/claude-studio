@@ -48,7 +48,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   Minimus (a WAV) checks its ringing and reads its pitches back from the audio; Lamplight Mono (a font) parses its
   own file and its build failed its own outline check before it was fixed; Leap Seconds (a dataset, CSV and JSON)
   rebuilds every offset from its rows and found its two sources were not independent. Keep going, roughly one piece
-  in four, with a form not yet made (command-line tool, image series, story). Claims
+  in four, with a form not yet made (command-line tool, story); Seed Head Spirals (an image series) counts its
+  spirals from its own pixels. Claims
   about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -98,6 +99,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   means. After any later edit (a security fix, a review fix), re-read the words that describe the edited thing
   (promoted from an experiment: review found 0-3 such overclaims per run since, never the four of 2026-10-16 01:15,
   but they still come, such as "intact" after an edited source comment).
+- Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
+  single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
 
 ## Experiments
 
@@ -105,8 +108,11 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 - (started 2026-10-16) A role that rewrites a sentence another role wrote (Workbench one-liners, game description,
   README rows, patch notes) keeps every caveat in it ("untested", "unverified", "not independent", a known failure),
-  and lists any caveat it removes, with the evidence, in its report to the chair. Check: no review finds a dropped
-  caveat in the next 6 runs (2026-10-16 11:20: the keeper's rewrite lost "online play untested", review only).
+  and lists any caveat it removes, with the evidence, in its report to the chair. A kept caveat is also checked
+  against the record (CHANGELOG, Direction): one that is no longer true as written is reworded or flagged, not copied
+  (14:26: "online play untested" was kept in six places though the owner had played online on an earlier build).
+  Check: no review finds a dropped or stale caveat in the next 6 runs (2026-10-16 11:20: the keeper's rewrite lost
+  "online play untested", review only).
 - (started 2026-10-16) Every run the keeper compares each game passage on the Workbench (the Long Watch paragraph,
   the letter) with game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates the passages it may
   edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
@@ -144,13 +150,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-15: vigil-security skill now reads untracked files itself and has the chair re-scan after `git add`, before
-  each commit; the scanner sees only tracked files, so a `new Function` BLOCK in the new talk.test.mjs was missed and
-  the game commit went out before a later scan found it.
-- 2026-10-15: proposal for the owner: security_check.py should scan untracked, non-ignored files (same evidence).
-- 2026-10-15: new practice, browser tests use the headless shell via `CHROME` and one-off failures are named; the
-  default Chromium crashed and talk.test failed once this run. One-source experiment not judged: its genetic-code
-  test (all excerpts derive from NCBI, page says not independent) is honest but not a real second source.
 - 2026-10-15: vigil-game skill now runs each test file 5 times and reports pass counts, and forbids exact-pixel reads
   of eased or moving drawings; world.test failed about 3 in 10 on one minimap pixel, passed the tester's single run,
   and the game commit went out before the chair's fix.
@@ -244,3 +243,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   the skill says). Caveat experiment not judged (one run; no dropped caveat found).
 - 2026-10-16: new experiment, keeper checks Workbench game passages against ROADMAP each run; review caught a stale
   Long Watch paragraph twice running and a stale online-play line in the letter.
+- 2026-10-16: Direction updated; Seed Head Spirals makes the first image series, so it leaves the "not yet made" list.
+- 2026-10-16: caveat experiment now also checks kept caveats against the record; the keeper kept "online play
+  untested" in six places though the owner had played online on an earlier build (review only). Keeper-passages
+  experiment not judged (two runs; the keeper flagged the stale protected Long Watch paragraph for the owner).
+- 2026-10-16: new practice, a blank line before commit trailers; a single newline folded Co-Authored-By into the
+  subject (profile's update_readme.py now strips it too). Not acted on: game builder ran every file once in about
+  16 min and the tester's time budget held (skill working); scanner still sees only tracked files (proposal stands).

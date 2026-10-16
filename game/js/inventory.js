@@ -14,6 +14,10 @@ import { KINDS } from "./resources.js";
 export const CRAFTED = ["wick", "amber", "jade", "azure"];
 export const LAMP_KEYS = ["amber", "jade", "azure"]; // lamp number n (1..3) is LAMP_KEYS[n - 1]
 
+// Everything that can be handed to another player, by index: the three gathered kinds first (so old saved gifts keep
+// their numbers), then the crafted things (3 wick, 4 amber, 5 jade, 6 azure lantern).
+export const ITEMS = [...KINDS, ...CRAFTED];
+
 export const SOFT_STACK = 999;      // a player with this many of one kind declines more of it
 export const HARD_STACK = 100000;   // nothing above this is ever read back from a save
 export const MAX_OUT = 20, MAX_EXP = 32, MAX_GOT = 1000; // oldest receipts are forgotten past this (a replay of a very old gift could then be added again)
@@ -21,7 +25,7 @@ export const MAX_GIFT_ID = 4294967295;
 
 const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
 export const isGiftId = (t) => isInt(t, 1, MAX_GIFT_ID);
-export const isKindIndex = (i) => isInt(i, 0, KINDS.length - 1);
+export const isKindIndex = (i) => isInt(i, 0, ITEMS.length - 1);
 export const isSeed32 = (s) => isInt(s, 0, 0xffffffff);
 
 export function emptyPack() { return Object.fromEntries(KINDS.map(k => [k, 0])); }

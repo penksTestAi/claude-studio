@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="An island at night where players meet over peer-to-peer connections, gather and craft lanterns, light beacons and drive off shades together, under a seeded sky of mist and rain (the owner has played it online over public relays on an earlier build; this version is untested there).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, craft and give each other wicks and lanterns, peer to peer, no server and no typed text (the owner has played it online over public relays on an earlier build; online play is untested on current builds)">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -201,6 +201,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.15</b> · milestone 12 (giving crafted things) <span class="when">2026-10-16</span></summary>
+    <p><span class="tag t-new">New</span> give wicks and amber, jade and azure lanterns to a nearby player, the same way as gathered items: you offer, they accept, then it moves. New Give buttons sit next to the old ones. Nothing leaves your pack until the other player accepts, a player with 999 of that thing refuses it, and an offer nobody answers ends after 20 seconds with nothing moved. If you give away the last lantern of the one you are holding, you hold the plain lantern again. A lantern you receive is not held automatically; press its Hold button.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (only the local relay was used), and how the new buttons feel on a real phone.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.14</b> · milestone 11 (weather and the shades' sky) <span class="when">2026-10-16</span></summary>
     <p><span class="tag t-new">New</span> see mist and rain drift over the island. The weather changes every few minutes, easing from one to the next over about 40 seconds: roughly half the time it is clear, otherwise misty or rainy, and everyone on the island sees the same sky if their device clocks agree. Mist is a thin pale veil with a few soft banks that drift across; rain is a cool tint and fine slanting streaks. Lanterns, paths and players stay easy to see in both. The small sky strip at the top clouds over in mist and rain (stars fade, the moon dims), and when a wave of shades is out it darkens under a violet-black cloud and its frame turns pale violet, so you can tell a wave is coming or going before you see a shade. With reduced motion on, nothing falls or drifts: the grey tint and still mist stay. On a slow phone the game draws fewer drops and banks, then only a flat thin veil. It is only a look: weather changes no rule.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays (the sandbox cannot reach them; only the local relay was used), how the weather and the darker sky look and perform on a real phone (frame costs were seen only in headless Chromium without a GPU), and whether the mist hides too much on a bright screen outdoors.</p>

@@ -28,7 +28,7 @@ working features.
 - **5. Crafting.** Wicks and amber, jade and azure lanterns made from gathered items (ingredients are used up, never
   copied; a full stack refuses the craft and drops nothing); the lantern you hold sets how far your light reaches and
   glows in its colour, and every nearby player sees that reach drawn around you; the held lantern is told to the room
-  as one number and saved in your own browser. Crafted things cannot be given yet. (2026-10-15, local relay only)
+  as one number and saved in your own browser. Crafted things can be given since milestone 12. (2026-10-15, local relay only)
 
 - **6. Beacons.** Four old beacons fuelled together: driftwood and oil berries are burned, each player's share is
   counted in a grow-only counter, a beacon lights at 12 fuel from at least two players and then lights a wide area
@@ -84,9 +84,11 @@ working features.
     darkens under a violet-black cloud while a wave of shades is out; cheap on phones (cached mist sprite, one batched stroke
     for the rain, fewer at governor level 1, only a flat veil at level 0), still under reduced motion (no falling drops, mist
     stands still). Nothing is sent. `?weather=clear|mist|rain` pins it for tests. Frame cost measured only in headless Chromium.
-12. **NEXT: Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as gathered
-    items (kinds added to the saved lists, every cap tested full and expired, a peer leaving midway).
-13. **A second way to find each other.** When the Nostr relays cannot be reached, try a second free signalling path
+12. **Done (2026-10-16, local relay only): Giving crafted things.** Wicks and lanterns go through the same offer, accept, commit and receipt as
+    gathered items (item numbers 3 to 6 added to the saved lists, so old saves read as before). Giving away the last lantern of the one in hand puts the
+    plain lantern back. Every cap tested full and expired (receiver stack, receiver expected list, giver on-its-way list, 20 s offer, late accept,
+    pack emptied between offer and accept), a peer leaving at each step, and each message dropped or either side restarted (`craftgive.test.mjs`).
+13. **NEXT: A second way to find each other.** When the Nostr relays cannot be reached, try a second free signalling path
     with no sign-up (BitTorrent trackers or MQTT through Trystero), say on the page which one connected, and test the
     fallback locally; record whether the public ones were reachable.
 14. **The long watch kept.** When all four beacons in a lantern are lit at once, the ruined lighthouse lights for
@@ -120,5 +122,5 @@ working features.
 
 ## Ideas parked (no order)
 Fishing at the jetty; shades that follow a lone lantern slowly; a shade that can only be driven off by a lit beacon at the end of a long night; a shared music stone players can play together with preset notes; weather that changes the game (fog hiding far players, rain slowing shades); a
-world-changing event when every beacon in a room is lit; trading with fair offers; giving crafted lanterns (needs the same offer, accept and receipt rules, with kinds added to the saved lists); seasonal islands (a new
+world-changing event when every beacon in a room is lit; trading with fair offers; seasonal islands (a new
 seed each month, the old ones kept as "past islands").

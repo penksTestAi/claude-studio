@@ -105,6 +105,7 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   the receiver's saved `exp` list; `got` stops repeats. The giver repeats `cf` every 3 s to the same seed until `rc`.
   A gift whose receiver never returns stays in `out` (never given back, so never copied; it is lost only if storage is blocked or cleared). `exp` is never trimmed: a receiver with `MAX_EXP` (32) entries declines new offers and `accept()` refuses; `got` keeps the newest `MAX_GOT` (1000). Known limits: a peer can claim another player's public seed and so receive gifts meant for them; storage cleared after the hand-over loses the record. Saved key
   `vigil.longwatch.v1` now holds `inv`, `out`, `exp`, `got` next to seed and position, all checked on load.
+  Milestone 12: the item number `i` indexes `ITEMS` (`js/inventory.js`): 0 driftwood, 1 reeds, 2 berries, then 3 wick, 4 amber, 5 jade, 6 azure lantern. Crafted things are counted in `cr` and go through exactly the same steps; every cap above applies to them (the receiver declines at `SOFT_STACK` of that item). When the last lantern of the one in hand is committed away, `held.lamp` becomes 0 in the same save and the game announces the plain lantern. The receiver never starts holding a received lantern by itself.
 - **Crafting protocol v1** (`js/craft.js`, saved fields in `js/inventory.js`, milestone 5): nothing about crafting
   itself crosses the network, because it only converts items in the player's own pack: `tryCraft` checks every
   ingredient and the result's stack (`CRAFT_STACK` = 999) first and changes the pack only if all of it can be paid, so
@@ -297,6 +298,7 @@ game/
   tests/quests.test.mjs    node checks of the notes, shares and the module on a fake mesh, then local and WebRTC pages: three notes worked by two players, late joiner, reload, another day, forged messages
   tests/shades.test.mjs    node checks of the shades' paths, shares, caps and the module on a fake mesh (snuffing, ward, relight, flags, floods, slot change), then local and WebRTC pages: two players drive a circling shade off together without being snuffed, a lone player is snuffed and a friend relights, late joiner, forged messages
   tests/rank.test.mjs      node checks of the rank (deeds, gaps, caps, the message on a fake mesh, the shades module's "helped" event), then local and WebRTC pages: three gifts that arrive make a Lamplighter, the other player sees the title, a reload keeps the points, a gift too soon earns nothing, forged rank messages (local run)
+  tests/craftgive.test.mjs node checks of giving wicks and lanterns on a fake mesh (every cap full and expired, a peer leaving, every message dropped or either side restarted, the lantern in hand), then local and WebRTC pages: Give buttons, full stack declined, a held lantern given, take-back, a player leaving
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
 ```
 URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` (tests only), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
@@ -304,7 +306,7 @@ URL flags: `?net=local|nostr|torrent` (default nostr), `?mute=N` (tests only), `
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

@@ -1,4 +1,4 @@
-// Giving: hand one item to a nearby player. Two people confirm, and an item is never copied.
+// Giving: hand one item (gathered or crafted: wick, lanterns) to a nearby player. Two people confirm, and an item is never copied.
 //
 // Messages, all tiny and numbers only (t = a random gift number, i = kind index):
 //   { k:"of", t, i }   giver -> receiver   "I offer you one item of kind i"       (confirmation 1: the giver offers)
@@ -21,15 +21,21 @@
 //    giving it back would risk a second copy, which is the worse failure.
 // A modified client can still cheat for itself (invent items); there is nothing to win from others.
 import { createGuard } from "./guard.js";
-import { KINDS } from "./resources.js";
-import { MAX_OUT, MAX_EXP, MAX_GOT, SOFT_STACK, isGiftId, isKindIndex } from "./inventory.js";
+import { ITEMS, CRAFTED, LAMP_KEYS, MAX_OUT, MAX_EXP, MAX_GOT, SOFT_STACK, isGiftId, isKindIndex } from "./inventory.js";
 
 export const GIVE_RANGE = 3;        // tiles: how close a giver must stand to offer (own view of the other player)
 export const RECEIVE_SLACK = 2.5;   // a receiver accepts offers from a little farther (movement lags behind)
 export const OFFER_MS = 20000;      // an offer that nobody answers ends after this long
 export const RESEND_MS = 3000;      // how often a sent-but-unconfirmed gift is announced again to its receiver
 
+// Items are gathered kinds (counted in `inv`) or crafted things (counted in `cr`); i indexes ITEMS. Wicks and lanterns
+// go through exactly the same offer, accept, commit and receipt as gathered items.
 export function createGive(net, me, peers, inv, ledger, opts = {}) {
+  const cr = opts.cr || Object.fromEntries(CRAFTED.map(k => [k, 0]));
+  const held = opts.held || { lamp: 0 };
+  const onLampDropped = opts.onLampDropped || (() => {});
+  const countOf = (i) => (CRAFTED.includes(ITEMS[i]) ? cr : inv)[ITEMS[i]];
+  const addTo = (i, d) => { (CRAFTED.includes(ITEMS[i]) ? cr : inv)[ITEMS[i]] += d; };
   const now = opts.now || (() => performance.now());
   const onEvent = opts.onEvent || (() => {});
   const persist = opts.persist || (() => {});
@@ -66,8 +72,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
       if (keys !== 3 || !isKindIndex(msg.i)) return;
       if (incoming && now() - incoming.at > OFFER_MS) endIncoming("expired");
       if (dist(p) > GIVE_RANGE + RECEIVE_SLACK) return;
-      const kind = KINDS[msg.i];
-      if (incoming || inv[kind] >= SOFT_STACK || ledger.exp.length >= MAX_EXP || ledger.exp.some(e => same(e, p.seed, t)) || ledger.got.some(e => same(e, p.seed, t))) { net.send({ k: "dc", t }, id); return; }
+      if (incoming || countOf(msg.i) >= SOFT_STACK || ledger.exp.length >= MAX_EXP || ledger.exp.some(e => same(e, p.seed, t)) || ledger.got.some(e => same(e, p.seed, t))) { net.send({ k: "dc", t }, id); return; }
       incoming = { t, i: msg.i, from: id, seed: p.seed, at: now() };
       onEvent("offered", { kind: msg.i, seed: p.seed });
     } else if (k === "ac") {
@@ -86,7 +91,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
       const at = ledger.exp.findIndex(e => same(e, p.seed, t) && e.i === msg.i);
       if (at >= 0) {
         ledger.exp.splice(at, 1);
-        inv[KINDS[msg.i]]++;
+        addTo(msg.i, 1);
         ledger.got.push({ t, s: p.seed });
         while (ledger.got.length > MAX_GOT) ledger.got.shift();
         persist();                                  // saved before the receipt goes out
@@ -109,11 +114,15 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
 
   // The receiver said yes: take the item out of the pack, save, and only then tell the receiver.
   function commit() {
-    const o = outgoing, kind = KINDS[o.i];
-    if (inv[kind] < 1 || ledger.out.length >= MAX_OUT) { net.send({ k: "cx", t: o.t }, o.to); endOutgoing("cancelled"); return; }
-    inv[kind]--;
+    const o = outgoing;
+    if (countOf(o.i) < 1 || ledger.out.length >= MAX_OUT) { net.send({ k: "cx", t: o.t }, o.to); endOutgoing("cancelled"); return; }
+    addTo(o.i, -1);
+    const lampNo = LAMP_KEYS.indexOf(ITEMS[o.i]) + 1;
+    const dropLamp = lampNo > 0 && held.lamp === lampNo && cr[ITEMS[o.i]] < 1; // the lantern in hand was the last of its kind
+    if (dropLamp) held.lamp = 0;
     ledger.out.push({ t: o.t, i: o.i, s: o.seed });
     persist();
+    if (dropLamp) onLampDropped();
     outgoing = null;
     lastResend.set(`${o.seed}.${o.t}`, now());
     net.send({ k: "cf", t: o.t, i: o.i }, o.to);
@@ -131,7 +140,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
     },
     // Step 1, the giver's confirmation: offer one item of kind index i to the nearest player. Returns true when sent.
     offer(i) {
-      if (!isKindIndex(i) || outgoing || inv[KINDS[i]] < 1 || ledger.out.length >= MAX_OUT) return false;
+      if (!isKindIndex(i) || outgoing || countOf(i) < 1 || ledger.out.length >= MAX_OUT) return false;
       const p = this.target();
       if (!p) return false;
       outgoing = { t: rand(), i, to: p.id, seed: p.seed, at: now() };
@@ -149,7 +158,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
     accept() {
       if (!incoming) return false;
       if (now() - incoming.at > OFFER_MS) { endIncoming("expired"); return false; }
-      if (ledger.exp.length >= MAX_EXP) { net.send({ k: "dc", t: incoming.t }, incoming.from); endIncoming("declined"); return false; } // never drop an expected gift
+      if (ledger.exp.length >= MAX_EXP || countOf(incoming.i) >= SOFT_STACK) { net.send({ k: "dc", t: incoming.t }, incoming.from); endIncoming("declined"); return false; } // never drop an expected gift; a stack filled since the offer also refuses
       const o = incoming;
       ledger.exp.push({ t: o.t, i: o.i, s: o.seed });
       persist();

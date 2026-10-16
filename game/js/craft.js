@@ -3,7 +3,8 @@
 //
 // Crafting only ever converts: the ingredients leave the pack in the same step as the result arrives, and nothing
 // is crafted when an ingredient is missing or when the result's stack is full (nothing is used up then).
-// Crafted things are not given away yet, so they cannot be copied by a hand-over either.
+// Crafted things can be given (give.js, same offer, accept, commit and receipt as gathered items); giving away the
+// last lantern of the one in hand puts the plain lantern back in hand.
 //
 // Message (all numbers, to everyone, never any text):
 //   { k:"lt", l }   the lantern I hold: 0 plain, 1 amber, 2 jade, 3 azure. Sent on change, to each newcomer, every 5 s.

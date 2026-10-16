@@ -14,7 +14,7 @@ import { surfaceAt, landmarkFingerprint, BEACON_SIDES } from "./world.js";
 import { generateNodes, nodeFingerprint, KINDS, KIND_NAMES } from "./resources.js";
 import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
-import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS } from "./inventory.js";
+import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS, ITEMS } from "./inventory.js";
 import { createBeacons, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
@@ -105,7 +105,7 @@ async function enter() {
   presence = createPresence(net, world, me, updatePeers);
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
   gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
-  give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save });
+  give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save, cr, held, onLampDropped: () => { if (craft) craft.hold(0); } });
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
@@ -203,7 +203,7 @@ function gatherEvent(type, kind) {
   else $("gathered").textContent = `Someone was first to the ${KIND_NAMES[kind].toLowerCase()}.`;
 }
 function paintPack() {
-  const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${KIND_NAMES[KINDS[e.i]].toLowerCase()} for ${nameFor(e.s)}`).join(", ")}` : "";
+  const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${ITEM_NAMES[ITEMS[e.i]]} for ${nameFor(e.s)}`).join(", ")}` : "";
   const made = CRAFTED.filter(k => cr[k] > 0).map(k => `${CRAFT_NAMES[k]} ${cr[k]}`);
   $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).concat(made).join(", ") + away;
 }
@@ -387,13 +387,14 @@ function paintCraft() {
 }
 // ---- giving: offer to the nearest player, they accept, then the item moves ----
 const giveBox = $("givebtns");
-KINDS.forEach((k, i) => {
+ITEMS.forEach((k, i) => {
   const b = document.createElement("button");
-  b.type = "button"; b.className = "ghost"; b.dataset.kind = i; b.textContent = `Give ${KIND_NAMES[k].toLowerCase()}`;
+  b.type = "button"; b.className = "ghost"; b.dataset.kind = i; b.textContent = `Give ${ITEM_NAMES[k]}`;
   b.addEventListener("click", () => { if (give && give.offer(i)) paintGive(); canvas.focus({ preventScroll: true }); });
   giveBox.append(b);
 });
-const KIND_LOWER = (i) => KIND_NAMES[KINDS[i]].toLowerCase();
+const KIND_LOWER = (i) => ITEM_NAMES[ITEMS[i]];
+const countOfItem = (i) => (CRAFTED.includes(ITEMS[i]) ? cr : inv)[ITEMS[i]];
 function giveEvent(type, d) {
   const who = nameFor(d.seed), what = KIND_LOWER(d.kind);
   const say = {
@@ -410,17 +411,17 @@ function giveEvent(type, d) {
   }[type];
   if (say) $("giveinfo").textContent = say;
   if (type === "delivered") rank.credit("gift", `${d.seed}.${++giftNo}`);
-  if (type === "received" || type === "sent" || type === "delivered") paintPack();
+  if (type === "received" || type === "sent" || type === "delivered") { paintPack(); paintCraft(); }
   paintGive();
 }
 let lastGiveKey = "";
 function paintGive() {
   const t = give ? give.target() : null, o = give ? give.outgoing : null, inc = give ? give.incoming : null;
-  const key = [t ? t.id : "", o ? o.t : "", inc ? inc.t : "", KINDS.map(k => inv[k]).join(), ledger.out.length, !!give].join("|");
+  const key = [t ? t.id : "", o ? o.t : "", inc ? inc.t : "", ITEMS.map((_, i) => countOfItem(i)).join(), ledger.out.length, !!give].join("|");
   if (key === lastGiveKey) return;
   lastGiveKey = key;
   $("give").hidden = !give;
-  for (const b of giveBox.children) b.disabled = !give || !t || !!o || inv[KINDS[b.dataset.kind]] < 1;
+  for (const b of giveBox.children) b.disabled = !give || !t || !!o || countOfItem(Number(b.dataset.kind)) < 1;
   $("givetarget").textContent = o ? `Offer to ${nameFor(o.seed)} is waiting for an answer.` : t ? `Nearest player in reach: ${t.name}.` : `No one within ${GIVE_RANGE} tiles to give to.`;
   $("givecancel").hidden = !o;
   $("offerbox").hidden = !inc;
@@ -549,7 +550,7 @@ window.__longWatch = {
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],
   nodes: () => nodes.map(n => ({ id: n.id, kind: n.kind, x: n.x, y: n.y, respawn: n.respawn })),
   nodeFingerprint: () => nodeFingerprint(nodes),
-  give: () => ({ inv: { ...inv }, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
+  give: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, out: ledger.out.map(e => ({ ...e })), exp: ledger.exp.map(e => ({ ...e })), got: ledger.got.map(e => ({ ...e })), outgoing: give ? give.outgoing : null, incoming: give ? give.incoming : null, target: give && give.target() ? give.target().id : null, info: $("giveinfo").textContent, softStack: SOFT_STACK }),
   beacon: () => beacon ? { fuel: beaconList.map((_, b) => beacon.shares.fuel(b)), players: beaconList.map((_, b) => beacon.shares.players(b)), lit: beaconList.map((_, b) => beacon.shares.lit(b)), own: beaconList.map((_, b) => beacon.shares.own(b, me.seed)), near: beacon.near(), synced: beacon.synced(), pending: beacon.pending(), inv: { ...inv }, info: $('beaconinfo').textContent, panel: !$('beacon').hidden, list: beaconList.map(l => ({ x: l.x, y: l.y })), fires: fireList() } : null,
   rank: () => ({ points: rank.points, rank: rank.rank, title: titleFor(rank.rank), seen: rank.seenCount(), panel: !$("rank").hidden, text: $("rankstate").textContent, info: $("rankinfo").textContent, peerRanks: presence ? [...presence.peers.values()].map(p => ({ id: p.id, rank: p.rank | 0 })) : [], saved: (() => { try { return JSON.parse(store().getItem(STORE) || "{}").help; } catch { return null; } })(), titles: TITLES.slice(), thresholds: THRESHOLDS.slice() }),
   quests: () => quests ? { day: quests.day, synced: quests.synced(), pending: quests.pending(), owed: quests.owed(), notes: quests.notes.map(n => ({ ...n })), text: quests.notes.map(n => noteText(n, beaconName)), total: quests.notes.map((_, q) => quests.shares.total(q)), players: quests.notes.map((_, q) => quests.shares.players(q)), own: quests.notes.map((_, q) => quests.shares.own(q, me.seed)), done: quests.notes.map((_, q) => quests.shares.done(q)), panel: !$("quests").hidden, lines: [...$("questlist").children].map(li => li.textContent), info: $("questinfo").textContent } : null,

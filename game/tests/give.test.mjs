@@ -213,7 +213,7 @@ function runScenario(fault) {
   // hostile
   { const s = mk(); const send = (to, msg, from) => to.hs.forEach(h => h(msg, from)); const before = total(s);
     const bad = [{ k: "cf", t: 5, i: 0 }, { k: "cf", t: 5 }, { k: "cf", t: 5, i: 0, z: 1 }, { k: "cf", t: "5", i: 0 }, { k: "cf", t: 5.5, i: 0 }, { k: "cf", t: 0, i: 0 }, { k: "cf", t: 5, i: 9 }, { k: "cf", t: 4294967296, i: 0 },
-      { k: "ac", t: 5 }, { k: "rc", t: 5 }, { k: "dc", t: 5 }, { k: "cx", t: 5 }, { k: "of", t: 5, i: 0, z: 1 }, { k: "of", t: 5 }, { k: "of", t: 5, i: 3 }, { k: "of", t: -5, i: 0 }, { k: "of", t: "x", i: 0 }, { k: "of", i: 0 }, "cf", 7, null, [], { k: 5 }, { k: "zap", t: 5 }];
+      { k: "ac", t: 5 }, { k: "rc", t: 5 }, { k: "dc", t: 5 }, { k: "cx", t: 5 }, { k: "of", t: 5, i: 0, z: 1 }, { k: "of", t: 5 }, { k: "of", t: 5, i: 7 }, { k: "of", t: -5, i: 0 }, { k: "of", t: "x", i: 0 }, { k: "of", i: 0 }, "cf", 7, null, [], { k: 5 }, { k: "zap", t: 5 }];
     for (const m of bad) { send(s.R, m, s.G.id); send(s.G, m, s.R.id); send(s.R, m, "stranger"); }
     s.w.run();
     ok(total(s) === before && !s.R.give.incoming && !s.G.give.outgoing && s.R.inv.driftwood === 0, "forged or malformed messages (bad numbers, extra fields, unknown kinds, strangers) change nothing");

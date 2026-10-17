@@ -21,7 +21,7 @@ export const RECIPES = {
   azure: { wick: 3, driftwood: 4, reeds: 4, berries: 4 },
 };
 export const CRAFT_NAMES = { wick: "Wick", amber: "Amber lantern", jade: "Jade lantern", azure: "Azure lantern" };
-export const ITEM_NAMES = { driftwood: "driftwood", reeds: "reeds", berries: "oil berries", wick: "wick", amber: "amber lantern", jade: "jade lantern", azure: "azure lantern" };
+export const ITEM_NAMES = { driftwood: "driftwood", reeds: "reeds", berries: "oil berries", oil: "lamp oil", wick: "wick", amber: "amber lantern", jade: "jade lantern", azure: "azure lantern" };
 // The light each lantern gives: how many times the night's lantern reach, and its glow colour.
 export const LAMPS = [
   { name: "Plain lantern", mult: 1, glow: null },

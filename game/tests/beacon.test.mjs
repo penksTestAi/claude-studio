@@ -321,7 +321,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   const sample = [beaconList[0].x, beaconList[0].y + 6];
   const dimBefore = await settledBrightness(B, ...sample);
   await shoot(B, `${opts.shot}-before`);
-  ok(await waitFor(A, () => window.__longWatch.beacon().panel, null, 3000) && await A.locator("#beaconbtns button").count() === 2, "the Beacon panel appears with two Add buttons");
+  ok(await waitFor(A, () => window.__longWatch.beacon().panel, null, 3000) && await A.locator("#beaconbtns button").count() === 3, "the Beacon panel appears with three Add buttons (driftwood, oil berries, lamp oil)");
   await A.click('#beaconbtns [data-item="driftwood"]');
   let s = await bc(A);
   ok(s.inv.driftwood === 44 && s.own[0] === 1 && s.fuel[0] === 1 && /added driftwood/.test(s.info), "a button press uses one driftwood and adds 1 to A's share");
@@ -380,7 +380,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   await A.reload(); await A.click("#enter");
   ok(await waitFor(A, () => window.__longWatch.self().playing && !!window.__longWatch.self().id, null, 8000), "A is back in the lantern");
   ok(await waitFor(A, () => { const s = window.__longWatch.beacon(); return s && s.own[2] === 16 && s.own[0] === 12 && s.lit[0] && s.lit[1] && s.lit[2]; }, null, 12000), "A's old shares are told back to A by the others (12, 6 and 16), and all three beacons are still lit");
-  ok(JSON.stringify((await bc(A)).inv) === JSON.stringify({ driftwood: 13, reeds: 3, berries: 3 }), "A's pack was saved with the spent items gone (13 driftwood, 3 reeds, 3 oil berries)");
+  ok(JSON.stringify((await bc(A)).inv) === JSON.stringify({ driftwood: 13, reeds: 3, berries: 3, oil: 0 }), "A's pack was saved with the spent items gone (13 driftwood, 3 reeds, 3 oil berries, no lamp oil)");
   await teleportSynced(A, [B], stand[2][0].x, stand[2][0].y);
   const rr = await A.evaluate(() => window.__longWatch.addFuel("driftwood"));
   ok(!rr.ok, "back at a beacon, A cannot add again to a lit beacon, and a reload did not reset the 16-item cap");

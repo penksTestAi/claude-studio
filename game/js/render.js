@@ -363,15 +363,15 @@ export function createRenderer(canvas, world, opts = {}) {
     return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky };
   }
 
-  function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch) {
+  function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
     const t0 = performance.now();
-    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch);
+    drawFrame(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing);
     const i = nSamp % 240; samples[i] = performance.now() - t0; frames[i] = prevT ? t - prevT : 0; nSamp++;
     if (prevT) gov.note(t - prevT);
     prevT = t;
   }
 
-  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = [], env = null, watch = null) {
+  function drawFrame(me, peers, stick, t, light, nodes = [], reach = null, fires = [], shades = [], env = null, watch = null, fishing = null) {
     const reduce = !!(opts.reducedMotion && opts.reducedMotion());
     const level = plain ? 0 : gov.level;
     if (canvas.clientWidth !== cw || canvas.clientHeight !== ch) resize();
@@ -388,6 +388,7 @@ export function createRenderer(canvas, world, opts = {}) {
     if (env && !plain) drawMist(t, reduce, level, W, H, env.mist);
 
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
+    if (fishing) for (const f of fishing.fish) drawFish(g, f, f.x * tile - camX, f.y * tile - camY, tile, t, reduce); // under the night layer: seen where a lantern lights the water
 
     for (const f of fires) drawFlame(g, f, f.x * tile - camX, (f.y - 0.85) * tile - camY, tile, t, reduce);
 
@@ -448,6 +449,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
     if (watch) drawLighthouse(g, watch, watch.x * tile - camX, watch.y * tile - camY, tile, t, reduce, plain);
     g.globalCompositeOperation = "source-over";
+    if (fishing) drawLines(g, fishing, camX, camY, tile, t, reduce);
     drawShades(t, reduce, camX, camY, tile, shades, all, lt, me);
     if (!plain) drawFireflies(t, reduce, level, camX, camY, tile, W, H, all, fires);
     if (env && !plain) drawRain(t, reduce, level, W, H, env.rain, dpr);
@@ -512,6 +514,45 @@ export function createRenderer(canvas, world, opts = {}) {
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn
 // slowly (still, one pointing out to sea, with reduced motion). Drawn in the additive pass; cost is a few fills.
+// A fish: a dark teal body with a tail, a pale ring on the water round it (a shoal fish is silver and has a brighter ring).
+function drawFish(g, f, sx, sy, tile, t, reduce) {
+  const u = tile / 8, a = f.alpha;
+  const ang = reduce ? 0 : Math.atan2(Math.cos(t / 900 + f.id), -Math.sin(t / 900 + f.id)) + Math.PI / 2;
+  g.save(); g.globalAlpha = a;
+  g.strokeStyle = f.shoal ? "rgba(220,240,255,0.55)" : "rgba(170,215,230,0.35)"; g.lineWidth = Math.max(1, u * 0.35);
+  g.beginPath(); g.ellipse(sx, sy, u * (reduce ? 3.2 : 3 + Math.sin(t / 500 + f.id) * 0.5), u * 1.8, 0, 0, Math.PI * 2); g.stroke();
+  g.translate(sx, sy); g.rotate(ang);
+  g.fillStyle = f.shoal ? "#c9dde8" : "#1d4a57";
+  g.beginPath(); g.ellipse(0, 0, u * 2.1, u * 0.95, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.moveTo(-u * 1.8, 0); g.lineTo(-u * 3.1, -u * 1.1); g.lineTo(-u * 3.1, u * 1.1); g.closePath(); g.fill();
+  g.fillStyle = f.shoal ? "#ffffff" : "#8fc4cf"; g.fillRect(u * 1.1, -u * 0.5, u * 0.5, u * 0.5);
+  g.restore();
+}
+// Fishing lines and floats, drawn over the night so every float is found: a thin line from the angler to a red and white float;
+// a bite adds two bright rings (static under reduced motion); a shoal is a soft silver glimmer round the middle of two floats.
+function drawLines(g, fishing, camX, camY, tile, t, reduce) {
+  const u = tile / 8;
+  if (fishing.shoal) {
+    const sx = fishing.shoal.x * tile - camX, sy = fishing.shoal.y * tile - camY;
+    g.save(); g.globalCompositeOperation = "lighter";
+    const grad = g.createRadialGradient(sx, sy, 0, sx, sy, tile * 1.3);
+    grad.addColorStop(0, "rgba(190,225,245,0.30)"); grad.addColorStop(1, "rgba(190,225,245,0)");
+    g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, tile * 1.3, 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+  for (const l of fishing.lines) {
+    const px = l.px * tile - camX, py = (l.py - 0.15) * tile - camY, fx = l.fx * tile - camX, fy = l.fy * tile - camY;
+    g.strokeStyle = l.mine ? "rgba(240,240,225,0.85)" : "rgba(240,240,225,0.55)"; g.lineWidth = Math.max(1, u * 0.3);
+    g.beginPath(); g.moveTo(px, py); g.quadraticCurveTo((px + fx) / 2, (py + fy) / 2 + u * 1.2, fx, fy); g.stroke();
+    const bob = reduce ? 0 : Math.sin(t / 380 + l.fx) * u * (l.bite ? 0.9 : 0.25);
+    g.strokeStyle = "rgba(210,235,245,0.6)"; g.lineWidth = Math.max(1, u * 0.3);
+    g.beginPath(); g.ellipse(fx, fy, u * (l.bite ? 3.4 : 2.2), u * (l.bite ? 1.9 : 1.2), 0, 0, Math.PI * 2); g.stroke();
+    if (l.bite) { g.beginPath(); g.ellipse(fx, fy, u * 5, u * 2.8, 0, 0, Math.PI * 2); g.strokeStyle = "rgba(255,233,168,0.9)"; g.stroke(); }
+    g.fillStyle = "#f2f2ea"; g.beginPath(); g.arc(fx, fy + bob, u * 1.0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#e0453a"; g.beginPath(); g.arc(fx, fy + bob - u * 0.7, u * 0.8, Math.PI, 0); g.fill();
+  }
+}
+
 function drawLighthouse(g, w, sx, sy, tile, t, reduce, plain) {
   const R = tile * w.r * w.f, top = sy - tile * 1.9, a0 = reduce ? 0.6 : t / 4200;
   let grad = g.createRadialGradient(sx, sy, 0, sx, sy, R * 0.9);

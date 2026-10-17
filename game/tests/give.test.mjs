@@ -204,7 +204,7 @@ function runScenario(fault) {
   { const s = mk(); s.G.give.offer(0); s.w.run(); s.R.give.accept(); const accepted = s.R.ledger.exp.length === 1; s.G.give.cancel(); s.w.run(); s.w.run(); ok(accepted && s.G.inv.driftwood === 1 && s.R.inv.driftwood === 0 && s.R.ledger.exp.length === 0, "taking back just as the receiver accepts: nothing moves, the stale accept is cleared"); }
   { const s = mk(); ok(s.G.give.offer(0) && !s.G.give.offer(1), "only one offer at a time"); s.w.run();
     ok(s.R.give.incoming.i === 0, "the receiver sees kind 0"); }
-  { const s = mk(); s.G.inv.driftwood = 0; ok(!s.G.give.offer(0), "no offer without the item"); ok(!s.G.give.offer(7) && !s.G.give.offer(-1) && !s.G.give.offer(1.5) && !s.G.give.offer("0"), "bad kinds are refused"); }
+  { const s = mk(); s.G.inv.driftwood = 0; ok(!s.G.give.offer(0), "no offer without the item"); ok(!s.G.give.offer(8) && !s.G.give.offer(-1) && !s.G.give.offer(1.5) && !s.G.give.offer("0"), "bad kinds are refused"); }
   { const s = mk(); for (const p of s.G.peers.values()) p.tx += GIVE_RANGE + 1; ok(!s.G.give.offer(0), `no offer to a player farther than ${GIVE_RANGE} tiles`); }
   { const s = mk(); s.R.inv.driftwood = SOFT_STACK; s.G.give.offer(0); s.w.run(); ok(!s.G.give.outgoing && !s.R.give.incoming && s.G.inv.driftwood === 1, `a receiver with ${SOFT_STACK} of that kind declines it`); }
   { const s = mk(); s.G.give.offer(0); s.w.run(); s.R.give.accept(); s.w.run(); ok(s.R.inv.driftwood === 1 && s.G.inv.driftwood === 0 && s.G.ledger.out.length === 0 && s.G.events.includes("delivered") && s.R.events.includes("received"), "both confirm: one item moves, and both sides are told"); }
@@ -213,7 +213,7 @@ function runScenario(fault) {
   // hostile
   { const s = mk(); const send = (to, msg, from) => to.hs.forEach(h => h(msg, from)); const before = total(s);
     const bad = [{ k: "cf", t: 5, i: 0 }, { k: "cf", t: 5 }, { k: "cf", t: 5, i: 0, z: 1 }, { k: "cf", t: "5", i: 0 }, { k: "cf", t: 5.5, i: 0 }, { k: "cf", t: 0, i: 0 }, { k: "cf", t: 5, i: 9 }, { k: "cf", t: 4294967296, i: 0 },
-      { k: "ac", t: 5 }, { k: "rc", t: 5 }, { k: "dc", t: 5 }, { k: "cx", t: 5 }, { k: "of", t: 5, i: 0, z: 1 }, { k: "of", t: 5 }, { k: "of", t: 5, i: 7 }, { k: "of", t: -5, i: 0 }, { k: "of", t: "x", i: 0 }, { k: "of", i: 0 }, "cf", 7, null, [], { k: 5 }, { k: "zap", t: 5 }];
+      { k: "ac", t: 5 }, { k: "rc", t: 5 }, { k: "dc", t: 5 }, { k: "cx", t: 5 }, { k: "of", t: 5, i: 0, z: 1 }, { k: "of", t: 5 }, { k: "of", t: 5, i: 8 }, { k: "of", t: -5, i: 0 }, { k: "of", t: "x", i: 0 }, { k: "of", i: 0 }, "cf", 7, null, [], { k: 5 }, { k: "zap", t: 5 }];
     for (const m of bad) { send(s.R, m, s.G.id); send(s.G, m, s.R.id); send(s.R, m, "stranger"); }
     s.w.run();
     ok(total(s) === before && !s.R.give.incoming && !s.G.give.outgoing && s.R.inv.driftwood === 0, "forged or malformed messages (bad numbers, extra fields, unknown kinds, strangers) change nothing");
@@ -396,7 +396,7 @@ async function forged(pageA, pageB) {
   }, [room, from, to, msgs]);
   const idB = await pageB.evaluate(() => window.__longWatch.self().id);
   const before = await gv(pageB), beforeA = await gv(pageA);
-  await post(idB, idA, [{ k: "cf", t: 9, i: 0 }, { k: "cf", t: 9, i: 1 }, { k: "cf", t: 9 }, { k: "cf", t: "9", i: 0 }, { k: "of", t: 9, i: 0, z: 1 }, { k: "of", t: 9, i: 7 }, { k: "of", t: 1.5, i: 0 }, { k: "rc", t: 9 }, { k: "ac", t: 9 }, { k: "zap" }, "cf", 7], 6);
+  await post(idB, idA, [{ k: "cf", t: 9, i: 0 }, { k: "cf", t: 9, i: 1 }, { k: "cf", t: 9 }, { k: "cf", t: "9", i: 0 }, { k: "of", t: 9, i: 0, z: 1 }, { k: "of", t: 9, i: 8 }, { k: "of", t: 1.5, i: 0 }, { k: "rc", t: 9 }, { k: "ac", t: 9 }, { k: "zap" }, "cf", 7], 6);
   await post(idA, idB, [{ k: "ac", t: 9 }, { k: "rc", t: 9 }, { k: "cf", t: 9, i: 0 }, { k: "dc", t: 9 }], 6);
   await post(idB, "stranger", [{ k: "of", t: 77, i: 0 }, { k: "cf", t: 77, i: 0 }], 6);
   await sleep(700);

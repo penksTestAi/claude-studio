@@ -16,7 +16,10 @@ export const LAMP_KEYS = ["amber", "jade", "azure"]; // lamp number n (1..3) is 
 
 // Everything that can be handed to another player, by index: the three gathered kinds first (so old saved gifts keep
 // their numbers), then the crafted things (3 wick, 4 amber, 5 jade, 6 azure lantern).
-export const ITEMS = [...KINDS, ...CRAFTED];
+// Fished things (milestone 19): lamp oil, counted in the pack next to the gathered kinds (inv.oil) but not a gatherable
+// kind. It takes number 7, after the crafted things, so every older saved gift keeps its number.
+export const FISHED = ["oil"];
+export const ITEMS = [...KINDS, ...CRAFTED, ...FISHED];
 
 export const SOFT_STACK = 999;      // a player with this many of one kind declines more of it
 export const HARD_STACK = 100000;   // nothing above this is ever read back from a save
@@ -28,7 +31,7 @@ export const isGiftId = (t) => isInt(t, 1, MAX_GIFT_ID);
 export const isKindIndex = (i) => isInt(i, 0, ITEMS.length - 1);
 export const isSeed32 = (s) => isInt(s, 0, 0xffffffff);
 
-export function emptyPack() { return Object.fromEntries(KINDS.map(k => [k, 0])); }
+export function emptyPack() { return Object.fromEntries([...KINDS, ...FISHED].map(k => [k, 0])); }
 export function emptyCraft() { return Object.fromEntries(CRAFTED.map(k => [k, 0])); }
 export function emptyLedger() { return { out: [], exp: [], got: [] }; }
 export function packTotal(inv) { return KINDS.reduce((a, k) => a + inv[k], 0); }
@@ -52,7 +55,7 @@ function cleanList(list, max, fields) {
 export function cleanSave(raw) {
   const inv = emptyPack();
   const src = raw && typeof raw === "object" && raw.inv && typeof raw.inv === "object" ? raw.inv : {};
-  for (const k of KINDS) if (isInt(src[k], 0, HARD_STACK)) inv[k] = src[k];
+  for (const k of [...KINDS, ...FISHED]) if (isInt(src[k], 0, HARD_STACK)) inv[k] = src[k];
   const o = raw && typeof raw === "object" ? raw : {};
   const cr = emptyCraft();
   const csrc = o.cr && typeof o.cr === "object" ? o.cr : {};
@@ -65,7 +68,7 @@ export function cleanSave(raw) {
 // Copy a saved state into the live objects in place (another tab of this browser saved a newer one).
 export function adoptSave(live, ledger, raw, craft = null) {
   const c = cleanSave(raw);
-  for (const k of KINDS) live[k] = c.inv[k];
+  for (const k of [...KINDS, ...FISHED]) live[k] = c.inv[k];
   if (craft) { for (const k of CRAFTED) craft.cr[k] = c.cr[k]; craft.held.lamp = c.lamp; }
   ledger.out.splice(0, ledger.out.length, ...c.out);
   ledger.exp.splice(0, ledger.exp.length, ...c.exp);

@@ -91,6 +91,11 @@ working features.
   BitTorrent-only player still do not see each other (nothing is relayed); both see every player on both. Tested in
   `both.test.mjs` with three pages (and a fourth) against a relay and a tracker on 127.0.0.1; public relays and trackers are
   unreachable from the sandbox, so online play stays untested.
+- **19. The jetty's fishing.** Done 2026-10-17, local relay only. Cast from the jetty or any shore (F), press again when a fish bites (2 s, 3.5 s with reduced motion). Fish are a pure function of the seed and the clock
+  (up to `MAX_FISH` 8 present at once round the jetty's end, a slot is `FISH_SLOT_S` 24 s); nothing about them is sent, so none is taken from anyone else. The only new message is `fl`, the tile of a player's float. Two players whose floats are at most
+  `SHOAL_RANGE` 4 tiles apart draw a shoal of `SHOAL_FISH` 3 in for both (worked out by each browser from the two floats; fish of the shoal bite from `SHOAL_BITE_R` 2.6 tiles, so a shore with no fish gets bites only from a shoal). A catch is one lamp oil (item 7, saved in the pack,
+  3 fuel in a beacon, can be given). Caps tested full: the lamp oil stack (999: the fish is let go, also when it filled between bite and press), the gift machinery for lamp oil (receiver stack, receiver expected list, giver on-its-way list, each also when it fills between offer and accept), a beacon share
+  (5 oil make 15, the sixth is refused at the cap of 16; mixed items reach exactly 16), a lit beacon, a line's 45 s limit, a walk away from the float, a shoal that lapses after 12 s of silence. Tested in `fishing.test.mjs`; the fish positions agree between players only if their device clocks agree.
 
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
@@ -130,11 +135,7 @@ working features.
 ## Later (in rough order, each one run)
 **Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-19. **NEXT: The jetty's fishing (gameplay, good alone, better together).** Cast from the jetty or the shore with a short preset
-    timing press; fish come and go as a pure function of the seed and the clock (nothing sent about where); two players
-    fishing within a few tiles of each other draw a shoal in for both. A catch is a new pack item ("lamp oil" from fish,
-    burns as 3 fuel in a beacon, can be given). Every cap tested full (stack, beacon share), reduced motion respected.
-20. **Shadows and flame (a look step).** Trees, rocks and the landmarks throw short soft shadows away from nearby lanterns
+20. **NEXT: Shadows and flame (a look step).** Trees, rocks and the landmarks throw short soft shadows away from nearby lanterns
     and lit beacons; beacon flames and the lighthouse lamp flicker; drawn by each browser alone, turned down by the
     governor, still under reduced motion. Measure the frame cost at 375 and 1100 px and say it in the notes.
 21. **Where the others are.** The lobby says which lantern the most players chose in the last minutes, worked out

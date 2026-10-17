@@ -34,8 +34,8 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const IDX = Object.fromEntries(ITEMS.map((k, i) => [k, i]));
 ok(IDX.driftwood === 0 && IDX.reeds === 1 && IDX.berries === 2 && IDX.wick === 3 && IDX.amber === 4 && IDX.jade === 5 && IDX.azure === 6, "gathered kinds keep their old numbers 0..2; wick 3, amber 4, jade 5, azure 6");
 {
-  const c = cleanSave({ cr: { amber: 1 }, lamp: 1, out: [{ t: 1, i: 6, s: 5 }, { t: 2, i: 7, s: 5 }, { t: 3, i: 3.5, s: 5 }], exp: [{ t: 4, i: 4, s: 6 }, { t: 5, i: -1, s: 6 }] });
-  ok(c.out.length === 1 && c.out[0].i === 6 && c.exp.length === 1 && c.exp[0].i === 4, "saved gifts of crafted kinds are read back; kind numbers past 6 are dropped");
+  const c = cleanSave({ cr: { amber: 1 }, lamp: 1, out: [{ t: 1, i: 6, s: 5 }, { t: 2, i: 8, s: 5 }, { t: 3, i: 3.5, s: 5 }], exp: [{ t: 4, i: 4, s: 6 }, { t: 5, i: -1, s: 6 }] });
+  ok(c.out.length === 1 && c.out[0].i === 6 && c.exp.length === 1 && c.exp[0].i === 4, "saved gifts of crafted kinds are read back; kind numbers past 7 (lamp oil) are dropped");
 }
 
 // ---- 0. node: giving on a fake mesh ----
@@ -205,7 +205,7 @@ for (const item of ["wick", "amber"]) {
 {
   const s = mk("wick"); const send = (msg, from = s.G.id) => s.R.hs.forEach(h => h(msg, from));
   const before = JSON.stringify([s.R.cr, s.R.inv, s.R.ledger]);
-  for (const m of [{ k: "of", t: 5, i: 7 }, { k: "of", t: 5, i: -1 }, { k: "of", t: 5, i: 3.5 }, { k: "of", t: 5, i: "3" }, { k: "cf", t: 5, i: 3 }, { k: "cf", t: 5, i: 6 }, { k: "of", t: 5, i: 3, z: 1 }]) send(m);
+  for (const m of [{ k: "of", t: 5, i: 8 }, { k: "of", t: 5, i: -1 }, { k: "of", t: 5, i: 3.5 }, { k: "of", t: 5, i: "3" }, { k: "cf", t: 5, i: 3 }, { k: "cf", t: 5, i: 6 }, { k: "of", t: 5, i: 3, z: 1 }]) send(m);
   ok(JSON.stringify([s.R.cr, s.R.inv, s.R.ledger]) === before && (!s.R.give.incoming || s.R.give.incoming.i === 3), "bad kind numbers and an unasked-for commit of a crafted kind change nothing");
   const t = mk("wick"); t.R.hs.forEach(h => h({ k: "of", t: 5, i: 3 }, "nobody"));
   ok(!t.R.give.incoming, "an offer from someone who never said hello is ignored");
@@ -276,7 +276,7 @@ async function pages(label, mkPage, query, room, opts = {}) {
   ok(await near() && await waitFor(A, () => window.__longWatch.give().target !== null, null, 6000), "A is in reach of B");
   const btn = (i) => `#givebtns button[data-kind="${i}"]`;
   const labels = await A.evaluate(() => [...document.querySelectorAll("#givebtns button")].map(b => b.textContent));
-  ok(labels.length === 7 && labels.includes("Give wick") && labels.includes("Give amber lantern") && labels.includes("Give jade lantern") && labels.includes("Give azure lantern"), "the Give buttons list the three gathered kinds, the wick and three lanterns");
+  ok(labels.length === 8 && labels.includes("Give lamp oil") && labels.includes("Give wick") && labels.includes("Give amber lantern") && labels.includes("Give jade lantern") && labels.includes("Give azure lantern"), "the Give buttons list the three gathered kinds, the wick, three lanterns and lamp oil");
   await waitFor(A, () => !document.querySelector('#givebtns button[data-kind="3"]').disabled, null, 4000);
   const dis = await A.evaluate(() => [...document.querySelectorAll("#givebtns button")].map(b => b.disabled));
   ok(dis[3] === false && dis[4] === false && dis[5] === false && dis[6] === true, "Give wick, amber and jade are on for A; Give azure is off (none)");

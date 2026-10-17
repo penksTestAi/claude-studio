@@ -22,6 +22,7 @@ import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NE
 import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RADIUS } from "./lighthouse.js";
 import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
+import { createFishing, CAST_MAX, SHOAL_RANGE, BITE_WINDOW_S, BITE_WINDOW_STILL_S, LINE_MAX_S, GROUND_RADIUS } from "./fishing.js";
 import { createClockCheck, clockNote, pickClockSkew, CLOCK_WARN_S } from "./clock.js";
 
 const ROOMS = 6;
@@ -111,7 +112,7 @@ const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain 
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 const tapCounts = {};
-let rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -130,6 +131,7 @@ async function enter() {
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
   gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
   give = createGive(net, me, presence.peers, inv, ledger, { onEvent: giveEvent, persist: save, cr, held, onLampDropped: () => { if (craft) craft.hold(0); } });
+  fishing = createFishing(net, world, me, presence.peers, { inv, persist: save, clock: shadeNow, still: reducedMotion, onEvent: fishEvent });
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
@@ -140,6 +142,7 @@ async function enter() {
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
   paintBeacon(true); $("beaconinfo").textContent = ""; beam.reset(); wasKept = false; $("watchinfo").textContent = ""; paintWatch(true);
+  $("fishinfo").textContent = ""; lastFishKey = ""; paintFish(null);
   paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = "";
   strides.clear(); lastHud = 0; setMap(true);
   playing = true; joinedAt = performance.now();
@@ -154,9 +157,9 @@ async function enter() {
 
 function leaveRoom() {
   if (!playing) return;
-  presence.leave(); net.leave();
+  fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; paintClock(); me.snuffed = false;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -188,6 +191,7 @@ function frame(t) {
   gather.tick();
   give.tick();
   craft.tick();
+  fishing.tick();
   beacon.tick();
   quests.tick();
   beam.update(watchIsKept(), dt, reducedMotion());
@@ -199,7 +203,8 @@ function frame(t) {
   footsteps(light);
   const reach = gather.reach();
   const fires = fireList();
-  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather), watchView());
+  renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather), watchView(), fishView = fishing.view());
+  paintFish(fishView);
   paintShades();
   paintRank();
   paintBeacon();
@@ -232,7 +237,48 @@ function gatherEvent(type, kind) {
 function paintPack() {
   const away = ledger.out.length ? `. On its way to another player: ${ledger.out.map(e => `${ITEM_NAMES[ITEMS[e.i]]} for ${nameFor(e.s)}`).join(", ")}` : "";
   const made = CRAFTED.filter(k => cr[k] > 0).map(k => `${CRAFT_NAMES[k]} ${cr[k]}`);
-  $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).concat(made).join(", ") + away;
+  $("pack").textContent = "Pack (saved in this browser): " + KINDS.map(k => `${KIND_NAMES[k]} ${inv[k]}`).concat(made, [`Lamp oil ${inv.oil}`]).join(", ") + away;
+}
+// ---- fishing: cast from the shore or the jetty, press Reel in when a fish bites; two players' floats close together draw a shoal ----
+function fishEvent(type, extra) {
+  const say = {
+    cast: "You cast the line. Wait for a bite.",
+    bite: "A fish is biting! Press Reel in now.",
+    caught: `You caught a fish and pressed lamp oil from it. It burns as 3 fuel in a beacon.${extra && extra.shoal ? " The shoal brought it." : ""}`,
+    early: "You reeled in before any bite. Nothing was caught.",
+    escaped: "The fish got away. Cast again when you like.",
+    full: `Your lamp oil stack is full (${SOFT_STACK}), so the fish was let go and nothing was added.`,
+    timeout: `The line was out for ${LINE_MAX_S} seconds, so it was reeled in.`,
+    slack: "You walked away from your float, so the line came in.",
+    nowater: `There is no water in front of you within ${CAST_MAX} tiles. Face the water.`,
+  }[type];
+  if (say) $("fishinfo").textContent = say;
+  if (type === "caught") { paintPack(); lastGiveKey = ""; save(); }
+  lastFishKey = "";
+}
+function doFish() {
+  if (!playing || !fishing) return;
+  if (fishing.line) { fishing.reel(); return; }
+  const r = fishing.castAhead();
+  if (!r.ok && r.why === "cooldown") $("fishinfo").textContent = "Wait a moment before casting again.";
+  else if (!r.ok && r.why !== "nowater") $("fishinfo").textContent = "That spot is not water within reach.";
+}
+let lastFishKey = "";
+function paintFish(v) {
+  const line = fishing ? fishing.line : null, sh = v && v.shoal ? fishing.shoal() : null;
+  const other = sh && presence ? presence.peers.get(sh.id) : null;
+  const key = [!!fishing, line ? line.phase : "", sh ? sh.id : "", inv.oil].join("|");
+  if (key === lastFishKey) return;
+  lastFishKey = key;
+  $("fishing").hidden = !fishing;
+  const btn = $("fishbtn");
+  btn.textContent = !line ? "Cast line (F)" : line.phase === "bite" ? "Reel in now! (F)" : "Reel in (F)";
+  btn.classList.toggle("primary", !!line && line.phase === "bite");
+  $("fishstate").textContent = !fishing ? "" : !line
+    ? `Face the water, up to ${CAST_MAX} tiles away, and cast. Fish come and go round the jetty (within about ${GROUND_RADIUS} tiles of its end). Lamp oil: ${inv.oil}.`
+    : line.phase === "bite" ? `${line.fish >= 100 ? "A fish from the shoal is biting" : "A fish is biting"}. You have ${(reducedMotion() ? BITE_WINDOW_STILL_S : BITE_WINDOW_S)} seconds to reel in.`
+    : sh && other ? `Line out. A shoal circles between your float and ${other.name}'s: fish bite from farther. Reel in on a bite.`
+    : `Line out. Wait for a bite, then reel in. A second player fishing within ${SHOAL_RANGE} tiles of your float draws a shoal in for you both.`;
 }
 // ---- beacons: fuel an old beacon together; it lights when enough fuel is in and two or more players added some ----
 const beaconList = world.landmarks.filter(l => l.kind === "beacon");
@@ -263,7 +309,7 @@ function paintWatch(force) {
   if (kept && !wasKept) $("watchinfo").textContent = "All the beacons burn. The ruined lighthouse is lit!";
   wasKept = kept;
 }
-const FUEL_ITEMS = ["driftwood", "berries"];
+const FUEL_ITEMS = ["driftwood", "berries", "oil"];
 const fireList = () => beaconList.map((l, b) => beacon ? { x: l.x, y: l.y, n: b, fuel: beacon.shares.fuel(b), frac: Math.min(1, beacon.shares.fuel(b) / BEACON_NEED), lit: beacon.shares.lit(b) } : { x: l.x, y: l.y, n: b, fuel: 0, frac: 0, lit: false });
 const beaconBox = $("beaconbtns");
 FUEL_ITEMS.forEach((k) => {
@@ -481,6 +527,12 @@ addEventListener("storage", (e) => {
   if (netKind === "local" || e.key !== STORE || !e.newValue) return;
   try { adoptSave(inv, ledger, JSON.parse(e.newValue), { cr, held }); me.lamp = held.lamp; paintPack(); paintCraft(); lastGiveKey = ""; } catch { /* ignore */ }
 });
+$("fishbtn").addEventListener("click", () => { doFish(); canvas.focus({ preventScroll: true }); });
+addEventListener("keydown", (e) => {
+  if (!playing || e.code !== "KeyF" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+  doFish();
+});
 function doGather() { if (playing) gather.pick(); }
 $("gather").addEventListener("click", () => { doGather(); canvas.focus({ preventScroll: true }); });
 addEventListener("keydown", (e) => {
@@ -622,6 +674,11 @@ window.__longWatch = {
   clock: () => ({ skew: clockSkew, warnS: CLOCK_WARN_S, offsets: clockCheck ? clockCheck.offsets() : [], note: $("clocknote").hidden ? "" : $("clocknote").textContent }),
   snuffLog: () => snuffLog.map(e => ({ ...e })),
   watch: () => ({ kept: watchIsKept(), f: beam.f, view: watchView(), lighthouse: lighthouse ? { x: lighthouse.x, y: lighthouse.y } : null, radius: LIGHTHOUSE_RADIUS, panel: !$("watch").hidden, text: $("watchstate").textContent, info: $("watchinfo").textContent }),
+  fish: () => { const fv = fishing ? fishing.view() : null; return fishing ? { line: fishing.line, shoal: (() => { const s = fishing.shoal(); return s ? { id: s.id, x: s.x, y: s.y } : null; })(), fish: fv.fish.map(f => ({ id: f.id, x: f.x, y: f.y, alpha: f.alpha, shoal: f.shoal })), lines: fv.lines.map(l => ({ ...l })), oil: inv.oil, info: $("fishinfo").textContent, state: $("fishstate").textContent, btn: $("fishbtn").textContent, panel: !$("fishing").hidden, peerLines: presence ? [...presence.peers.values()].map(p => ({ id: p.id, line: p.line ? { x: p.line.x, y: p.line.y } : null })) : [] } : null; },
+  castAt: (x, y) => (fishing ? fishing.cast(x, y) : null), // tests only; the real cast goes through the button and F
+  castAhead: () => (fishing ? fishing.castAhead() : null),
+  reel: () => (fishing ? fishing.reel() : null),
+  face: (d) => { if (Number.isFinite(d)) { me.d = d; return true; } return false; }, // tests only
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

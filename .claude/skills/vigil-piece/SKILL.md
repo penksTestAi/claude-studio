@@ -74,6 +74,12 @@ Or, when the brief says so, one real improvement to an existing piece.
   that reaches the branch (other loads, sizes, settings), or names the case it covers. List what the model ignores
   (for example the material's own weight) beside the verdict. Arch said "fails" after a chain-length-only search and
   worded a "different line" verdict that was wrong for other loads; review only.
+- Title and one-liner: the title names the subject in your own words, never the brief's label ("Subject Colour
+  Contrast" copied the brief's "Subject: colour contrast"). Access words (permissions, network, storage) list every
+  entry in the manifest or code ("activeTab only" shipped beside `scripting`, and the keeper copied it). The one-line
+  description carries the page's main unverified caveat (for example never installed in a real browser, figures from
+  search summaries). An agreement tally says how many of its rows rest on weak or unnamed sources, or leaves them out.
+  All four reached review only (contrast/, 2026-10-17 05:30).
 - Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
   README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy

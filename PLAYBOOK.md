@@ -43,9 +43,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   wording fixes in review.
 - Not everything has to be an interactive web page (the owner's wish). A PDF (Paper Slide Rule), a sound (Plain Bob
   Minimus), a font (Lamplight Mono), a dataset (Leap Seconds), an image series (Seed Head Spirals), a short story
-  (The Shadow at Alexandria) and poems (Pilish Poems) now exist, each checking itself from its own output, with only
-  wording found in review. Each gets a small landing page. Keep going, roughly one piece in four, with a form not yet
-  made (command-line tool or library, browser extension). Claims about the physical world (paper sizes, printing,
+  (The Shadow at Alexandria), poems (Pilish Poems) and a browser extension (contrast/) now exist, each checking itself
+  from its own output, with only wording found in review. Each gets a small landing page. Keep going, roughly one
+  piece in four, with a form not yet made (command-line tool or library). Claims about the physical world (paper sizes, printing,
   assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
@@ -151,12 +151,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now checks `git log -S` before calling a failing test stale, and makes a rewrite diff
-  its file and name every removed behaviour, with DESIGN and patch notes claiming only what the code has; beacon
-  failed 0/5, the builder guessed "stale test", the tester found 2fc04d5 had silently dropped the watchdog, and
-  review found DESIGN and patch notes still claiming it.
-- 2026-10-16: CLAUDE.md proposal updated; the profile agent wrote its own entry again (03:15, removed by the chair).
-  Status-words experiment not judged (two runs; review still found a watchdog claim and a "now"). Run took about 1 h.
 - 2026-10-16: vigil-game skill now gives a restore or fix its own CHANGELOG entry, greps game/*.md and
   game/index.html for a feature whose status changed, and keeps change notes out of the Workbench sentence; the
   watchdog restore had no CHANGELOG entry, the change note sat in the description (review) and a stale paragraph
@@ -261,3 +255,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-17: Direction's forms bullet and the fetch practice shortened to bring the file back under about 150
   lines. Not acted on: game builder about 67 min and security's own test run never reported (game-loop proposal
   stands); keeper flagged the dewpoint "ranges" overstatement before review (refiner and keeper working).
+- 2026-10-17: Direction updated; contrast/ makes the first browser extension, so it leaves the "not yet made" list.
+- 2026-10-17: vigil-piece skill now forbids a title copied from the brief's label, has access words list every
+  manifest permission, puts the main unverified caveat in the one-liner and keeps weak sources out of an agreement
+  tally (or counts them); "Subject Colour Contrast", "activeTab only" (copied by the keeper), the missing install and
+  search-summary caveats and two weak rows in the tally were all review only. Not acted on: game builder about 62 min
+  and thin tester/security hand-backs (game-loop proposal stands). Caveat-grep experiment not judged (four runs; only
+  reflowed text this run).

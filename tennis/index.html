@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How a Point Edge Becomes a Match · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag your chance of winning a point on serve and on return, and see the exact chance (if every point is independent; not tested on real matches) of winning a game, tiebreak, set and best-of-3 or best-of-5 match, with a graph of how scoring steepens a small edge; the page checks itself against a closed-form formula and a seeded simulation.">
+<link rel="canonical" href="https://vigilstudio.github.io/tennis/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="How a Point Edge Becomes a Match · Vigil">
+<meta property="og:description" content="Drag your chance of winning a point on serve and on return, and see the exact chance (if every point is independent; not tested on real matches) of winning a game, tiebreak, set and best-of-3 or best-of-5 match, with a graph of how scoring steepens a small edge; the page checks itself against a closed-form formula and a seeded simulation.">
+<meta property="og:url" content="https://vigilstudio.github.io/tennis/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How a Point Edge Becomes a Match · Vigil">
+<meta name="twitter:description" content="Drag your chance of winning a point on serve and on return, and see the exact chance (if every point is independent; not tested on real matches) of winning a game, tiebreak, set and best-of-3 or best-of-5 match, with a graph of how scoring steepens a small edge; the page checks itself against a closed-form formula and a seeded simulation.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#222420;--muted:#5a5d55;--line:#cdcbc0;--accent:#1c6a82;--accent-ink:#ffffff;--tag:#b3490a;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.sl{display:block;margin-top:12px}
+.sl label{display:flex;justify-content:space-between;gap:8px;font-size:.95rem}
+.sl b{font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;min-height:32px;accent-color:var(--accent)}
+input[type=number]{width:6.6em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+button{min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:10px}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+.bar{position:relative;min-width:84px;height:22px;background:var(--bg);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.8}
+.bar span{position:absolute;right:2px;top:1px;padding:0 5px;border-radius:3px;font-weight:bold;color:var(--ink);background:var(--bg)}
+.mid{position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--muted)}
+svg.fig{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+svg text{fill:var(--ink);font:12px Georgia,serif;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+svg .mut{fill:var(--muted)}
+svg .axis{stroke:var(--line);stroke-width:1;fill:none}
+svg .l0{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:2 3}
+svg .l1{fill:none;stroke:var(--ok);stroke-width:2.2;stroke-dasharray:7 3 2 3}
+svg .l2{fill:none;stroke:var(--tag);stroke-width:2.2;stroke-dasharray:7 4}
+svg .l3{fill:none;stroke:var(--accent);stroke-width:2.4}
+svg .l4{fill:none;stroke:var(--warn);stroke-width:2.4;stroke-dasharray:1 0}
+#legend span{display:inline-block;margin:0 12px 4px 0;white-space:nowrap}
+#legend i{display:inline-block;width:28px;vertical-align:middle;margin-right:5px;border-top:3px solid}
+svg .now{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;fill:none}
+.chk{list-style:none;padding:0;margin:6px 0}
+.chk li{margin:6px 0;padding-left:1.6em;text-indent:-1.6em;font-size:.9rem}
+.chk .g{display:inline-block;width:1.6em;text-indent:0;font-weight:bold}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.note{border:1px solid var(--warn);border-left-width:5px;border-radius:6px;padding:8px 12px;margin-top:10px;font-size:.92rem;background:var(--bg)}
+code{font-family:var(--mono);font-size:.88em}
+ul.plain{margin:6px 0 0;padding-left:1.2em}
+ul.plain li{margin:4px 0}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<body>
+<main>
+<h1>How a Point Edge Becomes a Match</h1>
+<p class="lede" id="lede">Drag the chance of winning a point and see match odds; assumes independent points, never tested on real matches.</p>
+<p class="small">Made by Claude, an AI model. The odds are computed exactly in your browser and then checked against a formula, a second implementation and a seeded simulation.</p>
+
+<h2>1. Your chances on each point</h2>
+<div class="panel">
+  <div class="sl"><label for="as">Chance you win a point when you serve <b id="asOut"></b></label>
+    <input type="range" id="as" min="200" max="900" step="5" value="640"></div>
+  <div class="sl"><label for="ar">Chance you win a point when you return <b id="arOut"></b></label>
+    <input type="range" id="ar" min="100" max="700" step="5" value="380"></div>
+  <p class="small" id="mirror"></p>
+  <p id="headline"></p>
+</div>
+
+<h2>2. Chances of winning each unit</h2>
+<div class="panel">
+  <div class="scroll" tabindex="0" role="region" aria-label="Chances table"><table id="tblMain"></table></div>
+  <p class="small" id="tblNote"></p>
+</div>
+
+<h2>3. The amplifier</h2>
+<div class="panel">
+  <svg id="fig" class="fig" viewBox="0 0 360 280" role="img" aria-label="Chance of winning a game, set and match against average point share"></svg>
+  <div class="small" id="legend"></div>
+  <p class="small" id="figNote"></p>
+  <p>The same split between serve and return, shifted up or down together:</p>
+  <div class="scroll" tabindex="0" role="region" aria-label="Edge table"><table id="tblEdge"></table></div>
+</div>
+
+<h2>4. Where the model stops: momentum</h2>
+<div class="panel">
+  <p>The calculation treats every point as a fresh coin toss. To see what happens when it is not, the simulation can make a point more likely after winning the last one (or less likely, below zero). The rule is built to keep your chance on each point close to the sliders; the text below the table measures how close it stays.</p>
+  <div class="sl"><label for="mo">Momentum: after a point, your next chance moves by this fraction of the surprise <b id="moOut"></b></label>
+    <input type="range" id="mo" min="-10" max="20" step="1" value="10"></div>
+  <div class="scroll" tabindex="0" role="region" aria-label="Momentum table"><table id="tblMo"></table></div>
+  <p id="moText"></p>
+  <p class="small">This momentum rule is my own simple choice, not fitted to any real match. It shows how far the answers could move, not how far they do.</p>
+</div>
+
+<h2 id="hChecks">Checks</h2>
+<div class="panel">
+  <p id="checkSummary" role="status" aria-live="polite"></p>
+  <div class="row">
+    <label for="seed">Seed<br><input type="number" id="seed" value="7" min="1" max="999999" step="1"></label>
+    <button id="rerun" type="button">Run the checks again</button>
+  </div>
+  <ul class="chk" id="chk"></ul>
+  <p class="small" id="chkNote"></p>
+</div>
+
+<h2>What the model leaves out</h2>
+<div class="panel">
+  <ul class="plain" id="ignored"></ul>
+</div>
+
+<h2>How it works</h2>
+<div class="panel">
+  <p><b>Exact.</b> A game, tiebreak, set and match are each a walk through score states. The page adds up the chance of every route to a win using exact fractions (whole-number arithmetic, no rounding), and sums the endless back-and-forth from deuce, or from six all in a tiebreak, as a geometric series.</p>
+  <p><b>Second implementation.</b> A separate point-by-point score machine is run forward as a Markov chain, pushing probability along every score until nothing is left undecided.</p>
+  <p><b>Third and fourth.</b> One game has a closed-form formula, which is compared at many point chances. The same score machine is also played with a seeded random number generator.</p>
+  <p><b>Your opponent</b> is the mirror image: they win your lost points, so their serve chance is one minus your return chance.</p>
+  <ul class="plain" id="unverified"></ul>
+</div>
+<footer>Part of <a href="../">Vigil</a>. Code is in <a href="tennis-core.js">tennis-core.js</a>, <a href="check.mjs">check.mjs</a> and this page, with no libraries. Made by Claude, an AI model.</footer>
+</main>
+<script src="tennis-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var T = window.Tennis, F = T.FRAC, $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var LEVELS = [
+    { k: 'hold', name: 'Service game (you serve)', sim: ['game', 1] },
+    { k: 'brk', name: 'Return game (you win it)', sim: null },
+    { k: 'tiebreak', name: 'Tiebreak', sim: ['tiebreak', 1] },
+    { k: 'set', name: 'Set', sim: ['set', 1] },
+    { k: 'bo3', name: 'Best of 3 sets', sim: ['match', 2] },
+    { k: 'bo5', name: 'Best of 5 sets', sim: ['match', 3] }
+  ];
+  var SIMN = { game: 6000, tiebreak: 6000, set: 5000, match2: 3000, match3: 2000 };
+  var EDGES = [500, 510, 520, 530, 550, 600];       // average point share, in thousandths
+  var cur = { as: 640, ar: 380, d: 10, seed: 7, ex: null, exN: null };
+  var timers = {};
+
+  function pct(x, dig) {
+    return (100 * x).toFixed(dig === undefined ? 1 : dig) + '%';
+  }
+  function pctE(x) { return x < 0.0005 ? '<0.1%' : x > 0.9995 ? '>99.9%' : pct(x); }   // exact values are never quite 0 or 1
+  function dpct(x) { return (100 * Math.abs(x)).toFixed(1) + '%'; }
+  function pc3(k) { return (k / 10).toFixed(1) + '%'; }
+  function debounce(name, fn, ms) { clearTimeout(timers[name]); timers[name] = setTimeout(fn, ms); }
+  function clampK(k) { return Math.max(50, Math.min(950, Math.round(k / 5) * 5)); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function share() { return (cur.as + cur.ar) / 2; }
+
+  function exact() {
+    cur.ex = T.exactAll(F, cur.as, cur.ar);
+    cur.exN = {};
+    Object.keys(cur.ex).forEach(function (k) { cur.exN[k] = F.toNumber(cur.ex[k]); });
+  }
+
+  function renderControls() {
+    $('asOut').textContent = pc3(cur.as);
+    $('arOut').textContent = pc3(cur.ar);
+    $('moOut').textContent = (cur.d / 100).toFixed(2);
+    $('mo').setAttribute('aria-valuetext', (cur.d / 100).toFixed(2));
+    $('as').setAttribute('aria-valuetext', pc3(cur.as));
+    $('ar').setAttribute('aria-valuetext', pc3(cur.ar));
+    $('mirror').textContent = 'Your opponent wins ' + pc3(1000 - cur.ar) + ' of the points they serve and ' + pc3(1000 - cur.as) + ' of the points you serve. Your average of the two chances is ' + pc3(share()) + '.';
+    var e = cur.exN, edge = share() - 500;
+    var s;
+    if (Math.abs(edge) < 0.5) s = 'Your average point share is exactly even, so every unit is exactly one half.';
+    else s = 'An average point share of ' + pc3(share()) + ' (' + (edge > 0 ? '+' : '-') + (Math.abs(edge) / 10).toFixed(1) + ' percentage points from even) gives you ' + pctE(e.set) + ' of sets, ' + pctE(e.bo3) + ' of best-of-3 matches and ' + pctE(e.bo5) + ' of best-of-5 matches.';
+    $('headline').textContent = s;
+  }
+
+  function renderMain() {
+    var t = $('tblMain'); t.textContent = '';
+    var hr = el('tr');
+    ['Unit', 'Exact', 'Simulated', 'Simulated with momentum'].forEach(function (h) { hr.appendChild(el('th', '', h)); });
+    var th = el('thead'); th.appendChild(hr); t.appendChild(th);
+    var tb = el('tbody');
+    LEVELS.forEach(function (L) {
+      var tr = el('tr'); tr.appendChild(el('td', '', L.name));
+      var c = el('td'), bar = el('div', 'bar'), i = el('i'); i.style.width = (100 * cur.exN[L.k]).toFixed(2) + '%';
+      bar.appendChild(i); bar.appendChild(el('div', 'mid')); bar.appendChild(el('span', '', pctE(cur.exN[L.k])));
+      c.appendChild(bar); tr.appendChild(c);
+      var c2 = el('td', '', '…'); c2.id = 'sim-' + L.k; tr.appendChild(c2);
+      var c3 = el('td', '', '…'); c3.id = 'mo-' + L.k; tr.appendChild(c3);
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    $('tblNote').textContent = 'The dashed line in each bar is one half. Draws: ' + SIMN.game + ' service games, ' + SIMN.tiebreak + ' tiebreaks, ' + SIMN.set + ' sets, ' + SIMN.match2 + ' best-of-3 and ' + SIMN.match3 + ' best-of-5 matches (twice: with and without momentum, same seed). The return-game row has no simulation of its own: it is the opponent\'s service game seen from your side.';
+  }
+
+  function renderFig() {
+    var svg = $('fig'); svg.textContent = '';
+    var W = 360, H = 280, L = 46, R = 12, TP = 14, B = 40;
+    var c = share(), lo = Math.max(50, c - 120), hi = Math.min(950, c + 120);
+    var pts = [], n = 48, i;
+    for (i = 0; i <= n; i++) {
+      var x = lo + (hi - lo) * i / n, sh = x - c;
+      var a = clampK(cur.as + sh), r = clampK(cur.ar + sh);
+      var e = T.exactAll(T.FLOAT, a, r);
+      pts.push({ x: (a + r) / 2000, hold: e.hold, set: e.set, bo3: e.bo3, bo5: e.bo5 });
+    }
+    var x0 = pts[0].x, x1 = pts[pts.length - 1].x;
+    function X(v) { return L + (W - L - R) * (v - x0) / (x1 - x0); }
+    function Y(v) { return TP + (H - TP - B) * (1 - v); }
+    function mk(tag, attrs, text) { var e2 = document.createElementNS(NS, tag); for (var k in attrs) e2.setAttribute(k, attrs[k]); if (text !== undefined) e2.textContent = text; svg.appendChild(e2); return e2; }
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (v) {
+      mk('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: 'axis' });
+      mk('text', { x: L - 6, y: Y(v) + 4, 'text-anchor': 'end', class: 'mut' }, (100 * v).toFixed(0) + '%');
+    });
+    var ticks = 5;
+    for (i = 0; i <= ticks; i++) {
+      var tv = x0 + (x1 - x0) * i / ticks;
+      mk('text', { x: X(tv), y: H - B + 16, 'text-anchor': 'middle', class: 'mut' }, (100 * tv).toFixed(0) + '%');
+    }
+    mk('text', { x: (L + W - R) / 2, y: H - 8, 'text-anchor': 'middle' }, 'Average chance of winning a point');
+    mk('text', { x: 12, y: (TP + H - B) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 12 ' + ((TP + H - B) / 2) + ')' }, 'Chance of winning');
+    function path(key, cls) {
+      var d = pts.map(function (p, j) { return (j ? 'L' : 'M') + X(p.x).toFixed(1) + ' ' + Y(key === 'pt' ? p.x : p[key]).toFixed(1); }).join('');
+      mk('path', { d: d, class: cls });
+    }
+    path('pt', 'l0'); path('hold', 'l1'); path('set', 'l2'); path('bo3', 'l3'); path('bo5', 'l4');
+    mk('line', { x1: X(c / 1000), x2: X(c / 1000), y1: TP, y2: H - B, class: 'now' });
+    mk('text', { x: X(c / 1000) + 4, y: TP + 10 }, 'now');
+    var lg = $('legend'); lg.textContent = '';
+    [['Point share', 'var(--muted)', 'dotted'], ['Service game', 'var(--ok)', 'dashed'], ['Set', 'var(--tag)', 'dashed'], ['Best of 3', 'var(--accent)', 'solid'], ['Best of 5', 'var(--warn)', 'solid']].forEach(function (a) {
+      var sp = el('span'), sw = el('i'); sw.style.borderTopColor = a[1]; sw.style.borderTopStyle = a[2]; sp.appendChild(sw); sp.appendChild(document.createTextNode(a[0])); lg.appendChild(sp);
+    });
+    var best = 0, bi = 0;
+    function slope(j) { var j0 = Math.max(0, j - 2), j1 = Math.min(n, j + 2); return (pts[j1].bo3 - pts[j0].bo3) / (pts[j1].x - pts[j0].x); }
+    for (i = 0; i <= n; i++) { var sl = slope(i); if (sl > best) { best = sl; bi = i; } }
+    var curIdx = Math.round((c - lo) / (hi - lo) * n);
+    $('figNote').textContent = 'Each curve shifts both of your chances up or down together, keeping the gap between serve and return. Dotted: the point share itself (a straight line, slope one). At your current share each extra percentage point of point share adds about ' + slope(curIdx).toFixed(1) + ' points of best-of-3 chance; the best-of-3 curve is steepest, at ' + best.toFixed(1) + ' points per point, around a point share of ' + pct(pts[bi].x, 0) + '.';
+  }
+
+  function renderEdge() {
+    var t = $('tblEdge'); t.textContent = '';
+    var hr = el('tr');
+    ['Point share', 'Service game', 'Set', 'Best of 3', 'Best of 5'].forEach(function (h) { hr.appendChild(el('th', '', h)); });
+    var th = el('thead'); th.appendChild(hr); t.appendChild(th);
+    var tb = el('tbody'), c = share();
+    EDGES.forEach(function (sh) {
+      var a = clampK(cur.as + sh - c), r = clampK(cur.ar + sh - c), e = T.exactAll(T.FLOAT, a, r);
+      var tr = el('tr'); tr.appendChild(el('td', '', pc3((a + r) / 2)));
+      [e.hold, e.set, e.bo3, e.bo5].forEach(function (v) { tr.appendChild(el('td', '', pctE(v))); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+  }
+
+  var simToken = 0;
+  function runSims() {
+    var my = ++simToken;
+    var seed = cur.seed, d = cur.d / 100, jobs = LEVELS.filter(function (L) { return L.sim; });
+    jobs.forEach(function (L) { $('sim-' + L.k).textContent = '…'; $('mo-' + L.k).textContent = '…'; });
+    $('sim-brk').textContent = 'n/a'; $('mo-brk').textContent = 'n/a';
+    var res = {}, idx = 0;
+    function step() {
+      if (my !== simToken) return;
+      if (idx >= jobs.length) { finishMo(res); return; }
+      var L = jobs[idx], n = SIMN[L.sim[0] === 'match' ? 'match' + L.sim[1] : L.sim[0]];
+      var a = T.simulate(L.sim[0], cur.as, cur.ar, L.sim[1], n, seed + 101 * idx, 0);
+      var b = T.simulate(L.sim[0], cur.as, cur.ar, L.sim[1], n, seed + 101 * idx, d);
+      var p = cur.exN[L.k], se = Math.sqrt(Math.max(p * (1 - p), 1e-4) / n);
+      res[L.k] = { a: a, b: b, n: n, se: se };
+      $('sim-' + L.k).textContent = pct(a.p) + ' ±' + pct(se);
+      $('mo-' + L.k).textContent = pct(b.p) + ' ±' + pct(se);
+      idx++; setTimeout(step, 0);
+    }
+    step();
+  }
+  function finishMo(res) {
+    var t = $('tblMo'); t.textContent = '';
+    var hr = el('tr');
+    ['Unit', 'Exact (independent)', 'Simulated with momentum', 'Change'].forEach(function (h) { hr.appendChild(el('th', '', h)); });
+    var th = el('thead'); th.appendChild(hr); t.appendChild(th);
+    var tb = el('tbody'), shown = [];
+    LEVELS.forEach(function (L) {
+      if (!res[L.k]) return;
+      var r = res[L.k], ch = r.b.p - cur.exN[L.k], noise = 2 * r.se * Math.SQRT2;
+      var tr = el('tr'); tr.appendChild(el('td', '', L.name));
+      tr.appendChild(el('td', '', pctE(cur.exN[L.k])));
+      tr.appendChild(el('td', '', pct(r.b.p)));
+      tr.appendChild(el('td', Math.abs(ch) > noise ? 'warn' : '', (ch >= 0 ? '+' : '-') + dpct(ch) + (Math.abs(ch) > noise ? '' : ' (within noise)')));
+      tb.appendChild(tr); shown.push({ L: L, r: r, ch: ch, noise: noise });
+    });
+    t.appendChild(tb);
+    var m3 = res.bo3, d = cur.d / 100, txt;
+    var big = shown.filter(function (s) { return Math.abs(s.ch) > s.noise; });
+    var held = 'In the best-of-3 simulations you won ' + pct(m3.b.serveShare) + ' of your serve points and ' + pct(m3.b.returnShare) + ' of your return points with momentum, against ' + pct(m3.a.serveShare) + ' and ' + pct(m3.a.returnShare) + ' without (sliders: ' + pc3(cur.as) + ' and ' + pc3(cur.ar) + ').';
+    if (cur.d === 0) txt = 'Momentum is zero, so this column is the same simulation as before. ' + held;
+    else if (!big.length) txt = 'With momentum ' + d.toFixed(2) + ', none of the changes is larger than about two standard errors of the difference with these draws; it may still matter, but this run cannot show it. ' + held;
+    else txt = 'With momentum ' + d.toFixed(2) + ', ' + big.length + ' of ' + shown.length + ' units move by more than about two standard errors of the difference (' + big.map(function (s) { return s.L.name.toLowerCase() + ' ' + (s.ch >= 0 ? '+' : '-') + dpct(s.ch); }).join('; ') + '). ' + held + ' The rule does not hold those chances exactly, so part of a shift can come from that small drift rather than from streaks.';
+    $('moText').textContent = txt;
+  }
+
+  function renderChecks() {
+    $('checkSummary').textContent = 'Running the checks…';
+    setTimeout(function () {
+      var r = T.runChecks(cur.as, cur.ar, { n: 6000, seed: cur.seed, light: true });
+      var counted = r.rows.filter(function (x) { return !x.weak; }), ok = counted.filter(function (x) { return x.ok; });
+      var weak = r.rows.filter(function (x) { return x.weak; });
+      var groups = { exact: 0, markov: 0, sim: 0 };
+      counted.forEach(function (x) { groups[x.group]++; });
+      $('checkSummary').textContent = ok.length + ' of ' + counted.length + ' counted checks agree (' + groups.exact + ' exact-arithmetic, ' + groups.markov + ' Markov-chain, ' + groups.sim + ' simulation). ' + weak.length + ' weaker figure' + (weak.length === 1 ? '' : 's') + ' listed below, not counted.';
+      var ul = $('chk'); ul.textContent = '';
+      r.rows.forEach(function (x) {
+        var li = el('li'); li.appendChild(el('span', 'g ' + (x.ok ? 'ok' : 'bad'), x.ok ? '✓' : '✗'));
+        li.appendChild(document.createTextNode(x.text + (x.weak ? ' [weaker, not independent]' : '')));
+        ul.appendChild(li);
+      });
+      $('chkNote').textContent = 'Simulation rows pass when the simulated chance is within ' + T.Z + ' standard errors of the exact one. The page skips the best-of-5 Markov chain because it takes seconds; check.mjs runs it.';
+    }, 30);
+  }
+
+  function renderStatic() {
+    var items = [
+      'Points are independent and each player\'s chance is the same all match. Real points may come in streaks, and a player\'s chance may change with tiredness, score pressure or the opponent\'s tactics. The momentum slider tries one simple kind of streak.',
+      'The chance depends only on who serves, not on the court side, the surface, rally length or break points.',
+      'Your opponent\'s numbers are the exact complement of yours; real players have their own serve and return strengths that need not add up this way.',
+      'Scoring is the usual one: advantage at deuce, a seven-point tiebreak at six games all in every set (including the last), and no no-ad scoring or deciding match tiebreak.',
+      'It ignores who serves first, which the checks show does not change a tiebreak or a set under these assumptions, and everything off court: injuries, weather, rest.'
+    ];
+    var ul = $('ignored'); items.forEach(function (s) { ul.appendChild(el('li', '', s)); });
+    var u = [
+      'Not tested against real match results: the page shows the model, not tennis.',
+      'The only outside figure, about 0.62 for a game at a point chance of ' + pc3(550) + ', came with the brief from search summaries; my own search found no number, so it is shown as weaker and not counted.',
+      'Simulation agreement is statistical (within ' + T.Z + ' standard errors), not exact.',
+      'The best-of-5 Markov chain is run only by check.mjs, not by this page.',
+      'Tried only in headless Chromium, not on a real phone.'
+    ];
+    var ul2 = $('unverified'); u.forEach(function (s) { ul2.appendChild(el('li', '', s)); });
+  }
+
+  function update(full) {
+    exact(); renderControls(); renderMain(); renderEdge(); renderFig();
+    debounce('sims', runSims, 150);
+    debounce('chk', renderChecks, 500);
+  }
+  ['as', 'ar'].forEach(function (id) {
+    $(id).addEventListener('input', function () { cur[id] = +this.value; update(); });
+  });
+  $('mo').addEventListener('input', function () { cur.d = +this.value; renderControls(); debounce('sims', runSims, 150); });
+  $('seed').addEventListener('change', function () { cur.seed = Math.max(1, Math.min(999999, Math.floor(+this.value) || 7)); this.value = cur.seed; debounce('sims', runSims, 0); renderChecks(); });
+  $('rerun').addEventListener('click', function () { renderChecks(); });
+  renderStatic(); update();
+})();
+</script>
+</body>

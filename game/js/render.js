@@ -12,6 +12,7 @@ import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
 import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 import { CASTERS_MAX, shadowOf, keepDarkest, flameFlicker } from "./shadows.js";
+import { glowAt, GLOW_POOL } from "./skyglow.js";
 import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks } from "./weather.js";
 
 const TILE_SRC = 8;
@@ -97,7 +98,7 @@ export function createRenderer(canvas, world, opts = {}) {
   let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
   let shadowList = [], lastFlame = null, stoneView = null;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
-  let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null;
+  let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null, lastGlow = null;
   // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
   const mistSprite = document.createElement("canvas"); mistSprite.width = mistSprite.height = 64;
   { const mg = mistSprite.getContext("2d"), gr = mg.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -131,7 +132,9 @@ export function createRenderer(canvas, world, opts = {}) {
     }
     for (const l of world.landmarks) if (l.kind !== "jetty" && l.x >= x0 - 1 && l.x <= x1 + 2 && l.y >= y0 - 1 && l.y <= y1 + 2) add(l.x, l.y + 0.3, l.kind);
     shadowList = keepDarkest(found, max);
+    const stretch = lt.glow ? lt.glow.shadowLen : 1; // long shadows at dawn and dusk
     for (const s of shadowList) {
+      if (stretch !== 1) s.len *= stretch;
       const bx = s.x * tile - camX, by = s.y * tile - camY, len = s.len * tile, half = len / 2, wd = s.wid * tile / 2, ang = Math.atan2(s.dy, s.dx);
       const cx = bx + s.dx * half * 0.9, cy = by + s.dy * half * 0.9;
       if (level >= 2) { g.fillStyle = `rgba(0,0,0,${(s.alpha * 0.45).toFixed(3)})`; g.beginPath(); g.ellipse(cx, cy, half * 1.12, wd * 1.35, ang, 0, Math.PI * 2); g.fill(); }
@@ -380,7 +383,15 @@ export function createRenderer(canvas, world, opts = {}) {
       const drift = reduce ? 0 : Math.sin(t / 2400) * 0.04;
       for (const [fx, fy, fr] of [[0.08, 0.35, 0.3], [0.92, 0.3, 0.3], [0.3 + drift, 0.12, 0.22], [0.7 - drift, 0.14, 0.22]]) { g.beginPath(); g.ellipse(x + bw * fx, y + bh * fy, bw * fr * sh * 1.2, bh * 0.28 * sh, 0, 0, Math.PI * 2); g.fill(); }
     }
+    const gl = glowAt(light.hour, light.tint);
+    if (gl.amount > 0.02) { // dusk or dawn: the sky glows low over the sea
+      const band = g.createLinearGradient(0, hor - bh * 0.5, 0, hor), c = gl.horizon;
+      band.addColorStop(0, `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},0)`); band.addColorStop(1, `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${(0.38 * gl.amount).toFixed(3)})`);
+      g.fillStyle = band; g.fillRect(x, hor - bh * 0.5, bw, bh * 0.5);
+    }
     g.fillStyle = "rgba(5,8,18,0.9)"; g.fillRect(x, hor, bw, y + bh - hor); // the dark horizon
+    { const c = gl.horizon, shim = reduce ? 1 : 1 + 0.08 * Math.sin(t / 1300); // the thin line where sky meets sea (steady under reduced motion)
+      g.fillStyle = `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${Math.min(1, c[3] * shim).toFixed(3)})`; g.fillRect(x, hor, bw, Math.max(1, Math.round(dpr))); }
     g.restore();
     g.strokeStyle = sh > 0.3 ? `rgba(200,170,235,${(0.4 + 0.2 * sh).toFixed(2)})` : "rgba(255,243,214,0.4)"; g.lineWidth = Math.max(1, dpr);
     g.beginPath(); if (g.roundRect) g.roundRect(x, y, bw, bh, 8 * dpr); else g.rect(x, y, bw, bh); g.stroke();
@@ -391,7 +402,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
   }
 
   function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
@@ -413,7 +424,9 @@ export function createRenderer(canvas, world, opts = {}) {
     g.fillStyle = PAL[T.DEEP][0]; g.fillRect(0, 0, W, H);
     const k = tile / TILE_SRC;
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
-    const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2, hour: 3 };
+    const lt0 = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2, hour: 3 };
+    const glow = plain ? null : glowAt(lt0.hour, lt0.tint); lastGlow = glow;
+    const lt = glow ? { ...lt0, tint: glow.tint, glow } : lt0; // at dusk and dawn the night layer takes the sky's colour
     drawShadows(t, reduce, level, camX, camY, tile, W, H, me, peers, fires, watch, lt);
     drawGround(t, reduce, level, camX, camY, tile, W, H, lt);
     lastSky = env ? { mist: env.mist, rain: env.rain, kind: env.kind, shades: env.shades } : null;
@@ -436,7 +449,7 @@ export function createRenderer(canvas, world, opts = {}) {
     // Night layer with light pools.
     dg.globalCompositeOperation = "source-over";
     dg.clearRect(0, 0, W, H);
-    dg.fillStyle = `rgba(${lt.tint[0]},${lt.tint[1]},${lt.tint[2]},${lt.dark.toFixed(3)})`; dg.fillRect(0, 0, W, H);
+    dg.fillStyle = `rgba(${lt.tint[0]},${lt.tint[1]},${lt.tint[2]},${Math.min(0.95, lt.dark + (lt.glow ? lt.glow.darkAdd : 0)).toFixed(3)})`; dg.fillRect(0, 0, W, H);
     dg.globalCompositeOperation = "destination-out";
     lastLights = [];
     for (const p of all) {
@@ -465,6 +478,14 @@ export function createRenderer(canvas, world, opts = {}) {
     g.drawImage(dark, 0, 0);
     // The glow of a coloured lantern: a soft pool of its colour on the ground, for everyone who can see it.
     g.globalCompositeOperation = "lighter";
+    if (lt.glow && lt.glow.amount > 0.02) { // dawn and dusk: the sky is bright, so every lantern also lays a soft warm pool on the ground to keep its edge easy to see
+      for (const p of all) {
+        if (p.snuffed) continue;
+        const sx = p.x * tile - camX, sy = p.y * tile - camY, r = tile * lt.reach * lampOf(p.lamp).mult * 0.95, grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+        for (const [st, a] of softStops(GLOW_POOL * lt.glow.amount)) grad.addColorStop(st, `rgba(255,214,140,${a.toFixed(3)})`);
+        g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
+      }
+    }
     for (const p of all) {
       const lamp = lampOf(p.lamp);
       if (!lamp.glow || p.snuffed) continue;

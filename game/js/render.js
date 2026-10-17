@@ -95,7 +95,7 @@ export function createRenderer(canvas, world, opts = {}) {
   const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
   const plain = opts.look === "plain";
   let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
-  let shadowList = [], lastFlame = null;
+  let shadowList = [], lastFlame = null, stoneView = null;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
   let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null;
   // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
@@ -422,6 +422,7 @@ export function createRenderer(canvas, world, opts = {}) {
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
     if (fishing) for (const f of fishing.fish) drawFish(g, f, f.x * tile - camX, f.y * tile - camY, tile, t, reduce); // under the night layer: seen where a lantern lights the water
 
+    if (stoneView) drawStone(g, stoneView, stoneView.x * tile - camX, stoneView.y * tile - camY, tile, t, reduce);
     { const lf = fires.find(q => q.lit); lastFlame = lf && !plain ? flameFlicker(t, lf.n, level, reduce) : null; }
     for (const f of fires) drawFlame(g, f, f.x * tile - camX, (f.y - 0.85) * tile - camY, tile, t, reduce, plain ? -1 : level);
 
@@ -480,6 +481,12 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(255,170,70,0.28)"); grad.addColorStop(0.5, "rgba(255,150,60,0.10)"); grad.addColorStop(1, "rgba(255,150,60,0)");
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
+    if (stoneView && stoneView.glow > 0) { // the music stone's glow when its tune was played
+      const sx = stoneView.x * tile - camX, sy = stoneView.y * tile - camY, r = tile * 3.6 * (0.7 + 0.3 * stoneView.glow), a = 0.85 * stoneView.glow;
+      const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+      grad.addColorStop(0, `rgba(190,235,255,${a.toFixed(3)})`); grad.addColorStop(0.5, `rgba(120,200,255,${(a * 0.4).toFixed(3)})`); grad.addColorStop(1, "rgba(120,200,255,0)");
+      g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
+    }
     if (watch) drawLighthouse(g, watch, watch.x * tile - camX, watch.y * tile - camY, tile, t, reduce, plain, level);
     g.globalCompositeOperation = "source-over";
     if (fishing) drawLines(g, fishing, camX, camY, tile, t, reduce);
@@ -499,6 +506,13 @@ export function createRenderer(canvas, world, opts = {}) {
       const label = LANDMARK_NAMES[l.kind] + (f ? (f.lit ? ": lit" : `: fuel ${f.fuel} of ${BEACON_NEED}`) : (l.kind === "lighthouse" && watch && watch.f >= 1 ? ": lit" : "")); // words and numbers from our own code
       g.strokeText(label, lx, ly); g.fillText(label, lx, ly);
       g.globalAlpha = 1;
+    }
+
+    if (stoneView && Math.hypot(stoneView.x - me.x, stoneView.y - me.y) < 7) { // the stone's name when close
+      const d = Math.hypot(stoneView.x - me.x, stoneView.y - me.y);
+      g.globalAlpha = Math.min(1, (7 - d) / 2); g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = "#f2d9a0";
+      const label = stoneView.glow > 0 ? "Music stone: glowing" : "Music stone", lx = stoneView.x * tile - camX, ly = (stoneView.y - 1.3) * tile - camY;
+      g.strokeText(label, lx, ly); g.fillText(label, lx, ly); g.globalAlpha = 1;
     }
 
     // The prompt over the node in reach (words from our own list).
@@ -542,12 +556,32 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, burst, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn
 // slowly (still, one pointing out to sea, with reduced motion). Drawn in the additive pass; cost is a few fills.
 // A fish: a dark teal body with a tail, a pale ring on the water round it (a shoal fish is silver and has a brighter ring).
+// The music stone: a standing grey stone with eight small marks; each note just played lifts a ring of its own height.
+const STONE_HUES = [200, 215, 230, 250, 275, 300, 330, 20];
+function drawStone(g, v, sx, sy, tile, t, reduce) {
+  const w = tile * 0.62, h = tile * 0.95;
+  g.fillStyle = "rgba(0,0,0,0.28)"; g.beginPath(); g.ellipse(sx, sy + h * 0.02, w * 0.75, w * 0.28, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#6f7480"; g.beginPath(); g.moveTo(sx - w / 2, sy); g.lineTo(sx - w * 0.38, sy - h * 0.8); g.quadraticCurveTo(sx, sy - h * 1.08, sx + w * 0.38, sy - h * 0.8); g.lineTo(sx + w / 2, sy); g.closePath(); g.fill();
+  g.fillStyle = "#8d93a0"; g.fillRect(sx - w * 0.22, sy - h * 0.72, w * 0.16, h * 0.62);
+  for (let i = 0; i < 8; i++) { // eight marks, one per note, bright when its note was just played
+    const lit = v.recent.some(q => q.n === i && q.age < 0.9);
+    g.fillStyle = lit || v.glow > 0 ? `hsl(${STONE_HUES[i]},90%,${lit ? 78 : 66}%)` : "rgba(30,34,44,0.75)";
+    g.fillRect(sx - w * 0.3 + (i % 4) * w * 0.2, sy - h * (0.62 - Math.floor(i / 4) * 0.2), Math.max(2, w * 0.1), Math.max(2, w * 0.1));
+  }
+  for (const q of v.recent) {
+    if (q.age > 1.5) continue;
+    const k = reduce ? 0.5 : q.age / 1.5, r = tile * (0.5 + 1.1 * k);
+    g.strokeStyle = `hsla(${STONE_HUES[q.n]},90%,75%,${(0.8 * (1 - k)).toFixed(3)})`; g.lineWidth = Math.max(1.5, tile * 0.06);
+    g.beginPath(); g.arc(sx, sy - h * 0.4, r, 0, Math.PI * 2); g.stroke();
+  }
+}
+
 function drawFish(g, f, sx, sy, tile, t, reduce) {
   const u = tile / 8, a = f.alpha;
   const ang = reduce ? 0 : Math.atan2(Math.cos(t / 900 + f.id), -Math.sin(t / 900 + f.id)) + Math.PI / 2;

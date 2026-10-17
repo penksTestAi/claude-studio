@@ -1,4 +1,4 @@
-// Footsteps: soft, short, and OFF until a player turns them on (browsers also need a click before any sound).
+// Sound: footsteps and the music stone's notes. Soft, short, and OFF until a player turns them on (browsers also need a click before any sound).
 // Own steps are heard at full strength; steps of players walking nearby fade out with distance. Sounds are
 // synthesised here (filtered noise), nothing is downloaded and nothing a peer sends can reach this file.
 export const STRIDE = 0.9; // tiles per step
@@ -34,7 +34,7 @@ const VOICES = { // filter type, centre frequency, length (s), loudness
 
 export function createFootsteps() {
   const Ctx = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
-  let on = false, ctx = null, noise = null, played = 0;
+  let on = false, ctx = null, noise = null, played = 0, notesPlayed = 0;
   return {
     supported: !!Ctx,
     get on() { return on; },
@@ -70,6 +70,22 @@ export function createFootsteps() {
       src.connect(f); f.connect(g); g.connect(ctx.destination);
       src.start(t, Math.random() * 0.3, len + 0.02);
     },
+    // A note of the music stone (js/stone.js): a soft sine with a bell-like decay at `hz`. Silent while sound is off.
+    // `gain` 0..1 by distance from the stone. Counted in `notesPlayed` for the tests.
+    note(hz, gain) {
+      if (!on || !(gain > 0.02) || !Number.isFinite(hz) || hz < 50 || hz > 4000) return;
+      notesPlayed++;
+      if (!ctx) return;
+      const t = ctx.currentTime, o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = hz; o2.type = "sine"; o2.frequency.value = hz * 2;
+      const g2 = ctx.createGain(); g2.gain.value = 0.25;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.16 * Math.min(1, gain), t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(ctx.destination);
+      o.start(t); o2.start(t); o.stop(t + 1.15); o2.stop(t + 1.15);
+    },
+    get notesPlayed() { return notesPlayed; }, // notes that were played (for the tests)
     close() { on = false; if (ctx) { ctx.close().catch(() => {}); ctx = null; } },
   };
 }

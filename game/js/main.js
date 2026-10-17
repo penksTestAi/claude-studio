@@ -24,6 +24,7 @@ import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS }
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 import { createFishing, CAST_MAX, SHOAL_RANGE, BITE_WINDOW_S, BITE_WINDOW_STILL_S, LINE_MAX_S, GROUND_RADIUS } from "./fishing.js";
 import { createResponder, createAsker, suggest, lookText, LOBBY_ROOM, LOOK_S, LOBBY_JOIN_DELAY_S } from "./lobby.js";
+import { createStone, NOTES, NOTE_NAMES, NOTE_HZ, TUNE_LEN, BEAT_MS, GLOW_S, REACH as STONE_REACH } from "./stone.js";
 import { createClockCheck, clockNote, pickClockSkew, CLOCK_WARN_S } from "./clock.js";
 
 const ROOMS = 6;
@@ -113,7 +114,7 @@ const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain 
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 const tapCounts = {};
-let fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -140,6 +141,7 @@ async function enter() {
   shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
   rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
   clockCheck = createClockCheck(net, presence.peers, { clock: () => Date.now() + clockSkew * 1000 }); paintClock();
+  stone = createStone(net, world, me, presence.peers, { clock: shadeNow, onEvent: stoneEvent }); $("stoneinfo").textContent = ""; paintStone(true);
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
@@ -163,7 +165,7 @@ function leaveRoom() {
   stopResponder();
   fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -201,6 +203,7 @@ function frame(t) {
   beam.update(watchIsKept(), dt, reducedMotion());
   shades.tick(dt);
   rankNet.tick();
+  renderer.setStone(stone ? { x: stone.spot.x, y: stone.spot.y, glow: stone.glow(), recent: stone.recent() } : null);
   watchBaselines();
   paintCooldowns(t);
   const light = lightNow();
@@ -211,12 +214,13 @@ function frame(t) {
   paintFish(fishView);
   paintShades();
   paintRank();
+  paintStone();
   paintBeacon();
   paintWatch();
   paintQuests();
   $("gather").disabled = !reach;
   paintGive();
-  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list(), watchView()); }
+  if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list(), watchView(), stone ? { x: stone.spot.x, y: stone.spot.y, glow: stone.glow() } : null); }
   if (t - lastHud > 1000) { lastHud = t; paintHud(light); updateStatus(); if (clockCheck) clockCheck.tick(); paintClock(); }
   if (t - lastSave > 3000) { save(); lastSave = t; }
   requestAnimationFrame(frame);
@@ -428,7 +432,7 @@ function paintShades(force) {
   $("shadestate").textContent = lines.join(" ");
 }
 // ---- rank: the lamplighter rank, earned only by helping others (see rank.js) ----
-const DEED_WORDS = { relight: "relighting a friend's lantern", shade: "driving off a shade together", gift: "a gift that arrived", beacon: "lighting a beacon together", note: "finishing a keeper's note together" };
+const DEED_WORDS = { relight: "relighting a friend's lantern", shade: "driving off a shade together", gift: "a gift that arrived", beacon: "lighting a beacon together", note: "finishing a keeper's note together", stone: "playing the music stone's tune together" };
 function rankEvent(type, a, b) {
   if (type === "deed") $("rankinfo").textContent = `A point for ${DEED_WORDS[a]}.`;
   else if (type === "rank") $("rankinfo").textContent = `You are now a ${titleFor(a)}. Thank you for helping.`;
@@ -558,7 +562,7 @@ $("maptoggle").addEventListener("click", () => setMap(!mapOn));
 function setSteps(on) {
   const state = steps.set(on);
   $("stepstoggle").setAttribute("aria-pressed", String(state));
-  $("stepstoggle").textContent = steps.supported ? `Footsteps: ${state ? "on" : "off"}` : "Footsteps: not available here";
+  $("stepstoggle").textContent = steps.supported ? `Sound: ${state ? "on" : "off"}` : "Sound: not available here";
 }
 $("stepstoggle").addEventListener("click", () => setSteps(!steps.on));
 if (!steps.supported) { $("stepstoggle").disabled = true; setSteps(false); }
@@ -568,6 +572,38 @@ addEventListener("keydown", (e) => {
   setMap(!mapOn);
 });
 
+// ---- the music stone: eight preset notes by the well; the tune of the night played by three players glows it ----
+function stoneEvent(type, a, b) {
+  if (type === "note") {
+    const mine = a === "me", dist = Math.hypot(me.x - stone.spot.x, me.y - stone.spot.y);
+    steps.note(NOTE_HZ[b], Math.max(0, Math.min(1, 1 - dist / 12)) * (mine ? 1 : 0.8)); // silent unless Sound is on
+    lastStoneKey = "";
+  } else if (type === "glow") {
+    if (a.mine) {
+      const got = rank.credit("stone", `${a.night}.${a.no}`);
+      $("stoneinfo").textContent = got ? "The stone glows! Three of you played its tune together. A point for it." : "The stone glows! Three of you played its tune together.";
+    } else $("stoneinfo").textContent = "The stone glows: three players played its tune together.";
+    lastStoneKey = "";
+  }
+}
+const stoneBtns = $("stonebtns");
+for (let i = 0; i < NOTES; i++) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "tb"; b.textContent = NOTE_NAMES[i]; b.dataset.note = i;
+  b.addEventListener("click", () => { if (stone) stone.play(i); });
+  stoneBtns.append(b);
+}
+let lastStoneKey = "";
+function paintStone(force) {
+  if (force) lastStoneKey = "";
+  const near = !!stone && stone.near(), glow = stone ? stone.glow() > 0 : false;
+  const tune = stone ? stone.tune() : [];
+  const key = [!!stone, near, glow, tune.join(), steps.on].join("|");
+  if (key === lastStoneKey) return;
+  lastStoneKey = key;
+  $("stone").hidden = !near;
+  $("stonestate").textContent = !stone ? "" : `Tonight's tune is ${tune.map(n => NOTE_NAMES[n]).join(", ")}. If ${TUNE_LEN} different players each play a different one of those notes within a beat (${BEAT_MS / 1000} seconds), the stone glows for ${GLOW_S} seconds for everyone here.${steps.on ? "" : " Turn Sound on to hear the notes."}`;
+}
 // ---- talk: gestures and preset phrases (buttons and the T key) ----
 const GESTURE_NAMES = { wave: "Wave", bow: "Bow", point: "Point", cheer: "Cheer", sit: "Sit" };
 function makeButtons(host, labels, kind, fn) {
@@ -735,6 +771,7 @@ window.__longWatch = {
   shadeNow: () => shadeNow(),
   setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
   snuffCount: () => snuffCount,
+  stone: () => stone ? { x: stone.spot.x, y: stone.spot.y, near: stone.near(), tune: stone.tune(), glow: stone.glow(), recent: stone.recent(), stats: stone.stats(), panel: !$("stone").hidden, text: $("stonestate").textContent, info: $("stoneinfo").textContent, notesPlayed: steps.notesPlayed, soundOn: steps.on, reach: STONE_REACH, rank: rank.points } : null,
   clock: () => ({ skew: clockSkew, warnS: CLOCK_WARN_S, offsets: clockCheck ? clockCheck.offsets() : [], note: $("clocknote").hidden ? "" : $("clocknote").textContent }),
   snuffLog: () => snuffLog.map(e => ({ ...e })),
   watch: () => ({ kept: watchIsKept(), f: beam.f, view: watchView(), lighthouse: lighthouse ? { x: lighthouse.x, y: lighthouse.y } : null, radius: LIGHTHOUSE_RADIUS, panel: !$("watch").hidden, text: $("watchstate").textContent, info: $("watchinfo").textContent }),

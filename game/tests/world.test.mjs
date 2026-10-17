@@ -126,7 +126,7 @@ console.log("\n# two pages, local transport, Lantern 5");
   const a = await ctx.newPage(), b = await ctx.newPage();
   watch(a, "A"); watch(b, "B");
   for (const p of [a, b]) await p.goto(`${base}?net=local&hour=3#room=5`);
-  ok((await get(a)).hud.stepsOn === false && await a.textContent("#stepstoggle") === "Footsteps: off", "footsteps are off before anyone joins");
+  ok((await get(a)).hud.stepsOn === false && await a.textContent("#stepstoggle") === "Sound: off", "footsteps are off before anyone joins");
   await a.click("#enter"); await b.click("#enter");
   ok(await waitFor(a, () => window.__longWatch.peers().length === 1) && await waitFor(b, () => window.__longWatch.peers().length === 1), "each page sees the other");
   const A = await get(a), B = await get(b);
@@ -175,7 +175,7 @@ console.log("\n# two pages, local transport, Lantern 5");
   ok((await get(a)).hud.stepsPlayed === p0, "walking with footsteps off plays no steps");
   await a.click("#stepstoggle");
   const hudOn = (await get(a)).hud;
-  ok(hudOn.stepsOn && await a.textContent("#stepstoggle") === "Footsteps: on" && await a.getAttribute("#stepstoggle", "aria-pressed") === "true", "the Footsteps button turns them on");
+  ok(hudOn.stepsOn && await a.textContent("#stepstoggle") === "Sound: on" && await a.getAttribute("#stepstoggle", "aria-pressed") === "true", "the Footsteps button turns them on");
   const p1 = hudOn.stepsPlayed;
   await a.locator("#view").focus();
   // Hold the key until about 4 tiles are walked, not for a fixed time: the first frames after the Footsteps button

@@ -101,6 +101,8 @@ working features.
 
 - **21. Where the others are.** Done 2026-10-17, local relay only. A seventh room, `lobby`: pages inside a lantern join it and answer a newcomer's question with their lantern number (`lr {r}`, numbers only); a page on the landing screen asks for 20 s only when its player presses the button, then shows how many answered per lantern, suggests the busiest lantern that is not full and calls it a guess. Caps and rate limits in `js/lobby.js`, tested in `lobby.test.mjs` (three pages in two lanterns and a fourth in the lobby, on the local transport and through a local relay). Public relays untested. Costs: pages in lanterns are also linked to each other in the lobby (a mesh of everyone online on the path; only 11 others are heard).
 
+- **22. The music stone.** Done 2026-10-17, local relay only. A stone 2 to 3 tiles from the well plays one of 8 preset notes (`mn {n}`, a whole number 0 to 7, nothing else), heard only by players who turned Sound on (the old Footsteps button is now "Sound"); 3 notes a second per sender (burst 4) and one every 400 ms from yourself; a note counts only from a known player near the stone. When three different players each play a different note of the night's tune (3 notes from the seed and the night number, so it assumes device clocks agree) within 1.5 s, the stone glows for 20 s on every page that received those notes and each of the three earns one help point (rank deed `stone`, at most one every 30 s). Nothing is recorded or saved. Test: `tests/stone.test.mjs`.
+
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
   feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
@@ -139,10 +141,7 @@ working features.
 ## Later (in rough order, each one run)
 **Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-22. **NEXT: The music stone (gameplay, sound).** A stone near the well plays one of 8 preset notes (ids only, off until sound
-    is on, like footsteps); when three players play the stone's seeded tune of the night together within a beat, it glows
-    for everyone and counts as help. Rate limits per sender, no recording, nothing saved.
-23. **Fair trades.** A two-sided swap (one item for one item) on the offer, accept, commit and receipt machinery; both
+23. **NEXT: Fair trades.** A two-sided swap (one item for one item) on the offer, accept, commit and receipt machinery; both
     stacks and both on-its-way lists re-checked at each step; every cap tested full and expired, a peer leaving at each
     step, a stack that fills between steps refused.
 24. **Dawn and dusk (a look step).** The whole map takes the sky's colour at the night's ends (a cool blue dusk, a grey

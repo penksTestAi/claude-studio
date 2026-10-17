@@ -37,6 +37,9 @@ the new card.
 Then play the toy to its end twice in headless Chromium from a fresh load: once with the mouse and once with the
 keyboard only (Tab, arrows, Enter, Space), and report both as played, not judged from the code. Every part the mouse
 can move must be reachable by keyboard; Tangle 16 shipped with arrows moving only one of two plugs.
+page_check only sees the page before any press. During one of those plays, at a 375 px wide viewport, check after
+every press that `document.documentElement.scrollWidth <= innerWidth` and fix any sideways scroll (Upload 0046: the
+toy refiner found a 375 px sideways scroll after the first press that page_check had passed).
 
 ## Report (short)
 Slug, title, the joke in one line, files changed, check results.

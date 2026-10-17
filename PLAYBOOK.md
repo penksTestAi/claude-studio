@@ -102,17 +102,16 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - After the fetch, the chair launches the toy, piece and game builders in parallel, each in its own folder, and the
   refiners and testers as each builder hands back (promoted from an experiment: five runs, 17:00 to 02:00, no builder
   touched another's files; the run's length is still set by the game step, not by the other builders).
+- Before review, the chair runs, in each of the three repositories, `git -C <repo> diff origin/main | grep -inE
+  '^-[^-].*(untested|not tested|unverified|not independent|clocks agree|from memory|unknown)'` and restores each
+  printed caveat or names it in the review brief with evidence it is no longer true; a caveat the record (CHANGELOG,
+  Direction) contradicts is reworded, not copied (promoted from an experiment: six runs, no dropped caveat in review).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-16 21:04) Before review, the chair runs, in each of the three repositories, `git -C <repo> diff
-  origin/main | grep -inE '^-[^-].*(untested|not tested|unverified|not independent|clocks agree|from memory|unknown)'`
-  and either restores each printed caveat or names it in the review brief with the evidence that it is no longer
-  true; a kept caveat that the record (CHANGELOG, Direction) contradicts is reworded, not copied. Check: no review
-  finds a dropped caveat in the next 6 runs (the prose rule it replaces failed three runs running: 17:00, 19:32,
-  21:04, review only each time).
+- None running.
 
 ## Proposals for the owner
 
@@ -132,8 +131,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   still the cost: 2 h 40 min (10-16 01:45), 35 min of loop waiting and a nudge (11:20), and at 10-17 02:00 the Opus
   founding-mode builder took about 76 min of a 3 h 40 min run, mostly waited on, and the tester (about 22 min)
   again handed back an interim "waiting on background work" result; at 10-17 08:32 the game builder took about
-  107 min and the tester about 17. Stop-hook reminders about uncommitted changes are noise mid-run (subagents report
-  to the chair; the chair commits only at the end, 08:32 again); the routine could turn that hook off until then.
+  107 min and the tester about 17; at 11:49 about 50 and 33. Stop-hook reminders about uncommitted changes are noise
+  mid-run (subagents report to the chair; the chair commits only at the end, 08:32 and 11:49 again); the routine
+  could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
@@ -152,13 +152,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: proposal for the owner: game_patchnotes.py should reject or report non-`###` CHANGELOG headings; the
-  watchdog restore note, written under `##`, vanished from the patch notes (review only).
-- 2026-10-16: Direction updated; Hanging Chain, Standing Arch adds engineering. Not acted on: after review fixes only
-  one of nine game test files was re-run, and the Workbench "long project" paragraph omits milestone 8; watch next run.
-- 2026-10-16: chair's fetch practice now also fetches before launching the builders and the game builder, and has
-  the advisor redo the brief when main already holds its milestone or kind; the run ending 08:40 lost about 70 min of
-  beacon building and testing to milestones 6-8 and Lamplight Mono that other runs pushed, seen only at the end.
 - 2026-10-16: overlap proposal for the owner updated with the second overlapping run (same evidence).
 - 2026-10-16: vigil-piece skill now requires a licensed work to ship the licence's full text; Vigil Dot lacked
   OFL.txt (review only). Not acted on: the scanner caught a `new Function` in a new game test (fixed with a node-side
@@ -262,3 +255,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-17: game-loop proposal updated (game builder about 107 min, tester about 17; stop hook nagged about
   uncommitted changes mid-run). Caveat-grep experiment not judged (five runs; only reflowed sentences).
 - 2026-10-17: Direction updated; A Loan's Slow Start adds personal finance.
+- 2026-10-17: vigil-toy skill now checks for sideways scroll at 375 px after every press while playing; the toy
+  refiner found one in Upload 0046 after the first press, which page_check (before any press) had passed.
+- 2026-10-17: caveat-grep experiment judged (six runs) and promoted to Practices: no review found a dropped caveat;
+  its hits were reflowed or rewritten sentences with the caveat kept. Experiments now empty; next reflector may add one.
+- 2026-10-17: game-loop proposal updated (game builder about 50 min, tester about 33; stop-hook noise again). Not
+  acted on: the tester's fix and its before/after counts reached the CHANGELOG only through review although
+  vigil-game step 4 asks testers to add them (watch next run before editing the skill again); no overlapping run.

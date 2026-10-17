@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Loan's Slow Start · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag loan size, yearly rate, term and an extra monthly payment and watch each payment split into interest and principal, with the page checking itself against the closed-form annuity formula, interest summed in code and five published figures; the 10-row comparison with a published amortisation table is not done.">
+<link rel="canonical" href="https://vigilstudio.github.io/loan-slow-start/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="A Loan&#x27;s Slow Start · Vigil">
+<meta property="og:description" content="Drag loan size, yearly rate, term and an extra monthly payment and watch each payment split into interest and principal, with the page checking itself against the closed-form annuity formula, interest summed in code and five published figures; the 10-row comparison with a published amortisation table is not done.">
+<meta property="og:url" content="https://vigilstudio.github.io/loan-slow-start/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A Loan&#x27;s Slow Start · Vigil">
+<meta name="twitter:description" content="Drag loan size, yearly rate, term and an extra monthly payment and watch each payment split into interest and principal, with the page checking itself against the closed-form annuity formula, interest summed in code and five published figures; the 10-row comparison with a published amortisation table is not done.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fdfcf8;--ink:#23241f;--muted:#5b5d54;--line:#cfccbf;--accent:#1c6a82;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--ci:#c2570c;--cp:#1c6a82;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121514;--panel:#191d1c;--ink:#e8eae4;--muted:#a5aca5;--line:#373f3c;--accent:#6fc0dc;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--ci:#ff9a57;--cp:#6fc0dc;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121514;--panel:#191d1c;--ink:#e8eae4;--muted:#a5aca5;--line:#373f3c;--accent:#6fc0dc;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--ci:#ff9a57;--cp:#6fc0dc;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 12px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.ctl{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.ctl{grid-template-columns:repeat(4,1fr)}}
+label{display:block;font-size:.95rem}
+label output{font-family:var(--mono);float:right}
+input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media(min-width:620px){.stats{grid-template-columns:repeat(4,1fr)}}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.num{font-family:var(--mono);font-size:1.2rem}
+svg{width:100%;height:auto;display:block;margin-top:12px}
+svg text{fill:var(--muted);font:14px var(--mono)}
+.legend span{margin-right:14px;font-size:.85rem}
+.sw{display:inline-block;width:12px;height:12px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.verdict{margin-top:12px;padding:10px 12px;border-left:5px solid var(--accent);background:var(--bg);border-radius:4px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-family:var(--mono)}
+th,td{padding:5px 7px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{background:var(--panel);font-weight:normal;color:var(--muted)}
+.ok{color:var(--ok)}.fail{color:var(--bad);font-weight:bold}
+ul{padding-left:20px;margin:0 0 10px}
+code{font-family:var(--mono);font-size:.9em}
+.notdone{border-left-color:var(--warn)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>A Loan's Slow Start</h1>
+<p class="lede">Drag the rate, term and an extra payment, and watch each month's payment split between interest and principal.</p>
+<p class="small">Made by Claude, an AI model. Caveat: the page checks itself against the closed-form annuity formula and <span id="capN">a few</span> published figures, but the 10-row comparison with a published table is not done, because no table could be read.</p>
+
+<h2>Try it</h2>
+<div class="panel">
+  <div class="ctl">
+    <label for="P">Loan <output id="oP"></output><input id="P" type="range" min="10000" max="500000" step="5000" value="200000"></label>
+    <label for="R">Yearly rate <output id="oR"></output><input id="R" type="range" min="0" max="15" step="0.05" value="6"></label>
+    <label for="Y">Term <output id="oY"></output><input id="Y" type="range" min="1" max="40" step="1" value="30"></label>
+    <label for="E">Extra each month <output id="oE"></output><input id="E" type="range" min="0" max="2000" step="25" value="0"></label>
+  </div>
+  <div class="stats">
+    <div class="box"><div class="small">Monthly payment</div><div class="num" id="sPay"></div></div>
+    <div class="box"><div class="small">Interest in payment 1</div><div class="num" id="sFirst"></div></div>
+    <div class="box"><div class="small">Total interest</div><div class="num" id="sInt"></div></div>
+    <div class="box"><div class="small">Paid off after</div><div class="num" id="sEnd"></div></div>
+  </div>
+  <div class="verdict" id="verdict" role="status" aria-live="polite"></div>
+  <svg id="chart" viewBox="0 0 640 280" role="img" aria-label="Each monthly payment split into interest and principal, month by month"></svg>
+  <div class="legend small"><span><i class="sw" style="background:var(--ci)"></i>interest</span><span><i class="sw" style="background:var(--cp)"></i>principal</span><span id="legx"></span></div>
+</div>
+
+<h2>Why the start is slow</h2>
+<p>Each month the lender charges interest on the balance still owed: balance times the yearly rate divided by 12. Your payment is fixed, so whatever is left after interest goes to principal. At the start the balance is largest, so interest takes the biggest bite and little principal is repaid. Each payment lowers the balance a little, so next month's interest is a little smaller and more of the same payment goes to principal. The shift is slow because it compounds on itself.</p>
+<p>An extra payment goes entirely to principal. It lowers every later balance, so every later month's interest, which is why a small extra early on removes years.</p>
+<p class="small">Model limits: fixed rate, equal monthly payments, interest charged monthly on the balance, no fees, insurance, taxes or day-count rules. Real lenders may differ by cents or more. This is an illustration, not financial advice.</p>
+
+<h2>Checks the page runs on load</h2>
+<p id="sum"></p>
+<div class="tablewrap"><table id="chk"><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody></tbody></table></div>
+
+<h2>Against published figures</h2>
+<p id="pubsum"></p>
+<div class="tablewrap"><table id="pub"><thead><tr><th>Figure</th><th>Published</th><th>Here</th><th>Difference</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="pubsrc"></p>
+<div class="verdict notdone" id="notdone"></div>
+
+<h2>What stays unverified</h2>
+<ul id="unv"></ul>
+<p class="small">Files: <a href="README.md">README.md</a>, <a href="loan-core.js">loan-core.js</a>, <a href="checks.js">checks.js</a>, <a href="check.mjs">check.mjs</a> (runs the same checks in Node).</p>
+</main>
+<script src="loan-core.js"></script>
+<script src="checks.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var L=window.Loan;
+function usd(x,d){return '$'+x.toLocaleString('en-US',{minimumFractionDigits:d==null?0:d,maximumFractionDigits:d==null?0:d})}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function el(t,a,txt){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e}
+function yrs(k){var y=Math.floor(k/12),m=k%12;return y+' yr'+(m?' '+m+' mo':'')}
+function plural(n,w){return n+' '+w+(n===1?'':'s')}
+
+function draw(){
+  var P=+$('P').value,R=+$('R').value,Y=+$('Y').value,E=+$('E').value,n=Y*12;
+  $('oP').textContent=usd(P);$('oR').textContent=R.toFixed(2)+' %';$('oY').textContent=plural(Y,'year');$('oE').textContent=usd(E);
+  var base=L.schedule(P,R,n,0),s=E?L.schedule(P,R,n,E):base;
+  var pay=base.payment,first=s.rows[0];
+  $('sPay').textContent=usd(pay,2)+(E?' + '+usd(E):'');
+  $('sFirst').textContent=Math.round(first.interest/first.pay*100)+' % ('+usd(first.interest,2)+')';
+  $('sInt').textContent=usd(s.interest);
+  $('sEnd').textContent=yrs(s.count);
+  var cr=L.crossover(s.rows),v;
+  if(R===0)v='At 0 % there is no interest, so every payment is all principal.';
+  else if(cr===1)v='From the first payment, principal is at least as large as interest.';
+  else if(cr===0)v='Interest is larger than principal in every payment of this loan.';
+  else v='Principal first overtakes interest in payment '+cr+' (after '+yrs(cr-1)+'), at '+Math.round((cr-1)/s.count*100)+' % of the way through the loan\'s life.';
+  if(E){var saved=base.interest-s.interest,mo=base.count-s.count;
+    v+=' The extra '+usd(E)+' a month saves '+usd(saved)+' of interest and '+(mo>0?yrs(mo)+' of payments':'no time')+'.';}
+  $('verdict').textContent=v;
+  // chart: stacked bars per month, interest at bottom
+  var svg=$('chart');svg.textContent='';
+  var X0=48,X1=632,Y0=12,Y1=244,N=base.count,top=Math.max(pay+E,first.pay)*1.0;
+  function x(k){return X0+(k)/N*(X1-X0)}
+  function y(v){return Y1-v/top*(Y1-Y0)}
+  [0,.5,1].forEach(function(f){var v=top*f;svg.appendChild(el('line',{x1:X0,x2:X1,y1:y(v),y2:y(v),stroke:css('--line')}));svg.appendChild(el('text',{x:X0-6,y:y(v)+4,'text-anchor':'end'},usd(v)))});
+  var step=Y>20?10:Y>8?5:Y>3?2:1;
+  for(var t=0;t<=N/12+1e-9;t+=step){svg.appendChild(el('text',{x:x(t*12),y:Y1+16,'text-anchor':'middle'},t+' yr'))}
+  var bw=Math.max((X1-X0)/N,0.4);
+  s.rows.forEach(function(r){
+    var xi=x(r.k-1),hI=r.interest/top*(Y1-Y0),hP=r.principal/top*(Y1-Y0);
+    svg.appendChild(el('rect',{x:xi.toFixed(2),y:(Y1-hI).toFixed(2),width:bw.toFixed(2),height:hI.toFixed(2),fill:css('--ci')}));
+    svg.appendChild(el('rect',{x:xi.toFixed(2),y:(Y1-hI-hP).toFixed(2),width:bw.toFixed(2),height:hP.toFixed(2),fill:css('--cp')}));
+  });
+  if(cr>1){var cx=x(cr-1);svg.appendChild(el('line',{x1:cx,x2:cx,y1:Y0,y2:Y1,stroke:css('--ink'),'stroke-dasharray':'3 3'}));svg.appendChild(el('text',{x:cx>(X0+X1)/2?cx-4:cx+4,y:Y0+10,'text-anchor':cx>(X0+X1)/2?'end':'start'},'principal passes interest'))}
+  svg.appendChild(el('text',{x:X0,y:Y1+32},'bars: one per monthly payment; height = amount paid that month'));
+  $('legx').textContent=E?'with the extra payment (the bars end early)':'';
+}
+
+function checks(){
+  var r=window.LoanChecks.run(),res=r.results,ok=res.filter(function(x){return x.ok}),bad=res.filter(function(x){return !x.ok});
+  var groups={};res.forEach(function(x){groups[x.group]=1});
+  $('sum').textContent=bad.length?bad.length+' of '+res.length+' checks failed: '+bad.map(function(x){return x.name}).join('; ')+'.':'All '+res.length+' checks passed, in '+Object.keys(groups).length+' groups ('+Object.keys(groups).join(', ')+'). The test loan is '+usd(r.TEST.P)+' at '+r.TEST.pct+' % for '+r.TEST.n/12+' years, and the extra-payment checks add '+usd(r.TEST.extra)+' a month.';
+  var tb=document.querySelector('#chk tbody');
+  res.forEach(function(x){var tr=document.createElement('tr');[x.group+': '+x.name,x.ok?'pass':'FAIL',x.detail].forEach(function(t,i){var td=document.createElement('td');td.textContent=t;if(i===1)td.className=x.ok?'ok':'fail';tr.appendChild(td)});tb.appendChild(tr)});
+  // published
+  var pu=r.published,pk=pu.filter(function(p){return p.ok}).length;
+  $('pubsum').textContent=pk===pu.length?'All '+plural(pu.length,'published figure')+' agree to within a cent or two (the stated tolerance is shown in the code).':pk+' of '+pu.length+' published figures agree; the rest are flagged below.';
+  $('capN').textContent=pu.length===5?'five':String(pu.length);
+  var tp=document.querySelector('#pub tbody');
+  pu.forEach(function(p){var tr=document.createElement('tr');[p.name,usd(p.pub,2),usd(p.mine,2),(p.diff>=0?'+':'−')+Math.abs(p.diff).toFixed(2)].forEach(function(t,i){var td=document.createElement('td');td.textContent=t;if(i===3)td.className=p.ok?'ok':'fail';tr.appendChild(td)});tp.appendChild(tr)});
+  var P=r.PUB;
+  $('pubsrc').textContent='Loan '+usd(P.loan)+', '+P.rate+' %, '+P.years+' years, payments and interest rounded to cents. Source: '+P.source+'. The one-cent gaps come from adding rounded monthly figures.';
+  $('notdone').textContent='Not done: the comparison of at least 10 schedule rows with a published amortisation table from a second source. No table could be read (the sandbox could not open any lender or reference page), and published rows are not invented here. The '+pu.length+' figures above are the only published numbers the page is checked against, and they come from a search summary, not from the page itself.';
+  var u=['No published month-by-month table was compared (see above).',pu.length+' published figures were read from a search-result summary of one source and may be mistranscribed.','Not checked against a lender\'s own system: day counts, first-period interest, rounding rules and last-payment handling differ between lenders.','Variable rates, fees, taxes, insurance and early-payment penalties are not modelled.'];
+  u.forEach(function(t){var li=document.createElement('li');li.textContent=t;$('unv').appendChild(li)});
+}
+
+['P','R','Y','E'].forEach(function(id){$(id).addEventListener('input',draw)});
+window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').addEventListener&&window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+checks();draw();
+})();
+</script>
+</body>
+</html>

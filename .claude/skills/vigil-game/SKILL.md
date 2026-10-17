@@ -77,7 +77,10 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    01:45: another run pushed crafting and beacons while this one built crafting, and all its game work was dropped).
    The studio is a git repository even when your session says the working directory is not one; never skip this
    step for that reason, and if the fetch truly fails, say so in your report (13:10 run: "not a repo", fetch skipped).
-   Then read `game/DESIGN.md`, `game/ROADMAP.md` and the last entries of `game/CHANGELOG.md`.
+   Then read `game/DESIGN.md`, `game/ROADMAP.md` and the last entries of `game/CHANGELOG.md`. Note the
+   `origin/main` sha; fetch again before the 5x loop and before handing back (testers: before starting), and if
+   `git log <that sha>..origin/main -- game/` prints anything, stop and report it to the chair at once instead of
+   finishing (2026-10-17 20:50: another run pushed its milestone 24 mid-step; 118 min of builder work was dropped).
 2. Build the next roadmap item completely, as one coherent increment. Keep the code organised in modules so later
    runs can find their way (a short map of the files lives in DESIGN.md).
 3. Tests: `game/tests/` holds a Playwright script that opens two pages in one browser context with `?net=local`,

@@ -72,11 +72,12 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
-- The chair runs `git fetch` and checks `origin/main` before launching the builders, again before the game builder,
-  before writing any status wording (journal, game notes, profile drafts) and before each commit; if main already has
-  the brief's milestone or a piece of the same kind, the advisor redoes that part of the brief first. Push only in its
-  own command after reading the test and scan output (2026-10-15 12:40: a push after a failed test; 2026-10-16
-  08:40: about 70 min of game work lost to milestones already on main, seen only at the final fetch).
+- The chair runs `git fetch` and checks `origin/main` before launching the builders, again whenever any builder
+  hands back, before launching the game tester, before writing any status wording (journal, game notes, profile
+  drafts) and before each commit; if main's `game/` or piece table moved since the start (`git log <start
+  sha>..origin/main`), the game step stops and the advisor redoes that part of the brief. Push only in its own
+  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 08:40 and 10-17 20:50:
+  about 70 and 118 min of game work lost to milestones pushed mid-run, seen only at the final fetch).
 - Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
   game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
   sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
@@ -133,9 +134,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
-  again: the run that started the evening of 2026-10-15 and ended about 08:40 on 10-16 built beacons while other
-  runs published milestones 6-8 and a font, so its game work was dropped too. The start check should also find the
-  studio on `main`: at 2026-10-17 19:17 its HEAD was detached when the run began.
+  again (10-16 08:40: milestones 6-8 and a font) and a third time at 2026-10-17 20:50: the 19:17 run pushed its own
+  milestone 24 (7656c71, 17:17 UTC) during this run's 118 min game step, all dropped. In-run fetches only shorten the
+  loss; to prevent it, the chair pushes a claim at start (a `claim/<milestone>` branch or a dated lock file), and a
+  run finding a claim under about 4 h old builds the next milestone or skips the game. The start check should also
+  find the studio on `main` (19:17: HEAD detached at start).
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
   error on any other entry heading level, or print each skipped heading. It also drops every paragraph not labelled
@@ -151,14 +154,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now fetches with `git -C <studio path>` and forbids skipping the fetch because the
-  session says "not a git repository"; the 13:10 game builder said "not a repo" and skipped the fetch the practice
-  and skill require. Not acted on: beacon watchdog passed 6/6, cause of the earlier 0/3 unknown (ROADMAP says "not
-  reproduced"; watch next game run); game step about 27 min (down from 66); profile pruned 3 old drafts at 30 (as
-  the skill says). Caveat experiment not judged (one run; no dropped caveat found).
-- 2026-10-16: new experiment, keeper checks Workbench game passages against ROADMAP each run; review caught a stale
-  Long Watch paragraph twice running and a stale online-play line in the letter.
-- 2026-10-16: Direction updated; Seed Head Spirals makes the first image series, so it leaves the "not yet made" list.
 - 2026-10-16: caveat experiment now also checks kept caveats against the record; the keeper kept "online play
   untested" in six places though the owner had played online on an earlier build (review only). Keeper-passages
   experiment not judged (two runs; the keeper flagged the stale protected Long Watch paragraph for the owner).
@@ -264,3 +259,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   the fixer's hand-back said only "placeholder" (one occurrence; the chair verified by grep and re-ran checks);
   tester-log experiment not judged (two runs since it started, report arrived both times, 24/24 files at 19:17);
   scanner still sees only tracked files (proposal stands).
+- 2026-10-17: fetch practice now also fetches when any builder hands back and before the game tester, and stops the
+  game step when main's game/ moved since the start sha; at 20:50 the chair fetched only at start and 118 min of
+  game work was lost to the 19:17 run's milestone 24 (7656c71), caught only by the pre-commit fetch.
+- 2026-10-17: vigil-game skill now has the builder re-fetch before the 5x loop and before hand-back (testers before
+  starting) and stop at once if main's game/ moved (same evidence).
+- 2026-10-17: overlap proposal updated with the third occurrence and a concrete claim-at-start design. Not acted on:
+  dawn test 5/5 builder vs 2/3 tester (work discarded; flaky-test practice already applies); review's "births fall"
+  slip (status-words practice); piece refiner's page-number check (refine skill working).

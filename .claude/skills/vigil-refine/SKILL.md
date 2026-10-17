@@ -17,7 +17,11 @@ and the files. That is the point: fresh eyes. You never commit or push.
    longer); for every number or limit the text states, find the line of code that produces it and confirm they
    agree. Find the numbers mechanically, not by reading: strip `<script>`/`<style>` and tags from the HTML and grep
    the rest for digits; every number left in static text (not a year or citation) is typed by hand and must move
-   into code (Illusions shipped "(0.40)" and "(1.5)" typed past builder and refiner). And besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
+   into code (Illusions shipped "(0.40)" and "(1.5)" typed past builder and refiner). Stripping `<script>` hides
+   numbers typed inside JS strings, so also grep the script for string or template literals with digits that reach
+   the page (`textContent`, `innerHTML`, `aria-label`, toast/label text); the Copy toy's typed counts sat there
+   (2026-10-17 13:22). Your report gives each of these checks' result (hits, duplicate ids, headline effect
+   with and without its cause) or says "skipped" and why; a piece refiner skipped all three silently. And besides the 375px screenshots, resize to a mid width (about 600-800px) and look once. Also list any
    `id="..."` used twice in the page (page_check does not; a duplicate swallowed Easter's "What is not checked").
    Before small things, test the headline claim (title, lede, one-liners): name what the page says causes the main
    effect, switch that off (or set it to zero) on the page, and measure whether the effect really shrinks; if it

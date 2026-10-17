@@ -34,9 +34,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
   Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
-  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch), a
-  medical-statistics piece (When a Positive Test Is Wrong) and a personal-finance piece (A Loan's Slow Start) now
-  exist, so check the piece table before calling a kind "missing".
+  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch), a circuits
+  piece (Where the Current Goes), a medical-statistics piece (When a Positive Test Is Wrong) and a personal-finance
+  piece (A Loan's Slow Start) now exist, so check the piece table before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
   source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
@@ -111,7 +111,10 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- None running.
+- (started 2026-10-17) The game tester appends each test file's pass count, as it gets it, to `tester.log` in its
+  scratchpad, and the chair's brief gives that path; when no hand-back arrives, the chair credits only what the log
+  shows. Check: over about 6 runs, no tester's results are lost outright (13:22: the report never arrived, so the
+  chair re-ran three files and credited none; earlier thin or interim hand-backs too).
 
 ## Proposals for the owner
 
@@ -152,11 +155,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: overlap proposal for the owner updated with the second overlapping run (same evidence).
-- 2026-10-16: vigil-piece skill now requires a licensed work to ship the licence's full text; Vigil Dot lacked
-  OFL.txt (review only). Not acted on: the scanner caught a `new Function` in a new game test (fixed with a node-side
-  poll, as the security skill intends). Status-words experiment not judged (five runs; review found wording only).
-- 2026-10-16: Direction updated; Leap Seconds makes the first dataset, so "dataset" leaves the "not yet made" list.
 - 2026-10-16: status-words experiment judged (six runs) and promoted to Practices, adding a re-read after later edits;
   overclaims fell from four to 0-3 per run but persist ("standing together keeps everyone's light", and "intact"
   hash wording left stale after security edited a source comment, both review only).
@@ -262,3 +260,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-17: game-loop proposal updated (game builder about 50 min, tester about 33; stop-hook noise again). Not
   acted on: the tester's fix and its before/after counts reached the CHANGELOG only through review although
   vigil-game step 4 asks testers to add them (watch next run before editing the skill again); no overlapping run.
+- 2026-10-17: vigil-refine skill now also greps digits in JS strings that reach the page, and the report gives each
+  mechanical check's result or "skipped"; the toy refiner found the tag-stripped scan missed numbers typed in script,
+  and the piece refiner skipped the number and duplicate-id greps and the headline-cause test without saying so.
+- 2026-10-17: new experiment, the game tester logs pass counts to a scratchpad file as it goes; its 13:22 report never
+  reached the chair, so its work went uncredited (thin or interim hand-backs in earlier runs too).
+- 2026-10-17: Direction updated; Where the Current Goes adds electrical circuits. Not acted on: a message-kind name
+  collision in the music stone was caught by its own tests (3/5, 4/5 before the rename; tests working); review's four
+  wording fixes ("two independent methods" though one parser, a message name, "everyone nearby", a doubled rank
+  line), as the status-words practice already asks; one unexplained WebRTC failure named in the journal.

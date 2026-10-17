@@ -305,7 +305,7 @@ async function scenario(label, mk, query, room, opts = {}) {
 {
   const ctx = await browser.newContext({ viewport: { width: 900, height: 800 } });
   const mk = () => ctx.newPage().then(p => (watch(p, "local"), p));
-  await scenario("local transport (BroadcastChannel)", mk, `?net=local&hour=${HOUR}`, 6, { shot: "watch-local" });
+  await scenario("local transport (BroadcastChannel)", mk, `?net=local&hour=${HOUR}&weather=clear`, 6, { shot: "watch-local" });
   await ctx.close();
 }
 
@@ -315,7 +315,7 @@ if (!onlyLocal) {
   const c = [await browser.newContext({ viewport: { width: 900, height: 800 } }), await browser.newContext({ viewport: { width: 1000, height: 800 } }), await browser.newContext({ viewport: { width: 800, height: 700 } })];
   let i = 0;
   const mk = () => c[i++ % 3].newPage().then(p => (watch(p, "webrtc"), p));
-  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1)", mk, `?net=nostr&hour=${HOUR}&relay=${encodeURIComponent(relay.url)}`, 5, { timeout: 40000, shot: "watch-webrtc" });
+  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1)", mk, `?net=nostr&hour=${HOUR}&weather=clear&relay=${encodeURIComponent(relay.url)}`, 5, { timeout: 40000, shot: "watch-webrtc" });
   for (const x of c) await x.close().catch(() => {});
   relay.close();
 }

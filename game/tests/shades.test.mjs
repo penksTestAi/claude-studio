@@ -438,7 +438,7 @@ async function forged(A, B, C) {
 {
   const ctx = await browser.newContext({ viewport: { width: 900, height: 800 } });
   const mk = () => ctx.newPage().then(p => (watch(p, "local"), p));
-  await scenario("local transport (BroadcastChannel)", mk, `?net=local&hour=${HOUR}`, 6, 4, { local: true, shot: "shades-local" });
+  await scenario("local transport (BroadcastChannel)", mk, `?net=local&hour=${HOUR}&weather=clear`, 6, 4, { local: true, shot: "shades-local" });
   await ctx.close();
 }
 
@@ -448,7 +448,7 @@ if (!onlyLocal) {
   const c = [await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" }), await browser.newContext({ viewport: { width: 1000, height: 800 } }), await browser.newContext({ viewport: { width: 800, height: 700 } })];
   let i = 0;
   const mk = () => c[i++ % 3].newPage().then(p => (watch(p, "webrtc"), p));
-  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1; one page asks for reduced motion)", mk, `?net=nostr&hour=${HOUR}&relay=${encodeURIComponent(relay.url)}`, 5, 3, { timeout: 30000, shot: "shades-webrtc" });
+  await scenario("Trystero over Nostr + WebRTC (relay on 127.0.0.1; one page asks for reduced motion)", mk, `?net=nostr&hour=${HOUR}&weather=clear&relay=${encodeURIComponent(relay.url)}`, 5, 3, { timeout: 30000, shot: "shades-webrtc" });
   for (const x of c) await x.close().catch(() => {});
   relay.close();
 }

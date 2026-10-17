@@ -13,7 +13,7 @@ import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 import { CASTERS_MAX, shadowOf, keepDarkest, flameFlicker } from "./shadows.js";
 import { glowAt, GLOW_POOL } from "./skyglow.js";
-import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks } from "./weather.js";
+import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks, nameAlpha } from "./weather.js";
 
 const TILE_SRC = 8;
 const PAL = {
@@ -98,7 +98,7 @@ export function createRenderer(canvas, world, opts = {}) {
   let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
   let shadowList = [], lastFlame = null, stoneView = null;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
-  let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null, lastGlow = null;
+  let nameDraw = [], flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null, lastGlow = null;
   // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
   const mistSprite = document.createElement("canvas"); mistSprite.width = mistSprite.height = 64;
   { const mg = mistSprite.getContext("2d"), gr = mg.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -402,7 +402,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, names: nameDraw, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
   }
 
   function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
@@ -544,8 +544,13 @@ export function createRenderer(canvas, world, opts = {}) {
     }
 
     // Names above the dark layer so they stay readable.
+    nameDraw = [];
     for (const p of all) {
       const sx = p.x * tile - camX, sy = p.y * tile - camY - tile * 0.62;
+      const na = p === me || !env ? 1 : nameAlpha(env.mist, Math.hypot(p.x - me.x, p.y - me.y));
+      if (p !== me) nameDraw.push({ x: +p.x.toFixed(2), y: +p.y.toFixed(2), alpha: +na.toFixed(3) });
+      if (na < 0.02) continue; // lost in the mist (still on the minimap)
+      g.globalAlpha = na;
       g.lineWidth = 3 * dpr; g.strokeStyle = "rgba(5,8,18,0.85)"; g.fillStyle = p === me ? "#fff3d6" : "#e6e9f2";
       g.strokeText(p.name, sx, sy); g.fillText(p.name, sx, sy);
       if (p.rank > 0) { // the lamplighter title, a smaller gold line over the name (looked up in our own list)
@@ -555,6 +560,7 @@ export function createRenderer(canvas, world, opts = {}) {
         g.strokeText(title, sx, sy - fontPx * 1.05); g.fillText(title, sx, sy - fontPx * 1.05);
         g.font = `${fontPx}px Georgia, serif`;
       }
+      g.globalAlpha = 1;
     }
 
     // Speech bubbles (preset phrases, words from our own list), over the names.

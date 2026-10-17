@@ -8,7 +8,7 @@ import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
 import { createRenderer } from "./render.js";
 import { createMinimap, describeNearest } from "./minimap.js";
-import { skyAt, pickWeather } from "./weather.js";
+import { skyAt, pickWeather, shadePaceAt, MIST_NAME_TILES, RAIN_SHADE_SLOW } from "./weather.js";
 import { hourAt, lightFor, pickHour, HOURS } from "./nightclock.js";
 import { createFootsteps, createStrideTracker, stepGain } from "./sound.js";
 import { surfaceAt, landmarkFingerprint, BEACON_SIDES } from "./world.js";
@@ -140,7 +140,7 @@ async function enter() {
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
-  shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
+  shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, paceFor: (slot) => shadePaceAt(world.seed, slot, pinnedWeather), reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
   rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
   clockCheck = createClockCheck(net, presence.peers, { clock: () => Date.now() + clockSkew * 1000 }); paintClock();
   stone = createStone(net, world, me, presence.peers, { clock: shadeNow, onEvent: stoneEvent }); $("stoneinfo").textContent = ""; paintStone(true);
@@ -388,6 +388,7 @@ function paintQuests(force) {
 // ---- shades: slow night creatures that snuff lanterns; light drives them off, best by several players together ----
 let shadeOffset = pickClockOffset(location.search, onLoopback);
 const shadeNow = () => Date.now() + shadeOffset;
+$("weatherrule").textContent = `Weather matters a little: in mist (rain brings mist too) the names of players farther than ${MIST_NAME_TILES} tiles fade, though they stay on the minimap; in rain the shades move ${Math.round(RAIN_SHADE_SLOW * 100)}% slower. Both come from the same weather your browser works out from the island and the clock; nothing is sent.`;
 const shadeReach = (p) => (p.snuffed ? EMBER_TILES : lightNow().reach * lampOf(p.lamp).mult);
 const shadeSafe = (x, y) => (!!beacon && beaconList.some((l, b) => beacon.shares.lit(b) && Math.hypot(l.x - x, l.y - y) <= LIT_RADIUS * SAFE_FRACTION)) || insideBeam(x, y, lighthouse, beam.f);
 const shadeHold = (sh) => holdOut(sh, lighthouse, beam.f);

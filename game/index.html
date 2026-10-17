@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give and swap items (a fair one-for-one trade with a nearby player), light the lighthouse together, see soft shadows from lanterns and beacons, see a plain note when a device clock disagrees, ask a lobby which lantern looks busiest (a guess from numbers only), play a music stone whose night tune three players can glow together (sound off until turned on), dusk and dawn tint the whole island (look only, nothing sent), and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little (far names fade in mist, shades move a fifth slower in rain, nothing sent), meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give and swap items (a fair one-for-one trade with a nearby player), light the lighthouse together, see soft shadows from lanterns and beacons, see a plain note when a device clock disagrees, ask a lobby which lantern looks busiest (a guess from numbers only), play a music stone whose night tune three players can glow together (sound off until turned on), dusk and dawn tint the whole island (look only, nothing sent), and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little (far names fade in mist, shades move a fifth slower in rain, nothing sent), meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give and swap items (a fair one-for-one trade with a nearby player), light the lighthouse together, see soft shadows from lanterns and beacons, see a plain note when a device clock disagrees, ask a lobby which lantern looks busiest (a guess from numbers only), play a music stone whose night tune three players can glow together (sound off until turned on), dusk and dawn tint the whole island (look only, nothing sent), and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little (far names fade in mist, shades move a fifth slower in rain, nothing sent), meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -171,6 +171,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </div>
     <div class="craft" id="shades" hidden>
       <p class="small" id="shades-label">Shades: slow creatures of the night that put out lanterns. They hurt no one and take nothing. Light drives them off, and the more of you stand together with lit lanterns, the faster.</p>
+      <p class="small" id="weatherrule"></p>
       <p class="small" id="shadestate"></p>
       <p class="small heard" id="shadeinfo" role="status" aria-live="polite"></p>
     </div>
@@ -239,6 +240,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.28</b> · Weather that matters a little (milestone 25) <span class="when">2026-10-17</span></summary>
+    <p><span class="tag t-new">New</span> feel the weather in play, not only see it. In mist (and in rain, which brings mist) the names of other players who are more than 6 tiles away fade out, so across the island you see a lantern and a figure but not a name; they are still on the minimap, and names come back as you walk closer. When it rains, the shades of that stretch of night move a fifth slower, so they take longer to arrive and to leave. Both numbers (6 tiles, a fifth slower) are written on the page in the shades panel. Everyone gets the same weather from the island and the clock (if device clocks agree), and nothing is sent.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (nothing about this is sent, so only a relay on this machine was used for the other tests), how the fading names read on a real phone, and whether players whose device clocks differ see the same pace for a shade (the same caveat as the shades). Known limit: a shade's pace is set once for its 160-second stretch of night, by the weather when that stretch begins; if it starts to rain halfway through, that stretch's shades keep their usual pace until the next one. A slowed shade also fades out a few seconds earlier than a normal one so that it never outstays its stretch.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.27</b> · Dawn and dusk (milestone 24) <span class="when">2026-10-17</span></summary>
     <p><span class="tag t-new">New</span> see the two ends of the night in the colour of the sky. At dusk (around the first hour of the night, "Dusk") the whole island takes a cool blue; at dawn (around the last hour, "Dawn") it takes a soft grey, and shadows of trees, rocks and landmarks stretch longer, longest at dawn. Every lantern lays a warm pool of light on the ground at those hours so you can still see where your light ends, and the small sky strip at the top glows low over the sea with a thin line of horizon. With "reduce motion" switched on in your device the horizon line stays still. Everyone sees the same colours at the same moment, because it follows the shared night clock.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (nothing about dawn and dusk is sent, so only a relay on this machine was used for the other tests), how the colours look on a real phone screen in daylight, and frame rates on a real phone (measured only in headless Chromium without a GPU). Known limit: at dusk and dawn your own figure stands out less from the ground (3.8 to 1 against 9.0 at midnight), and the path in your light is a little fainter at dawn (1.43 to 1 against 1.53).</p>

@@ -270,6 +270,8 @@ banks from one cached sprite; rain: a cool tint and slanted streaks in one strok
 stay clear. Governor level 1 halves the drops and uses 3 banks, level 0 keeps only the flat veil, `?look=plain` draws none, reduced
 motion draws no drops and holds the banks still. `?weather=clear|mist|rain` pins it (cosmetic; works for anyone). No new messages.
 
+Two small effects since milestone 25 (still nothing sent): `nameAlpha(mist, tiles)` fades another player's name once they are farther than `MIST_NAME_TILES` (6) tiles, over `MIST_NAME_FADE` (2) more, scaled by how far the mist is above 0.12 up to `MIST_NAME_MIN` (0.35); render.js uses it for names only (figures, bubbles and the minimap are unchanged). `shadePaceAt(seed, slot, pinned)` gives 1 - `RAIN_SHADE_SLOW` (0.2) when the weather at the start of a shade slot is rain, else 1, and `shadePlan`/`shadeAt` take it as `pace` (the time a shade lingers is unchanged; a slowed shade's life is cut to fit its slot). `index.html` prints both numbers from the constants (`#weatherrule`).
+
 ## The living look (milestone 7, `js/living.js` and `js/render.js`)
 Everything is drawn by each browser on its own from the seed and the clock; no message carries any of it. Per frame, only
 the visible tiles are walked, using two byte arrays built once (`classify`: which tile glints, grows grass or is a tree;

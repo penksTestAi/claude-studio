@@ -14,9 +14,9 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { generateWorld } from "../js/world.js";
-import { shadeCount, SLOT_MS } from "../js/shades.js";
-import { weatherAt, slotWeather, pickWeather, shadeSkyAt, skyAt, rainDrops, mistBanks, WEATHER_SLOT_MS, BLEND_MS, RAIN_DROPS, MIST_BLOBS } from "../js/weather.js";
+import { generateWorld, isBlocked } from "../js/world.js";
+import { shadeCount, shadeAt, shadePlan, SLOT_MS, SLOT_S, SPEED } from "../js/shades.js";
+import { weatherAt, slotWeather, pickWeather, shadeSkyAt, skyAt, rainDrops, mistBanks, WEATHER_SLOT_MS, BLEND_MS, RAIN_DROPS, MIST_BLOBS, nameAlpha, shadePaceAt, MIST_NAME_TILES, MIST_NAME_FADE, MIST_NAME_MIN, RAIN_SHADE_SLOW } from "../js/weather.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..");
@@ -58,6 +58,30 @@ const world = generateWorld(), SEED = world.seed;
   let peak = 0, peakOut = 0, early = 1;
   for (let u = 0; u < 160; u += 1) { const s = shadeSkyAt(world, busy * SLOT_MS + u * 1000); peak = Math.max(peak, s.dark); peakOut = Math.max(peakOut, s.out); if (u === 0) early = s.dark; }
   ok(peak > 0.5 && peak <= 1 && peakOut >= 3 && early < 0.2, `a wave of ${shadeCount(SEED, busy)} shades darkens the sky (peak ${peak.toFixed(2)} with ${peakOut} out), from nothing at the start of the slot`);
+
+  // milestone 25: names fade in mist, shades slow in rain (both from the same weather)
+  ok(MIST_NAME_TILES === 6 && RAIN_SHADE_SLOW === 0.2, `the two numbers are ${MIST_NAME_TILES} tiles and ${RAIN_SHADE_SLOW * 100}% slower`);
+  ok(nameAlpha(0.8, 3) === 1 && nameAlpha(0.8, MIST_NAME_TILES) === 1 && nameAlpha(0.8, MIST_NAME_TILES + MIST_NAME_FADE) === 0 && nameAlpha(0.8, 40) === 0, "in mist a name inside the range stays solid and fades to nothing past it");
+  ok(nameAlpha(0, 40) === 1 && nameAlpha(0.1, 40) === 1 && nameAlpha(MIST_NAME_MIN, 40) === 0, "in clear weather names never fade");
+  { let mono = true, prevA = 1; for (let d = 0; d < 20; d += 0.25) { const a = nameAlpha(0.6, d); if (a > prevA + 1e-12 || a < 0 || a > 1) mono = false; prevA = a; } ok(mono, "a name only gets fainter with distance, between 0 and 1"); }
+  ok(nameAlpha(NaN, 3) === 1 && nameAlpha(0.8, NaN) === 1, "odd numbers leave the name solid");
+  ok(shadePaceAt(SEED, 5, { kind: "rain" }) === 0.8 && shadePaceAt(SEED, 5, { kind: "mist" }) === 1 && shadePaceAt(SEED, 5, { kind: "clear" }) === 1, "pinned rain slows shades by a fifth; mist and clear do not");
+  { let n = 0, same = 0, rainy = 0; for (let sl = 0; sl < 3000; sl++) { const a = shadePaceAt(SEED, sl), b = shadePaceAt(SEED, sl); n++; if (a === b) same++; if (a < 1) rainy++; } ok(same === n && rainy > 200 && rainy < 1500, `the pace of a slot is a pure function of seed and slot (${rainy} of ${n} slots are rainy at their start)`); }
+  { let busy2 = 5; while (shadeCount(SEED, busy2) < 1) busy2++;
+    const k0 = 0, slow = shadePlan(world, busy2, k0, 0.8), fast = shadePlan(world, busy2, k0);
+    ok(Math.abs(slow.t1 * 0.8 - fast.t1) < 1e-9 && slow.speed === SPEED * 0.8 && fast.speed === SPEED, "in rain a shade takes a quarter longer to arrive (a fifth less speed)");
+    let ok2 = true, maxStep = 0, leaveRatio = 0;
+    for (let sl = 5; sl < 400; sl++) for (let k = 0; k < shadeCount(SEED, sl); k++) {
+      const pl = shadePlan(world, sl, k, 0.8); if (pl.delay + pl.life > SLOT_S) ok2 = false;
+      let prev = null; for (let u = pl.delay; u < pl.delay + pl.life; u += 0.5) { const sh = shadeAt(world, sl * SLOT_MS + u * 1000, k, 0.8); if (!sh) continue; if (prev && sh.phase !== "linger" && prev.phase === sh.phase) maxStep = Math.max(maxStep, Math.hypot(sh.x - prev.x, sh.y - prev.y) / 0.5); prev = sh; }
+    }
+    ok(ok2, "a slowed shade always leaves inside its own slot");
+    ok(maxStep <= SPEED * 0.8 + 1e-6, `in rain no shade travels faster than ${(SPEED * 0.8).toFixed(2)} tiles a second while approaching or leaving (fastest seen ${maxStep.toFixed(3)})`);
+    const dry = shadeAt(world, busy2 * SLOT_MS + (fast.delay + fast.t1 + 60) * 1000, k0), wet = shadeAt(world, busy2 * SLOT_MS + (slow.delay + slow.t1 + 60) * 1000, k0, 0.8);
+    ok(dry && wet && dry.phase === "leave" && wet.phase === "leave" && Math.abs(Math.hypot(wet.x - slow.ex, wet.y - slow.ey) - 0.8 * Math.hypot(dry.x - fast.ex, dry.y - fast.ey)) < 1e-6, "60 s after arriving, a leaving shade in rain has gone four fifths as far from its circle as a dry one");
+  }
+  let rainySlot = 5; while (shadeCount(SEED, rainySlot) < 3) rainySlot++;
+  { const a = shadeSkyAt(world, rainySlot * SLOT_MS + 40000, { kind: "rain" }), b = shadeSkyAt(world, rainySlot * SLOT_MS + 40000, { kind: "clear" }); ok(a.dark >= 0 && a.dark <= 1 && Number.isFinite(b.dark), "the shades' sky takes the pinned weather and stays in range"); }
   const sk = skyAt(world, busy * SLOT_MS + 60000, { mist: 0.2, rain: 0.1, kind: "rain" });
   ok(sk.kind === "rain" && sk.mist === 0.2 && sk.shades === shadeSkyAt(world, busy * SLOT_MS + 60000).dark && skyAt(world, 1e12).kind !== undefined, "the sky joins the weather (pinned or from the clock) and the shades' darkness");
 }
@@ -181,6 +205,52 @@ try {
   const sky0 = await S.evaluate(() => { const c = document.getElementById("view"), dpr = c.width / c.clientWidth, d = c.getContext("2d").getImageData(Math.round(c.width / 2 - 60 * dpr), Math.round(14 * dpr), Math.round(120 * dpr), Math.round(20 * dpr)).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2]; return s / (d.length / 4); });
   const sky1 = await S2.evaluate(() => { const c = document.getElementById("view"), dpr = c.width / c.clientWidth, d = c.getContext("2d").getImageData(Math.round(c.width / 2 - 60 * dpr), Math.round(14 * dpr), Math.round(120 * dpr), Math.round(20 * dpr)).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2]; return s / (d.length / 4); });
   ok(sky1 < sky0 * 0.9, `the sky strip is darker during the wave (mean brightness ${sky1.toFixed(1)} against ${sky0.toFixed(1)})`);
+
+  console.log("\n# milestone 25: names in mist, shades in rain, on two pages");
+  { // two good spots, 3 tiles and about 11 tiles from a first one
+    const walk = (x, y) => !isBlocked(world, x, y) && !isBlocked(world, x + 0.5, y) && !isBlocked(world, x, y + 0.5);
+    let o = null; for (let x = 40; x < 90 && !o; x++) for (let y = 40; y < 90 && !o; y++) if (walk(x + 0.5, y + 0.5) && walk(x + 3.5, y + 0.5) && walk(x + 11.5, y + 0.5)) o = { x: x + 0.5, y: y + 0.5 };
+    ok(!!o, "found open ground for the distance test");
+    const place = async (pg, x, y) => pg.evaluate(([x, y]) => window.__longWatch.teleport(x, y), [x, y]);
+    const names = async (pg) => (await perf(pg)).names;
+    const room = async (weather, id) => { const a = await mk(), b = await mk({}, a.context()); await enter(a, `?net=local&hour=3&weather=${weather}${calm}`, id); await enter(b, `?net=local&hour=3&weather=${weather}${calm}`, id); await waitFor(a, () => window.__longWatch.peers().length === 1, null, 8000); await waitFor(b, () => window.__longWatch.peers().length === 1, null, 8000); return [a, b]; };
+    const where = async (a, b, ax, bx) => { await place(a, ax, o.y); await place(b, bx, o.y); await sleep(1500); };
+    const alphaOf = async (pg, ox) => { for (let i = 0; i < 40; i++) { const n = await names(pg); if (n.length === 1 && Math.abs(n[0].x - ox) < 0.2) return n[0].alpha; await sleep(100); } const n = await names(pg); return n.length ? n[0].alpha : null; };
+    const [a, b] = await room("mist", "wx9");
+    await where(a, b, o.x, o.x + 3);
+    const [near1, near2] = [await alphaOf(a, o.x + 3), await alphaOf(b, o.x)];
+    ok(near1 === 1 && near2 === 1, `in mist, a player 3 tiles away keeps a solid name on both pages (${near1}, ${near2})`);
+    await where(a, b, o.x, o.x + 11);
+    const [far1, far2] = [await alphaOf(a, o.x + 11), await alphaOf(b, o.x)];
+    ok(far1 === 0 && far2 === 0, `in mist, two players 11 tiles apart (more than ${MIST_NAME_TILES}) each lose the other's name, the same on both pages (${far1}, ${far2})`);
+    const pl = [await a.evaluate(() => window.__longWatch.peers()), await b.evaluate(() => window.__longWatch.peers())];
+    ok(pl[0].length === 1 && pl[1].length === 1 && Math.abs(pl[0][0].x - (o.x + 11)) < 0.3, "the far player is still known and still on the minimap's list (only the name is gone)");
+    ok(await a.evaluate(() => { const c = document.getElementById("minimap"); return !!c && c.width > 0; }), "the minimap is still drawn");
+    await shoot(a, "weather-mist-names");
+    await where(a, b, o.x, o.x + 7);
+    const mid = await alphaOf(a, o.x + 7);
+    ok(mid > 0.3 && mid < 0.7, `partway (7 tiles, ${MIST_NAME_TILES} + half of ${MIST_NAME_FADE}) the name is about half faded (${mid})`);
+    const [c, d] = await room("clear", "wx10"); await where(c, d, o.x, o.x + 11);
+    ok(await alphaOf(c, o.x + 11) === 1 && await alphaOf(d, o.x) === 1, "in clear weather a name 11 tiles away stays solid");
+    const [e, f] = await room("rain", "wx11"); await where(e, f, o.x, o.x + 11);
+    ok(await alphaOf(e, o.x + 11) === 0, "rain brings mist, so far names fade in rain too");
+    const txt = await a.evaluate(() => document.getElementById("weatherrule").textContent);
+    ok(txt.includes(`${MIST_NAME_TILES} tiles`) && txt.includes(`${Math.round(RAIN_SHADE_SLOW * 100)}% slower`), `the page states both numbers from the constants: "${txt.slice(0, 120)}..."`);
+  }
+  { // rain: both browsers draw the shades where the rules put them at the slower pace, and a dry page at the usual pace
+    let sl = 5; while (shadeCount(SEED, sl) < 2 || shadeCount(SEED, sl - 1) !== 0) sl++;
+    const at = Math.ceil(shadePlan(world, sl, 0).delay + shadePlan(world, sl, 0, 0.8).t1 + 20); // whole seconds: ?shadeclock= takes a whole number of ms
+    const mkp = async (weather, id) => { const a = await mk(), b = await mk({}, a.context()); const q = `?net=local&hour=3&weather=${weather}${clock(sl, at)}`; await enter(a, q, id); await enter(b, q, id); return [a, b]; };
+    const grab = (pg) => pg.evaluate(() => { const w = window.__longWatch; return { now: w.shadeNow(), list: w.shades().list.map(s => ({ k: s.k, x: s.x, y: s.y })) }; });
+    const [ra, rb] = await mkp("rain", "wx12"), [da] = await mkp("clear", "wx13");
+    const [ga, gb, gd] = [await grab(ra), await grab(rb), await grab(da)];
+    const near = (g, pace) => g.list.length > 0 && g.list.every(s => { const w = shadeAt(world, g.now, s.k, pace); return w && Math.hypot(w.x - s.x, w.y - s.y) < 0.6; });
+    ok(ga.list.length >= 1 && gb.list.length === ga.list.length, `in rain both pages show the same ${ga.list.length} shades (${gb.list.length} on the second; clock ${((ga.now - sl * SLOT_MS) / 1000).toFixed(1)} s into slot ${sl}, ${shadeCount(SEED, sl)} due)`);
+    ok(near(ga, 0.8) && near(gb, 0.8), "in rain both pages draw each shade where the rules put it at four fifths of the usual pace");
+    ok(near(gd, 1) && !near(gd, 0.8), "with clear weather the same moment shows the shades at the usual pace");
+    const d2 = Math.hypot(ga.list[0].x - gd.list.find(s => s.k === ga.list[0].k).x, ga.list[0].y - gd.list.find(s => s.k === ga.list[0].k).y);
+    ok(d2 > 1, `so the rainy shade has not come as far (${d2.toFixed(1)} tiles behind the dry one 20 s after arriving)`);
+  }
 } finally {
   ok(errors.length === 0, `no console errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
   await browser.close(); server.close();

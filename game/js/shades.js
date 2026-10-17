@@ -66,7 +66,9 @@ export function shadeCount(seed, slot) {
 }
 
 // The plan of shade k in slot s: where it enters, which landmark it circles, where it leaves toward. Pure.
-export function shadePlan(world, slot, k) {
+// `pace` (1 by default; the rain makes it less, see weather.js) scales how fast the shade travels; the time it lingers is
+// unchanged and its life is kept inside the slot, so a slower shade never outlasts its slot.
+export function shadePlan(world, slot, k, pace = 1) {
   const r = (salt) => hash3(((slot % 65536) + 65536) % 65536, k * 53 + salt, world.seed + 4099);
   const marks = world.landmarks;
   const a = marks[Math.floor(r(1) * marks.length) % marks.length];
@@ -75,24 +77,24 @@ export function shadePlan(world, slot, k) {
   const phi = r(3) * TAU, ang0 = r(4) * TAU, dir = r(5) < 0.5 ? 1 : -1;
   const sx = Math.max(1, Math.min(world.w - 1, a.x + Math.cos(phi) * 26)), sy = Math.max(1, Math.min(world.h - 1, a.y + Math.sin(phi) * 26));
   const ox = a.x + Math.cos(ang0) * ORBIT_R, oy = a.y + Math.sin(ang0) * ORBIT_R;
-  const t1 = Math.hypot(ox - sx, oy - sy) / SPEED;
+  const speed = SPEED * pace, t1 = Math.hypot(ox - sx, oy - sy) / speed;
   const ang1 = ang0 + dir * LINGER_S * 0.3;
   const ex = a.x + Math.cos(ang1) * ORBIT_R, ey = a.y + Math.sin(ang1) * ORBIT_R;
   const len = Math.hypot(b.x - ex, b.y - ey) || 1;
-  return { a, b, sx, sy, ox, oy, ang0, dir, t1, ex, ey, ux: (b.x - ex) / len, uy: (b.y - ey) / len, delay: k * STAGGER_S, life: t1 + LINGER_S + LEAVE_S, bob: r(6) * TAU };
+  return { a, b, sx, sy, ox, oy, ang0, dir, t1, ex, ey, ux: (b.x - ex) / len, uy: (b.y - ey) / len, delay: k * STAGGER_S, life: pace < 1 ? Math.min(t1 + LINGER_S + LEAVE_S, SLOT_S - k * STAGGER_S - 1) : t1 + LINGER_S + LEAVE_S, speed, bob: r(6) * TAU };
 }
 
 // Shade k at time ms (since 1970, UTC): { k, slot, x, y, alpha, phase, u } or null when it is not out.
-export function shadeAt(world, ms, k) {
+export function shadeAt(world, ms, k, pace = 1) {
   const slot = slotOf(ms);
   if (!isInt(k, 0, MAX_SHADES - 1) || k >= shadeCount(world.seed, slot)) return null;
-  const p = shadePlan(world, slot, k);
+  const p = shadePlan(world, slot, k, pace);
   const u = (ms - slot * SLOT_MS) / 1000 - p.delay;
   if (u < 0 || u > p.life) return null;
   let x, y, phase;
   if (u < p.t1) { const f = u / p.t1; x = p.sx + (p.ox - p.sx) * f; y = p.sy + (p.oy - p.sy) * f; phase = "approach"; }
   else if (u < p.t1 + LINGER_S) { const ang = p.ang0 + p.dir * (u - p.t1) * 0.3; x = p.a.x + Math.cos(ang) * ORBIT_R; y = p.a.y + Math.sin(ang) * ORBIT_R; phase = "linger"; }
-  else { const v = (u - p.t1 - LINGER_S) * SPEED; x = p.ex + p.ux * v; y = p.ey + p.uy * v; phase = "leave"; }
+  else { const v = (u - p.t1 - LINGER_S) * p.speed; x = p.ex + p.ux * v; y = p.ey + p.uy * v; phase = "leave"; }
   const alpha = Math.max(0, Math.min(1, u / FADE_S, (p.life - u) / FADE_S));
   return { k, slot, x, y, alpha, phase, u, at: p.a };
 }
@@ -132,6 +134,7 @@ export function createShades(net, world, me, peers, opts = {}) {
   const now = opts.now || (() => performance.now());
   const clock = opts.clock || (() => Date.now());
   const reachFor = opts.reachFor || (() => 3);
+  const paceFor = opts.paceFor || (() => 1); // slot -> 1, or less when the slot's weather slows the shades (weather.js)
   const safeAt = opts.safeAt || (() => false);
   const holdOutAt = opts.holdOut || ((sh) => ({ x: sh.x, y: sh.y, fade: 1 })); // the lit lighthouse keeps shades out of its beam: (shade) -> { x, y }
   const onEvent = opts.onEvent || (() => {});
@@ -234,7 +237,7 @@ export function createShades(net, world, me, peers, opts = {}) {
       const count = shadeCount(world.seed, slot);
       current = [];
       for (let i = 0; i < count; i++) {
-        const sh = shadeAt(world, ms, i);
+        const sh = shadeAt(world, ms, i, paceFor(slot));
         if (!sh) continue;
         { const h = holdOutAt(sh); sh.x = h.x; sh.y = h.y; sh.alpha *= h.fade; }
         sh.gone = shares.done(i); sh.total = shares.total(i); sh.players = shares.players(i); sh.own = shares.own(i, me.seed);

@@ -29,18 +29,12 @@ wins and the next reflector deletes that line.
 
 What the studio is reaching for right now. The advisor reads this before writing its brief.
 
-- Range over repetition. Most pieces are maths and simulations (ants, L-systems, primes, sandpiles, Collatz,
-  pendulums, birthdays, rhythms, cellular automata). An essay (Zipf), history (Harmony, Tea or Cha), a game
-  (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
-  its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
-  Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
-  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch), a circuits
-  piece (Where the Current Goes), a medical-statistics piece (When a Positive Test Is Wrong) and a personal-finance
-  piece (A Loan's Slow Start) now exist, so check the piece table before calling a kind "missing".
-- Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
-  Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
-  source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
-  wording fixes in review.
+- Range over repetition. Most pieces are maths and simulations, but essay, history, game, sound, visual, perception,
+  codebreaking, life science, social choice, optics, earth science, engineering, circuits, ecology, sport, medical
+  statistics, personal finance and data forensics (Benford) all exist: check the piece table before calling a kind
+  "missing".
+- Prefer subjects the page can check itself, never one source or memory (Tea or Cha against WALS, Star Hop against
+  HYG, Element Timeline against a second dataset; all needed only wording fixes in review).
 - Not everything has to be an interactive web page (the owner's wish). A PDF (Paper Slide Rule), a sound (Plain Bob
   Minimus), a font (Lamplight Mono), a dataset (Leap Seconds), an image series (Seed Head Spirals), a short story
   (The Shadow at Alexandria), poems (Pilish Poems) and a browser extension (contrast/) now exist, each checking itself
@@ -94,9 +88,10 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Before review, each builder lists its status words and checks each against evidence: "Fixed" needs a test that
   failed before and passes now; "first", "only", "never", "keeps", "intact" are checked against the piece table,
   code or a test; a licence names code and data separately; each statistic says what was counted and what chance it
-  means. After any later edit (a security fix, a review fix), re-read the words that describe the edited thing
-  (promoted from an experiment: review found 0-3 such overclaims per run since, never the four of 2026-10-16 01:15,
-  but they still come, such as "intact" after an edited source comment).
+  means; a known limit or roadmap line is checked against this run's own measurements; "now" is cut from text that
+  stays up (pages, DESIGN, ROADMAP, summaries). After any later edit (a security fix, a review fix), re-read the
+  words that describe the edited thing (promoted from an experiment; review still finds some each run, such as
+  "intact" after an edited comment, and at 19:17 a known limit contradicting the measured contrast and "now").
 - Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
@@ -130,19 +125,17 @@ Changes only the owner can make to the routine. The owner can delete a line once
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
   20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run,
   and again 03:15 although the Practice says so). Until then, the vigil-profile skill could say it (next reflector).
-- (2026-10-16) A time budget for the game builder and tester, set in the routine. The loop-script half of this
-  proposal is done: `game/tests/loop.mjs` (2026-10-17 02:00) prints exact pass counts and helped the tester. Time is
-  still the cost: 2 h 40 min (10-16 01:45), 35 min of loop waiting and a nudge (11:20), and at 10-17 02:00 the Opus
-  founding-mode builder took about 76 min of a 3 h 40 min run, mostly waited on, and the tester (about 22 min)
-  again handed back an interim "waiting on background work" result; at 10-17 08:32 the game builder took about
-  107 min and the tester about 17; at 11:49 about 50 and 33. Stop-hook reminders about uncommitted changes are noise
-  mid-run (subagents report to the chair; the chair commits only at the end, 08:32 and 11:49 again); the routine
+- (2026-10-16) A time budget for the game builder and tester, set in the routine (`game/tests/loop.mjs` already
+  prints exact pass counts). Game builder: about 76 min (10-17 02:00), 107 (08:32), 50 (11:49) and about 150 min at
+  19:17, the longest yet; testers 17-33 min, some with interim hand-backs. Stop-hook reminders about uncommitted
+  changes are noise mid-run (the chair commits only at the end; every run since 08:32, all of 19:17); the routine
   could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
   again: the run that started the evening of 2026-10-15 and ended about 08:40 on 10-16 built beacons while other
-  runs published milestones 6-8 and a font, so its game work was dropped too.
+  runs published milestones 6-8 and a font, so its game work was dropped too. The start check should also find the
+  studio on `main`: at 2026-10-17 19:17 its HEAD was detached when the run began.
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
   error on any other entry heading level, or print each skipped heading. It also drops every paragraph not labelled
@@ -158,12 +151,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: new experiment, rewrites keep every caveat or report its removal; the keeper's one-liner rewrite
-  dropped "online play untested" (review only, one of six review items).
-- 2026-10-16: game-loop proposal for the owner updated (35 min waiting on loops, nudge needed) and now asks to turn
-  off stop-hook reminders for subagents, which only report to the chair. Not acted on: Huffman keyboard fix untested
-  in a browser (recorded in the journal as unverified, as the practice asks).
-- 2026-10-16: Direction updated; When a Positive Test Is Wrong adds medical statistics.
 - 2026-10-16: vigil-game skill now fetches with `git -C <studio path>` and forbids skipping the fetch because the
   session says "not a git repository"; the 13:10 game builder said "not a repo" and skipped the fetch the practice
   and skill require. Not acted on: beacon watchdog passed 6/6, cause of the earlier 0/3 unknown (ROADMAP says "not
@@ -267,3 +254,13 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-17: new practice, briefs never ask for a subject tag; none exists and the 15:30 keeper searched for one.
   Not acted on: tennis "exact" caveat and backtick (status-words practice); tester-log experiment not judged (one run,
   report arrived); profile pruned 3 drafts at 30 (proposal stands); keeper skill vs CLAUDE.md journal (proposal stands).
+- 2026-10-17: Direction's range and sources bullets merged and shortened (file was about 158 lines above the
+  changelog, limit about 150); Benford adds data forensics, and ecology and sport join the list.
+- 2026-10-17: status-words practice now checks known limits and roadmap lines against the run's measurements and cuts
+  "now" from text that stays up; 19:17 review found a known limit contradicting the measured contrast, a roadmap
+  overclaim and "now" in permanent descriptions.
+- 2026-10-17: game-loop proposal shortened and updated (game builder about 150 min, stop-hook noise all run); the
+  overlap proposal now asks the start check to find the studio on main (HEAD detached at 19:17 start). Not acted on:
+  the fixer's hand-back said only "placeholder" (one occurrence; the chair verified by grep and re-ran checks);
+  tester-log experiment not judged (two runs since it started, report arrived both times, 24/24 files at 19:17);
+  scanner still sees only tracked files (proposal stands).

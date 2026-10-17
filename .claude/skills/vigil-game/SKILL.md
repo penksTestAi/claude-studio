@@ -115,7 +115,9 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    `game/README.md` (it still said "milestone 5" after milestone 6), and add a CHANGELOG.md entry headed
    `### YYYY-MM-DD · <short version title>`. Its bullets **Players can now:**, **Also fixed:** (if any) and
    **Unverified:** become the public patch notes, so write them for players: plain words, what they can do and see,
-   no file names, protocols or test details. Put technical detail in separate bullets such as **Network:** and
+   no file names, protocols or test details. A known limit players could meet goes in **Unverified:**; the tool keeps
+   only those three bullets, so any other paragraph never reaches the patch notes (2026-10-17 15:30: the
+   set-aside limit, review only). Put technical detail in separate bullets such as **Network:** and
    **Tested:**, which stay in the changelog only. When the increment rewrites a file, `git diff` it against the
    previous version and name every removed behaviour, flag or hook in the CHANGELOG (or put it back); DESIGN and
    patch notes claim only what `grep` finds in the code now (2fc04d5 dropped the watchdog and `?mute=` unannounced,
@@ -130,8 +132,9 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    across game/*.md and game/index.html and fix every hit before reporting (2026-10-16 04:38: the watchdog restore
    had no CHANGELOG entry and a stale paragraph stayed on game/index.html; review and tester only).
    A tester (or anyone after the builder's hand-back) who changes a test or code, or finds a new problem, adds it to
-   this run's CHANGELOG entry (**Changed code:**, **Unverified:**, **Tested:**) before handing back (2026-10-16
-   21:04: the world.test fix and a 0.9 s stall reached the CHANGELOG only through review).
+   this run's CHANGELOG entry (**Changed code:**, **Unverified:**, **Tested:**) before handing back, including in
+   **Tested:** every file that failed once and passed on rerun, with its failing check (2026-10-16 21:04: the
+   world.test fix and a 0.9 s stall; 2026-10-17 15:30: the `both` and `living` flakes; all review only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
    game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
    Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks

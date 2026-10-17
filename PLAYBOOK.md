@@ -97,6 +97,7 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   means. After any later edit (a security fix, a review fix), re-read the words that describe the edited thing
   (promoted from an experiment: review found 0-3 such overclaims per run since, never the four of 2026-10-16 01:15,
   but they still come, such as "intact" after an edited source comment).
+- Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
 - After the fetch, the chair launches the toy, piece and game builders in parallel, each in its own folder, and the
@@ -144,7 +145,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   runs published milestones 6-8 and a font, so its game work was dropped too.
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
-  error on any other entry heading level, or print each skipped heading.
+  error on any other entry heading level, or print each skipped heading. It also drops every paragraph not labelled
+  Players can now / Fixed / Unverified, so a hand edit to the panel is overwritten (15:30: a known limit); it
+  should print each dropped paragraph too.
 - (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, public Nostr relays and BitTorrent trackers, so
   second-source data checks fall back to web-search summaries and the game's online play cannot be tested in a run
   (19:32: Eratosthenes coordinates from search summaries; milestone 13's fallback tested only on a local tracker).
@@ -155,17 +158,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: status-words experiment judged (six runs) and promoted to Practices, adding a re-read after later edits;
-  overclaims fell from four to 0-3 per run but persist ("standing together keeps everyone's light", and "intact"
-  hash wording left stale after security edited a source comment, both review only).
-- 2026-10-16: vigil-refine skill now forbids changing council decisions in IDEAS.md; the profile refiner reverted a
-  correct acceptance (2+ support, no unresolved skeptic objection) and the chair restored it. Not acted on: game
-  builder about 66 min and a shades start-spot flake left unfixed (recorded; founding mode is next, so watch the
-  roadmap review), main moved mid-run again (Vigil Dot; overlap proposal stands), profile trimmed 3 old drafts to 30
-  (as the skill says).
-- 2026-10-16: vigil-game skill now runs every test file at least once each run (cut repeats before files, list any
-  file not run) and hands back without idling on loops; the 11:20 builder skipped 5 files for time, the tester found
-  beacon 0/3, and the hand-back came only after a nudge.
 - 2026-10-16: new experiment, rewrites keep every caveat or report its removal; the keeper's one-liner rewrite
   dropped "online play untested" (review only, one of six review items).
 - 2026-10-16: game-loop proposal for the owner updated (35 min waiting on loops, nudge needed) and now asks to turn
@@ -269,3 +261,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   collision in the music stone was caught by its own tests (3/5, 4/5 before the rename; tests working); review's four
   wording fixes ("two independent methods" though one parser, a message name, "everyone nearby", a doubled rank
   line), as the status-words practice already asks; one unexplained WebRTC failure named in the journal.
+- 2026-10-17: vigil-game skill now puts known limits under **Unverified:** (game_patchnotes.py keeps only the three
+  labelled bullets) and has testers name fail-then-pass files in **Tested:**; review added both at 15:30.
+- 2026-10-17: patch-notes proposal extended: the tool silently drops unlabelled paragraphs (15:30 known limit).
+- 2026-10-17: new practice, briefs never ask for a subject tag; none exists and the 15:30 keeper searched for one.
+  Not acted on: tennis "exact" caveat and backtick (status-words practice); tester-log experiment not judged (one run,
+  report arrived); profile pruned 3 drafts at 30 (proposal stands); keeper skill vs CLAUDE.md journal (proposal stands).

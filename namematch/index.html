@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matching Surnames Across Spellings · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Type two surnames and see whether Soundex and NYSIIS give them the same code; published values come from search summaries or memory, not fetched pages.">
+<link rel="canonical" href="https://vigilstudio.github.io/namematch/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Matching Surnames Across Spellings · Vigil">
+<meta property="og:description" content="Type two surnames and see whether Soundex and NYSIIS give them the same code; published values come from search summaries or memory, not fetched pages.">
+<meta property="og:url" content="https://vigilstudio.github.io/namematch/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Matching Surnames Across Spellings · Vigil">
+<meta name="twitter:description" content="Type two surnames and see whether Soundex and NYSIIS give them the same code; published values come from search summaries or memory, not fetched pages.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:800px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{color:var(--muted);font-size:1.08rem;margin:0 0 16px}
+.small{font-size:.86rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace}
+label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:3px}
+input[type=text]{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+@media (min-width:560px){.row{grid-template-columns:1fr 1fr}}
+.btn{min-height:44px;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--bg);color:var(--accent);font:inherit;cursor:pointer}
+.dl{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+a.btn{display:inline-flex;align-items:center;text-decoration:none}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:normal;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:var(--ok)}.warn{color:var(--bad)}
+.verdict{margin:4px 0}
+details{margin:6px 0}
+summary{cursor:pointer;min-height:32px}
+ul.plain{margin:6px 0 10px;padding-left:20px}
+ul.plain li{margin-bottom:4px}
+.pairs{font-size:.86rem;columns:2 220px;margin:6px 0}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Matching Surnames Across Spellings</h1>
+<p class="lede" id="lede">Type two surnames and see whether Soundex and NYSIIS give them the same code; published values come from search summaries or memory, not fetched pages.</p>
+
+<div class="panel">
+  <div class="dl">
+    <a class="btn" href="namematch.js" download>namematch.js</a>
+    <a class="btn" href="namematch.test.mjs" download>namematch.test.mjs</a>
+    <a class="btn" href="data.js" download>data.js</a>
+  </div>
+  <p class="small" id="uselines">Loading.</p>
+</div>
+
+<h2>Try two names</h2>
+<div class="panel">
+  <div class="row">
+    <div><label for="na">First surname</label><input id="na" type="text" value="Ashcraft" autocomplete="off" spellcheck="false"></div>
+    <div><label for="nb">Second surname</label><input id="nb" type="text" value="Ashcroft" autocomplete="off" spellcheck="false"></div>
+  </div>
+  <div class="tablewrap"><table id="tryout" aria-live="polite"></table></div>
+  <p class="small">Letters only are used: accents are dropped, and digits, spaces, hyphens and apostrophes are ignored. Your text stays in your browser. "Same code" means the codes are equal; it does not say the names are the same surname.</p>
+</div>
+
+<h2>Tests, run in your browser</h2>
+<div class="panel">
+  <p class="verdict" id="testsum" role="status">Running.</p>
+  <details><summary>Every test</summary><ul class="plain" id="testlist"></ul></details>
+  <p class="small">This is the file <code>namematch.test.mjs</code>, imported by this page. In a terminal: <code>node namematch.test.mjs</code>.</p>
+</div>
+
+<h2>Published examples against this code</h2>
+<div class="panel">
+  <p id="pubsum"></p>
+  <div class="tablewrap"><table id="pubtable"></table></div>
+  <p class="small" id="pubnote"></p>
+</div>
+
+<h2>Where the rules bite</h2>
+<div class="panel">
+  <p class="small">Codes for names that exercise a rule. "Prefix rule" lists every code the archive-style prefix rule files the name under.</p>
+  <div class="tablewrap"><table id="edgetable"></table></div>
+  <p id="edgesum"></p>
+</div>
+
+<h2>False matches and misses</h2>
+<div class="panel">
+  <p id="famsum"></p>
+  <div class="tablewrap"><table id="scoretable"></table></div>
+  <div id="pairlists"></div>
+  <p class="small" id="famnote"></p>
+</div>
+
+<h2>What is not verified</h2>
+<ul class="plain" id="limits"></ul>
+
+<p class="small" id="licence"></p>
+<p class="small">Made by Claude, an AI model, for the Vigil studio.</p>
+</main>
+<script type="module">
+import { soundex, soundexAll, nysiis, RULES, matches, PREFIXES, MIN_REST } from "./namematch.js";
+import { runTests } from "./namematch.test.mjs";
+import { PUBLISHED, PUBLISHED_NYSIIS, FAMILIES, EDGES } from "./data.js";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+const list = (a) => (a.length === 0 ? "none" : a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]);
+const ruleOf = (id) => RULES.find((r) => r.id === id);
+
+$("uselines").textContent = "One ES module, no install: import { soundex, nysiis } from \"./namematch.js\". " + RULES.length + " rules are compared below.";
+
+// Try two names
+function renderTry() {
+  const a = $("na").value, b = $("nb").value;
+  let html = "<tr><th>Rule</th><th>First</th><th>Second</th><th>Result</th></tr>";
+  if (!a.replace(/[^A-Za-zÀ-ɏ]/g, "") || !b.replace(/[^A-Za-zÀ-ɏ]/g, "")) {
+    $("tryout").innerHTML = html + "<tr><td colspan=4>Type a name with letters in both boxes.</td></tr>";
+    return;
+  }
+  for (const r of RULES) {
+    const m = matches(r, a, b);
+    html += `<tr><td>${esc(r.label)}</td><td><code>${esc(m.a.join(" / "))}</code></td><td><code>${esc(m.b.join(" / "))}</code></td><td class="${m.match ? "good" : "warn"}">${m.match ? "same code" : "different codes"}</td></tr>`;
+  }
+  $("tryout").innerHTML = html;
+}
+$("na").addEventListener("input", renderTry);
+$("nb").addEventListener("input", renderTry);
+renderTry();
+
+// Tests
+const res = runTests();
+const failed = res.filter((r) => !r.ok);
+$("testsum").innerHTML = failed.length === 0
+  ? `<b class="good">${plural(res.length, "test", "tests")} ran, all passed.</b>`
+  : `<b class="warn">${plural(failed.length, "test", "tests")} failed out of ${res.length}: ${esc(list(failed.map((f) => f.name)))}.</b>`;
+$("testlist").innerHTML = res.map((r) => `<li class="${r.ok ? "good" : "warn"}">${r.ok ? "passed" : "FAILED"}: ${esc(r.name)}${r.detail ? " (" + esc(r.detail) + ")" : ""}</li>`).join("");
+
+// Published examples
+const rows = PUBLISHED.map((p) => ({ ...p, got: soundex(p.name), alt: soundex(p.name, { hw: "separator" }) }));
+const agree = rows.filter((r) => r.got === r.code);
+const disagree = rows.filter((r) => r.got !== r.code);
+const bySummary = rows.filter((r) => r.how === "summary");
+const byMemory = rows.filter((r) => r.how === "memory");
+const fetched = rows.filter((r) => r.how === "fetched");
+const origins = [...new Set(rows.map((r) => r.origin))];
+$("pubsum").innerHTML =
+  `Agreement tally (rows read on a fetched page): <b>${fetched.length === 0 ? "none counted" : fetched.filter((r) => r.got === r.code).length + " of " + fetched.length}</b>. ` +
+  `Fetching the source pages failed from the build sandbox, so every row below is weaker: ` +
+  `${plural(bySummary.length, "row", "rows")} read in search-engine summaries of ${plural(new Set(bySummary.map((r) => r.origin)).size, "origin", "origins")} (${esc(list([...new Set(bySummary.map((r) => r.origin))]))}), ` +
+  `${plural(byMemory.length, "row", "rows")} recalled from memory. Against these listed values (not a source check) the code gives the same on ${agree.length} of ${rows.length}` +
+  (disagree.length ? `; it differs on ${esc(list(disagree.map((r) => r.name)))}.` : ".");
+$("pubtable").innerHTML = "<tr><th>Name</th><th>Published</th><th>This code</th><th>H/W separate</th><th>Seen as</th><th>Source</th></tr>" +
+  rows.map((r) => `<tr><td>${esc(r.name)}</td><td><code>${r.code}</code></td><td class="${r.got === r.code ? "good" : "warn"}"><code>${r.got}</code></td><td class="${r.alt === r.code ? "" : "warn"}"><code>${r.alt}</code></td><td>${r.how === "summary" ? "search summary" : r.how === "memory" ? "<b>memory only</b>, no source seen" : "fetched page"}</td><td>${esc(r.source)}</td></tr>`).join("");
+const nyRows = PUBLISHED_NYSIIS.map((p) => ({ ...p, got: nysiis(p.name, { maxLen: 0 }) }));
+const nyAgree = nyRows.filter((r) => r.got === r.code);
+const nyDis = nyRows.filter((r) => r.got !== r.code);
+$("pubnote").innerHTML =
+  `Rows where the H/W reading changes the code: ${esc(list(rows.filter((r) => r.got !== r.alt).map((r) => r.name)))}; the other rows cannot tell the two readings apart. ` +
+  `NYSIIS, whose keys are compared here without the six-letter cut: ${plural(nyRows.length, "published value", "published values")} from a documentation page seen through a search summary: ${nyAgree.length} of ${nyRows.length} agree` +
+  (nyDis.length ? `; ${esc(list(nyDis.map((r) => r.name + " (published " + r.code + ", this code " + r.got + ")")))} ${nyDis.length === 1 ? "differs" : "differ"}. By the steps as I recall them, PH becomes FF and a letter equal to the key's last letter is not added again, so the second F goes and the key starts FA, as here; the source's FFA would keep it. I cannot tell whether that source states a different rule or its summary was misread, so this code is not shown to be wrong or right against it.` : ".");
+
+// Edge cases
+const edgeHead = "<tr><th>Name</th><th>Soundex</th><th>H/W separate</th><th>Prefix rule</th><th>NYSIIS</th><th>Why</th></tr>";
+$("edgetable").innerHTML = edgeHead + EDGES.map((e) =>
+  `<tr><td>${esc(e.name)}</td><td><code>${soundex(e.name)}</code></td><td class="${soundex(e.name) !== soundex(e.name, { hw: "separator" }) ? "warn" : ""}"><code>${soundex(e.name, { hw: "separator" })}</code></td><td><code>${soundexAll(e.name).join(" ")}</code></td><td><code>${nysiis(e.name)}</code></td><td>${esc(e.why)}</td></tr>`).join("");
+const hwDiff = EDGES.filter((e) => soundex(e.name) !== soundex(e.name, { hw: "separator" })).map((e) => e.name);
+const preMulti = EDGES.filter((e) => soundexAll(e.name).length > 1).map((e) => e.name);
+$("edgesum").textContent = `Of these ${EDGES.length} names, the H/W reading changes the Soundex code for ${list(hwDiff)}, and the prefix rule gives more than one code to ${list(preMulti)}. The prefixes tried are ${list(PREFIXES)}, only when at least ${MIN_REST} letters remain.`;
+
+// Families: hits, misses, false matches
+const names = FAMILIES.flatMap((f, i) => f.map((n) => ({ n, i })));
+const multi = FAMILIES.filter((f) => f.length > 1);
+const score = RULES.map((r) => {
+  const out = { r, hit: [], miss: [], fm: [], pos: 0, neg: 0 };
+  for (let x = 0; x < names.length; x++) for (let y = x + 1; y < names.length; y++) {
+    const same = names[x].i === names[y].i;
+    const m = matches(r, names[x].n, names[y].n).match;
+    const label = names[x].n + " / " + names[y].n;
+    if (same) { out.pos++; (m ? out.hit : out.miss).push(label); }
+    else { out.neg++; if (m) out.fm.push(label); }
+  }
+  return out;
+});
+const first = score[0];
+$("famsum").textContent = `${names.length} surnames in ${FAMILIES.length} families (${multi.length} families with variant spellings, ${FAMILIES.length - multi.length} single names), giving ${first.pos} pairs written differently but meant as one surname and ${first.neg} pairs of different surnames. A pair counts as matched when the two names share a code.`;
+$("scoretable").innerHTML = "<tr><th>Rule</th><th class=n>Variant pairs matched</th><th class=n>Variant pairs missed</th><th class=n>Different-surname pairs matched</th></tr>" +
+  score.map((s) => `<tr><td>${esc(s.r.label)}</td><td class="n">${s.hit.length} of ${s.pos}</td><td class="n">${s.miss.length}</td><td class="n">${s.fm.length} of ${s.neg}</td></tr>`).join("");
+$("pairlists").innerHTML = score.map((s) =>
+  `<details><summary>${esc(s.r.label)}: ${plural(s.miss.length, "miss", "misses")}, ${plural(s.fm.length, "false match", "false matches")}</summary>` +
+  `<p class="small">Missed (same surname, different codes):</p><div class="pairs">${s.miss.length ? s.miss.map((p) => esc(p)).join("<br>") : "none"}</div>` +
+  `<p class="small">False matches (different surnames, same code):</p><div class="pairs">${s.fm.length ? s.fm.map((p) => esc(p)).join("<br>") : "none"}</div></details>`).join("");
+const sx = score[0], pre = score[2], ny = score[3];
+const gained = pre.hit.filter((p) => !sx.hit.includes(p)), extra = pre.fm.filter((p) => !sx.fm.includes(p));
+const nyOnly = ny.hit.filter((p) => !sx.hit.includes(p)), sxOnly = sx.hit.filter((p) => !ny.hit.includes(p));
+$("famnote").textContent = `The prefix rule adds ${plural(gained.length, "matched variant pair", "matched variant pairs")} (${list(gained)}) and ${plural(extra.length, "false match", "false matches")} (${list(extra)}). NYSIIS matches ${plural(nyOnly.length, "variant pair", "variant pairs")} that plain Soundex misses and misses ${plural(sxOnly.length, "pair", "pairs")} that Soundex matches. The families are my own judgment of which spellings are one surname, and the names are a small hand-picked list, so these counts describe this list, not surnames in general.`;
+
+$("limits").innerHTML = [
+  "The source pages for the published Soundex values could not be fetched from the build sandbox. Values come from search-engine summaries of them or, for Tymczak and Ashcraft, from memory alone (marked in the table; no source was seen for those two). None counts in the agreement tally, and the summaries are not independent of one another.",
+  "The prefix list (" + list(PREFIXES) + ") is recalled from memory of the National Archives rules and was not checked against the page. The minimum of " + MIN_REST + " remaining letters is this module's own choice.",
+  "Which reading of H and W a given archive or database used is not established here; only Ashcraft among the published rows tells them apart.",
+  "The NYSIIS steps follow the commonly published description from memory of several implementations; the one published Phillipson value differs and is unresolved. Daitch-Mokotoff was not built.",
+  "Surname families are a judgment call by Claude; the miss and false-match counts depend on that list.",
+].map((t) => `<li>${esc(t)}</li>`).join("");
+$("licence").textContent = "Licence: MIT for the whole folder (see LICENSE): code (namematch.js, namematch.test.mjs, this page) and data (data.js: the name families, edge-case list and example table, made by Claude). The published codes in it are quoted values with where they were seen; two are from memory only; no third-party dataset is included.";
+</script>
+</body>
+</html>

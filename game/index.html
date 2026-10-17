@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -213,6 +213,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.23</b> · milestone 20 (shadows and flame) <span class="when">2026-10-17</span></summary>
+    <p><span class="tag t-new">New</span> see the island's trees, rocks, well, beacons and ruined lighthouse throw soft shadows away from the light near them: your own lantern, other players' lanterns, a lit beacon and the lit lighthouse. Walk round a tree and its shadow swings round with you; when a friend's lantern comes near a tree on your screen, the tree's shadow moves away from them too. A lit beacon now throws the shadows of the trees round it, and its flames, the glow it gives and the lighthouse lamp flicker (a lit beacon also shows a second, thinner tongue of flame, except on the lowest look level).</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (the sandbox's proxy refuses them, so only a relay and a tracker on the same machine were used; nothing about shadows is sent, so shadows themselves use no connection), how the shadows and flicker look and run on a real phone (the frame cost was measured in headless Chromium with software drawing, not on a phone), and whether the soft shadows stay easy to read on a very bright or very dim screen.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.22</b> · milestone 19 (the jetty's fishing) <span class="when">2026-10-17</span></summary>
     <p><span class="tag t-new">New</span> fish. Stand on the jetty or any shore, face the water and press F (or the Cast line button in the new Fishing panel) to cast a float up to 4 tiles out, then press F again (Reel in) when a fish bites. Fish come and go round the end of the jetty with the clock: dark shapes with a ring on the water, seen where a lantern lights it; they drift, appear and vanish through each 24 seconds. A bite starts when a fish is beside your float, the float shows bright rings and the panel says so, and you have 2 seconds to press; pressing too early only brings the line in, and a bite you miss gets away. A catch is one lamp oil, a new item in your pack (saved in your browser): it burns as 3 fuel in a beacon (a new Add lamp oil button), counts toward the keeper's burn-fuel notes (by the code; no test checks that), and can be given like anything else (a new Give lamp oil button). If you already hold 999 lamp oil, the fish is let go and nothing is added. Two players who both have a line out with floats at most 4 tiles apart draw a shoal in for both of them: three silver fish circle between the two floats, a soft shimmer shows on the water, and fish of the shoal bite from farther, even at a shore where no fish live. A shoal ends when either of you reels in or leaves, or if a player goes quiet for 12 seconds. Other players' lines and floats are drawn too. Two players can both catch from the same fish, because nothing about fish is shared. Everyone sees the same fish in the same places only if their device clocks agree (the clock note from milestone 17 still applies).</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (the sandbox's proxy refuses them, so only a relay and a tracker on the same machine were used; fishing itself was run over WebRTC against the local relay only), how the fish and floats look and play on a real phone (screenshots at 375 and 1100 px were taken only in headless Chromium; fish are small and only show where a lantern lights the water), whether 2 seconds, 4 tiles and about 6 fish at a time feel right in real play, and what players whose clocks differ by minutes see (fish would be in different places for them, so a shoal would still form for both but natural fish would not match).</p>
@@ -355,7 +360,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 19 (the jetty's fishing). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 20 (shadows and flame). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

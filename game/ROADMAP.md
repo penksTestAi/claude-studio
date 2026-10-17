@@ -97,6 +97,8 @@ working features.
   3 fuel in a beacon, can be given). Caps tested full: the lamp oil stack (999: the fish is let go, also when it filled between bite and press), the gift machinery for lamp oil (receiver stack, receiver expected list, giver on-its-way list, each also when it fills between offer and accept), a beacon share
   (5 oil make 15, the sixth is refused at the cap of 16; mixed items reach exactly 16), a lit beacon, a line's 45 s limit, a walk away from the float, a shoal that lapses after 12 s of silence. Tested in `fishing.test.mjs`; the fish positions agree between players only if their device clocks agree.
 
+- **20. Shadows and flame (a look step).** Done 2026-10-17, nothing sent, so local tests cover all of it. Trees, rocks and the well, the beacons and the lighthouse throw a soft shadow away from the lights near them: every player's lantern (so another player's light moves a shadow on your screen too), lit beacons and the lit lighthouse (`js/shadows.js`: `shadowOf`, `keepDarkest`, `flameFlicker`; drawn by `drawShadows` in `js/render.js` under the crowns and the night layer). A light counts out to `LIGHT_SPAN` 1.15 times its radius; a shadow is at most `SHADOW_ALPHA_MAX` 0.5 dark. The governor allows `CASTERS_MAX` 0, 14 and 40 shadows at levels 0, 1 and 2 (level 2 adds a soft outer edge). Beacon flames, the glow of a lit beacon and the lighthouse lamp flicker; under reduced motion shadows are still drawn and flames burn steady. Measured in headless Chromium with software drawing (not a phone): the shadows add about 0.2 to 0.5 ms to a frame at 375 and at 1100 px with 40 shadows on screen (the CHANGELOG has the runs). `?shadows=off` leaves them out; `?look=plain` has none. Tested in `shadows.test.mjs`.
+
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
   feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
@@ -135,10 +137,7 @@ working features.
 ## Later (in rough order, each one run)
 **Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-20. **NEXT: Shadows and flame (a look step).** Trees, rocks and the landmarks throw short soft shadows away from nearby lanterns
-    and lit beacons; beacon flames and the lighthouse lamp flicker; drawn by each browser alone, turned down by the
-    governor, still under reduced motion. Measure the frame cost at 375 and 1100 px and say it in the notes.
-21. **Where the others are.** The lobby says which lantern the most players chose in the last minutes, worked out
+21. **NEXT: Where the others are.** The lobby says which lantern the most players chose in the last minutes, worked out
     without a server: a page that is in a lantern answers a newcomer's short lobby question with one number (its room)
     over a shared lobby room, numbers only, capped and rate-limited; the lobby suggests that lantern and says the count is
     a guess. Tested with three pages in two lanterns and a fourth in the lobby.

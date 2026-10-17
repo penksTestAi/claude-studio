@@ -11,6 +11,7 @@ import { titleFor, MAX_RANK } from "./rank.js";
 import { LIT_RADIUS, BEACON_NEED } from "./beacon.js";
 import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
+import { CASTERS_MAX, shadowOf, keepDarkest, flameFlicker } from "./shadows.js";
 import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks } from "./weather.js";
 
 const TILE_SRC = 8;
@@ -93,6 +94,8 @@ export function createRenderer(canvas, world, opts = {}) {
   // off, `?look=low` starts at the lowest level; by default a governor lowers it on a device that cannot keep up.
   const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
   const plain = opts.look === "plain";
+  let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
+  let shadowList = [], lastFlame = null;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
   let flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null;
   // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
@@ -106,6 +109,34 @@ export function createRenderer(canvas, world, opts = {}) {
     cw = canvas.clientWidth; ch = canvas.clientHeight;
     canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
     dark.width = canvas.width; dark.height = canvas.height;
+  }
+
+  // ---- shadows: trees, rocks and landmarks throw a soft shadow away from nearby lights (lanterns, lit beacons, the lit
+  // lighthouse), drawn under the crowns and the night layer. Level 2: a soft double edge, up to 40; level 1: one flat
+  // shadow, up to 14; level 0: none. The shadows lean a little with a flame's flicker; reduced motion holds them still. ----
+  function drawShadows(t, reduce, level, camX, camY, tile, W, H, me, peers, fires, watch, lt) {
+    shadowList = [];
+    const max = CASTERS_MAX[level];
+    if (!shadowsOn || !max) return;
+    const lights = [];
+    for (const p of [...peers.values(), me]) lights.push({ x: p.x, y: p.y, r: p.snuffed ? EMBER_TILES : lt.reach * lampOf(p.lamp).mult, f: p.snuffed ? 0.5 : 1 });
+    for (const f of fires) if (f.lit) lights.push({ x: f.x, y: f.y, r: LIT_RADIUS, f: flameFlicker(t, f.n, level, reduce).glow });
+    if (watch) lights.push({ x: watch.x, y: watch.y, r: watch.r * watch.f, f: flameFlicker(t, 99, level, reduce).glow });
+    const w = world.w, x0 = Math.max(0, Math.floor(camX / tile) - 1), x1 = Math.min(w - 1, Math.floor((camX + W) / tile) + 1);
+    const y0 = Math.max(0, Math.floor(camY / tile) - 1), y1 = Math.min(world.h - 1, Math.floor((camY + H) / tile) + 2);
+    const found = [], add = (x, y, kind) => { const sh = shadowOf(x, y, kind, lights); if (sh) found.push({ x, y, kind, ...sh }); };
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const tt = world.tiles[y * w + x];
+      if (tt === T.TREE) add(x + 0.5, y + 0.78, "tree"); else if (tt === T.ROCK) add(x + 0.5, y + 0.72, "rock");
+    }
+    for (const l of world.landmarks) if (l.kind !== "jetty" && l.x >= x0 - 1 && l.x <= x1 + 2 && l.y >= y0 - 1 && l.y <= y1 + 2) add(l.x, l.y + 0.3, l.kind);
+    shadowList = keepDarkest(found, max);
+    for (const s of shadowList) {
+      const bx = s.x * tile - camX, by = s.y * tile - camY, len = s.len * tile, half = len / 2, wd = s.wid * tile / 2, ang = Math.atan2(s.dy, s.dx);
+      const cx = bx + s.dx * half * 0.9, cy = by + s.dy * half * 0.9;
+      if (level >= 2) { g.fillStyle = `rgba(0,0,0,${(s.alpha * 0.45).toFixed(3)})`; g.beginPath(); g.ellipse(cx, cy, half * 1.12, wd * 1.35, ang, 0, Math.PI * 2); g.fill(); }
+      g.fillStyle = `rgba(0,0,0,${(s.alpha * (level >= 2 ? 0.7 : 1)).toFixed(3)})`; g.beginPath(); g.ellipse(cx, cy, half * (level >= 2 ? 0.88 : 1), wd, ang, 0, Math.PI * 2); g.fill();
+    }
   }
 
   // ---- the living layer: water glints, shore foam, swaying crowns and grass, all on the visible tiles only ----
@@ -360,7 +391,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
   }
 
   function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
@@ -383,6 +414,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const k = tile / TILE_SRC;
     g.drawImage(map, -camX, -camY, map.width * k, map.height * k);
     const lt = light || { dark: 0.5, tint: [3, 6, 18], reach: 3.2, hour: 3 };
+    drawShadows(t, reduce, level, camX, camY, tile, W, H, me, peers, fires, watch, lt);
     drawGround(t, reduce, level, camX, camY, tile, W, H, lt);
     lastSky = env ? { mist: env.mist, rain: env.rain, kind: env.kind, shades: env.shades } : null;
     if (env && !plain) drawMist(t, reduce, level, W, H, env.mist);
@@ -390,7 +422,8 @@ export function createRenderer(canvas, world, opts = {}) {
     for (const n of nodes) drawNode(g, n, n.x * tile - camX, n.y * tile - camY, tile, n === reach, t, reduce);
     if (fishing) for (const f of fishing.fish) drawFish(g, f, f.x * tile - camX, f.y * tile - camY, tile, t, reduce); // under the night layer: seen where a lantern lights the water
 
-    for (const f of fires) drawFlame(g, f, f.x * tile - camX, (f.y - 0.85) * tile - camY, tile, t, reduce);
+    { const lf = fires.find(q => q.lit); lastFlame = lf && !plain ? flameFlicker(t, lf.n, level, reduce) : null; }
+    for (const f of fires) drawFlame(g, f, f.x * tile - camX, (f.y - 0.85) * tile - camY, tile, t, reduce, plain ? -1 : level);
 
     const all = [...peers.values(), me];
     all.sort((a, b) => a.y - b.y);
@@ -417,7 +450,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
     // Beacons: a lit one clears a wide pool of night; one that is taking fuel gives a small ember light.
     for (const f of fires) {
-      const sx = f.x * tile - camX, sy = f.y * tile - camY, tiles = f.lit ? LIT_RADIUS * (reduce ? 1 : 1 + Math.sin(t / 300 + f.n) * 0.015) : 0.8 + 1.8 * f.frac;
+      const sx = f.x * tile - camX, sy = f.y * tile - camY, tiles = f.lit ? LIT_RADIUS * (plain ? (reduce ? 1 : 1 + Math.sin(t / 300 + f.n) * 0.015) : flameFlicker(t, f.n, level, reduce).glow) : 0.8 + 1.8 * f.frac;
       if (f.fuel <= 0 && !f.lit) continue;
       const r = tile * tiles, grad = dg.createRadialGradient(sx, sy, 0, sx, sy, r);
       grad.addColorStop(0, "rgba(0,0,0,0.98)"); grad.addColorStop(0.6, f.lit ? "rgba(0,0,0,0.8)" : "rgba(0,0,0,0.5)"); grad.addColorStop(1, "rgba(0,0,0,0)");
@@ -447,7 +480,7 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(255,170,70,0.28)"); grad.addColorStop(0.5, "rgba(255,150,60,0.10)"); grad.addColorStop(1, "rgba(255,150,60,0)");
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
-    if (watch) drawLighthouse(g, watch, watch.x * tile - camX, watch.y * tile - camY, tile, t, reduce, plain);
+    if (watch) drawLighthouse(g, watch, watch.x * tile - camX, watch.y * tile - camY, tile, t, reduce, plain, level);
     g.globalCompositeOperation = "source-over";
     if (fishing) drawLines(g, fishing, camX, camY, tile, t, reduce);
     drawShades(t, reduce, camX, camY, tile, shades, all, lt, me);
@@ -509,7 +542,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, burst, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn
@@ -553,7 +586,7 @@ function drawLines(g, fishing, camX, camY, tile, t, reduce) {
   }
 }
 
-function drawLighthouse(g, w, sx, sy, tile, t, reduce, plain) {
+function drawLighthouse(g, w, sx, sy, tile, t, reduce, plain, level = 2) {
   const R = tile * w.r * w.f, top = sy - tile * 1.9, a0 = reduce ? 0.6 : t / 4200;
   let grad = g.createRadialGradient(sx, sy, 0, sx, sy, R * 0.9);
   grad.addColorStop(0, "rgba(255,225,150,0.26)"); grad.addColorStop(0.5, "rgba(255,200,110,0.09)"); grad.addColorStop(1, "rgba(255,200,110,0)");
@@ -564,20 +597,24 @@ function drawLighthouse(g, w, sx, sy, tile, t, reduce, plain) {
     grad.addColorStop(0, "rgba(255,244,200,0.40)"); grad.addColorStop(1, "rgba(255,244,200,0)");
     g.fillStyle = grad; g.beginPath(); g.moveTo(sx, top); g.arc(sx, top, R, a - 0.14, a + 0.14); g.closePath(); g.fill();
   }
-  const pulse = reduce ? 1 : 1 + Math.sin(t / 260) * 0.08, lr = tile * 0.55 * pulse * Math.min(1, w.f * 1.2);
+  const pulse = plain ? (reduce ? 1 : 1 + Math.sin(t / 260) * 0.08) : (reduce ? 1 : 1 + Math.sin(t / 260) * 0.05 + (flameFlicker(t, 99, level, false).glow - 1) * 1.2), lr = tile * 0.55 * pulse * Math.min(1, w.f * 1.2);
   grad = g.createRadialGradient(sx, top, 0, sx, top, lr);
   grad.addColorStop(0, "rgba(255,250,225,0.95)"); grad.addColorStop(0.4, "rgba(255,226,150,0.5)"); grad.addColorStop(1, "rgba(255,200,110,0)");
   g.fillStyle = grad; g.beginPath(); g.arc(sx, top, lr, 0, Math.PI * 2); g.fill();
 }
 
 // A beacon basket's fire: nothing without fuel, embers while it fills, a tall flame once lit.
-function drawFlame(g, f, sx, sy, tile, t, reduce) {
+function drawFlame(g, f, sx, sy, tile, t, reduce, level = 2) {
   if (f.fuel <= 0 && !f.lit) return;
-  const u = tile / 8, wob = reduce ? 0 : Math.sin(t / 110 + f.n * 2) * 0.35, h = f.lit ? 4.6 : 1.2 + 2.2 * f.frac;
+  const fl = level < 0 ? null : flameFlicker(t, f.n, level, reduce); // level -1: the plain look keeps the old simple sway
+  const u = tile / 8, wob = fl ? fl.wob : reduce ? 0 : Math.sin(t / 110 + f.n * 2) * 0.35, h = (f.lit ? 4.6 : 1.2 + 2.2 * f.frac) * (fl ? fl.h : 1);
   g.fillStyle = f.lit ? "#ff9a2e" : "#c8501c";
   g.beginPath(); g.moveTo(sx - 2 * u, sy + u); g.quadraticCurveTo(sx - 2.2 * u + wob * u, sy - h * u * 0.6, sx + wob * u, sy - h * u); g.quadraticCurveTo(sx + 2.2 * u + wob * u, sy - h * u * 0.6, sx + 2 * u, sy + u); g.closePath(); g.fill();
   g.fillStyle = f.lit ? "#ffe08a" : "#ff9a2e";
   g.beginPath(); g.ellipse(sx + wob * u * 0.3, sy - u * 0.2, u, h * u * 0.4, 0, 0, Math.PI * 2); g.fill();
+  if (fl && level >= 1 && f.lit) { // a second, thinner tongue that leans the other way
+    g.fillStyle = "#ffcf5c"; g.beginPath(); g.moveTo(sx - 0.9 * u, sy + u * 0.4); g.quadraticCurveTo(sx - 1 * u - wob * u * 0.8, sy - h * u * 0.35, sx - wob * u * 0.9, sy - h * u * 0.78); g.quadraticCurveTo(sx + 1 * u - wob * u * 0.8, sy - h * u * 0.35, sx + 0.9 * u, sy + u * 0.4); g.closePath(); g.fill();
+  }
 }
 
 // Gatherables: a pale log, a tuft of reeds, a cluster of berries. A ring marks the one within reach.

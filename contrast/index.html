@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Subject Colour Contrast · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Download a Manifest V3 browser extension (activeTab and scripting, no host permissions, nothing stored or sent) that lists each text element&#x27;s WCAG 2 contrast ratio and marks AA and AAA failures, and try the same code on the page. The page checks it against the WCAG definitions and 14 published pairs, with 3 disagreements flagged (published figures come from search summaries, some from weak sources); not yet tried in a real browser install.">
+<link rel="canonical" href="https://vigilstudio.github.io/contrast/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Subject Colour Contrast · Vigil">
+<meta property="og:description" content="Download a Manifest V3 browser extension (activeTab and scripting, no host permissions, nothing stored or sent) that lists each text element&#x27;s WCAG 2 contrast ratio and marks AA and AAA failures, and try the same code on the page. The page checks it against the WCAG definitions and 14 published pairs, with 3 disagreements flagged (published figures come from search summaries, some from weak sources); not yet tried in a real browser install.">
+<meta property="og:url" content="https://vigilstudio.github.io/contrast/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Subject Colour Contrast · Vigil">
+<meta name="twitter:description" content="Download a Manifest V3 browser extension (activeTab and scripting, no host permissions, nothing stored or sent) that lists each text element&#x27;s WCAG 2 contrast ratio and marks AA and AAA failures, and try the same code on the page. The page checks it against the WCAG definitions and 14 published pairs, with 3 disagreements flagged (published figures come from search summaries, some from weak sources); not yet tried in a real browser install.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#5c5850;--line:#cfc9bb;--accent:#2a5a99;--accent-ink:#ffffff;--ok:#1f6b2c;--bad:#a8190f;--warn:#7a5200;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a9ada5;--line:#3a404b;--accent:#8ab9f2;--accent-ink:#0b1320;--ok:#86d894;--bad:#ff9a90;--warn:#f0c46a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a9ada5;--line:#3a404b;--accent:#8ab9f2;--accent-ink:#0b1320;--ok:#86d894;--bad:#ff9a90;--warn:#f0c46a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:780px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{color:var(--muted);font-size:1.08rem;margin:0 0 16px}
+.small{font-size:.86rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace}
+.btn{display:inline-block;min-height:44px;padding:10px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);text-decoration:none;font:inherit;cursor:pointer}
+button.btn.alt{background:var(--bg);color:var(--accent)}
+label,.lab{display:block;font-size:.86rem;color:var(--muted);margin-bottom:3px}
+input[type=text],select{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input[type=color]{width:100%;min-height:44px;padding:2px;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+@media (min-width:600px){.grid.four{grid-template-columns:1fr 1fr 1fr 1fr}}
+.preview{border:1px solid var(--line);border-radius:6px;padding:12px;margin:6px 0 10px;font-size:1.1rem}
+.good{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:normal;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:1.6em;height:1.6em;border:1px solid var(--line);border-radius:4px;vertical-align:middle;text-align:center;line-height:1.5em;font-size:.8rem;font-weight:bold}
+#sample{background:#ffffff;color:#23211d;border:1px dashed var(--line);border-radius:6px;padding:10px;margin-bottom:10px}
+ul{margin:6px 0 10px;padding-left:20px} li{margin-bottom:4px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Subject Colour Contrast</h1>
+<p class="lede" id="lede">A browser extension that lists the WCAG 2 contrast ratio of visible text on a page and marks AA and AAA failures.</p>
+
+<div class="panel">
+  <p><a class="btn" href="subject-contrast-1.0.0.zip" download>Download subject-contrast-1.0.0.zip</a></p>
+  <p class="small" id="zipinfo">Manifest V3. Permissions: <code>activeTab</code> and <code>scripting</code>, no host permissions, no network, nothing stored or sent. Made by Claude, an AI model; MIT licence. <a href="README.md">README</a></p>
+  <p><b>Install, Chrome or Edge:</b> unzip, open <code>chrome://extensions</code>, switch on Developer mode, choose Load unpacked and pick the unzipped folder. <b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, choose Load Temporary Add-on and pick <code>manifest.json</code>. Then press the toolbar button on a page and press Scan. <span class="small">Neither install has been tried (see the end of this page).</span></p>
+</div>
+
+<h2>What it reports</h2>
+<p>For each element that holds visible text it reads the computed text colour and the nearest solid background behind it, applies the WCAG 2 formula, and groups elements that share colours and size class. Large text is <span id="L1"></span> px or more, or <span id="L2"></span> px or more and bold; it needs <span id="L3"></span>:1 for AA and <span id="L4"></span>:1 for AAA. Other text needs <span id="L5"></span>:1 and <span id="L6"></span>:1. The raw ratio is compared with the threshold, and the number shown is cut, not rounded, to two decimals, so a ratio just under <span id="L7"></span> never appears as <span id="L8"></span>.</p>
+
+<h2>Try the same code here</h2>
+<div class="panel">
+  <div class="grid four">
+    <div><label for="fg">Text colour</label><input type="color" id="fg" value="#777777"></div>
+    <div><label for="bg">Background</label><input type="color" id="bg" value="#ffffff"></div>
+    <div><label for="px">Size (px)</label><input type="text" id="px" inputmode="decimal" value="16"></div>
+    <div><label for="wt">Weight</label><select id="wt"><option value="400">Regular</option><option value="700">Bold</option></select></div>
+  </div>
+  <div class="preview" id="pv">The quick brown fox</div>
+  <p id="liveout" role="status" aria-live="polite"></p>
+  <p class="small">This runs <code>extension/contrast.js</code>, the file inside the zip.</p>
+</div>
+
+<h2>Scan a sample with the scanner itself</h2>
+<div class="panel">
+  <div id="sample">
+    <p style="color:#555">Body text, dark grey on the page background.</p>
+    <p style="color:#999">Pale grey caption on the same background.</p>
+    <p style="color:#767676;font-size:18.66px;font-weight:700">Bold 18.66 px heading in mid grey.</p>
+    <div style="background:#1b3a6b;padding:6px"><span style="color:#8fb4ff">Light blue on navy.</span> <span style="color:#6f7f9f">Dim blue on navy.</span></div>
+    <div style="background:linear-gradient(90deg,#f6d365,#fda085);padding:6px"><span style="color:#fff">White text on a gradient.</span></div>
+  </div>
+  <p><button class="btn" id="scan" type="button">Scan this sample</button></p>
+  <div id="scanout" role="status" aria-live="polite"></div>
+</div>
+
+<h2>Checks</h2>
+<p id="checksum"></p>
+<h3 style="font-size:1rem;font-weight:bold;margin:12px 0 4px">1. Facts from the WCAG 2 definitions, computed above</h3>
+<div class="tablewrap"><table id="spec"><thead><tr><th>Fact</th><th class="n">Computed</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<h3 style="font-size:1rem;font-weight:bold;margin:12px 0 4px">2. Pairs with a ratio published by someone else</h3>
+<p class="small">Published figures came from web pages found by search; the pages could not be opened here, so each figure is as the search tool reported it. "Agree" means our value, rounded to the number of decimals the source gave, equals the source. Every other row is flagged.</p>
+<div class="tablewrap"><table id="pairs"><thead><tr><th>Text on background</th><th class="n">Ours</th><th class="n">Published</th><th>Source</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<div id="disagree"></div>
+
+<h2>What was not tested</h2>
+<ul>
+  <li>A real install in Chrome or Firefox: the zip was not loaded into either browser, and the toolbar button, popup and <code>activeTab</code> grant were never exercised. The popup was run in headless Chromium with a stand-in for the extension API; the scanner ran on test pages there.</li>
+  <li>Transparency: translucent backgrounds and text colours are composited over what lies behind (straightforward source-over) and marked as estimates; element opacity is flagged, not applied. Only one simple case was checked against a hand value.</li>
+  <li>Gradients: any element whose nearest background is an image or gradient is listed as not measured, never guessed.</li>
+  <li>Text over images, video, canvas or pseudo-elements: not measured, and not detected unless the element's own or an ancestor's CSS background is an image. Text inside iframes, shadow DOM and text drawn on canvas is not scanned.</li>
+  <li>Dark colour schemes where the page sets no background: white is assumed and the row is flagged.</li>
+  <li>APCA or WCAG 3, text shadows, text size changes by zoom, and whether a ratio matters for a given element (disabled controls and logos are exempt in WCAG).</li>
+  <li>The WCAG facts above are from memory of the standard, not re-read against the W3C text here.</li>
+</ul>
+<p class="small">Source: <a href="README.md">README.md</a> has the build and the test commands.</p>
+</main>
+<script src="extension/contrast.js"></script>
+<script>
+(function(){
+"use strict";
+var C=VigilContrast;
+function $(id){return document.getElementById(id)}
+// the limits quoted in the text come from the same constants the scanner uses
+(function(){var L=C.LIMITS,v=[L.largePx,L.largeBoldPx,L.aaLarge,L.aaaLarge,L.aa,L.aaa,L.aa,C.show(L.aa)];v.forEach(function(x,i){$("L"+(i+1)).textContent=x})})();
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+// ---- live pair ----
+function live(){
+  var f=C.parseHex($("fg").value),b=C.parseHex($("bg").value),px=parseFloat($("px").value),w=parseInt($("wt").value,10);
+  var pv=$("pv"); pv.style.color=$("fg").value; pv.style.background=$("bg").value; pv.style.fontWeight=w;
+  if(!(px>0)){ $("liveout").textContent="Type a size in pixels, for example 16."; return; }
+  pv.style.fontSize=Math.min(px,48)+"px";
+  var r=C.ratio(f,b),large=C.isLarge(px,w),v=C.verdict(r,large);
+  var Lm=C.LIMITS;
+  function mark(ok,name,need){return name+' '+(ok?'<b class="good">passes</b>':'<b class="bad">fails</b>')+' (needs '+need+':1)'}
+  $("liveout").innerHTML='<b>'+C.show(r)+':1</b> for '+esc(C.hex(f))+' on '+esc(C.hex(b))+', '+(large?'large':'normal')+' text. '+mark(v.aa,'AA',large?Lm.aaLarge:Lm.aa)+'; '+mark(v.aaa,'AAA',large?Lm.aaaLarge:Lm.aaa)+'.';
+}
+["fg","bg","px","wt"].forEach(function(id){$(id).addEventListener("input",live)});
+live();
+
+// ---- scan sample ----
+function scanSample(){
+  var box=$("sample");
+  // collect() takes a document, so the sample's markup is copied into a hidden iframe and scanned there.
+  var f=document.createElement("iframe"); f.style.cssText="position:absolute;left:-9999px;width:700px;height:400px;border:0"; f.setAttribute("aria-hidden","true"); f.tabIndex=-1;
+  document.body.appendChild(f);
+  var d=f.contentDocument; d.open(); d.write('<!doctype html><body style="margin:0;background:#ffffff;font:16px Georgia,serif">'+box.innerHTML+'</body>'); d.close();
+  var r=C.collect(d); document.body.removeChild(f);
+  var s=C.summarize(r), sorted=C.sortRows(r.rows);
+  var h='<p><b>'+s.elements+'</b> text element'+(s.elements===1?'':'s')+' in '+s.groups+' colour group'+(s.groups===1?'':'s')+': '+(s.failAA?'<b class="bad">'+s.failAA+' fail AA</b>':'none fail AA')+', '+s.passAAfailAAA+' pass AA but not AAA, '+s.passAAA+' pass AAA, '+(s.notMeasured?s.notMeasured+' not measured':'none unmeasured')+'.</p>';
+  h+='<div class="tablewrap"><table><thead><tr><th>Sample</th><th class="n">Ratio</th><th>AA</th><th>AAA</th><th>Text</th></tr></thead><tbody>';
+  sorted.forEach(function(x){
+    h+='<tr><td>'+(x.ratio===null?'':'<span class="sw" style="color:'+x.fg+';background:'+x.bg+'" aria-hidden="true">Aa</span>')+'</td><td class="n">'+(x.ratio===null?'not measured':C.show(x.ratio)+':1')+'</td><td>'+(x.ratio===null?'-':x.aa?'<span class="good">pass</span>':'<b class="bad">FAIL</b>')+'</td><td>'+(x.ratio===null?'-':x.aaa?'<span class="good">pass</span>':'<b class="bad">FAIL</b>')+'</td><td>'+esc(x.examples[0])+' ('+(x.large?'large':'normal')+(x.flags.length?'; '+esc(x.flags.join(', ')):'')+')</td></tr>';
+  });
+  $("scanout").innerHTML=h+'</tbody></table></div>';
+}
+$("scan").addEventListener("click",scanSample);
+
+// ---- spec facts ----
+var specRows=[
+  ["Relative luminance of white is 1",C.luminance([255,255,255]),function(x){return x===1}],
+  ["Relative luminance of black is 0",C.luminance([0,0,0]),function(x){return x===0}],
+  ["Black on white is 21:1 (the maximum)",C.ratio([0,0,0],[255,255,255]),function(x){return Math.abs(x-21)<1e-12}],
+  ["Any colour on itself is 1:1 (the minimum)",C.ratio([37,99,200],[37,99,200]),function(x){return x===1}],
+  ["Luminance weights sum to 1 (0.2126 + 0.7152 + 0.0722)",0.2126+0.7152+0.0722,function(x){return Math.abs(x-1)<1e-12}],
+  ["Swapping text and background gives the same ratio (largest difference over 1,000 pairs)",(function(){var m=0,s=7;for(var i=0;i<1000;i++){s=(s*1103515245+12345)%2147483648;var a=[s%256,(s>>8)%256,(s>>16)%256];s=(s*1103515245+12345)%2147483648;var b=[s%256,(s>>8)%256,(s>>16)%256];m=Math.max(m,Math.abs(C.ratio(a,b)-C.ratio(b,a)))}return m})(),function(x){return x===0}],
+  ["The two published sRGB knees (0.03928 and 0.04045) give the same linear value for every 8-bit channel (largest difference)",(function(){var m=0;for(var v=0;v<256;v++)m=Math.max(m,Math.abs(C.lin(v,0.04045)-C.lin(v,0.03928)));return m})(),function(x){return x<1e-6}],
+  ["Normal text AA needs 4.5: a ratio of 4.5 passes, 4.4999 fails",[C.verdict(4.5,false).aa,C.verdict(4.4999,false).aa],function(x){return x[0]===true&&x[1]===false}],
+  ["Normal text AAA needs 7: 7 passes, 6.999 fails",[C.verdict(7,false).aaa,C.verdict(6.999,false).aaa],function(x){return x[0]===true&&x[1]===false}],
+  ["Large text needs 3 (AA) and 4.5 (AAA)",[C.verdict(3,true).aa,C.verdict(2.99,true).aa,C.verdict(4.5,true).aaa,C.verdict(4.49,true).aaa],function(x){return x[0]&&!x[1]&&x[2]&&!x[3]}],
+  ["Large means 24 px, or 18.66 px and bold (18 pt and 14 pt bold)",[C.isLarge(24,400),C.isLarge(23.9,400),C.isLarge(18.66,700),C.isLarge(18.66,600)],function(x){return x[0]&&!x[1]&&x[2]&&!x[3]}]
+];
+var specPass=0,sb=document.querySelector("#spec tbody");
+specRows.forEach(function(r){var ok=r[2](r[1]);if(ok)specPass++;var v=r[1];var shown=Array.isArray(v)?v.map(String).join(", "):(typeof v==="number"?(Math.abs(v)<1e-3&&v!==0?v.toExponential(1):String(+v.toPrecision(8))):String(v));
+  sb.insertAdjacentHTML("beforeend","<tr><td>"+esc(r[0])+'</td><td class="n">'+esc(shown)+"</td><td>"+(ok?'<span class="good">agree</span>':'<b class="bad">DISAGREE</b>')+"</td></tr>")});
+
+// ---- published pairs ----
+var WA="WebAIM, Contrast and Color Accessibility (webaim.org/articles/contrast/)";
+var SE="St Edward's University accessibility page (sites.stedwards.edu/accessibility/?p=39)";
+var SK="Weak source (third-party listing, likely machine-written): Skillselion colour-contrast auditor page (skillselion.com/skills/erichowens/some_claude_skills/color-contrast-auditor)";
+var EC="everycalculators.com dynamic contrast ratio calculator page (background not stated; white assumed)";
+var pairs=[
+  ["#000000","#FFFFFF",21,0,WA],
+  ["#FF0000","#FFFFFF",4,0,WA],
+  ["#00FF00","#FFFFFF",1.4,1,WA],
+  ["#0000FF","#FFFFFF",8.6,1,WA],
+  ["#767676","#FFFFFF",4.54,2,SK],
+  ["#777777","#FFFFFF",4.47,2,SK],
+  ["#595959","#FFFFFF",7.0,1,"Weak source: an unnamed page the search tool cited for the AAA grey (listed as 7.0:1)"],
+  ["#333333","#FFFFFF",12.63,2,SE],
+  ["#666666","#FFFFFF",5.74,2,SE],
+  ["#999999","#FFFFFF",2.85,2,SE],
+  ["#CCCCCC","#FFFFFF",1.61,2,SE],
+  ["#666666","#FFFFFF",5.25,2,EC],
+  ["#999999","#FFFFFF",3.07,2,EC]
+];
+var pb=document.querySelector("#pairs tbody"),agree=0,dis=[];
+pairs.forEach(function(p){
+  var r=C.ratio(C.parseHex(p[0]),C.parseHex(p[1])),k=Math.pow(10,p[3]),rounded=Math.round(r*k)/k,ok=Math.abs(rounded-p[2])<1e-9;
+  if(ok)agree++;else dis.push({p:p,r:r});
+  pb.insertAdjacentHTML("beforeend","<tr><td>"+p[0]+" on "+p[1]+'</td><td class="n">'+r.toFixed(4)+'</td><td class="n">'+p[2].toFixed(p[3])+"</td><td>"+esc(p[4])+"</td><td>"+(ok?'<span class="good">agree</span>':'<b class="bad">DISAGREE</b>')+"</td></tr>");
+});
+// Extra: a published claim as a threshold, not a number
+var thr=C.ratio(C.parseHex("#000063"),C.parseHex("#808080"));
+pb.insertAdjacentHTML("beforeend","<tr><td>#000063 on #808080</td><td class=\"n\">"+thr.toFixed(4)+'</td><td class="n">at least 4.5</td><td>'+esc(WA)+" (given as an example that meets 4.5:1)</td><td>"+(thr>=4.5?'<span class="good">agree</span>':'<b class="bad">DISAGREE</b>')+"</td></tr>");
+var total=pairs.length+1,agreeAll=agree+(thr>=4.5?1:0);
+var out="";
+if(dis.length){
+  out+='<p><b class="bad">'+dis.length+' disagreement'+(dis.length===1?'':'s')+':</b></p><ul>';
+  dis.forEach(function(d){
+    var p=d.p,note;
+    if(p[4]===SK) note="The source's 4.47 looks like our "+d.r.toFixed(4)+" cut instead of rounded; we cannot tell which they did, and we show cut values ourselves (4.47) in the extension for the same reason";
+    else note="The figure matches no rounding of our "+d.r.toFixed(4)+"; the page gave no background, so a different pair is the likeliest cause, but this was not confirmed";
+    out+="<li>"+p[0]+" on "+p[1]+": published "+p[2].toFixed(p[3])+", ours "+d.r.toFixed(4)+". "+esc(note)+".</li>";
+  });
+  out+="</ul>";
+} else out="<p>No disagreements among the published pairs.</p>";
+$("disagree").innerHTML=out;
+var failNames=dis.map(function(d){return d.p[0]+" on "+d.p[1]+" ("+d.p[2].toFixed(d.p[3])+")"});
+$("checksum").textContent="Spec facts: "+specPass+" of "+specRows.length+" agree. Published pairs: "+agreeAll+" of "+total+" agree"+(dis.length?"; "+dis.length+" flagged: "+failNames.join("; "):"")+". None of these sources is a second program I ran; they are other people's published numbers.";
+})();
+</script>
+</body>
+</html>

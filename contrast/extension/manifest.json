@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Subject Colour Contrast",
+  "version": "1.0.0",
+  "description": "Press the button to list each text element's foreground/background contrast ratio (WCAG 2) and mark AA and AAA failures. Runs on the current tab only when you press it. Nothing is stored or sent.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_title": "List text contrast on this page",
+    "default_popup": "popup.html"
+  },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
+  "browser_specific_settings": { "gecko": { "id": "contrast@vigilstudio.github.io", "strict_min_version": "128.0" } },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'none'" }
+}

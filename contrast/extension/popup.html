@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subject Colour Contrast</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header>
+  <h1>Text contrast</h1>
+  <button id="scan" type="button">Scan this page</button>
+</header>
+<p id="status" role="status" aria-live="polite">Press the button to scan the visible text on this tab.</p>
+<div id="summary"></div>
+<label class="only"><input type="checkbox" id="onlyfail" checked> Hide rows that pass AAA</label>
+<ol id="list" tabindex="0" aria-label="Contrast results"></ol>
+<p class="note">WCAG 2 formula. Gradients and background images are not measured; transparency and opacity are estimates. Nothing leaves your browser.</p>
+<script src="contrast.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

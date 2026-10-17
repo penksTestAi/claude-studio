@@ -187,6 +187,17 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   in `st`), facing and current gesture, the feet's step (`STRIDE_MS` 520 ms a cycle, the per-player phase comes from the seed), the lantern's swing (at most 0.55 rad),
   head lean, and gesture poses (bow, wave, cheer, point, sit). `js/render.js` `drawAvatar` draws two feet, a head dot and the lantern on a swinging arm from it.
   With reduced motion the walk cycle and lantern swing stop (a walking figure stands still); gesture poses (bow, wave, cheer, point, sit) still apply. Cost: a few extra arcs per player. Art is drawn in code; no assets.
+- **The clock check** (`js/clock.js`, milestone 17): shades, weather, the night hour and the keeper's day are pure functions of each
+  device's UTC clock, so players whose clocks disagree see different shades and may share no notes. Message `ck {t}` (exactly two
+  fields, t my clock in whole seconds, 1e9 to 1e10), sent to each player when first seen in presence's map, again 3 s later (the
+  first can arrive before our `hi` and is then dropped as a stranger's), and to everyone every `CLOCK_SEND_MS` (30 s). A receiver
+  needs a known sender (in presence's map), allows 1 a second (burst 3), and keeps offset = t - my clock in seconds; travel time is
+  ignored and t is whole seconds, so the offset is only good to about a second, and only differences of `CLOCK_WARN_S` (10 s) or more
+  are shown. The note (`clockNote`) is fixed text with the generated name and the size in plain words, under the status line
+  (`#clocknote`, textContent only); it names the player whose clock differs most. Nothing is saved; offsets are forgotten when a
+  player leaves. It changes no rule and corrects no clock. Accepted weakness: a modified client can claim any clock, which changes only
+  the note others read. `?clockskew=N` (loopback pages only, whole seconds, at most two days) shifts the clock this check sends and
+  compares, not the game's own clock; `__longWatch.clock()` is the read-only test view.
 - **The long watch kept** (`js/lighthouse.js`, milestone 14): no new message. Each browser already holds the beacons' shares; when
   every beacon of the island is lit (`watchKept`, real booleans, an empty list is not kept) the ruined lighthouse is lit, and it
   stays lit for as long as anyone in the lantern holds the shares (an emptied lantern forgets them, so it goes dark). The beam
@@ -301,6 +312,7 @@ game/
   js/figure.js          character figure poses, pure: walk cycle (feet, lantern swing, head lean) and gesture poses; still with reduced motion
   js/lighthouse.js      the long watch kept: all beacons lit lights the lighthouse (pure), beam easing, shades held out of the beam
   js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
+  js/clock.js           the clock check: the `ck` message (my device clock), offsets per player, the plain note when a clock differs by 10 s or more
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -322,15 +334,18 @@ game/
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
   tests/tracker-server.mjs minimal BitTorrent WebSocket tracker (announce, offers, answers) used by the fallback test
   tests/fallback.test.mjs  flags, then real WebRTC: Nostr dead and tracker alive (falls back, page says so, game traffic crosses), Nostr alive (no switch), both dead, `?net=torrent` by hand
+  tests/clock.test.mjs     node checks of the `ck` message, words and note, the module on a fake mesh (repeat, resend, strangers, floods, leaving), then local and WebRTC pages: a clock 180 s ahead is named on both pages, 4 s is not, the note goes when the player leaves
+  tests/loop.mjs           runs test files N times each, one at a time, and prints one exact `name passed/N` line per file (`node game/tests/loop.mjs 5 beacon talk`; no names means every file)
 ```
-URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `#room=N`.
+URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `?clockskew=N` (the clock check pretends this page's clock is N s off; loopback pages only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.
+To run files several times with exact counts: `node game/tests/loop.mjs N [names]` (one file and one run at a time, in the foreground; a failed run prints its FAIL lines and keeps its full log).
 
 Note on vendoring: the vendored Trystero stays byte-identical but runs with an `rtcPolyfill` wrapper (`warmRenewals` in `js/net/trystero.js`) so that renewing an old pooled offer keeps its data channel; without it, late joiners after about a minute of idle often never connected. A rarer peer-join race remains unexplained.

@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import { startRelay } from "./nostr-relay.mjs";
 import { generateWorld, T, isBlocked } from "../js/world.js";
 import { lightFor } from "../js/nightclock.js";
+import { shadeCount, SLOT_MS } from "../js/shades.js";
 import { classify, D, EDGE, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor, phaseOf } from "../js/living.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +35,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 // ---- 0. the pure parts, in node ----
 console.log("# tiles, motion, moon, fireflies, governor: in node");
 const world = generateWorld();
+// Since milestone 11 the picture also follows the weather and the shades' sky, which come from the real clock and change
+// even with reduced motion (a weather change eases over 40 s, a wave of shades darkens the sky strip). The still-picture
+// checks below pin both: clear weather, and the shades' clock moved to a stretch of three slots with no shades (a run
+// that fell in a mist-to-clear change failed both checks, 2026-10-16, milestone 16).
+const QUIET = (() => { const now = Math.floor(Date.now() / SLOT_MS); for (let s = now + 400; s < now + 40000; s++) if (shadeCount(world.seed, s) === 0 && shadeCount(world.seed, s + 1) === 0 && shadeCount(world.seed, s + 2) === 0) return s; throw new Error("no quiet slots"); })();
+const calm = () => `&weather=clear&shadeclock=${QUIET * SLOT_MS + 2000 - Date.now()}`;
 {
   const { deco, foam } = classify(world), again = classify(world);
   ok(deco.every((v, i) => v === again.deco[i]) && foam.every((v, i) => v === again.foam[i]), "which tiles shimmer, foam and sway is the same on every build");
@@ -234,7 +241,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   console.log("\n# reduced motion and the plain look");
   const still = await browser.newContext({ viewport: { width: 700, height: 700 }, reducedMotion: "reduce" });
   const R = await still.newPage(); watch(R, "reduced");
-  await R.goto(`${base}?net=local&hour=${HOUR}#room=2`); await R.click("#enter");
+  await R.goto(`${base}?net=local&hour=${HOUR}${calm()}#room=2`); await R.click("#enter");
   await sleep(500); await R.evaluate(([x, y]) => window.__longWatch.teleport(x, y), [shore.x, shore.y]); await sleep(1200);
   ok((await R.evaluate(() => window.__longWatch.hud())).reducedMotion === true, "the page reports prefers-reduced-motion: reduce");
   const a = []; for (let i = 0; i < 6; i++) { a.push(await canvasSum(R, false)); await sleep(300); }
@@ -244,7 +251,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   ok((await perf(R)).frames > 30, "and the game still draws and walks");
   const full = await browser.newContext({ viewport: { width: 700, height: 700 } });
   const F = await full.newPage(); watch(F, "full");
-  await F.goto(`${base}?net=local&hour=${HOUR}#room=2`); await F.click("#enter");
+  await F.goto(`${base}?net=local&hour=${HOUR}${calm()}#room=2`); await F.click("#enter");
   await sleep(500); await F.evaluate(([x, y]) => window.__longWatch.teleport(x, y), [shore.x, shore.y]); await sleep(1200);
   const b = []; for (let i = 0; i < 6; i++) { b.push(await canvasSum(F, false)); await sleep(300); }
   ok(new Set(b).size >= 4, `without it the same place changes from frame to frame (${new Set(b).size} different in 6)`);
@@ -252,7 +259,7 @@ async function scenario(label, mk, query, room, opts = {}) {
   // The strip also holds twinkling stars and the glints under it, so one picture at one instant can differ by more than 1%
   // (this check failed 3 of 10 runs on the untouched code before milestone 9). Take three pictures per visit; the visits
   // look the same when some picture of one is within 1% of some picture of the other.
-  const stripAt = async (hour, n = 1) => { const p = await full.newPage(); watch(p, "sky"); await p.goto(`${base}?net=local&hour=${hour}#room=2`); await p.click("#enter"); await sleep(700); const v = []; for (let i = 0; i < n; i++) { v.push(await canvasSum(p, true)); await sleep(230); } await p.close(); return v; };
+  const stripAt = async (hour, n = 1) => { const p = await full.newPage(); watch(p, "sky"); await p.goto(`${base}?net=local&hour=${hour}${calm()}#room=2`); await p.click("#enter"); await sleep(700); const v = []; for (let i = 0; i < n; i++) { v.push(await canvasSum(p, true)); await sleep(230); } await p.close(); return v; };
   const s1v = await stripAt(1, 3), s1bv = await stripAt(1, 3), s35 = (await stripAt(3.5))[0], s7 = (await stripAt(7.9))[0], s1 = s1v[0];
   ok(s1v.some(x => s1bv.some(y => x === y || Math.abs(x - y) < x * 0.01)), "the sky strip at one hour looks the same each time");
   ok(s1 !== s35 && s35 !== s7 && s1 !== s7, `the sky strip differs at hour 1, 3.5 and 7.9 (the moon moves, the stars come and go)`);

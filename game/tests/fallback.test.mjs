@@ -84,7 +84,10 @@ ok(pickTestRelay("?tracker=ws://127.0.0.1:9000") === null, "?relay= does not rea
   const tracker = await startTracker();
   const q = `?relay=${encodeURIComponent(dead)}&tracker=${encodeURIComponent(tracker.url)}`;
   const { a, b, close } = await pair("A. Nostr unreachable, BitTorrent tracker reachable", q, 2);
-  ok(/trying/i.test(await netText(a)) && /Nostr/.test(await netText(a)), `at first the page says it is trying Nostr ("${await netText(a)}")`);
+  // The transport starts asynchronously after Enter, so the lobby wording can still be there for a moment: wait (at most
+  // 5 s, well inside the 7 s before a switch) for the first status paint instead of reading the text once.
+  const tryingSaid = await waitFor(a, () => { const t = document.getElementById("netkind").textContent; return /trying/i.test(t) && /Nostr/.test(t); }, null, 5000);
+  ok(tryingSaid, `at first the page says it is trying Nostr ("${await netText(a)}")`);
   const t0 = Date.now();
   const seen = await waitFor(a, () => window.__longWatch.peers().length === 1, null, 45000) && await waitFor(b, () => window.__longWatch.peers().length === 1, null, 45000);
   ok(seen, `the two pages find each other through the tracker (${seen ? ((Date.now() - t0) / 1000).toFixed(1) + " s" : "gave up"})`);

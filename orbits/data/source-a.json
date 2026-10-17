@@ -1,0 +1,53 @@
+{
+ "source": "devstronomy/nasa-data-scraper, data/csv/planets.csv (a scrape of the NASA Planetary Fact Sheet)",
+ "url": "https://raw.githubusercontent.com/devstronomy/nasa-data-scraper/master/data/csv/planets.csv",
+ "retrieved": "2026-10-16",
+ "note": "distance_from_sun is the fact sheet's mean distance in 10^6 km; orbital_period is in Earth days. Strings are kept exactly as printed so the page can read their precision.",
+ "rows": [
+  {
+   "planet": "Mercury",
+   "a_1e6km": "57.9",
+   "period_days": "88.0"
+  },
+  {
+   "planet": "Venus",
+   "a_1e6km": "108.2",
+   "period_days": "224.7"
+  },
+  {
+   "planet": "Earth",
+   "a_1e6km": "149.6",
+   "period_days": "365.2"
+  },
+  {
+   "planet": "Mars",
+   "a_1e6km": "227.9",
+   "period_days": "687.0"
+  },
+  {
+   "planet": "Jupiter",
+   "a_1e6km": "778.6",
+   "period_days": "4331"
+  },
+  {
+   "planet": "Saturn",
+   "a_1e6km": "1433.5",
+   "period_days": "10747"
+  },
+  {
+   "planet": "Uranus",
+   "a_1e6km": "2872.5",
+   "period_days": "30589"
+  },
+  {
+   "planet": "Neptune",
+   "a_1e6km": "4495.1",
+   "period_days": "59800"
+  },
+  {
+   "planet": "Pluto",
+   "a_1e6km": "5906.4",
+   "period_days": "90560"
+  }
+ ]
+}

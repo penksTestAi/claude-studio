@@ -22,6 +22,7 @@ import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NE
 import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RADIUS } from "./lighthouse.js";
 import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
+import { createClockCheck, clockNote, pickClockSkew, CLOCK_WARN_S } from "./clock.js";
 
 const ROOMS = 6;
 const SPEED = 4.2; // tiles per second
@@ -35,6 +36,8 @@ const onLoopback = location.hostname === "127.0.0.1" || location.hostname === "l
 const testRelay = onLoopback ? pickTestRelay(location.search) : null; // ?relay= is ignored on the live site
 const testTracker = onLoopback ? pickTestTracker(location.search) : null; // ?tracker= likewise (a BitTorrent tracker on this machine)
 const testMute = onLoopback ? pickTestMute(location.search) : 0;     // so is ?mute=
+const clockSkew = pickClockSkew(location.search, onLoopback);         // and ?clockskew= (seconds, for the clock check only)
+let clockCheck = null;
 const nodes = generateNodes(world);
 const respawnPin = (() => { const v = Number(new URLSearchParams(location.search).get("respawn")); return Number.isInteger(v) && v >= 1 && v <= 600 ? v : 0; })(); // tests: shorter respawn
 
@@ -125,6 +128,7 @@ async function enter() {
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
   shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
   rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
+  clockCheck = createClockCheck(net, presence.peers, { clock: () => Date.now() + clockSkew * 1000 }); paintClock();
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
@@ -145,7 +149,7 @@ function leaveRoom() {
   if (!playing) return;
   presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; me.snuffed = false;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; paintClock(); me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive();
   document.body.classList.remove("playing");
   $("enter").disabled = false;
@@ -197,7 +201,7 @@ function frame(t) {
   $("gather").disabled = !reach;
   paintGive();
   if (mapOn && t - lastMap > 100) { lastMap = t; minimap.draw(me, presence.peers.values(), fires, shades.list(), watchView()); }
-  if (t - lastHud > 1000) { lastHud = t; paintHud(light); updateStatus(); }
+  if (t - lastHud > 1000) { lastHud = t; paintHud(light); updateStatus(); if (clockCheck) clockCheck.tick(); paintClock(); }
   if (t - lastSave > 3000) { save(); lastSave = t; }
   requestAnimationFrame(frame);
 }
@@ -555,6 +559,17 @@ function updatePeers() {
   updateStatus();
 }
 
+// The clock check (milestone 17): a plain note when another player's device clock differs from mine by CLOCK_WARN_S or
+// more. The name is the generated one, rebuilt here from the seed; the note's words are fixed text in js/clock.js.
+function paintClock() {
+  const w = clockCheck && presence ? clockCheck.worst() : null;
+  const p = w && presence.peers.get(w.id);
+  const text = p ? clockNote(p.name, w.off) : "";
+  const el = $("clocknote");
+  if (el.textContent !== text) el.textContent = text;
+  el.hidden = !text;
+}
+
 function updateStatus() {
   if (!net) return;
   const n = presence.peers.size;
@@ -595,6 +610,7 @@ window.__longWatch = {
   shadeNow: () => shadeNow(),
   setShadeClock: (ms) => (onLoopback && Number.isInteger(ms) && Math.abs(ms) < 1e13 ? (shadeOffset = ms, true) : false), // tests only, and only on a page served from this machine
   snuffCount: () => snuffCount,
+  clock: () => ({ skew: clockSkew, warnS: CLOCK_WARN_S, offsets: clockCheck ? clockCheck.offsets() : [], note: $("clocknote").hidden ? "" : $("clocknote").textContent }),
   snuffLog: () => snuffLog.map(e => ({ ...e })),
   watch: () => ({ kept: watchIsKept(), f: beam.f, view: watchView(), lighthouse: lighthouse ? { x: lighthouse.x, y: lighthouse.y } : null, radius: LIGHTHOUSE_RADIUS, panel: !$("watch").hidden, text: $("watchstate").textContent, info: $("watchinfo").textContent }),
   addFuel: (item) => beacon ? beacon.add(item) : null,

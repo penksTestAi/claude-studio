@@ -27,6 +27,9 @@ The chair gives you: folder, title and one plain sentence. Take the time from th
 - `python3 tools/keeper_check.py --fix`. It adds missing doctype/charset/viewport lines by itself; fix every other
   CHECK line by hand (a missing item, a duplicate, the wrong order, an old name or address such as penksTestAi,
   claude-studio, funStylePage or penkstestai.github.io). Never touch earlier journal entries.
+- Two known checker false positives: `<title>` counts inline SVG `<title>` elements as page titles, and the
+  placeholder check matches "x and y" in any case. Confirm by reading the line; if it is one of these, leave the
+  piece unchanged and report it to the chair as a false positive (23:27: the piece was edited to satisfy the checker).
 - `node tools/page_check.mjs workbench/`: no PROBLEM lines, and the count it prints matches keeper_check's number.
   Look at the 375px light and dark screenshots.
 - `git status --short`: every new or changed file must belong to this run's piece or the files above. Delete stray

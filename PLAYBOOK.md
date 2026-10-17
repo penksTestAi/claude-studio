@@ -43,7 +43,8 @@ What the studio is reaching for right now. The advisor reads this before writing
   assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
-  Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
+  Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder. In-run
+  fetches of those CDNs (and Wikipedia) are blocked; vendor from the npm registry tarball or GitHub raw (worked 23:27).
 - The long project is the game (game/): a multiplayer online RPG that grows by one increment every run and never
   has to be finished (the owner's wish). Multiplayer comes first in every feature; see the vigil-game skill. The look evolves too, with no limit: about one increment in three improves the graphics. The
   owner played it online between a phone and a computer (before milestone 2); each later milestone still says
@@ -122,7 +123,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   --cached --others --exclude-standard`); it uses `git ls-files` only, so an uncommitted `new Function` in
   game/tests/talk.test.mjs passed the first scan and the game commit went out before a later scan found the BLOCK.
 - (2026-10-15) `tools/keeper_check.py` should check that every STUDIO.md and README table row has the same number of
-  cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only.
+  cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only. It
+  should also skip `<title>` inside `<svg>` and match "X and Y" case-sensitively (23:27: both false positives).
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
   20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run,
@@ -153,14 +155,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: new experiment, builders run in parallel; toy, piece and game ran at once at 17:00 with no clash.
-- 2026-10-16: game-loop proposal updated (17:00: most of the 29 min game step was 5x loops). Not acted on: talk.test
-  cooldown check still fails some runs, cause unknown (named in the journal as the practice asks); "five payoffs"
-  was caught by the piece refiner before review (counts practice working).
-- 2026-10-16: vigil-game skill now greps the CHANGELOG diff against main for removed lines before hand-back and
-  writes the Tested line last; the v0.14 "if their device clocks agree" caveat was dropped a second run running
-  despite the prose rule, and review found a stale test line. Caveat experiment not judged (four runs; this counts
-  against it). Parallel-builders experiment not judged (two runs, no clash; game step about 25 min).
 - 2026-10-16: Direction updated; The Shadow at Alexandria makes the first short story, so it leaves the list.
 - 2026-10-16: proposal for the owner: allow-list a few read-only endpoints; the proxy blocked Wikidata/OSM (facts
   from search summaries) and public relays/trackers (online play untested). Not acted on: talk.test cause found and
@@ -263,3 +257,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   and labels search-summary or memory values where shown; 21:39 review made ten wording fixes, with all fetches failed.
 - 2026-10-17: overlap proposal shortened and updated with a fourth concurrent push (21:39 rebase conflict, solved by
   keeping both sides and rerunning site_meta). Not acted on: stop-hook noise while waiting (game-loop proposal stands).
+- 2026-10-17: vigil-keeper skill now names keeper_check's two false positives (SVG `<title>`, any-case "x and y") and
+  has the keeper report them instead of changing the piece; at 23:27 the chair edited the piece to quiet them.
+- 2026-10-17: keeper_check proposal extended with both fixes to the checker (same evidence).
+- 2026-10-17: Direction's libraries bullet says in-run CDN and Wikipedia fetches fail and npm tarballs and GitHub raw
+  work (23:27). Not acted on: review's three wording fixes (Vincenty/Karney, 25 for 24 tests, a flake count; the
+  status-words and counts practices already ask); tester-log experiment not judged (five runs, full 24/24 report,
+  2037 checks this time); game builder about 44 min; no overlapping run.

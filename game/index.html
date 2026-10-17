@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text, and (milestone 21) players can ask a lobby which lantern looks busiest (a guess from numbers only); online play over public relays untested (local relay and tracker only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text, and (milestone 21) players can ask a lobby which lantern looks busiest (a guess from numbers only); online play over public relays untested (local relay and tracker only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil (two nearby players draw a shoal in for both), craft, give, light the lighthouse together, see trees and landmarks cast soft shadows from lanterns and lit beacons with flickering flames, see a plain note when a device clock disagrees and meet through Nostr relays and BitTorrent trackers at once, peer to peer with no typed text, and (milestone 21) players can ask a lobby which lantern looks busiest (a guess from numbers only); online play over public relays untested (local relay and tracker only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -56,7 +56,7 @@ canvas#view{display:block;width:100%;height:clamp(320px,64vh,620px);border-radiu
 canvas#view:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .stage{position:relative}
 #minimap{position:absolute;top:8px;right:8px;width:112px;height:112px;border:2px solid rgba(255,243,214,.7);border-radius:6px;background:var(--night);image-rendering:pixelated;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-#minimap[hidden]{display:none}
+#minimap[hidden],#lookpick[hidden]{display:none}
 @media (max-width:520px){#minimap{width:84px;height:84px;top:6px;right:6px}}
 .where{margin:8px 0 0;min-height:1.4em}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0}
@@ -121,6 +121,10 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <p class="small" id="rooms-label">Each lantern is a room. Pick the same one as a friend to meet them; the link remembers your choice.</p>
     <div class="rooms" id="rooms" role="group" aria-labelledby="rooms-label"></div>
     <button class="primary" id="enter" type="button">Enter the island</button>
+    <p class="small" style="margin-top:14px">Not sure where anyone is? Ask around: your browser joins a shared lobby for a few seconds and players already in a lantern answer with their lantern number, nothing else. It only starts when you press the button, and like joining a lantern it shows your network address to the players there.</p>
+    <button class="ghost" id="look" type="button">Where are the others? (a guess)</button>
+    <p class="small" id="lookstate" role="status" aria-live="polite"></p>
+    <button class="ghost" id="lookpick" type="button" hidden>Pick a lantern</button>
     <p class="small" style="margin-top:10px">Finding other players uses <span id="netkind">Nostr relays and BitTorrent trackers (both are used at once)</span>. Other players can see your network address, as in a video call.</p>
     <p class="small links"><a href="#about">About this game</a> · <a href="#notes">Patch notes</a></p>
   </section>
@@ -213,9 +217,14 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.24</b> · Where the others are (milestone 21) <span class="when">2026-10-17</span></summary>
+    <p><span class="tag t-new">New</span> press "Where are the others? (a guess)" on the landing screen. For 20 seconds your game asks around, and players already inside a lantern answer with the number of their lantern, nothing else. You then read how many players answered in each lantern, are told which lantern looks busiest (a full lantern of 12 is skipped) and can press "Pick Lantern N" to select it. The words call it a guess every time: it counts only the players whose games answered just now, and "nobody answered" does not mean nobody is playing. Nothing is asked until you press the button.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (only a relay on this machine was used), how the hint reads and behaves on a real phone, and how a busy lobby behaves with many players online at once (see Network).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.23</b> · milestone 20 (shadows and flame) <span class="when">2026-10-17</span></summary>
-    <p><span class="tag t-new">New</span> see the island's trees, rocks, well, beacons and ruined lighthouse throw soft shadows away from the light near them: your own lantern, other players' lanterns, a lit beacon and the lit lighthouse. Walk round a tree and its shadow swings round with you; when a friend's lantern comes near a tree on your screen, the tree's shadow moves away from them too. A lit beacon now throws the shadows of the trees round it, and its flames, the glow it gives and the lighthouse lamp flicker (a lit beacon also shows a second, thinner tongue of flame, except on the lowest look level).</p>
-    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (the sandbox's proxy refuses them, so only a relay and a tracker on the same machine were used; nothing about shadows is sent, so shadows themselves use no connection), how the shadows and flicker look and run on a real phone (the frame cost was measured in headless Chromium with software drawing, not on a phone), and whether the soft shadows stay easy to read on a very bright or very dim screen.</p>
+    <p><span class="tag t-new">New</span> see the island's trees, rocks, well, beacons and ruined lighthouse throw soft shadows away from the light near them: your own lantern, other players' lanterns, a lit beacon and the lit lighthouse. Walk round a tree and its shadow swings round with you; when a friend's lantern comes near a tree on your screen, the tree's shadow moves away from them too. A lit beacon now throws the shadows of the trees round it, and its flames, the glow it gives and the lighthouse lamp flicker (a lit beacon also shows a second, thinner tongue of flame).</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (the sandbox's proxy refuses them, so only a relay and a tracker on the same machine were used; nothing about shadows is sent, so shadows themselves use no connection), how the shadows and flicker look and run on a real phone (the frame cost below is from headless Chromium with software drawing, not a phone), and whether the soft shadows stay easy to read on a very bright or very dim screen.</p>
   </details>
   <details class="ver">
     <summary><b>v0.22</b> · milestone 19 (the jetty's fishing) <span class="when">2026-10-17</span></summary>
@@ -352,6 +361,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <li>The keeper's notes are counted live in the browsers of the players in the lantern and are not saved anywhere: when the last player leaves, or at 00:00 UTC (a few seconds of clock difference between players can briefly hide someone's progress at the change), they start again at 0. Doing a note's job uses nothing up beyond what the job itself uses. A modified game could claim progress it did not make, so a finished note proves nothing.</li>
       <li>Shades are slow creatures of the night drawn on every player's screen from the island's seed and the clock, so everyone in a lantern sees the same ones in the same places; where they are is never sent. A shade only snuffs a lantern for a few seconds, takes nothing and hurts no one. How much light players have put on a shade is counted live in their browsers and is not saved: it starts again when the lantern empties and every 160 seconds. Whether your lantern is out is told to the others as a single yes or no. A modified game could claim light it did not give, or keep its own lantern lit; there is nothing to win from others.</li>
       <li>The shades, the weather, the night's hour and the keeper's day all come from each device's own clock. Your game tells the others in the lantern what your device clock says (one number, nothing saved), and if someone's clock differs from yours by 10 seconds or more, a note under the player count says so and names the one who differs most. It cannot set anyone's clock; a modified game could claim any time, which only changes the note.</li>
+      <li>"Where are the others?" is a guess. Every player inside a lantern also sits in a shared lobby room (and so, like any room, is linked to the other players in it, who can see your network address). When you press the button on the landing screen, your browser joins that lobby for 20 seconds and asks; each player already in a lantern answers with one number, their lantern, and nothing else. Nothing is saved, nobody can type anything, and a modified game could answer with any number, so the count is only a hint.</li>
       <li>Beacons are shared only among the players in the lantern right now: the fuel counts live in their browsers, there is no server, and when the last player leaves the beacons go dark and are forgotten. The fuel you spend leaves your own pack for good. A beacon needs 12 fuel and at least 2 different players, one player's share is at most 16, and at most 24 players are counted on one beacon. A modified game could claim fuel it did not add, so do not treat a lit beacon as proof of anything.</li>
       <li>The lamplighter rank is earned only by helping other players (relighting a friend's lantern, driving off a shade together, a gift that arrives, lighting a beacon together, finishing a keeper's note together). Your help points are saved only in your own browser, and your rank is told to the others in the lantern as one small number, which is shown as a title from a fixed list beside your name and as gold marks on your lantern. It is only decoration and gives no advantage. A modified game could claim any rank, so a title proves nothing, and clearing your browser's saved data clears your points.</li>
       <li>Fish are drawn on every player's screen from the island's seed and the clock, so they are in the same places if device clocks agree, and where they are is never sent; only the tile your float lies on is told to the others in the lantern, so two floats close together can draw a shoal in for both. Because nothing is sent about fish, none is taken away from anyone else: two players can both catch from the same one. Your lamp oil is saved only in your own browser. A catch is refused (the fish is let go) when you already hold 999 lamp oil. A modified game could claim a float it does not have; that only gives itself a shoal.</li>
@@ -360,7 +370,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 20 (shadows and flame). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 21 (where the others are). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

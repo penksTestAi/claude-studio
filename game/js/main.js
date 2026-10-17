@@ -23,6 +23,7 @@ import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RA
 import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 import { createFishing, CAST_MAX, SHOAL_RANGE, BITE_WINDOW_S, BITE_WINDOW_STILL_S, LINE_MAX_S, GROUND_RADIUS } from "./fishing.js";
+import { createResponder, createAsker, suggest, lookText, LOBBY_ROOM, LOOK_S, LOBBY_JOIN_DELAY_S } from "./lobby.js";
 import { createClockCheck, clockNote, pickClockSkew, CLOCK_WARN_S } from "./clock.js";
 
 const ROOMS = 6;
@@ -118,6 +119,7 @@ const input = createInput(canvas, () => playing);
 async function enter() {
   if (playing) return;
   $("enter").disabled = true;
+  stopLook();
   try {
     net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, tracker: testTracker, mute: testMute });
   } catch (e) {
@@ -153,10 +155,12 @@ async function enter() {
   canvas.focus({ preventScroll: true });
   lastT = performance.now();
   requestAnimationFrame(frame);
+  startResponder();
 }
 
 function leaveRoom() {
   if (!playing) return;
+  stopResponder();
   fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
   playing = false; net = null; presence = null; talk = null; gather = null; give = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
@@ -642,9 +646,68 @@ function updateStatus() {
   $("status").textContent = line;
 }
 
+// ---- where the others are: a lobby room apart from the lanterns (js/lobby.js). A page inside a lantern answers a newcomer's
+// question with its lantern number; a page on the landing screen asks for LOOK_S seconds, only when its player presses the button ----
+let lobbyNet = null, lobbyResp = null, lookNet = null, look = null, lookTimer = 0, lookEnd = 0, lookCounts = null, lookState = "";
+const lobbyOpts = () => ({ relay: testRelay, tracker: testTracker, mute: testMute });
+// The lobby is joined LOBBY_JOIN_DELAY_S after entering, so the lantern's own connections are made first
+// (milestone 21: joining both at once made the craft test's reconnect fail and log a WebRTC OperationError).
+let lobbyJoin = 0;
+function startResponder() {
+  clearTimeout(lobbyJoin);
+  lobbyJoin = setTimeout(async () => {
+    if (!playing) return;
+    try {
+      const n = await createTransport(netKind, LOBBY_ROOM, lobbyOpts());
+      if (!playing) { n.leave(); return; }
+      lobbyNet = n; lobbyResp = createResponder(n, () => (playing ? roomNo : 0));
+    } catch (e) { console.warn("lobby not joined", e); } // the game itself does not depend on it
+  }, LOBBY_JOIN_DELAY_S * 1000);
+}
+function stopResponder() { clearTimeout(lobbyJoin); if (lobbyNet) { try { lobbyNet.leave(); } catch { /* already gone */ } } lobbyNet = null; lobbyResp = null; }
+function paintLook() {
+  const counts = lookCounts || new Array(7).fill(0), s = suggest(counts);
+  $("lookstate").textContent = lookText(counts, lookState);
+  const pick = $("lookpick");
+  pick.hidden = !s || playing;
+  if (s) { pick.textContent = `Pick Lantern ${s.room}`; pick.dataset.room = s.room; }
+}
+// lookGen: a start still waiting for its transport when stopLook runs (Enter pressed in the same tick) is cancelled,
+// so it leaves its own transport and does not leave lookState stuck at "starting".
+let lookGen = 0;
+function stopLook() {
+  lookGen++;
+  clearInterval(lookTimer); lookTimer = 0;
+  if (look) look.stop();
+  if (lookNet) { try { lookNet.leave(); } catch { /* already gone */ } }
+  lookNet = null;
+  if (look && lookState === "looking") { lookState = "done"; lookCounts = look.counts(); paintLook(); }
+  else if (lookState === "starting") { lookState = ""; $("lookstate").textContent = ""; }
+  $("look").disabled = false;
+}
+async function startLook() {
+  if (playing || lookNet || lookState === "starting") return;
+  const gen = ++lookGen;
+  lookState = "starting"; lookCounts = null; $("look").disabled = true;
+  $("lookstate").textContent = "Asking around…";
+  let n;
+  try { n = await createTransport(netKind, LOBBY_ROOM, lobbyOpts()); }
+  catch (e) { if (gen !== lookGen) return; console.warn("lobby not joined", e); lookState = ""; $("look").disabled = false; $("lookstate").textContent = "Could not ask: networking did not start in this browser."; return; }
+  if (playing || gen !== lookGen) { try { n.leave(); } catch { /* already gone */ } return; }
+  lookNet = n; look = createAsker(n); lookState = "looking"; lookEnd = performance.now() + LOOK_S * 1000;
+  lookTimer = setInterval(() => {
+    look.tick(); lookCounts = look.counts();
+    if (performance.now() >= lookEnd) { stopLook(); return; }
+    paintLook();
+  }, 500);
+  paintLook();
+}
+$("look").addEventListener("click", startLook);
+$("lookpick").addEventListener("click", () => { const r = Number($("lookpick").dataset.room); if (r >= 1 && r <= ROOMS) { roomNo = r; history.replaceState(null, "", `#room=${r}`); markRoom(); } });
+
 $("enter").addEventListener("click", enter);
 $("leave").addEventListener("click", leaveRoom);
-addEventListener("pagehide", () => { if (playing) { presence.leave(); save(); } });
+addEventListener("pagehide", () => { stopLook(); stopResponder(); if (playing) { presence.leave(); save(); } });
 addEventListener("hashchange", () => { if (!playing) { roomNo = roomFromHash(); markRoom(); } });
 
 // Read-only view for the tests (and the curious): plain copies, no handles into the game.
@@ -656,6 +719,7 @@ window.__longWatch = {
   sky: () => skyAt(world, shadeNow(), pinnedWeather),
   hud: () => ({ rebuilds: net ? net.status().rebuilds | 0 : 0, where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
   taps: () => ({ ...tapCounts }), // tests only (kept empty on the live site)
+  lobby: () => ({ looking: lookState, counts: lookCounts ? [...lookCounts] : null, text: $("lookstate").textContent, pick: $("lookpick").hidden ? 0 : Number($("lookpick").dataset.room), answered: lobbyResp ? lobbyResp.answered() : 0, asked: look ? look.sent() : 0, heard: look ? look.heard() : 0, inLobby: !!lobbyNet }),
   peerLinks: () => (net && net.peerLinks ? net.peerLinks() : {}),
   linkHistory: () => net ? (net.status().history || []) : [],
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),

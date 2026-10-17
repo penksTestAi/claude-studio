@@ -64,7 +64,7 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
 - **Rooms.** Six "lanterns" (`lantern-1` … `lantern-6`), chosen on the landing page and kept in the URL hash
   (`#room=3`). Trystero's `appId` is `vigilstudio-long-watch-v1`; bump the suffix if the protocol breaks
   compatibility. Every browser in a room connects to every other (full mesh), so a room is comfortable up to
-  about a dozen players. Later: when a room is full, suggest the next lantern.
+  about a dozen players. Since milestone 21 the lobby hint skips a lantern that is full (see "Where the others are"); nothing yet moves a player out of a full lantern.
 - **Transport interface** (`js/net/transport.js`): `send(msg, peerId?)`, `onMessage`, `onPeerJoin`,
   `onPeerLeave`, `status()`, `leave()`. Messages are small JSON objects; one Trystero action `"m"` carries them,
   with a kind field `k`. Implementations: `local.js` (BroadcastChannel), `trystero.js` (Nostr or torrent), `auto.js` (the default since milestone 18: both paths at once, one room; see below).
@@ -197,6 +197,7 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   in `st`), facing and current gesture, the feet's step (`STRIDE_MS` 520 ms a cycle, the per-player phase comes from the seed), the lantern's swing (at most 0.55 rad),
   head lean, and gesture poses (bow, wave, cheer, point, sit). `js/render.js` `drawAvatar` draws two feet, a head dot and the lantern on a swinging arm from it.
   With reduced motion the walk cycle and lantern swing stop (a walking figure stands still); gesture poses (bow, wave, cheer, point, sit) still apply. Cost: a few extra arcs per player. Art is drawn in code; no assets.
+- **Where the others are** (`js/lobby.js`, milestone 21): a hint about which lantern has players, worked out by asking. There is no room list anywhere, so a seventh room named `lobby` (`LOBBY_ROOM`, its own Trystero or local room, same `?net=` path) holds two kinds of page: a page inside a lantern joins it `LOBBY_JOIN_DELAY_S` (8 s) after Enter, so the lantern's own connections are made first (and leaves it when it leaves the lantern or closes) and answers; a page on the landing screen joins it only when its player presses "Where are the others? (a guess)", asks for `LOOK_S` (20 s), and leaves. Messages, numbers only: `lq` (exactly one field, the question) and `lr {r}` (exactly two fields, `r` a whole lantern number 1 to 6, sent to the asker alone). A page asks each player who joins the lobby, again after `RE_ASK_S` (3 s) if unanswered, `MAX_ASKS` (3) times at most; a responder answers one player at most 2 questions in a burst and then 1 per `ASK_GAP_S` (4 s), and never when it is not in a lantern. The asker counts an answer only from a player it asked, once per ask, only from the first `LOBBY_PEERS` (11) players it saw join, at most `MAX_ANSWERS` (72) in all, for `ANSWER_TTL_S` (60 s), and shows a lantern's count as at most `ROOM_SIZE` (12). `suggest` picks the lantern with the most answers that is below `ROOM_SIZE` (ties: the lower number), so a full lantern is not suggested; the "Pick Lantern N" button only selects it (it never enters). The text always calls it a guess. Costs and limits: every page inside a lantern is also linked to every other page in the lobby, so the lobby room is one mesh of all players online on that path (only the first 11 others are heard, but their connections are not closed), and a modified client can answer any lantern. Nothing is saved. Tested locally and through a local relay only.
 - **The clock check** (`js/clock.js`, milestone 17): shades, weather, the night hour and the keeper's day are pure functions of each
   device's UTC clock, so players whose clocks disagree see different shades and may share no notes. Message `ck {t}` (exactly two
   fields, t my clock in whole seconds, 1e9 to 1e10), sent to each player when first seen in presence's map, again 3 s later (the
@@ -333,6 +334,7 @@ game/
   js/rank.js            the lamplighter rank: deeds and points (pure), titles, the `rk` message
   js/fishing.js         fishing: fish from seed and clock (pure), casting, the bite and the timing press, the shoal, the `fl` message; lamp oil is `inv.oil`
   js/clock.js           the clock check: the `ck` message (my device clock), offsets per player, the plain note when a clock differs by 10 s or more
+  js/lobby.js           where the others are: the `lq` question and `lr` answer in the lobby room, the asker, the responder, the suggestion and its words
   js/render.js          canvas drawing: island, avatars, night layer with lantern light, names, and the living layer (water, foam, sway, fireflies, sky strip)
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
@@ -358,6 +360,7 @@ game/
   tests/clock.test.mjs     node checks of the `ck` message, words and note, the module on a fake mesh (repeat, resend, strangers, floods, leaving), then local and WebRTC pages: a clock 180 s ahead is named on both pages, 4 s is not, the note goes when the player leaves
   tests/fishing.test.mjs   node checks of the fish, casting, bite, press, shoal and every cap (lamp oil stack, gifts, beacon share, line limits, silent peer) and hostile `fl` messages on fake meshes, then local and WebRTC pages (cast, catch, miss, shoal where no fish live, full stack, gifts, beacon) and reduced motion
   tests/shadows.test.mjs   node checks of the shadow rules (direction, length, cancelling lights, odd numbers, caps) and the flame's bounds, then local pages: a shadow follows another player's lantern, a beacon lit by two players throws shadows on both pages, levels 0 to 2, the plain look, reduced motion, and the frame cost at 375 and 1100 px
+  tests/lobby.test.mjs     node checks of the lobby messages, caps and rate limits on fake meshes, then local and WebRTC pages: three pages in two lanterns and one in the lobby (counts 2 and 1, a guess, the pick button, ending by itself, a leaver not counted)
   tests/loop.mjs           runs test files N times each, one at a time, and prints one exact `name passed/N` line per file (`node game/tests/loop.mjs 5 beacon talk`; no names means every file)
 ```
 URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `?clockskew=N` (the clock check pretends this page's clock is N s off; loopback pages only), `#room=N`.
@@ -365,7 +368,7 @@ URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/lobby.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

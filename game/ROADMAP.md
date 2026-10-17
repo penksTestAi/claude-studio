@@ -2,7 +2,7 @@
 
 One milestone per run, in order. Each must work for several players at once and get a check in
 `tests/presence.test.mjs` (or a sibling test). Mark the next one with **NEXT**. A roadmap review is due after
-10 increments since the last one (last: 2026-10-16, milestone 16, after milestone 15); it may rewrite everything below "done", never the
+10 increments since the last one (last: 2026-10-16, milestone 16, after milestone 15; milestone 26 is the next one); it may rewrite everything below "done", never the
 working features.
 
 ## Done
@@ -99,6 +99,8 @@ working features.
 
 - **20. Shadows and flame (a look step).** Done 2026-10-17, nothing sent, so local tests cover all of it. Trees, rocks and the well, the beacons and the lighthouse throw a soft shadow away from the lights near them: every player's lantern (so another player's light moves a shadow on your screen too), lit beacons and the lit lighthouse (`js/shadows.js`: `shadowOf`, `keepDarkest`, `flameFlicker`; drawn by `drawShadows` in `js/render.js` under the crowns and the night layer). A light counts out to `LIGHT_SPAN` 1.15 times its radius; a shadow is at most `SHADOW_ALPHA_MAX` 0.5 dark. The governor allows `CASTERS_MAX` 0, 14 and 40 shadows at levels 0, 1 and 2 (level 2 adds a soft outer edge). Beacon flames, the glow of a lit beacon and the lighthouse lamp flicker; under reduced motion shadows are still drawn and flames burn steady. Measured in headless Chromium with software drawing (not a phone): the shadows add about 0.2 to 0.5 ms to a frame at 375 and at 1100 px with 40 shadows on screen (the CHANGELOG has the runs). `?shadows=off` leaves them out; `?look=plain` has none. Tested in `shadows.test.mjs`.
 
+- **21. Where the others are.** Done 2026-10-17, local relay only. A seventh room, `lobby`: pages inside a lantern join it and answer a newcomer's question with their lantern number (`lr {r}`, numbers only); a page on the landing screen asks for 20 s only when its player presses the button, then shows how many answered per lantern, suggests the busiest lantern that is not full and calls it a guess. Caps and rate limits in `js/lobby.js`, tested in `lobby.test.mjs` (three pages in two lanterns and a fourth in the lobby, on the local transport and through a local relay). Public relays untested. Costs: pages in lanterns are also linked to each other in the lobby (a mesh of everyone online on the path; only 11 others are heard).
+
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
   feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
@@ -137,11 +139,7 @@ working features.
 ## Later (in rough order, each one run)
 **Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-21. **NEXT: Where the others are.** The lobby says which lantern the most players chose in the last minutes, worked out
-    without a server: a page that is in a lantern answers a newcomer's short lobby question with one number (its room)
-    over a shared lobby room, numbers only, capped and rate-limited; the lobby suggests that lantern and says the count is
-    a guess. Tested with three pages in two lanterns and a fourth in the lobby.
-22. **The music stone (gameplay, sound).** A stone near the well plays one of 8 preset notes (ids only, off until sound
+22. **NEXT: The music stone (gameplay, sound).** A stone near the well plays one of 8 preset notes (ids only, off until sound
     is on, like footsteps); when three players play the stone's seeded tune of the night together within a beat, it glows
     for everyone and counts as help. Rate limits per sender, no recording, nothing saved.
 23. **Fair trades.** A two-sided swap (one item for one item) on the offer, accept, commit and receipt machinery; both

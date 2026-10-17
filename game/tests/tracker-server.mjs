@@ -1,6 +1,7 @@
 // A tiny BitTorrent WebSocket tracker for tests, with no dependencies: just enough of the WebTorrent tracker
 // protocol for Trystero's signalling. A peer announces with a list of WebRTC offers; the tracker hands each offer
 // to a different other peer in the same swarm (info_hash); that peer's answer is forwarded to the offerer.
+// It tells clients to announce again every 10 s (Trystero's own default; the first version said 120 s, which left a late joiner without a BitTorrent link for over a minute when its first offers were not taken up).
 // Used only on 127.0.0.1 so the BitTorrent fallback can be tested offline.
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
@@ -69,7 +70,7 @@ export function startTracker(port = 0) {
         if (o && o.offer_id && o.offer) send(others[i][1], { action: "announce", info_hash: m.info_hash, peer_id: m.peer_id, offer_id: o.offer_id, offer: o.offer });
       });
     }
-    send(c, { action: "announce", info_hash: m.info_hash, interval: 120, complete: swarm.size, incomplete: 0 });
+    send(c, { action: "announce", info_hash: m.info_hash, interval: 10, complete: swarm.size, incomplete: 0 });
   }
 
   return new Promise((resolve) => server.listen(port, "127.0.0.1", () => resolve({

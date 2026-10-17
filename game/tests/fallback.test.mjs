@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// Milestone 13: the second signalling path. Everything runs on 127.0.0.1 (a tiny Nostr relay and a tiny BitTorrent
-// tracker), so this proves the fallback logic and the BitTorrent path through real WebRTC, not the public servers.
+// Milestones 13 and 18: the two signalling paths. Since milestone 18 the default joins both at once (it no longer
+// switches from one to the other); this file checks that a network where only one path works still gets players together,
+// and that the page says which paths are open. Everything runs on 127.0.0.1 (a tiny Nostr relay and a tiny BitTorrent
+// tracker), so this proves the logic and the BitTorrent path through real WebRTC, not the public servers.
 //
 //   node game/tests/fallback.test.mjs
 //
-// A. Nostr unreachable (dead port), tracker alive: two players fall back, say so on the page, and meet.
-// B. Nostr alive, tracker dead: they connect on Nostr at once and never touch the tracker path.
-// C. Both unreachable: the page says so and keeps alternating, then says neither could be reached.
+// A. Nostr unreachable (dead port), tracker alive: two players meet through the tracker and the page says so.
+// B. Nostr alive, tracker dead: they connect on Nostr at once; the page says the trackers could not be reached.
+// C. Both unreachable: the page says so, then says neither could be reached.
 // D. ?net=torrent chosen by hand works; unit checks of the URL flags (a tracker flag is honoured only for this machine).
 import { createServer } from "node:http";
 import { readFile, readdir } from "node:fs/promises";
@@ -86,18 +88,19 @@ ok(pickTestRelay("?tracker=ws://127.0.0.1:9000") === null, "?relay= does not rea
   const { a, b, close } = await pair("A. Nostr unreachable, BitTorrent tracker reachable", q, 2);
   // The transport starts asynchronously after Enter, so the lobby wording can still be there for a moment: wait (at most
   // 5 s, well inside the 7 s before a switch) for the first status paint instead of reading the text once.
-  const tryingSaid = await waitFor(a, () => { const t = document.getElementById("netkind").textContent; return /trying/i.test(t) && /Nostr/.test(t); }, null, 5000);
-  ok(tryingSaid, `at first the page says it is trying Nostr ("${await netText(a)}")`);
+  const tryingSaid = await waitFor(a, () => /trying|both are used/i.test(document.getElementById("netkind").textContent), null, 5000);
+  ok(tryingSaid, `at first the page says both ways are being used or tried ("${await netText(a)}")`);
   const t0 = Date.now();
   const seen = await waitFor(a, () => window.__longWatch.peers().length === 1, null, 45000) && await waitFor(b, () => window.__longWatch.peers().length === 1, null, 45000);
   ok(seen, `the two pages find each other through the tracker (${seen ? ((Date.now() - t0) / 1000).toFixed(1) + " s" : "gave up"})`);
   const sa = await ns(a), sb = await ns(b);
   ok(sa.path === "torrent" && sb.path === "torrent", `both report the connected path as torrent (${sa.path}, ${sb.path})`);
-  ok(sa.tried.map(t => t.kind).join() === "nostr,torrent" && sa.tried[0].reached === false && sa.tried[1].reached === true, `A tried nostr (not reached) then torrent (reached): ${JSON.stringify(sa.tried)}`);
-  await a.waitForTimeout(600);
+  ok(sa.open.join() === "torrent" && sa.links.single === 1 && sa.links.both === 0, `A has only the torrent path open and one peer linked on one path: ${JSON.stringify({ open: sa.open, links: sa.links })}`);
+  await waitFor(a, () => window.__longWatch.netStatus().paths.nostr === "unreached", null, 12000);
+  await a.waitForTimeout(1300);
   const ta = await netText(a), tb = await netText(b);
   ok(/BitTorrent trackers \(connected; the Nostr relays could not be reached\)/.test(ta) && ta === tb, `the page says which path connected: "${ta}"`);
-  ok((await a.evaluate(() => window.__longWatch.self().net)) === "torrent", "the game's transport reports kind torrent");
+  ok((await a.evaluate(() => window.__longWatch.self().net)) === "both", "the game's transport reports kind both");
   ok(tracker.swarmSizes().some(n => n === 2), `the tracker saw both players in one swarm (${tracker.swarmSizes()})`);
   // Game traffic crosses the fallback path: A walks and B sees it.
   await a.locator("#view").focus();
@@ -105,7 +108,7 @@ ok(pickTestRelay("?tracker=ws://127.0.0.1:9000") === null, "?relay= does not rea
   const aNow = await a.evaluate(() => window.__longWatch.self());
   ok(await waitFor(b, ([x, y]) => { const p = window.__longWatch.peers()[0]; return p && Math.hypot(p.x - x, p.y - y) < 0.05; }, [aNow.x, aNow.y], 8000), "B sees A walk over the BitTorrent path");
   const idA = (await a.evaluate(() => window.__longWatch.self())).id, seenByB = (await b.evaluate(() => window.__longWatch.peers()[0].id));
-  ok(typeof idA === "string" && idA === seenByB, "the id A had after the switch is the id B sees (the id survives the switch)");
+  ok(typeof idA === "string" && idA === seenByB, "the id A has is the id B sees");
   await a.click("#leave");
   ok(await waitFor(b, () => window.__longWatch.peers().length === 0, null, 8000), "when A leaves, B no longer shows A");
   await close(); tracker.close();
@@ -121,11 +124,11 @@ ok(pickTestRelay("?tracker=ws://127.0.0.1:9000") === null, "?relay= does not rea
   ok(seen, `the two pages find each other through the relay (${seen ? ((Date.now() - t0) / 1000).toFixed(1) + " s" : "gave up"})`);
   await waitFor(a, () => { const s = window.__longWatch.netStatus(); return !!s && s.path !== null; }, null, 5000);
   const sa = await ns(a);
-  ok(sa.path === "nostr" && sa.switches === 0 && sa.tried.length === 1, `connected on nostr with no switch: ${JSON.stringify({ path: sa.path, switches: sa.switches, tried: sa.tried })}`);
-  await a.waitForTimeout(8500); // longer than the try window: nothing may move to the tracker once connected
+  ok(sa.path === "nostr" && sa.open.join() === "nostr", `connected on nostr: ${JSON.stringify({ path: sa.path, open: sa.open })}`);
+  await a.waitForTimeout(8500); // longer than the try window: the dead tracker path must not disturb the pair
   const sa2 = await ns(a);
-  ok(sa2.path === "nostr" && sa2.switches === 0 && (await a.evaluate(() => window.__longWatch.peers().length)) === 1, "after 8.5 more seconds still on nostr, still together");
-  ok(/^Nostr relays \(connected\)$/.test(await netText(a)), `the page says Nostr connected: "${await netText(a)}"`);
+  ok(sa2.path === "nostr" && sa2.paths.torrent === "unreached" && (await a.evaluate(() => window.__longWatch.peers().length)) === 1, "after 8.5 more seconds still on nostr, the trackers reported unreached, still together");
+  ok(/^Nostr relays \(connected; the BitTorrent trackers could not be reached\)$/.test(await netText(a)), `the page says Nostr connected: "${await netText(a)}"`);
   await close(); relay.close();
 }
 
@@ -133,11 +136,11 @@ ok(pickTestRelay("?tracker=ws://127.0.0.1:9000") === null, "?relay= does not rea
 {
   const q = `?relay=${encodeURIComponent(dead)}&tracker=${encodeURIComponent(dead)}`;
   const { a, b, close } = await pair("C. Neither path reachable", q, 4);
-  const sw = await waitFor(a, () => { const s = window.__longWatch.netStatus(); return !!s && s.tried.length >= 2; }, null, 20000);
-  ok(sw, "after the try window the page moves on to the second path");
+  const sw = await waitFor(a, () => { const s = window.__longWatch.netStatus(); return !!s && s.exhausted; }, null, 20000);
+  ok(sw, "after the try window the page knows neither path could be reached");
   const s = await ns(a);
-  ok(s.path === null && s.relaysOpen === 0, "no path is reported as connected");
-  const said = await waitFor(a, () => /trying BitTorrent|Could not reach/.test(document.getElementById("status").textContent) && /BitTorrent trackers \(trying|neither/.test(document.getElementById("netkind").textContent), null, 10000);
+  ok(s.path === null && s.relaysOpen === 0 && s.open.length === 0, "no path is reported as connected");
+  const said = await waitFor(a, () => /Could not reach/.test(document.getElementById("status").textContent) && /neither/.test(document.getElementById("netkind").textContent), null, 10000);
   ok(said, `the page says what is happening: "${await statusText(a)}" / "${await netText(a)}"`);
   ok((await a.evaluate(() => window.__longWatch.peers().length)) === 0 && (await b.evaluate(() => window.__longWatch.peers().length)) === 0, "nobody sees anyone, and nothing crashes");
   await a.click("#leave");

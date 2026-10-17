@@ -32,7 +32,7 @@ lights burning), never player against player harm.
 |---|---|---|
 | Rendering | Plain Canvas 2D, no engine | A top-down tile island is the right shape for a slow co-operative RPG on phones: it is cheap to draw, needs no assets, no build and no download. three.js (the owner's suggestion) was considered; see below. |
 | Networking | Trystero 0.25.4 (MIT), vendored in `vendor/` | Serverless WebRTC with pluggable public signalling, end-to-end encrypted data channels, rooms, targeted sends, peer join/leave events. One small ES-module library with one dependency (`@noble/secp256k1` 3.2.0, MIT, for signing Nostr events). |
-| Signalling | Nostr relays (Trystero default, 5 of ~30 public relays at once) | Many independent public relays, no sign-up, no key; the most redundant of the free options per Trystero's own advice. Since milestone 13 the default is `auto`: if no Nostr relay socket opens within 7 s, the game leaves Nostr and joins the same room through public BitTorrent WebSocket trackers (Trystero's `torrent` strategy), alternating at most 5 times until one connects; the page shows which path connected. `?net=nostr` or `?net=torrent` pins one path. MQTT was not added: the torrent strategy already is a second independent family, and MQTT brokers have terms the open trackers do not. |
+| Signalling | Nostr relays (Trystero default, 5 of ~30 public relays at once) | Many independent public relays, no sign-up, no key; the most redundant of the free options per Trystero's own advice. Since milestone 18 the default is `auto`: the game joins the same room through Nostr relays and through public BitTorrent WebSocket trackers (Trystero's `torrent` strategy) at the same time and treats a peer heard on either as one player (from milestone 13 to 17 it tried Nostr first and switched to the trackers after 7 s, and players on different paths could not meet). The page shows which paths are open. `?net=nostr` or `?net=torrent` pins one path. MQTT was not added: the torrent strategy already is a second independent family, and MQTT brokers have terms the open trackers do not. |
 | Shared world | Generated from a fixed seed (`js/world.js`) | Everyone gets the same island without sending it. Only exactly-rounded arithmetic is used (no `Math.sin`/`exp`/`pow`), so the tiles are identical in every JS engine; the tests compare a fingerprint. |
 | Save | `localStorage` key `vigil.longwatch.v1` (seed and position) | "Saved only in your browser", as the landing promises. `?net=local` uses `sessionStorage` so two test tabs are two different players. |
 
@@ -67,7 +67,17 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   about a dozen players. Later: when a room is full, suggest the next lantern.
 - **Transport interface** (`js/net/transport.js`): `send(msg, peerId?)`, `onMessage`, `onPeerJoin`,
   `onPeerLeave`, `status()`, `leave()`. Messages are small JSON objects; one Trystero action `"m"` carries them,
-  with a kind field `k`. Implementations: `local.js` (BroadcastChannel), `trystero.js` (Nostr or torrent), `auto.js` (tries one, then the other).
+  with a kind field `k`. Implementations: `local.js` (BroadcastChannel), `trystero.js` (Nostr or torrent), `auto.js` (the default since milestone 18: both paths at once, one room; see below).
+- **One room across both paths** (`js/net/auto.js`, milestone 18). In one page both Trystero strategies share one peer id, so a
+  player on both paths is the same id on each. The wrapper keeps `links: id -> [paths]`: a peer is announced to the game on
+  its first link and reported gone when its last link goes; we send each message once per peer, on its first link (a
+  broadcast is one send per known peer, not one per path); a message is accepted from whichever link it arrives on. So
+  nothing is delivered twice because two links exist (checked locally in both.test.mjs). Each path's watchdog rebuilds a path whose peer stays silent for 8 s,
+  and a second link carries no game traffic, so on every second link a tiny `{k:"ln"}` keepalive goes out every 2 s and is
+  dropped on arrival (without it the second link was torn down and rebuilt every 9 s in the first test). Players on one
+  path only meet each other and every both-path player; a Nostr-only and a BitTorrent-only player do not see each other
+  (nothing is relayed). Players shown per room stay `MAX_PEERS` (presence.js, counted by id, so a double link counts once; the network links themselves are not capped separately). The BitTorrent
+  path is slow to link: about 15 to 25 s on the local tracker.
 - **Authority.** Each player is the sole authority over their own avatar and inventory. Others draw what that
   player last reported (eased toward it, snapping if it jumps more than 4 tiles). No one can move or change
   someone else's character.
@@ -317,7 +327,7 @@ game/
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
   js/net/trystero.js    Trystero transport (nostr, torrent); link watchdog and offer-renewal fix
-  js/net/auto.js        the default transport: Nostr first, BitTorrent trackers if no relay opens in 7 s (one transport object whose kind is the current path)
+  js/net/auto.js        the default transport: Nostr and BitTorrent at once, one peer list (first link wins, keepalive on the second link)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
   tests/talk.test.mjs      Playwright: phrases, gestures, cooldowns, forged messages, edge arrows (local and WebRTC)
@@ -333,7 +343,8 @@ game/
   tests/craftgive.test.mjs node checks of giving wicks and lanterns on a fake mesh (every cap full and expired, a peer leaving, every message dropped or either side restarted, the lantern in hand), then local and WebRTC pages: Give buttons, full stack declined, a held lantern given, take-back, a player leaving
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
   tests/tracker-server.mjs minimal BitTorrent WebSocket tracker (announce, offers, answers) used by the fallback test
-  tests/fallback.test.mjs  flags, then real WebRTC: Nostr dead and tracker alive (falls back, page says so, game traffic crosses), Nostr alive (no switch), both dead, `?net=torrent` by hand
+  tests/fallback.test.mjs  flags, then real WebRTC: Nostr dead and tracker alive (they meet over the tracker, page says so), Nostr alive and tracker dead, both dead, `?net=torrent` by hand
+  tests/both.test.mjs      one room across both paths: Nostr-only, BitTorrent-only and two both-path pages; nothing counted twice (phrase, gifts, beacon shares)
   tests/clock.test.mjs     node checks of the `ck` message, words and note, the module on a fake mesh (repeat, resend, strangers, floods, leaving), then local and WebRTC pages: a clock 180 s ahead is named on both pages, 4 s is not, the note goes when the player leaves
   tests/loop.mjs           runs test files N times each, one at a time, and prints one exact `name passed/N` line per file (`node game/tests/loop.mjs 5 beacon talk`; no names means every file)
 ```

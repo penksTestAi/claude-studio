@@ -85,6 +85,12 @@ working features.
 - **17. The clock check.** Done 2026-10-16, local relay only. Each browser tells the lantern its device clock (one number, `ck`)
   and shows a plain note naming the player whose clock differs most from its own by 10 s or more (`CLOCK_WARN_S`), because shades,
   weather, the night hour and the keeper's day all assume clocks agree. It corrects nothing; it only says so. Tested in `clock.test.mjs`.
+- **18. One room across both paths.** Done 2026-10-17, local relay and tracker only. The default `auto` joins the lantern through the Nostr
+  relays and the BitTorrent trackers at once; a peer heard on both counts once (the first link wins and is the one sent on, the
+  second is kept in case the first drops and carries a small keepalive); the page says which paths are open. A Nostr-only and a
+  BitTorrent-only player still do not see each other (nothing is relayed); both see every player on both. Tested in
+  `both.test.mjs` with three pages (and a fourth) against a relay and a tracker on 127.0.0.1; public relays and trackers are
+  unreachable from the sandbox, so online play stays untested.
 
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
@@ -124,12 +130,7 @@ working features.
 ## Later (in rough order, each one run)
 **Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
 
-18. **NEXT: One room across both paths.** Players who reached the game through the BitTorrent trackers and players on
-    the Nostr relays cannot meet (milestone 13). When both paths open, join the lantern on both and treat a peer heard on
-    either as one player (by seed, the first link wins; the other is ignored), so everyone in "Lantern 3" meets. Say on the
-    page which paths are open. Test locally with a relay and a tracker on 127.0.0.1: one page on each path only, a third on
-    both, all three see each other, and nothing is counted twice (gifts, shares). Caps: peers per room still `MAX_PEERS`.
-19. **The jetty's fishing (gameplay, good alone, better together).** Cast from the jetty or the shore with a short preset
+19. **NEXT: The jetty's fishing (gameplay, good alone, better together).** Cast from the jetty or the shore with a short preset
     timing press; fish come and go as a pure function of the seed and the clock (nothing sent about where); two players
     fishing within a few tiles of each other draw a shoal in for both. A catch is a new pack item ("lamp oil" from fish,
     burns as 3 fuel in a beacon, can be given). Every cap tested full (stack, beacon share), reduced motion respected.

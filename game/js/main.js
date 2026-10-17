@@ -80,14 +80,19 @@ markRoom();
 $("you").textContent = me.name;
 $("you").style.setProperty("--c", me.colour);
 const PATH_NAME = { nostr: "Nostr relays", torrent: "BitTorrent trackers" };
+const PATH_PAIR = "Nostr relays and BitTorrent trackers";
 function paintPath(s) {
   let t;
   if (netKind === "local") t = "local test mode (tabs of this browser only)";
-  else if (!s) t = netKind === "auto" ? "Nostr relays, or BitTorrent trackers if those cannot be reached" : PATH_NAME[netKind];
+  else if (!s) t = netKind === "auto" ? `${PATH_PAIR} (both are used at once)` : PATH_NAME[netKind];
   else if (netKind !== "auto") t = `${PATH_NAME[netKind]}${s.relaysOpen ? " (connected)" : " (not reached)"}`;
-  else if (s.path) t = `${PATH_NAME[s.path]} (connected${s.path === "torrent" ? "; the Nostr relays could not be reached" : ""})`;
+  else if (s.open.length === 2) t = `${PATH_PAIR} (both connected)`;
+  else if (s.open.length === 1) {
+    const o = s.open[0], other = o === "nostr" ? "torrent" : "nostr";
+    t = `${PATH_NAME[o]} (connected; ${s.paths[other] === "trying" ? `${PATH_NAME[other]} still being tried` : o === "torrent" ? "the Nostr relays could not be reached" : "the BitTorrent trackers could not be reached"})`;
+  }
   else if (s.exhausted) t = "neither Nostr relays nor BitTorrent trackers could be reached";
-  else t = s.tried.length > 1 || s.trying === "torrent" ? "BitTorrent trackers (trying; the Nostr relays could not be reached)" : "Nostr relays (trying)";
+  else t = `${PATH_PAIR} (trying)`;
   if ($("netkind").textContent !== t) $("netkind").textContent = t;
 }
 paintPath(null);
@@ -105,6 +110,7 @@ const pinnedHour = pickHour(location.search);
 const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain (tests, screenshots); otherwise from the seed and the clock
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
+const tapCounts = {};
 let rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
@@ -119,6 +125,7 @@ async function enter() {
     $("enter").disabled = false;
     return;
   }
+  if (onLoopback) { for (const k of Object.keys(tapCounts)) delete tapCounts[k]; net.onMessage((m) => { if (m && typeof m.k === "string" && m.k.length <= 8 && Object.keys(tapCounts).length < 40) tapCounts[m.k] = (tapCounts[m.k] | 0) + 1; }); } // tests only: how many messages of each kind reached the game
   presence = createPresence(net, world, me, updatePeers);
   talk = createTalk(net, me, presence.peers, (p, id) => { $("heard").textContent = `${p.name}: ${PHRASES[id]}`; });
   gather = createGather(net, world, me, presence.peers, nodes, { respawn: respawnPin, onEvent: gatherEvent, inv });
@@ -577,8 +584,8 @@ function updateStatus() {
   let line;
   if (n > 0) line = n === 1 ? "1 other player is here with you." : `${n} other players are here with you.`;
   else if (net.kind === "local") line = "No one else yet. Open this page in another tab with the same room to meet yourself.";
-  else if (s.relaysOpen === 0) line = performance.now() - joinedAt < 8000 ? "Connecting to the signalling relays…" : s.exhausted ? "Could not reach any signalling relay or tracker. Your network may block them; the island is still yours to walk." : s.tried && s.tried.length > 1 ? "Nostr relays could not be reached; trying BitTorrent trackers…" : "Could not reach any signalling relay yet. Your network may block them; the island is still yours to walk.";
-  else line = `No one else in this lantern yet (listening on ${s.relaysOpen} ${s.relaysOpen === 1 ? "relay" : "relays"}, ${PATH_NAME[net.kind] || "relays"}). Others appear here when they enter the same lantern. Players meet only others who connected the same way.`;
+  else if (s.relaysOpen === 0) line = performance.now() - joinedAt < 8000 ? "Connecting to the signalling relays…" : s.exhausted ? "Could not reach any signalling relay or tracker. Your network may block them; the island is still yours to walk." : "Could not reach any signalling relay yet. Your network may block them; the island is still yours to walk.";
+  else line = `No one else in this lantern yet (listening on ${s.relaysOpen} ${s.relaysOpen === 1 ? "relay" : "relays"}, ${net.kind === "both" ? s.open.map(k => PATH_NAME[k]).join(" and ") : PATH_NAME[net.kind] || "relays"}). Others appear here when they enter the same lantern.${net.kind === "both" ? " A player who is on only one of the two ways meets you, but not a player who is only on the other." : " Players meet only others who connected the same way."}`;
   paintPath(s);
   $("status").textContent = line;
 }
@@ -596,6 +603,8 @@ window.__longWatch = {
   light: () => lightNow(),
   sky: () => skyAt(world, shadeNow(), pinnedWeather),
   hud: () => ({ rebuilds: net ? net.status().rebuilds | 0 : 0, where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
+  taps: () => ({ ...tapCounts }), // tests only (kept empty on the live site)
+  peerLinks: () => (net && net.peerLinks ? net.peerLinks() : {}),
   linkHistory: () => net ? (net.status().history || []) : [],
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),
   peers: () => presence ? [...presence.peers.values()].map(p => ({ id: p.id, name: p.name, seed: p.seed, x: p.tx, y: p.ty, say: p.say ? p.say.id : null, emote: p.emote ? p.emote.id : null })) : [],

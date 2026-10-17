@@ -34,9 +34,9 @@ What the studio is reaching for right now. The advisor reads this before writing
   (Star Hop), a sound tool (Colours of Noise), a purely visual piece (Moiré), a perception piece that measures
   its own pixels (Lightness Illusions), a codebreaking piece (Breaking Vigenère), a life-science piece (Typos in the
   Genetic Code), a social-choice piece (When Voting Methods Disagree), an optics piece (Why the Rainbow Sits at
-  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch) and a
-  medical-statistics piece (When a Positive Test Is Wrong) now exist, so check the piece table
-  before calling a kind "missing".
+  42°), an earth-science piece (Locating a Quake), an engineering piece (Hanging Chain, Standing Arch), a
+  medical-statistics piece (When a Positive Test Is Wrong) and a personal-finance piece (A Loan's Slow Start) now
+  exist, so check the piece table before calling a kind "missing".
 - Tea or Cha is checked against WALS (29 of 31 match), Star Hop's 51 stars against HYG (all match) and Element
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
   source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
@@ -131,8 +131,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   proposal is done: `game/tests/loop.mjs` (2026-10-17 02:00) prints exact pass counts and helped the tester. Time is
   still the cost: 2 h 40 min (10-16 01:45), 35 min of loop waiting and a nudge (11:20), and at 10-17 02:00 the Opus
   founding-mode builder took about 76 min of a 3 h 40 min run, mostly waited on, and the tester (about 22 min)
-  again handed back an interim "waiting on background work" result. Subagents' stop-hook reminders are noise for
-  them (they report to the chair); the routine could turn that hook off for subagents.
+  again handed back an interim "waiting on background work" result; at 10-17 08:32 the game builder took about
+  107 min and the tester about 17. Stop-hook reminders about uncommitted changes are noise mid-run (subagents report
+  to the chair; the chair commits only at the end, 08:32 again); the routine could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
@@ -151,15 +152,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now gives a restore or fix its own CHANGELOG entry, greps game/*.md and
-  game/index.html for a feature whose status changed, and keeps change notes out of the Workbench sentence; the
-  watchdog restore had no CHANGELOG entry, the change note sat in the description (review) and a stale paragraph
-  stayed on game/index.html (tester).
-- 2026-10-16: Direction updated; Lamplight Mono makes the first font, so "font" leaves the "not yet made" list.
-  Status-words experiment not judged (three runs; review found a tense and a change note, no overclaim).
-- 2026-10-16: vigil-piece skill now limits each verdict to what its branch tested ("none found among ...", not
-  "fails") and lists ignored factors beside it; Arch's "fails" and "different line" verdicts overclaimed (review
-  only). Status-words experiment not judged (four runs; review found these plus "nobody can finish alone").
 - 2026-10-16: proposal for the owner: game_patchnotes.py should reject or report non-`###` CHANGELOG headings; the
   watchdog restore note, written under `##`, vanished from the patch notes (review only).
 - 2026-10-16: Direction updated; Hanging Chain, Standing Arch adds engineering. Not acted on: after review fixes only
@@ -262,3 +254,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   search-summary caveats and two weak rows in the tally were all review only. Not acted on: game builder about 62 min
   and thin tester/security hand-backs (game-loop proposal stands). Caveat-grep experiment not judged (four runs; only
   reflowed text this run).
+- 2026-10-17: vigil-advisor skill now has the brief name a fallback for any check that needs a fetched page; at
+  08:32 the brief's 10-row published-table comparison was impossible (every fetch failed), the piece builder stopped
+  and asked, and the chair chose five search-summary figures labelled "not done" (a round trip; dewpoint and contrast
+  hit the same block). Not acted on: `living` test flakes 1 in 5 (also on the previous commit), cause unfound and
+  recorded in the CHANGELOG; three parallel builders worked again; review's two optional notes taken.
+- 2026-10-17: game-loop proposal updated (game builder about 107 min, tester about 17; stop hook nagged about
+  uncommitted changes mid-run). Caveat-grep experiment not judged (five runs; only reflowed sentences).
+- 2026-10-17: Direction updated; A Loan's Slow Start adds personal finance.

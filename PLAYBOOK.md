@@ -88,11 +88,12 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   from an experiment: since Element Timeline no review found an unflagged wrong data value).
 - Before review, each builder lists its status words and checks each against evidence: "Fixed" needs a test that
   failed before and passes now; "first", "only", "never", "keeps", "intact" are checked against the piece table,
-  code or a test; a licence names code and data separately; each statistic says what was counted and what chance it
-  means; a known limit or roadmap line is checked against this run's own measurements; "now" is cut from text that
-  stays up (pages, DESIGN, ROADMAP, summaries). After any later edit (a security fix, a review fix), re-read the
-  words that describe the edited thing (promoted from an experiment; review still finds some each run, such as
-  "intact" after an edited comment, and at 19:17 a known limit contradicting the measured contrast and "now").
+  code or a test; "published", "agree"/"agreement" and "every"/"all" need a fetched source or a test, and a value
+  from a search summary or memory says so where it is shown; a licence names code and data separately; each
+  statistic says what was counted and what chance it means; a known limit or roadmap line is checked against this
+  run's own measurements; "now" is cut from text that stays up. After any later edit, re-read the words that
+  describe the edited thing (promoted from an experiment; review still finds some each run: 19:17 a known limit
+  against the measured contrast; 21:39 ten notes, such as "published" for memory and "agreement" for a non-check).
 - Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
@@ -131,14 +132,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   19:17, the longest yet; testers 17-33 min, some with interim hand-backs. Stop-hook reminders about uncommitted
   changes are noise mid-run (the chair commits only at the end; every run since 08:32, all of 19:17); the routine
   could turn that hook off until then.
-- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
-  start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
-  meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
-  again (10-16 08:40: milestones 6-8 and a font) and a third time at 2026-10-17 20:50: the 19:17 run pushed its own
-  milestone 24 (7656c71, 17:17 UTC) during this run's 118 min game step, all dropped. In-run fetches only shorten the
-  loss; to prevent it, the chair pushes a claim at start (a `claim/<milestone>` branch or a dated lock file), and a
-  run finding a claim under about 4 h old builds the next milestone or skips the game. The start check should also
-  find the studio on `main` (19:17: HEAD detached at start).
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed to main mid-run
+  four times: 10-16 01:45 and 08:40 and 10-17 20:50 dropped game work (up to 118 min); at 21:39 a rebase conflict in
+  README, STUDIO, workbench, feed and sitemap was solved by keeping both sides and rerunning `site_meta.py`. In-run
+  fetches only shorten the loss; to prevent it, the chair pushes a claim at start (a `claim/<milestone>` branch or a
+  dated lock file), and a run finding a claim under about 4 h old builds the next milestone or skips the game. The
+  start check should also find the studio on `main` (19:17: HEAD detached at start).
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
   silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
   error on any other entry heading level, or print each skipped heading. It also drops every paragraph not labelled
@@ -154,16 +153,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: caveat experiment now also checks kept caveats against the record; the keeper kept "online play
-  untested" in six places though the owner had played online on an earlier build (review only). Keeper-passages
-  experiment not judged (two runs; the keeper flagged the stale protected Long Watch paragraph for the owner).
-- 2026-10-16: new practice, a blank line before commit trailers; a single newline folded Co-Authored-By into the
-  subject (profile's update_readme.py now strips it too). Not acted on: game builder ran every file once in about
-  16 min and the tester's time budget held (skill working); scanner still sees only tracked files (proposal stands).
-- 2026-10-16: vigil-game skill now re-checks caps at every step of an offer/accept/commit exchange, and keeps past
-  CHANGELOG entries and their caveats unless correcting a false statement; the tester found a stack filled between
-  offer and accept was not refused, and review found a v0.14 note stripped of "if their device clocks agree" and a
-  DESIGN line inserted mid-sentence. Caveat experiment not judged (three runs; this dropped caveat counts against it).
 - 2026-10-16: new experiment, builders run in parallel; toy, piece and game ran at once at 17:00 with no clash.
 - 2026-10-16: game-loop proposal updated (17:00: most of the 29 min game step was 5x loops). Not acted on: talk.test
   cooldown check still fails some runs, cause unknown (named in the journal as the practice asks); "five payoffs"
@@ -267,3 +256,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-17: overlap proposal updated with the third occurrence and a concrete claim-at-start design. Not acted on:
   dawn test 5/5 builder vs 2/3 tester (work discarded; flaky-test practice already applies); review's "births fall"
   slip (status-words practice); piece refiner's page-number check (refine skill working).
+- 2026-10-17: vigil-game skill now has testers run one file per command, log each count to tester.log and never send
+  an interim hand-back; at 21:39 the Haiku tester waited about 20 min on one 24-file batch, handing back interim
+  reports. Tester-log experiment not judged (three runs; the log gave all 24 counts this time).
+- 2026-10-17: status-words practice now asks a fetched source or test for "published", "agreement" and "every"/"all",
+  and labels search-summary or memory values where shown; 21:39 review made ten wording fixes, with all fetches failed.
+- 2026-10-17: overlap proposal shortened and updated with a fourth concurrent push (21:39 rebase conflict, solved by
+  keeping both sides and rerunning site_meta). Not acted on: stop-hook noise while waiting (game-loop proposal stands).

@@ -98,8 +98,11 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    Report the loop's own count lines, never output cut by `tail`. Every test file runs at least once in every run,
    roadmap reviews included; when time is short, cut the repeats (5x to 1x) before cutting a file, and list any file
    not run as "not run" in the report and CHANGELOG (2026-10-16 11:20: the builder skipped 5 files for time and
-   reported none of them; the tester found beacon 0/3). Hand the report back as soon as the work is done, and only
-   with a count for every file. Builders and testers alike run each file's loop as one foreground command with a
+   reported none of them; the tester found beacon 0/3). Hand the report back once, as soon as the work is done, and
+   only with a count for every file; never send an interim hand-back. Testers run one file per command, never one
+   batch command for all files, and append each count to the `tester.log` the chair's brief names as it arrives
+   (2026-10-17 21:39: a 24-file batch at about 50 s a file kept the Haiku tester waiting about 20 min, sending
+   interim hand-backs). Builders and testers alike run each file's loop as one foreground command with a
    timeout of at most 10 minutes, never under `nohup` or `&` or as a detached script whose end they cannot see, and
    never poll or sleep between checks (2026-10-16 22:52: the Haiku tester started a nohup script, handed back
    incomplete twice and ended with no report; the chair had to read the logs). Time-box a failure you cannot explain: after about

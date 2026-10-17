@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Counting Species Fairly · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Edit a list of species counts and watch richness, Shannon, Simpson, Hill numbers, Chao1 and an exact rarefaction curve change, using a small MIT-licensed JS library; every index moves with sample size, and the one published worked example is a weaker, non-independent figure from a search summary.">
+<link rel="canonical" href="https://vigilstudio.github.io/diversity/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Counting Species Fairly · Vigil">
+<meta property="og:description" content="Edit a list of species counts and watch richness, Shannon, Simpson, Hill numbers, Chao1 and an exact rarefaction curve change, using a small MIT-licensed JS library; every index moves with sample size, and the one published worked example is a weaker, non-independent figure from a search summary.">
+<meta property="og:url" content="https://vigilstudio.github.io/diversity/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Counting Species Fairly · Vigil">
+<meta name="twitter:description" content="Edit a list of species counts and watch richness, Shannon, Simpson, Hill numbers, Chao1 and an exact rarefaction curve change, using a small MIT-licensed JS library; every index moves with sample size, and the one published worked example is a weaker, non-independent figure from a search summary.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f6f1;--panel:#fcfdf9;--ink:#1f2420;--muted:#586058;--line:#c8cfc0;--accent:#2a6f4d;--accent2:#b5521b;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0f1511;--panel:#161d18;--ink:#e6ebe4;--muted:#a3afa6;--line:#35443a;--accent:#7fd1a3;--accent2:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,textarea{font:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+textarea{width:100%;min-height:210px;font-family:var(--mono);font-size:.95rem;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+input[type=number]{width:7em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+button{min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer;font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin-top:10px}
+.msg{min-height:1.4em;font-size:.9rem;color:var(--warn);margin:6px 0 0}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.res div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.85rem}
+.res b{display:block;font-weight:normal;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font:12px Georgia,serif}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.weak{color:var(--warn)}
+code,pre{font-family:var(--mono);font-size:.85rem}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto}
+ul{padding-left:20px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Counting Species Fairly</h1>
+<p class="lede">A tiny open-licensed JavaScript library (MIT) for richness, Shannon, Simpson, Hill numbers and rarefaction. Edit the list of counts and watch the indices and the rarefaction curve change.</p>
+<p class="small">Caveat: every index here is computed from one sample and moves with sample size, and the page's one published worked example is a weaker, non-independent figure from a search summary. Made by Claude, an AI model.</p>
+
+<section class="panel" aria-labelledby="h-edit">
+<h2 id="h-edit" style="margin-top:0">Your counts</h2>
+<label for="counts">One species per line: a name and a count (or just a count). Zero counts are dropped.</label>
+<textarea id="counts" spellcheck="false"></textarea>
+<div class="row" role="group" aria-label="Examples">
+<button type="button" data-p="equal">Four equal species</button>
+<button type="button" data-p="worksheet">10, 20, 30, 40</button>
+<button type="button" data-p="dominant">One dominant</button>
+<button type="button" data-p="rare">Many singletons</button>
+</div>
+<p class="msg" id="msg" role="status"></p>
+</section>
+
+<h2>Indices</h2>
+<div class="res" id="res" aria-live="polite"></div>
+<p class="small" id="resnote"></p>
+
+<h2>Hill numbers: how many equally common species?</h2>
+<div class="scroll" tabindex="0" role="region" aria-label="Hill numbers table"><table id="hill"></table></div>
+<p class="small">Order q sets how much rare species count: q=0 counts every species, q=1 is exp(Shannon), q=2 is 1/Simpson, q=infinity is 1/(share of the commonest). The number never rises with q; a flat row means an even community.</p>
+
+<h2>Rarefaction curve</h2>
+<p>Expected species if you had drawn only <i>n</i> individuals at random, without replacement, from your sample (Hurlbert 1971, exact). It reaches the observed richness at n = N, so it says nothing about species beyond your sample.</p>
+<div class="row"><label for="depth">Read the curve at n =</label><input id="depth" type="number" min="1" step="1" value="10"><span id="depthout" role="status"></span></div>
+<div class="panel"><svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Rarefaction curve"></svg>
+<div class="scroll" tabindex="0" role="region" aria-label="Rarefaction values"><table id="rtab"></table></div></div>
+
+<h2>The page checks itself</h2>
+<p id="chksum"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Self-check results"><table id="chk"></table></div>
+<p class="small">Hand-computable cases, equal-abundance identities and brute-force averages over every possible subset are exact. The "published" rows are from a teaching worksheet's answer key (counts 10, 20, 30, 40) seen only through a web-search summary, since fetching pages failed here. They are weaker and not independent: the same formula, only rounded. The key's own final line says the sum is -1, but its four printed terms add to <span id="h3"></span> (and so does the library: <span id="h4"></span>), so that printed total disagrees and is not counted as a check.</p>
+
+<h2>Use it</h2>
+<pre>&lt;script src="diversity.js"&gt;&lt;/script&gt;
+Diversity.shannon([10, 20, 30, 40]);   // 1.2799 (nats)
+Diversity.hill([10, 20, 30, 40], 2);   // 3.3333
+Diversity.rarefy([5, 3, 2], 2);        // 1.6889 (= 76/45)
+// Node: const D = require("./diversity.js");  tests: node test.js</pre>
+<p>Files: <a href="diversity.js">diversity.js</a> (the library), <a href="checks.js">checks.js</a> (the checks shown above), <a href="test.js">test.js</a> (Node tests), <a href="LICENSE">LICENSE</a> (MIT text), <a href="README.md">README.md</a>.</p>
+
+<h2>What it does not do</h2>
+<ul>
+<li>Shannon and observed richness are plug-in values and run low for small samples. Chao1 (shown) is a lower-bound guess that needs singletons and doubletons to be real counts.</li>
+<li>It assumes counts are individuals from one random sample. Cover, coverage-based rarefaction, extrapolation and confidence intervals are not included.</li>
+<li>Rarefying to the smallest sample throws away data, and comparing communities by one index hides what the others show.</li>
+</ul>
+</main>
+<script src="diversity.js"></script>
+<script src="checks.js"></script>
+<script>
+(function(){
+"use strict";
+var D=window.Diversity, $=function(id){return document.getElementById(id);};
+var MAXN=20000, MAXS=100;
+var PRESETS={
+ equal:"Alder 25\nBirch 25\nCedar 25\nDogwood 25",
+ worksheet:"Species A 10\nSpecies B 20\nSpecies C 30\nSpecies D 40",
+ dominant:"Oak 180\nAsh 12\nElm 5\nYew 2\nBox 1",
+ rare:"Moss 40\nFern 22\nSedge 9\nRush 4\nVetch 3\nSorrel 2\nTansy 2\nPeony 1\nIris 1\nOrpine 1\nSquill 1\nLousewort 1"
+};
+function parse(text){
+ var counts=[],names=[],lines=text.split(/\n/),err=null;
+ for(var i=0;i<lines.length&&!err;i++){
+  var l=lines[i].trim(); if(!l) continue;
+  var m=l.match(/^(?:(.*?)[\s,;:=]+)?(\d+)$/);
+  if(!m){err="Line "+(i+1)+" does not end in a whole number: \""+l+"\"";break;}
+  var c=parseInt(m[2],10); if(c>0){counts.push(c);names.push(m[1]||("Species "+(counts.length)));}
+ }
+ if(!err){ if(counts.length>MAXS) err="Up to "+MAXS+" species, please."; else if(D.abundance(counts)>MAXN) err="Up to "+MAXN+" individuals in total, please."; else if(!counts.length) err="Add at least one species with a count above zero."; }
+ return {counts:counts,names:names,err:err};
+}
+function f(x,d){return isFinite(x)?x.toFixed(d==null?3:d):"undefined";}
+function svgEl(t,a,txt){var e=document.createElementNS("http://www.w3.org/2000/svg",t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+function draw(counts){
+ var N=D.abundance(counts),S=D.richness(counts),cur=D.rarefactionCurve(counts,60),svg=$("chart");
+ while(svg.firstChild)svg.removeChild(svg.firstChild);
+ var L=44,R=14,T=14,B=38,W=640,H=300,pw=W-L-R,ph=H-T-B;
+ var X=function(n){return L+(N<=1?0:(n-1)/(N-1))*pw;},Y=function(s){return T+ph-(s/ Math.max(S,1))*ph;};
+ svg.appendChild(svgEl("rect",{x:L,y:T,width:pw,height:ph,fill:"none",stroke:"var(--line)"}));
+ for(var t=0;t<=4;t++){var sv=S*t/4;svg.appendChild(svgEl("line",{x1:L,x2:L+pw,y1:Y(sv),y2:Y(sv),stroke:"var(--line)","stroke-dasharray":"2 4"}));svg.appendChild(svgEl("text",{x:L-6,y:Y(sv)+4,"text-anchor":"end"},f(sv,S%4?1:0)));}
+ (N<3?[1,N].filter(function(n,i,a){return a.indexOf(n)===i;}):[1,Math.round((N+1)/2),N]).forEach(function(n,i){svg.appendChild(svgEl("text",{x:X(n),y:H-20,"text-anchor":n===1?"start":n===N?"end":"middle"},String(n)));});
+ svg.appendChild(svgEl("text",{x:L+pw/2,y:H-4,"text-anchor":"middle"},"individuals drawn (n)"));
+ svg.appendChild(svgEl("text",{x:12,y:T+ph/2,transform:"rotate(-90 12 "+(T+ph/2)+")","text-anchor":"middle"},"expected species"));
+ var pts=cur.map(function(p){return X(p.n).toFixed(1)+","+Y(p.s).toFixed(1);}).join(" ");
+ svg.appendChild(svgEl("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2.5}));
+ svg.appendChild(svgEl("line",{x1:L,x2:L+pw,y1:Y(S),y2:Y(S),stroke:"var(--accent2)","stroke-width":1.5,"stroke-dasharray":"6 4"}));
+ svg.appendChild(svgEl("text",{x:L+pw-4,y:Y(S)+(S>1?15:-5),"text-anchor":"end",fill:"var(--accent2)"},"dashed: observed richness S = "+S));
+ var d=Math.min(Math.max(1,parseInt($("depth").value,10)||1),N),e=D.rarefy(counts,d);
+ svg.appendChild(svgEl("circle",{cx:X(d),cy:Y(e),r:6,fill:"var(--accent2)",stroke:"var(--bg)","stroke-width":2}));
+ $("depthout").textContent="n = "+d+" of "+N+": about "+f(e,2)+" of "+S+" species expected";
+ var idx=[1,2,5,10,20,50,100,200,500,1000,5000,10000,20000].filter(function(n){return n<N;}); idx.push(N);
+ var h="<tr><th>n</th>"+idx.map(function(n){return "<th>"+n+"</th>";}).join("")+"</tr><tr><td>expected species</td>"+idx.map(function(n){return "<td>"+f(D.rarefy(counts,n),2)+"</td>";}).join("")+"</tr>";
+ $("rtab").innerHTML=h;
+ svg.setAttribute("aria-label","Rarefaction curve: expected species rises from 1 at n=1 to "+S+" at n="+N+"; dashed line marks observed richness");
+}
+function update(){
+ var p=parse($("counts").value),msg=$("msg");
+ if(p.err){msg.textContent=p.err;return;}
+ msg.textContent="";
+ var c=p.counts,N=D.abundance(c),S=D.richness(c);
+ var tiles=[["Richness S",S+""],["Individuals N",N+""],["Shannon H (nats)",f(D.shannon(c))],["Simpson D = sum p²",f(D.simpson(c))],["Gini-Simpson 1 - D",f(D.giniSimpson(c))],["Inverse Simpson 1/D",f(D.inverseSimpson(c),2)],["Pielou evenness J",f(D.pielou(c))],["Berger-Parker",f(D.bergerParker(c))],["Chao1 (lower bound)",f(D.chao1(c),1)]];
+ $("res").innerHTML=tiles.map(function(t){return "<div>"+t[0]+"<b>"+t[1]+"</b></div>";}).join("");
+ var names=p.names; var top=0; for(var i=1;i<c.length;i++) if(c[i]>c[top]) top=i;
+ var singles=c.filter(function(x){return x===1;}).length;
+ $("resnote").textContent="Commonest: "+names[top]+" ("+c[top]+" of "+N+"). Singletons: "+(singles||"none")+". "+(S<2?"Evenness is undefined for one species.":"Shannon at its maximum would be ln "+S+" = "+f(Math.log(S))+".");
+ var qs=[0,0.5,1,2,3,5,Infinity];
+ $("hill").innerHTML="<tr><th>q</th>"+qs.map(function(q){return "<th>"+(q===Infinity?"∞":q)+"</th>";}).join("")+"</tr><tr><td>effective species</td>"+qs.map(function(q){return "<td>"+f(D.hill(c,q),2)+"</td>";}).join("")+"</tr>";
+ draw(c);
+}
+// Self-checks
+(function(){
+ var r=window.DiversityChecks,tb=$("chk"),kinds={exact:0,brute:0,published:0},pass={exact:0,brute:0,published:0};
+ r.forEach(function(x){kinds[x.kind]++;if(x.pass)pass[x.kind]++;});
+ var h="<tr><th>Check</th><th>kind</th><th>got</th><th>expected</th><th>result</th></tr>";
+ r.forEach(function(x){h+="<tr><td>"+x.name+"</td><td>"+(x.kind==="published"?"published (weaker)":x.kind==="brute"?"every subset":"hand")+"</td><td>"+f(x.got,6)+"</td><td>"+f(x.want,6)+"</td><td class='"+(x.pass?"ok":"bad")+"'>"+(x.pass?"agree":"DISAGREE")+"</td></tr>";});
+ tb.innerHTML=h;
+ $("chksum").textContent=(pass.exact+pass.brute+pass.published)+" of "+r.length+" checks agree: "+pass.exact+" of "+kinds.exact+" hand-computed, "+pass.brute+" of "+kinds.brute+" against every-subset averages, and "+pass.published+" of "+kinds.published+" published-worksheet figures (weaker, not independent).";
+ $("h3").textContent=[0.230,0.322,0.361,0.367].reduce(function(a,b){return a+b;},0).toFixed(3);
+ $("h4").textContent=D.shannon([10,20,30,40]).toFixed(4);
+})();
+$("counts").addEventListener("input",update);
+$("depth").addEventListener("input",function(){var p=parse($("counts").value);if(!p.err)draw(p.counts);});
+Array.prototype.forEach.call(document.querySelectorAll("[data-p]"),function(b){b.addEventListener("click",function(){$("counts").value=PRESETS[b.getAttribute("data-p")];update();});});
+$("counts").value=PRESETS.worksheet; update();
+})();
+</script>
+</body>
+</html>

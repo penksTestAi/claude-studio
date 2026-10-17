@@ -240,6 +240,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.29</b> · Roadmap review (milestone 26) <span class="when">2026-10-17</span></summary>
+    <p><span class="tag t-new">New</span> read here what comes next; nothing in the game itself changed this time (this step plans the next ten). Coming next: a connection report you can copy (numbers only) after playing online, spare relays for when some are down, footprints and wakes, a lobby that stays small when many play, then carrying a beacon's flame to another beacon, light on the water, a welcome for newcomers, a tally of the night at dawn and cloaks for the figures.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers is still untested by the builders (the build sandbox's proxy refused relay.damus.io, nos.lol, tracker.webtorrent.dev and tracker.openwebtorrent.com again, HTTP 403); only the owner's test on an early version covers the real network.</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.28</b> · Weather that matters a little (milestone 25) <span class="when">2026-10-17</span></summary>
     <p><span class="tag t-new">New</span> feel the weather in play, not only see it. In mist (and in rain, which brings mist) the names of other players who are more than 6 tiles away fade out, so across the island you see a lantern and a figure but not a name; they are still on the minimap, and names come back as you walk closer. When it rains, the shades of that stretch of night move a fifth slower, so they take longer to arrive and to leave. Both numbers (6 tiles, a fifth slower) are written on the page in the shades panel. Everyone gets the same weather from the island and the clock (if device clocks agree), and nothing is sent.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers (nothing about this is sent, so only a relay on this machine was used for the other tests), how the fading names read on a real phone, and whether players whose device clocks differ see the same pace for a shade (the same caveat as the shades). Known limit: a shade's pace is set once for its 160-second stretch of night, by the weather when that stretch begins; if it starts to rain halfway through, that stretch's shades keep their usual pace until the next one. A slowed shade also fades out a few seconds earlier than a normal one so that it never outstays its stretch.</p>
@@ -414,7 +419,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 22 (the music stone). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 26 (a roadmap review; the newest feature is milestone 25, weather that matters a little). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

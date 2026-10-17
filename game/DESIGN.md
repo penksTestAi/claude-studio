@@ -314,6 +314,7 @@ frame with a shade on screen. Own drawing, no outside art.
   need TURN (some strict mobile or corporate networks) and each new feature over the real network until a person
   tries it.
 - **Re-checked 2026-10-16 (milestone 13):** relay.damus.io, nos.lol and the trackers tracker.webtorrent.dev, tracker.openwebtorrent.com, open.ftorrent.com and tracker.btorrent.xyz were tried again with a WebSocket upgrade request; the proxy answered 403 to CONNECT for every one. Neither public path is reachable from the sandbox, so neither was tested; the BitTorrent path was tested only against a tracker the test starts on 127.0.0.1 (`tests/tracker-server.mjs`).
+- **Re-checked 2026-10-17 (milestone 26, roadmap review):** relay.damus.io, nos.lol, tracker.webtorrent.dev and tracker.openwebtorrent.com: the proxy answered 403 to CONNECT for each. Still unreachable from the sandbox; online play over the public paths remains untested by the builders.
 - What *is* tested: the full real code path (vendored Trystero, Nostr signalling messages, WebRTC data channels
   in Chromium) between two separate browser contexts, with signalling through `tests/nostr-relay.mjs`, a tiny
   Nostr relay the test starts on 127.0.0.1 (the page accepts `?relay=` only for 127.0.0.1/localhost, and main.js ignores it entirely when the page itself is served from any other host, such as the live site). Only the

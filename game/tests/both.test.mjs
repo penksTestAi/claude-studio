@@ -103,6 +103,7 @@ await sleep(3000);
 const iW = await info(W); iZ = await info(Z); iX = await info(X); iY = await info(Y);
 ok(new Set(iZ.peers).size === 3 && new Set(iW.peers).size === 3 && iZ.peers.includes(idW) && iW.peers.includes(idZ), "no one is listed twice on Z or W");
 ok(iZ.links[idW].length === 2 && iW.links[idZ].length === 2 && iZ.st.links.both === 1 && iZ.st.links.single === 2, `Z: W is linked twice and counted once; two single links: ${JSON.stringify(iZ.st.links)}`);
+if (!(iZ.links[idW] && iZ.links[idW].length === 2 && iW.links[idZ] && iW.links[idZ].length === 2)) console.log("  diagnostics Z links", JSON.stringify(iZ.links), "W links", JSON.stringify(iW.links), "Z history", JSON.stringify(iZ.st.history), "W history", JSON.stringify(iW.st.history));
 ok(iX.peers.slice().sort().join() === [idZ, idW].sort().join() && iY.peers.slice().sort().join() === [idZ, idW].sort().join(), "X sees Z and W (not Y); Y sees Z and W (not X)");
 
 console.log("\n# nothing is counted twice");
@@ -164,6 +165,7 @@ ok([bx, by].every(b => b.fuel[0] === b.players[0] && b.players[0] >= 3 && b.play
 console.log("\n# links stay up");
 iZ = await info(Z);
 ok(iZ.st.history.filter(h => h[0] === "leave").length === 0, `no link on Z was dropped and rebuilt in about two minutes of play (events: ${iZ.st.history.length}, leaves: ${iZ.st.history.filter(h => h[0] === "leave").length})`);
+if (iZ.st.history.some(h => h[0] === "leave")) console.log("  diagnostics Z history (event, seconds since join, peer, path)", JSON.stringify(iZ.st.history), "ids X Y W", [idX, idY, idW].map(i => i.slice(0, 4)).join(" "), "rebuilds", JSON.stringify(iZ.st.rebuilds));
 ok(!("ln" in iZ.taps) && !("ln" in (await info(W)).taps), "the second-link keepalive never reaches the game");
 
 console.log("\n# leaving");

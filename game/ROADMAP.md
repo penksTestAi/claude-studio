@@ -2,7 +2,7 @@
 
 One milestone per run, in order. Each must work for several players at once and get a check in
 `tests/presence.test.mjs` (or a sibling test). Mark the next one with **NEXT**. A roadmap review is due after
-10 increments since the last one (last: 2026-10-16, milestone 16, after milestone 15; milestone 26 is the next one); it may rewrite everything below "done", never the
+10 increments since the last one (last: 2026-10-17, milestone 26, after milestone 25; milestone 37 is the next one); it may rewrite everything below "done", never the
 working features.
 
 ## Done
@@ -106,6 +106,10 @@ working features.
 - **24. Dawn and dusk (a look step).** Done 2026-10-17, nothing sent, so the network is unchanged; real phones untested. At hour 0 (dusk) and hour 7 (dawn) the whole map takes the sky's colour: the night layer's tint moves toward a cool blue at dusk and a grey at dawn (`WASH_MIX` 0.8 at full strength), the layer is up to 0.14 and 0.16 darker (`VEIL_ADD`), shadows are 0.35 longer at dusk and 0.7 longer at dawn (`SHADOW_STRETCH`), every lantern lays a warm pool on the ground (`GLOW_POOL` 0.40) so the lit area keeps its edge, and the sky strip has a glow band and a thin horizon line. `js/skyglow.js` (pure), drawn in `js/render.js`; `?look=plain` has none; reduced motion holds the horizon steady. Contrast measured on the canvas at dusk, midnight and dawn in `skyglow.test.mjs` (numbers in the CHANGELOG). Frame rates measured only in headless Chromium without a GPU.
 - **25. Weather that matters a little.** Done 2026-10-17, nothing sent. In mist (names begin to fade above `mist` 0.12 and are fully faded from `MIST_NAME_MIN` 0.35 up, which includes rain) the name of a player farther than `MIST_NAME_TILES` (6) tiles fades out over `MIST_NAME_FADE` (2) more tiles, as strongly as the mist is thick; they stay drawn and on the minimap. In rain at the start of a shade slot (160 s) that slot's shades travel `RAIN_SHADE_SLOW` (0.2) slower, so a fifth less speed; one pace per slot, decided by `shadePaceAt(seed, slot)`, every browser whose clock agrees gives the same pace. The page prints both numbers from the constants. Known limits: a slowed shade's life is cut to fit its slot (it fades out a few seconds earlier than a dry one would); the weather and the slot clock are each browser's own, so players whose clocks differ may disagree about a shade's pace (the same caveat as the shades); the shades' own test and the watch test now pin `?weather=clear`. Real phones untested.
 
+- **26. Roadmap review.** Done 2026-10-17: this file rewritten below "Done" from the CHANGELOG of milestones 16 to 25 (see
+  "Roadmap reviews"); the dawn and dusk test run 15 times in a row (15/15); `tests/both.test.mjs` now prints both pages' links and
+  link history when its link checks fail (it failed once this run, cause not found). Nothing players see changed.
+
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
   feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
@@ -140,45 +144,117 @@ working features.
   (5) Look steps (7, 11, 15) kept to one in three and stayed cheap in Canvas 2D; still no phone measurement, so the next
   look steps stay in 2D and each says what it costs.
   Rooms stay at 12 players (`MAX_PEERS` 11 others).
+- **2026-10-17 (milestone 26, after milestone 25; nine increments since the last review, held at 26 as the last plan
+  said).** What the CHANGELOG of milestones 16 to 25 taught:
+  (1) The "worked out from the seed and the clock, nothing sent" pattern carried most of this stretch: shadows (20), dawn
+  and dusk (24) and the weather's effects (25) send nothing, fishing sends one float tile (19) and the stone one note
+  number (22). The clock check (17) measures the caveat they share; it does not remove it, and fish, the stone's tune and
+  a rainy shade's pace joined the list of things players see differently when clocks differ.
+  (2) Multiplayer reach is now the largest open problem. One room across both paths (18) and the lobby (21) each added
+  links: a page in a lantern can now hold a link per peer per path plus a lobby link to everyone online on that path, and
+  the cost on a real phone and with many players online is unknown. Online play over the public relays and trackers is
+  still untested from the sandbox (this run: HTTP 403 on CONNECT again for relay.damus.io, nos.lol,
+  tracker.webtorrent.dev and tracker.openwebtorrent.com); the only real-network evidence is the owner's test on
+  milestone 1. Code cannot make the sandbox reach a relay, but it can make a real player's or the owner's visit produce
+  evidence (numbers only) and can survive dead relays, so the plan starts there (27, 28).
+  (3) Tests: 24 files, about 18 minutes for one pass (the runs' own times added up, this run). Flakes seen in this stretch: `both` (once in a
+  tester run at milestone 23, once in 11 runs this run, at the two link checks), `living` (the sky strip, 8/10 on old code
+  at milestone 20), `stone` (one second-round check, 1 in about 24), `craft` (a reload with the lobby joined at once, fixed by
+  `LOBBY_JOIN_DELAY_S`). The dawn test that failed (2 of 3 for one tester, 3 of 4 for the chair, 2026-10-17 20:50) belonged
+  to a milestone 24 that was never merged; the dawn and dusk test that is on main passed 15 of 15 this run, but its dawn
+  path check sits close to its floor (1.43 to 1.47 against 1.40), so a slower or different renderer could cross it.
+  Milestone 31 spends one run on these.
+  (4) Two runs lost their whole game step to another run pushing the same milestone (2026-10-16 01:45, 2026-10-17 20:50).
+  Keep increments small and fetch before building and before handing back.
+  (5) Look steps (20, 24) stayed cheap in Canvas 2D (shadows 0.2 to 0.5 ms a frame, headless); still no phone measurement,
+  so look steps stay in 2D and each says what it costs. Three of the next ten are look steps (29, 33, 36).
+  (6) Lone visitors now have fishing, the lobby hint and the stone, but most rewards still need two players; the next
+  gameplay items add things to do together that also help a newcomer find the others (32, 34, 35).
+  Rooms stay at 12 players (`MAX_PEERS` 11 others).
 
 ## Later (in rough order, each one run)
-**Open problem (not reproduced):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with `__longWatch.linkHistory()` and the machine's load.
-
-25. **Weather that matters a little.** Done 2026-10-17 (see the CHANGELOG and below).
-26. **NEXT: Roadmap review.** Read the CHANGELOG, rewrite this file from what was learned.
+27. **NEXT: A connection report (network).** A "Connection" line in the game panel, numbers only, from what the page
+    already holds: for each path, how many relays or trackers are open of how many tried (hosts from the code's own list,
+    never from a peer), how many players were met, how many links failed to open or were rebuilt; and a button that copies
+    the same numbers as plain text to the player's own clipboard (no peer data in it except counts) so the owner or a
+    player can paste it into a GitHub issue after a real online test. Add a short owner test checklist to DESIGN.md (two
+    devices on two networks, which lantern, what to copy). Test on local relays: the counts match what the test did, a
+    refused relay is counted as refused, nothing from a peer reaches the copied text. The page says plainly whether online
+    play over public relays has been tested, from the CHANGELOG.
+28. **Spare relays (network).** Name the Nostr relays and BitTorrent trackers in one list in the code (Trystero's defaults
+    plus a few free, no-sign-up spares, with where each came from), count each socket's opens and failures, and when fewer
+    than 2 relays are open after 10 s, try spares from the list. Test with local relays that refuse, close, or never answer;
+    the page shows how many are open. Public relays stay untested from the sandbox; say so.
+29. **Footprints and wakes (a look step).** Players leave fading footprints on sand and meadow and a small wake in
+    shallow water, drawn by each browser from positions it already receives (others' too), so a group's path across the
+    island can be read for a few seconds. Nothing sent; a cap on marks per player and on screen; reduced motion keeps
+    footprints but no rippling; measure the frame cost at 375 and 1100 px.
+30. **A lobby that does not grow without end (network).** Pages in a lantern leave the lobby room when they hear more than
+    a set number of others there (a constant in code), and rejoin when it is quiet; an asker still gets answers from those
+    who stay. Test with 14 or more local pages: links per page stay under the cap, the hint still names the busiest lantern.
+31. **Steadier tests (test health, nothing for players).** Look at each flake with the logs the tests now print: `both`
+    (which link dropped; the diagnostics added in milestone 26), `living` (which pixels of the sky strip differ), `stone` (the
+    second-round counts); give the dawn path check a margin it can keep (read until settled, median of five) and print the
+    margin. End with every file 5 times in a row; any failure is a bug until its cause is found, time-boxed to 45 minutes.
+32. **Carrying the flame (together).** A lit beacon's flame can be carried: a player beside a lit beacon takes a flame,
+    hands it to a player within 3 tiles (offer, accept, as with gifts, no item copied: the flame is one token per beacon
+    lighting), and a flame brought to an unlit beacon lights it with half the usual fuel, still from at least two players.
+    Every step re-checks range and caps; a holder who leaves drops the flame (it goes out, nothing lost). Test each step
+    with a peer leaving, a flame offered twice, a beacon lit meanwhile.
+33. **Light on the water (a look step).** Lanterns, lit beacons and the lit lighthouse lay wavering streaks on nearby
+    water, and the moon lays a path on the sea in the sky strip's direction; still under reduced motion; governor levels
+    cut it on slow devices; contrast of players and paths measured as in the dawn test.
+34. **Welcome a newcomer (together).** A player with no help points yet sees a soft marker toward the nearest player
+    with a rank in the same lantern (from the rank number already told to the room); when the two stand together for a
+    few seconds, the ranked player earns a help point (deed `welcome`, a gap so it cannot be farmed quickly). Nothing typed;
+    test with three pages, a reload, a modified rank.
+35. **The dawn tally (together).** At dawn every page in a lantern shows the same short tally of the night: beacons lit,
+    whether the lighthouse was lit, shades driven off, keeper's notes done and stone glows, worked out from the shared state
+    each browser already holds (shares are grow-only, so pages that heard the same messages agree; the page says so). Nothing
+    saved on a server; a test checks two pages agree and a late joiner's tally is labelled partial.
+36. **Cloaks and idle life (a look step).** Figures get a cloak in their lantern colour and the rank's gold trim, a
+    breath and a glance when standing still, and the lantern's flame inside the figure's hand; still under reduced
+    motion; screenshots at 375 and 1100 px; cost measured.
+37. **Roadmap review.** Read the CHANGELOG of 27 to 36, rewrite this file from what was learned.
 
 ## Known problems
-- `shades.test.mjs` failed once in a tester run (then passed) at "neither player was ever snuffed". The roadmap guessed
-  the start spots; a check of every 50 ms of that slot's two shades against the test's spots (at the pinned hour,
-  reach 3.6 tiles) found the friend's light always on the shade whenever it was within a tile of either player, so the
-  spots and the rule were not the cause. What the test did not control: the pages loaded on the real clock and stood
-  at the arrival point while connecting, where a shade of whatever slot the run fell in could snuff a lone page (about
-  6 of 135 slots bring a shade within a tile of some arrival spot); the counter then failed the later check. Fixed in
-  the test (pages load on a quiet stretch of the shades' clock and the test checks nobody was snuffed before it
-  starts) and pages now keep the last few snuffs (slot, shade, where) for the failure message. The rule stays. After the fix:
-  shades 5/5 (140 checks); give, craft, living, quests and shades were later run 3/3 by the tester and page_check passed, but beacon failed 0/3 at its WebRTC link-watchdog check (cause not found; the milestone 10 run could not reproduce it, see "Open problem" above).
-- Earlier: `gather.test.mjs` over real WebRTC sometimes failed at "a third player joins and sees both others" (about 3
-  of 27 runs) and `talk.test.mjs` once. Cause traced: one WebRTC link times out (Trystero's 10 s handshake) on one side,
-  which loses the other side's presence 'hi'. Milestone 6 measured it with a 3-player stress harness (2 failures in 150
-  meshes) and found the real shape: a half-open link (a join event on one side only, the other side silent for ever).
-  It added two watchdogs (repeat and answer `hi`; rejoin the room when a joined peer stays silent for 8 s, see
-  DESIGN.md). In 180 further meshes with them none failed (no round was seen to need a rebuild, so this is
-  encouraging, not proof; at the old rate, 2 in 150, 180 clean meshes would happen by chance about 1 time in 11).
-  Still to watch: `give` step "when both are back, the reeds arrive" failed 3 times in about 100 WebRTC runs
-  (both pages had lost each other; before link history existed), and a real network with TURN needs is untested.
-
-- `living.test.mjs` "the sky strip at one hour looks the same each time" failed about 3 of 10 runs on the code before
-  milestone 9 (not caused by it): the strip holds twinkling stars and the glints under it. The check now compares three
-  pictures per visit (5 of 5 afterwards, 63 checks); if it fails again, look at which pixels differ.
-- `fallback.test.mjs` "at first the page says it is trying Nostr" failed once in this run's first full pass (2026-10-16,
-  milestone 16): it read the path text once, right after Enter, while the transport was still starting, and got the
-  lobby wording. The test now waits up to 5 s for the first status paint (well inside the 7 s before a switch).
-- The first frames after Footsteps is turned on stalled about 0.9 s in headless Chromium while the sound is set up
-  (milestone 14); not checked on slow devices.
+- **Online play over public relays and trackers is untested from the sandbox** (HTTP 403 on CONNECT every run, last
+  2026-10-17 at milestone 26). Only the owner's test on milestone 1 covers the real network. Milestones 27 and 28 address
+  it from the code side; a real test still needs a person on two devices.
+- **`both.test.mjs` link checks (open).** Failed once in this run's single pass (milestone 26): 3 s after Z saw W linked on
+  both paths, "Z: W is linked twice and counted once" failed (Z's own counts were right: one double link, two single;
+  so W's view of Z had probably lost a path) and later "no link on Z was dropped and rebuilt" counted 2 leaves on Z. The
+  next 10 runs passed (two loops of 5/5, the second after the diagnostics were added). The tester also saw `both` fail once at milestone 23. The test now prints both pages' links
+  and link history when these checks fail; the cause is not found. Milestone 31 looks at it.
+- **Dawn test.** The dawn test that failed for a tester (2 of 3) and the chair (3 of 4) on 2026-10-17 belonged to a milestone 24
+  that was never merged. The `skyglow.test.mjs` on main passed 15 of 15 this run (milestone 26) and 5 of 5 for its
+  builder; its dawn path check reads 1.43 to 1.47 against a floor of 1.40, a thin margin (milestone 31).
+- **Open problem (not reproduced since):** on 2026-10-16 the game tester ran beacon.test.mjs 0 of 3, failing the WebRTC check
+  "the two pages find each other although one was deaf for 12 s". The next run (2026-10-16, milestone 10) looked first and ran
+  the same file 6 times on the same code: it passed every time (the watchdog check took 13.3 to 13.4 s of its 40 s). Every
+  beacon run recorded in the CHANGELOG since then passed (5/5 at milestones 17, 19, 20 and 24; once in other runs; 1/1 at
+  milestone 26). The cause of the tester's 0 of 3 is not found; the check stays, and any new failure should be logged with
+  `__longWatch.linkHistory()` and the machine's load.
+- `stone.test.mjs` "a second round while it glows adds no point and no second glow" failed once in about 24 runs (milestone
+  22, WebRTC part); the check now prints the points and counts; cause not found.
+- `living.test.mjs` "the sky strip at one hour looks the same each time": 8/10 on the code before milestone 20, 10/10 on
+  milestone 20's code; it reads a strip that holds twinkling stars and glints. Passed 1/1 at milestone 26.
+- `shades.test.mjs` "neither player was ever snuffed": fixed in the test at milestone 16 (pages load on a quiet stretch of the
+  shades' clock); `shades` and `watch` pin `?weather=clear` since milestone 25 because rain slows the shades.
+- Earlier, WebRTC handshakes: `gather` "a third player joins and sees both others" (about 3 of 27 runs before milestone 6)
+  traced to half-open links and answered by the presence and link watchdogs (180 clean meshes, encouraging, not proof); `give`
+  "when both are back, the reeds arrive" failed 3 times in about 100 WebRTC runs before link history existed; a real network
+  that needs TURN is untested.
+- The first frames after Sound is turned on stalled about 0.9 s in headless Chromium while the sound is set up (milestone
+  14); not checked on slow devices. No sound has been heard by anyone checking the game.
+- Trades: if a player accepts a trade and the offerer never returns, the accepted item stays set aside (up to `MAX_HOLD` 4
+  can be locked this way by a modified client); giving it back could copy an item, so it stays.
 
 ## Ideas parked (no order)
 Shades that follow a lone lantern slowly; a shade that can only be driven off by a lit beacon at the end of a long night;
 seasonal islands (a new seed each month, the old ones kept as "past islands"; saves and gift records must carry over);
 when a lantern is full, suggest the next one (DESIGN's network model); a TURN-free way to tell players their network
-pair cannot connect. Taken into the plan above from this list: fishing (19), the music stone (22), weather that changes
-the game (25), trading (23). Done from this list: the world-changing event when every beacon is lit (milestone 14).
+pair cannot connect (partly milestone 27); a move to WebGL when a look step cannot be done in 2D or a phone measurement
+says so; MQTT as a third signalling path. Taken into the plan from this list in earlier reviews: fishing (19), the music
+stone (22), weather that changes the game (25), trading (23). Done from this list: the world-changing event when every
+beacon is lit (milestone 14).

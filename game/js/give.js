@@ -39,6 +39,8 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
   const now = opts.now || (() => performance.now());
   const onEvent = opts.onEvent || (() => {});
   const persist = opts.persist || (() => {});
+  const busy = opts.busy || (() => false);   // a trade (swap.js) is open: gifts wait, so only one exchange is open at a time
+  const heldCount = () => (ledger.hold ? ledger.hold.length : 0); // items set aside for trades share the room of the on-its-way list
   const rand = opts.rand || (() => { const a = new Uint32Array(1); crypto.getRandomValues(a); return (a[0] % 4294967295) + 1; });
   const guard = createGuard(10, 20);
   const lastResend = new Map(); // "seed.t" -> time of the last "cf"
@@ -72,7 +74,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
       if (keys !== 3 || !isKindIndex(msg.i)) return;
       if (incoming && now() - incoming.at > OFFER_MS) endIncoming("expired");
       if (dist(p) > GIVE_RANGE + RECEIVE_SLACK) return;
-      if (incoming || countOf(msg.i) >= SOFT_STACK || ledger.exp.length >= MAX_EXP || ledger.exp.some(e => same(e, p.seed, t)) || ledger.got.some(e => same(e, p.seed, t))) { net.send({ k: "dc", t }, id); return; }
+      if (incoming || busy() || countOf(msg.i) >= SOFT_STACK || ledger.exp.length >= MAX_EXP || ledger.exp.some(e => same(e, p.seed, t)) || ledger.got.some(e => same(e, p.seed, t))) { net.send({ k: "dc", t }, id); return; }
       incoming = { t, i: msg.i, from: id, seed: p.seed, at: now() };
       onEvent("offered", { kind: msg.i, seed: p.seed });
     } else if (k === "ac") {
@@ -115,7 +117,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
   // The receiver said yes: take the item out of the pack, save, and only then tell the receiver.
   function commit() {
     const o = outgoing;
-    if (countOf(o.i) < 1 || ledger.out.length >= MAX_OUT) { net.send({ k: "cx", t: o.t }, o.to); endOutgoing("cancelled"); return; }
+    if (countOf(o.i) < 1 || ledger.out.length + heldCount() >= MAX_OUT) { net.send({ k: "cx", t: o.t }, o.to); endOutgoing("cancelled"); return; }
     addTo(o.i, -1);
     const lampNo = LAMP_KEYS.indexOf(ITEMS[o.i]) + 1;
     const dropLamp = lampNo > 0 && held.lamp === lampNo && cr[ITEMS[o.i]] < 1; // the lantern in hand was the last of its kind
@@ -140,7 +142,7 @@ export function createGive(net, me, peers, inv, ledger, opts = {}) {
     },
     // Step 1, the giver's confirmation: offer one item of kind index i to the nearest player. Returns true when sent.
     offer(i) {
-      if (!isKindIndex(i) || outgoing || countOf(i) < 1 || ledger.out.length >= MAX_OUT) return false;
+      if (!isKindIndex(i) || outgoing || busy() || countOf(i) < 1 || ledger.out.length + heldCount() >= MAX_OUT) return false;
       const p = this.target();
       if (!p) return false;
       outgoing = { t: rand(), i, to: p.id, seed: p.seed, at: now() };

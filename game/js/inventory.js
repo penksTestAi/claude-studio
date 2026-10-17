@@ -6,6 +6,10 @@
 //                       i = kind index, s = the receiver's seed). They are re-sent until the receiver confirms.
 //   exp  [{ t, i, s }]  gifts this player accepted and is waiting for (s = the giver's seed)
 //   got  [{ t, s }]     gifts already received, so a re-sent one is never added twice
+//   hold [{ t, i, s, r }] one item set aside for a trade (milestone 23, swap.js): i = kind index, s = the other player's
+//                       seed, r = 0 when this player offered the trade (returned to the pack when the page loads again,
+//                       because nothing has been sent yet) or 1 when this player accepted it (kept until the other side's
+//                       half arrives or the other side withdraws)
 // Everything read back from storage (or from another tab) is checked and clamped; nothing is trusted.
 import { KINDS } from "./resources.js";
 
@@ -24,6 +28,7 @@ export const ITEMS = [...KINDS, ...CRAFTED, ...FISHED];
 export const SOFT_STACK = 999;      // a player with this many of one kind declines more of it
 export const HARD_STACK = 100000;   // nothing above this is ever read back from a save
 export const MAX_OUT = 20, MAX_EXP = 32, MAX_GOT = 1000; // oldest receipts are forgotten past this (a replay of a very old gift could then be added again)
+export const MAX_HOLD = 4;          // items set aside for trades at once; they count against MAX_OUT together with the gifts on their way
 export const MAX_GIFT_ID = 4294967295;
 
 const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
@@ -33,7 +38,7 @@ export const isSeed32 = (s) => isInt(s, 0, 0xffffffff);
 
 export function emptyPack() { return Object.fromEntries([...KINDS, ...FISHED].map(k => [k, 0])); }
 export function emptyCraft() { return Object.fromEntries(CRAFTED.map(k => [k, 0])); }
-export function emptyLedger() { return { out: [], exp: [], got: [] }; }
+export function emptyLedger() { return { out: [], exp: [], got: [], hold: [] }; }
 export function packTotal(inv) { return KINDS.reduce((a, k) => a + inv[k], 0); }
 
 function cleanList(list, max, fields) {
@@ -51,6 +56,20 @@ function cleanList(list, max, fields) {
   return out;
 }
 
+function cleanHold(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [], seen = new Set();
+  for (const e of list) {
+    if (!e || typeof e !== "object" || !isGiftId(e.t) || !isSeed32(e.s) || !isKindIndex(e.i) || (e.r !== 0 && e.r !== 1)) continue;
+    const key = `${e.s}.${e.t}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ t: e.t, i: e.i, s: e.s, r: e.r });
+    if (out.length >= MAX_HOLD) break;
+  }
+  return out;
+}
+
 // Turn whatever was in storage into a safe { inv, out, exp, got }.
 export function cleanSave(raw) {
   const inv = emptyPack();
@@ -62,7 +81,7 @@ export function cleanSave(raw) {
   for (const k of CRAFTED) if (isInt(csrc[k], 0, HARD_STACK)) cr[k] = csrc[k];
   const lamp = isInt(o.lamp, 1, LAMP_KEYS.length) && cr[LAMP_KEYS[o.lamp - 1]] > 0 ? o.lamp : 0; // you can only hold a lantern you own
   const help = isInt(o.help, 0, 100000) ? o.help : 0; // lamplighter points (see rank.js)
-  return { inv, cr, lamp, help, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []) };
+  return { inv, cr, lamp, help, out: cleanList(o.out, MAX_OUT, ["i"]), exp: cleanList(o.exp, MAX_EXP, ["i"]), got: cleanList(o.got, MAX_GOT, []), hold: cleanHold(o.hold) };
 }
 
 // Copy a saved state into the live objects in place (another tab of this browser saved a newer one).
@@ -73,4 +92,6 @@ export function adoptSave(live, ledger, raw, craft = null) {
   ledger.out.splice(0, ledger.out.length, ...c.out);
   ledger.exp.splice(0, ledger.exp.length, ...c.exp);
   ledger.got.splice(0, ledger.got.length, ...c.got);
+  if (!ledger.hold) ledger.hold = [];
+  ledger.hold.splice(0, ledger.hold.length, ...c.hold);
 }

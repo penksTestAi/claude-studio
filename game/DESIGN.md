@@ -116,6 +116,16 @@ tests could not load them) and because vendoring pins the exact bytes. See `vend
   A gift whose receiver never returns stays in `out` (never given back, so never copied; it is lost only if storage is blocked or cleared). `exp` is never trimmed: a receiver with `MAX_EXP` (32) entries declines new offers and `accept()` refuses; `got` keeps the newest `MAX_GOT` (1000). Known limits: a peer can claim another player's public seed and so receive gifts meant for them; storage cleared after the hand-over loses the record. Saved key
   `vigil.longwatch.v1` now holds `inv`, `out`, `exp`, `got` next to seed and position, all checked on load.
   Milestone 12: the item number `i` indexes `ITEMS` (`js/inventory.js`): 0 driftwood, 1 reeds, 2 berries, then 3 wick, 4 amber, 5 jade, 6 azure lantern. Crafted things are counted in `cr` and go through exactly the same steps; every cap above applies to them (the receiver declines at `SOFT_STACK` of that item). When the last lantern of the one in hand is committed away, `held.lamp` becomes 0 in the same save and the game announces the plain lantern. The receiver never starts holding a received lantern by itself.
+- **Trade protocol v1** (`js/swap.js`, saved `hold` list in `js/inventory.js`, milestone 23): `tro {t,i,j}` offer one item of
+  kind `i` for one of kind `j`, `tra {t}` accept, `trn {t}` no thanks, `trx {t}` withdraw, all to one peer; the two halves
+  are then sent as ordinary gifts (`cf`/`rc` of the giving protocol) with the same `t`. The offerer's item goes into `hold`
+  (role 0) when it offers and back to the pack on a decline, withdrawal, timeout, the peer leaving, or the next page load.
+  The accepting side re-checks, sets its item aside (`hold`, role 1) and writes the expected half into `exp`; the offerer
+  re-checks at `tra` and either commits (hold becomes `out`, `cf` sent) or answers `trx`; the accepting side's hold
+  becomes `out` once the other half is in `got`. Held items share `MAX_OUT` with gifts on their way and are capped at
+  `MAX_HOLD` (4). The accepting side re-sends `tra` every `RESEND_MS` while the offerer is in the room. If the offerer
+  never returns after an accept, the accepted item stays set aside (not given back, because its half may have been sent),
+  and a client that accepts and never goes on can lock up to `MAX_HOLD` items of another player this way.
 - **Crafting protocol v1** (`js/craft.js`, saved fields in `js/inventory.js`, milestone 5): nothing about crafting
   itself crosses the network, because it only converts items in the player's own pack: `tryCraft` checks every
   ingredient and the result's stack (`CRAFT_STACK` = 999) first and changes the pack only if all of it can be paid, so
@@ -316,6 +326,7 @@ game/
   js/beacon.js          beacons: shares counter (G-counter), lighting rule, fuel messages, snapshot for newcomers
   js/craft.js           crafting recipes, lantern table (reach, glow), the `lt` lantern message (rules are pure)
   js/give.js            giving: offer, accept, commit, receipt; faults never copy or lose an item
+  js/swap.js            fair trades: `tro` `tra` `trn` `trx`, items set aside in the saved `hold` list, each half then sent as a gift
   js/inventory.js       saved pack and gift lists: checks, caps, adopting another tab's save (pure)
   js/gather.js          shared gathering: arbiter, hidden-until map, snapshots, validation
   js/talk.js            gestures and preset phrases: lists, send, validated receive, cooldowns
@@ -355,6 +366,7 @@ game/
   tests/shades.test.mjs    node checks of the shades' paths, shares, caps and the module on a fake mesh (snuffing, ward, relight, flags, floods, slot change), then local and WebRTC pages: two players drive a circling shade off together without being snuffed, a lone player is snuffed and a friend relights, late joiner, forged messages
   tests/rank.test.mjs      node checks of the rank (deeds, gaps, caps, the message on a fake mesh, the shades module's "helped" event), then local and WebRTC pages: three gifts that arrive make a Lamplighter, the other player sees the title, a reload keeps the points, a gift too soon earns nothing, forged rank messages (local run)
   tests/craftgive.test.mjs node checks of giving wicks and lanterns on a fake mesh (every cap full and expired, a peer leaving, every message dropped or either side restarted, the lantern in hand), then local and WebRTC pages: Give buttons, full stack declined, a held lantern given, take-back, a player leaving
+  tests/swap.test.mjs      node checks of trades under faults (drops and restarts after each message), every cap and timeout, a peer leaving at each step, hostile messages, then local and WebRTC pages
   tests/nostr-relay.mjs    minimal Nostr relay used by the test
   tests/tracker-server.mjs minimal BitTorrent WebSocket tracker (announce, offers, answers) used by the fallback test
   tests/fallback.test.mjs  flags, then real WebRTC: Nostr dead and tracker alive (they meet over the tracker, page says so), Nostr alive and tracker dead, both dead, `?net=torrent` by hand

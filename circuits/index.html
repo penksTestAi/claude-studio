@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where the Current Goes · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Edit a small network of batteries, resistors and capacitors and watch every voltage and current update, with the page checking itself against closed forms and a time-step simulation, and refusing cases the ideal model cannot solve (not compared with SPICE or a bench; textbook row weaker).">
+<link rel="canonical" href="https://vigilstudio.github.io/circuits/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Where the Current Goes · Vigil">
+<meta property="og:description" content="Edit a small network of batteries, resistors and capacitors and watch every voltage and current update, with the page checking itself against closed forms and a time-step simulation, and refusing cases the ideal model cannot solve (not compared with SPICE or a bench; textbook row weaker).">
+<meta property="og:url" content="https://vigilstudio.github.io/circuits/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Where the Current Goes · Vigil">
+<meta name="twitter:description" content="Edit a small network of batteries, resistors and capacitors and watch every voltage and current update, with the page checking itself against closed forms and a time-step simulation, and refusing cases the ideal model cannot solve (not compared with SPICE or a bench; textbook row weaker).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#222420;--muted:#5a5d55;--line:#cdcbc0;--accent:#1c6a82;--accent-ink:#ffffff;--tag:#b3490a;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--accent-ink:#04171e;--tag:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,textarea{font:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:10px}
+.fld{display:flex;flex-direction:column;gap:2px;min-width:0}
+label{font-size:.9rem}
+button{font-size:.92rem;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+input[type=text],input[type=number]{width:6.6em;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;min-height:32px;accent-color:var(--accent)}
+textarea{width:100%;min-height:9.5em;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:.88rem;line-height:1.45;resize:vertical}
+.banner{border:1px solid var(--warn);border-left-width:5px;border-radius:6px;padding:8px 12px;margin-top:10px;font-size:.92rem;background:var(--bg)}
+.banner.bad{border-color:var(--bad)}
+svg.fig{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+svg text{fill:var(--ink);font:13px Georgia,serif;paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round}
+svg .nv{fill:var(--accent);font-weight:bold}
+svg .cur{fill:var(--tag)}
+svg .mut{fill:var(--muted)}
+svg .wire{fill:none;stroke:var(--ink);stroke-width:1.6}
+svg .flow{fill:var(--tag);stroke:none}
+svg .body{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}
+svg .plate{stroke:var(--ink);stroke-width:2.4}
+svg .axis{stroke:var(--line);stroke-width:1;fill:none}
+svg .ln1{fill:none;stroke:var(--accent);stroke-width:2.4}
+svg .ln2{fill:none;stroke:var(--tag);stroke-width:2.4;stroke-dasharray:7 4}
+svg .ln3{fill:none;stroke:var(--ok);stroke-width:2.4;stroke-dasharray:2 3}
+svg .mark{stroke:var(--muted);stroke-width:1.4;stroke-dasharray:4 3}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+td .ex{display:block;color:var(--muted);font-size:.78rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+ul.chk{list-style:none;padding:0;margin:6px 0}
+.chk li{margin:6px 0;padding-left:1.6em;text-indent:-1.6em;font-size:.92rem}
+.chk .g{display:inline-block;width:1.6em;text-indent:0;font-weight:bold}
+.chk .tagx{font-size:.78rem;color:var(--muted)}
+.cases{display:grid;gap:10px;margin-top:10px}
+.case{border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--bg);font-size:.92rem}
+.case pre{margin:4px 0 8px;font-family:var(--mono);font-size:.84rem;white-space:pre-wrap}
+code{font-family:var(--mono);font-size:.88em}
+.legend span{display:inline-block;max-width:100%;margin-right:12px;font-size:.85rem}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Where the Current Goes</h1>
+<p class="lede" id="lede">Edit a small network of batteries, resistors and capacitors and watch every voltage and current update; the page checks its own solver against closed forms and a separate time-step simulation.</p>
+<p class="small">Made by Claude, an AI model. Answers are exact fractions; the page also solves its own examples a second way and shows where that stops.</p>
+
+<h2>1. The network</h2>
+<div class="panel">
+  <div class="row" id="presets" role="group" aria-label="Example networks"></div>
+  <div class="fld" style="margin-top:12px">
+    <label for="net">Netlist, one part per line: <code>V1 a 0 12</code> (battery, + at the first node), <code>R1 a b 4.7k</code>, <code>C1 b 0 100u v0=0</code>, <code>W1 a b</code> (ideal wire). Node <code>0</code> is ground. Current is counted from the first node to the second.</label>
+    <textarea id="net" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+  </div>
+  <div id="parseMsg" class="msg" role="status" aria-live="polite"></div>
+  <div class="row" id="vals" aria-label="Part values"></div>
+  <div class="row"><button id="addWire" type="button">Add an ideal wire across the first battery</button></div>
+</div>
+
+<h2>2. Currents and voltages</h2>
+<div class="panel">
+  <div id="status" role="status" aria-live="polite"></div>
+  <svg id="fig" class="fig" viewBox="0 0 360 300" role="img" aria-label="Circuit diagram"></svg>
+  <div id="timeBox" hidden>
+    <div class="row" style="align-items:center">
+      <button id="play" type="button">Play</button>
+      <label for="t" style="flex:1;min-width:10em">Time: <b id="tOut"></b></label>
+    </div>
+    <input type="range" id="t" min="0" max="1000" value="0" aria-describedby="tOut">
+  </div>
+  <div class="legend small" id="legend"></div>
+  <div class="scroll" tabindex="0" role="region" aria-label="Element table" style="margin-top:10px"><table id="tblEl"></table></div>
+  <div class="scroll" tabindex="0" role="region" aria-label="Node voltage table" style="margin-top:10px"><table id="tblNode"></table></div>
+  <p class="small" id="note"></p>
+</div>
+
+<div id="plotBox" hidden>
+<h2>3. Capacitor voltage over time</h2>
+<div class="panel">
+  <svg id="plot" class="fig" viewBox="0 0 360 230" role="img" aria-label="Capacitor voltages against time"></svg>
+  <div class="legend small" id="plotLegend"></div>
+  <p class="small" id="plotNote"></p>
+</div>
+</div>
+
+<h2 id="hChecks">Checks</h2>
+<div class="panel">
+  <p id="checkSummary"></p>
+  <div class="row">
+    <div class="fld"><label for="seed">Seed</label><input type="number" id="seed" value="1000" min="1" max="999999" step="1"></div>
+    <button id="rerun" type="button">Run the checks with this seed</button>
+  </div>
+  <h3 style="font-weight:normal;font-size:1rem;margin:14px 0 2px">On the network above</h3>
+  <ul class="chk" id="chkNet"></ul>
+  <h3 style="font-weight:normal;font-size:1rem;margin:14px 0 2px">On seeded random networks</h3>
+  <ul class="chk" id="chkSeed"></ul>
+  <p class="small">The same checks run from the command line with <code>node circuits/check.mjs</code>, with more draws.</p>
+</div>
+
+<h2>Where the model stops</h2>
+<div class="panel">
+  <p>These are ideal parts: a battery holds its voltage whatever it must push, a wire has no resistance, a capacitor does not leak. Asked for something those rules cannot give, the page says so and shows no numbers. Each case below is solved live.</p>
+  <div class="cases" id="cases"></div>
+  <p class="small" id="ignored"></p>
+</div>
+
+<h2>How it works, and what is unchecked</h2>
+<div class="panel">
+  <p><b>Exact solve.</b> For each node except ground, the currents leaving through resistors must sum to zero. Each battery or wire adds one unknown current and one equation, voltage at its + end minus voltage at its - end equals its rating. The equations are solved by Gauss-Jordan elimination on fractions of arbitrary-size integers, so 1/3 stays 1/3. Capacitors are open circuits in the steady state. For the curve, each capacitor is replaced in turn by a source, which gives the current into each capacitor as an exact linear function of the capacitor voltages, <code>dv/dt = M v + g</code>; the plot steps that equation forward in time.</p>
+  <p><b>Second way, closed forms.</b> Series, parallel, divider, balanced bridge and RC time constant formulas are written out separately from the solver and compared for exact equality.</p>
+  <p><b>Third way, time stepping.</b> A separate simulator gives every node a tiny capacitance, merges nodes joined by batteries or wires, and steps the node voltages in time (4th-order Runge-Kutta). It shares only the netlist parser with the exact solver. It matches to a stated tolerance, not exactly, because of the tiny capacitances and the step size.</p>
+  <ul id="unverified"></ul>
+</div>
+<footer>Part of <a href="../">Vigil</a>. Code is in <a href="circuit-core.js">circuit-core.js</a>, <a href="check.mjs">check.mjs</a> and this page, with no libraries. Made by Claude, an AI model.</footer>
+</main>
+<script src="circuit-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var C = window.Circuit, $ = function (id) { return document.getElementById(id); };
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var reduced = false;
+  try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  var PRESETS = [
+    { id: 'series', label: 'Series chain', text: 'V1 a 0 12\nR1 a b 1k\nR2 b 0 2k' },
+    { id: 'parallel', label: 'Parallel pair', text: 'V1 a 0 12\nR1 a 0 100\nR2 a 0 300' },
+    { id: 'bridge', label: 'Unbalanced bridge', text: 'V1 a 0 10\nR1 a b 1k\nR2 b 0 2k\nR3 a c 3k\nR4 c 0 3k\nR5 b c 1k' },
+    { id: 'balanced', label: 'Balanced bridge', text: 'V1 a 0 10\nR1 a b 100\nR2 b 0 200\nR3 a c 300\nR4 c 0 600\nR5 b c 470' },
+    { id: 'rc', label: 'RC charging', text: 'V1 a 0 5\nR1 a b 1k\nC1 b 0 100u v0=0' },
+    { id: 'rc2', label: 'Two-stage RC', text: 'V1 a 0 5\nR1 a b 1k\nC1 b 0 100u v0=0\nR2 b c 2k\nC2 c 0 50u v0=0' }
+  ];
+  var CASES = [
+    { title: 'An ideal wire across a battery', text: 'V1 a 0 12\nR1 a b 100\nR2 b 0 100\nW1 a 0' },
+    { title: 'Two batteries of different voltage in parallel', text: 'V1 a 0 12\nV2 a 0 9\nR1 a 0 100' },
+    { title: 'Two equal batteries in parallel', text: 'V1 a 0 12\nV2 a 0 12\nR1 a 0 100' },
+    { title: 'A battery straight across a capacitor', text: 'V1 a 0 5\nC1 a 0 10u' },
+    { title: 'Two capacitors in series', text: 'V1 a 0 5\nR1 a b 1k\nC1 b c 10u\nC2 c 0 10u' }
+  ];
+
+  var state = { net: null, an: null, tr: null, tIdx: 0, playing: false, timer: 0 };
+
+  // ----- number formatting -----
+  var SI = [[1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''], [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n'], [1e-12, 'p']];
+  function fmt(x, unit, digits) {
+    digits = digits || 3;
+    if (!isFinite(x)) return 'n/a';
+    if (Math.abs(x) < 1e-15) return '0 ' + unit;
+    var a = Math.abs(x), i = 0;
+    for (; i < SI.length - 1; i++) if (a >= SI[i][0] * 0.9995) break;
+    var v = x / SI[i][0];
+    return String(Number(v.toPrecision(digits))) + ' ' + SI[i][1] + unit;
+  }
+  function frText(f, unit, flip) {
+    if (flip) f = f.neg();
+    var num = f.toNumber(), dec = fmt(num, unit);
+    var small = f.d < 100000n && f.n > -100000000n && f.n < 100000000n;
+    if (f.d === 1n) return { main: dec, exact: f.n === 0n ? '' : '' };
+    return { main: dec, exact: small ? '= ' + f.n + '/' + f.d + ' ' + unit : '' };
+  }
+  function cell(f, unit, flip) {
+    var t = frText(f, unit, flip);
+    return t.main + (t.exact ? '<span class="ex">' + t.exact + '</span>' : '');
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ----- inputs -----
+  function lines() { return $('net').value.split(/\r?\n/); }
+  function elementLine(i) { return i; }
+  function buildPresets() {
+    var box = $('presets');
+    PRESETS.forEach(function (p) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = p.label; b.dataset.id = p.id;
+      b.addEventListener('click', function () { $('net').value = p.text; update(true); });
+      box.appendChild(b);
+    });
+  }
+  var valSig = '';
+  function buildValues(net) {
+    var sig = net.els.map(function (e) { return e.name + e.kind; }).join();
+    var box = $('vals');
+    if (sig !== valSig) {
+      valSig = sig; box.innerHTML = '';
+      net.els.forEach(function (e) {
+        if (e.kind === 'W') return;
+        var d = document.createElement('div'); d.className = 'fld';
+        var unit = { V: 'volts', R: 'ohms', C: 'farads' }[e.kind];
+        d.innerHTML = '<label for="val-' + e.name + '">' + esc(e.name) + ' (' + unit + ')</label><input type="text" id="val-' + e.name + '" data-name="' + e.name + '" data-part="value" inputmode="decimal" autocomplete="off" spellcheck="false">';
+        box.appendChild(d);
+        if (e.kind === 'C') {
+          var d2 = document.createElement('div'); d2.className = 'fld';
+          d2.innerHTML = '<label for="v0-' + e.name + '">' + esc(e.name) + ' starts at (volts)</label><input type="text" id="v0-' + e.name + '" data-name="' + e.name + '" data-part="v0" inputmode="decimal" autocomplete="off" spellcheck="false">';
+          box.appendChild(d2);
+        }
+      });
+    }
+    net.els.forEach(function (e) {
+      var raw = null;
+      $('net').value.split(/\r?\n/).forEach(function (ln) { var t = ln.replace(/#.*/, '').trim().split(/\s+/); if (t[0] === e.name) raw = t; });
+      if (!raw) return;
+      var a = $('val-' + e.name), b = $('v0-' + e.name);
+      if (a && document.activeElement !== a) a.value = raw[3] || '';
+      if (b && document.activeElement !== b) { var m = /^v0=(.*)$/i.exec(raw[4] || ''); b.value = m ? m[1] : '0'; }
+    });
+  }
+  $('vals').addEventListener('input', function (ev) {
+    var el = ev.target, name = el.dataset.name; if (!name) return;
+    var out = lines().map(function (ln) {
+      var body = ln.replace(/#.*/, '').trim(), t = body.split(/\s+/);
+      if (t[0] !== name) return ln;
+      if (el.dataset.part === 'value') t[3] = el.value.trim() || '0';
+      else t[4] = 'v0=' + (el.value.trim() || '0');
+      return t.join(' ');
+    });
+    $('net').value = out.join('\n'); update(false);
+  });
+  $('net').addEventListener('input', function () { update(false); });
+  $('addWire').addEventListener('click', function () {
+    var net = state.net; if (!net) return;
+    var v = net.els.filter(function (e) { return e.kind === 'V'; })[0];
+    if (!v) { $('parseMsg').textContent = 'There is no battery to put a wire across.'; return; }
+    var k = 1; while (net.els.some(function (e) { return e.name.toUpperCase() === 'W' + k; })) k++;
+    var txt = $('net').value.replace(/\s+$/, '');
+    $('net').value = txt + '\nW' + k + ' ' + v.n1 + ' ' + v.n2; update(true);
+  });
+
+  // ----- layout and drawing -----
+  // Place nodes on 8 ring slots and one centre slot, choosing the assignment with the fewest crossing edges
+  // (and no node sitting on an edge); ground is nudged toward the bottom. Falls back to an arc for big networks.
+  var SLOTS = (function () {
+    var out = []; for (var k = 0; k < 8; k++) { var th = (90 + 45 * k) * Math.PI / 180; out.push({ x: 180 + 118 * Math.cos(th), y: 125 + 92 * Math.sin(th) }); }
+    out.push({ x: 180, y: 125 }); return out;
+  })();
+  function segCross(p, q, r, s2) {
+    var d = function (a, b, c) { return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); };
+    return d(p, q, r) * d(p, q, s2) < 0 && d(r, s2, p) * d(r, s2, q) < 0;
+  }
+  function nearSeg(p, q, r) {
+    var dx = q.x - p.x, dy = q.y - p.y, l2 = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((r.x - p.x) * dx + (r.y - p.y) * dy) / l2));
+    return Math.hypot(p.x + t * dx - r.x, p.y + t * dy - r.y) < 22;
+  }
+  var HINTS = { 'R1,R2,R3,R4,R5,V1': { pos: { 'a': { x: 50, y: 125 }, b: { x: 180, y: 38 }, c: { x: 180, y: 205 }, '0': { x: 310, y: 125 } }, bend: { V1: 120 } } };
+  function hintFor(net) { return HINTS[net.els.map(function (e) { return e.name; }).sort().join()]; }
+  function layout(net) {
+    var h = hintFor(net);
+    if (h && net.nodes.length === 3 && net.nodes.every(function (x) { return h.pos[x]; })) return h.pos;
+    var names = ['0'].concat(net.nodes), n = names.length, pos = {};
+    var pairs = []; net.els.forEach(function (e) { var k = [e.n1, e.n2].sort().join('|'); if (pairs.every(function (q) { return q.k !== k; })) pairs.push({ k: k, a: names.indexOf(e.n1), b: names.indexOf(e.n2) }); });
+    if (n > 6) {
+      pos['0'] = { x: 180, y: 232 };
+      net.nodes.forEach(function (x, i) { var f = net.nodes.length === 1 ? 0.5 : i / (net.nodes.length - 1), th = (200 + 140 * f) * Math.PI / 180; pos[x] = { x: 180 + 130 * Math.cos(th), y: 130 + 95 * Math.sin(th) }; });
+      return pos;
+    }
+    var best = null, bestCost = Infinity, used = [], cur = [];
+    function cost() {
+      var c = 0;
+      for (var i = 0; i < pairs.length; i++) {
+        var A = SLOTS[cur[pairs[i].a]], B = SLOTS[cur[pairs[i].b]];
+        for (var j = i + 1; j < pairs.length; j++) {
+          var P = pairs[j]; if (P.a === pairs[i].a || P.a === pairs[i].b || P.b === pairs[i].a || P.b === pairs[i].b) continue;
+          if (segCross(A, B, SLOTS[cur[P.a]], SLOTS[cur[P.b]])) c += 10;
+        }
+        for (var m = 0; m < n; m++) if (m !== pairs[i].a && m !== pairs[i].b && nearSeg(A, B, SLOTS[cur[m]])) c += 10;
+      }
+      for (var u = 0; u < n; u++) for (var w = u + 1; w < n; w++) { var dd = Math.hypot(SLOTS[cur[u]].x - SLOTS[cur[w]].x, SLOTS[cur[u]].y - SLOTS[cur[w]].y); if (dd < 130) c += (130 - dd) / 30; }
+      c += (1 - SLOTS[cur[0]].y / 217) * 3 + (cur[0] === 8 ? 5 : 0);
+      return c;
+    }
+    (function rec(k) {
+      if (k === n) { var c = cost(); if (c < bestCost) { bestCost = c; best = cur.slice(); } return; }
+      for (var s2 = 0; s2 < SLOTS.length; s2++) if (!used[s2]) { used[s2] = true; cur[k] = s2; rec(k + 1); used[s2] = false; }
+    })(0);
+    names.forEach(function (x, i) { pos[x] = SLOTS[best[i]]; });
+    return pos;
+  }
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function valueLabel(e) {
+    if (e.kind === 'V') return fmt(e.value.toNumber(), 'V');
+    if (e.kind === 'R') return fmt(e.value.toNumber(), 'Ω');
+    if (e.kind === 'C') return fmt(e.value.toNumber(), 'F');
+    return '';
+  }
+  function drawFigure(net, sol) {
+    var svg = $('fig'); while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var pos = layout(net), pair = {}, imax = 0;
+    if (sol) net.els.forEach(function (e) { imax = Math.max(imax, Math.abs(sol.cur[e.name].toNumber())); });
+    net.els.forEach(function (e) {
+      var key = [e.n1, e.n2].sort().join('|'); (pair[key] = pair[key] || []).push(e);
+    });
+    net.els.forEach(function (e) {
+      var key = [e.n1, e.n2].sort().join('|'), grp = pair[key], gi = grp.indexOf(e);
+      var p1 = pos[e.n1], p2 = pos[e.n2];
+      var dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+      var hh = hintFor(net), bend = hh && hh.bend[e.name] !== undefined && hh.pos === pos ? hh.bend[e.name] : (gi - (grp.length - 1) / 2) * 46;
+      var cx = (p1.x + p2.x) / 2 + nx * bend * 2, cy = (p1.y + p2.y) / 2 + ny * bend * 2;
+      var q = function (t) { return { x: (1 - t) * (1 - t) * p1.x + 2 * t * (1 - t) * cx + t * t * p2.x, y: (1 - t) * (1 - t) * p1.y + 2 * t * (1 - t) * cy + t * t * p2.y }; };
+      var mid = q(0.5), tang = { x: p2.x - p1.x, y: p2.y - p1.y };
+      var tl = Math.hypot(tang.x, tang.y) || 1, tx = tang.x / tl, ty = tang.y / tl, px = -ty, py = tx;
+      var i = sol ? sol.cur[e.name].toNumber() : 0;
+      var w = sol && imax > 0 ? 1.6 + 2.6 * Math.abs(i) / imax : 1.6;
+      var path = el('path', { d: 'M' + p1.x + ' ' + p1.y + ' Q' + cx + ' ' + cy + ' ' + p2.x + ' ' + p2.y, class: 'wire' });
+      path.style.strokeWidth = w;
+      svg.appendChild(path);
+      var g = el('g', { transform: 'translate(' + mid.x + ' ' + mid.y + ') rotate(' + Math.atan2(ty, tx) * 180 / Math.PI + ')' });
+      if (e.kind === 'R') g.appendChild(el('rect', { x: -19, y: -7, width: 38, height: 14, class: 'body' }));
+      else if (e.kind === 'V') {
+        g.appendChild(el('rect', { x: -9, y: -14, width: 18, height: 28, fill: 'var(--panel)', stroke: 'none' }));
+        g.appendChild(el('line', { x1: -4, y1: -13, x2: -4, y2: 13, class: 'plate' }));
+        g.appendChild(el('line', { x1: 5, y1: -7, x2: 5, y2: 7, class: 'plate' }));
+        g.appendChild(el('text', { x: -14, y: -6, 'text-anchor': 'middle' }, '+'));
+      } else if (e.kind === 'C') {
+        g.appendChild(el('rect', { x: -8, y: -14, width: 16, height: 28, fill: 'var(--panel)', stroke: 'none' }));
+        g.appendChild(el('line', { x1: -3.5, y1: -12, x2: -3.5, y2: 12, class: 'plate' }));
+        g.appendChild(el('line', { x1: 3.5, y1: -12, x2: 3.5, y2: 12, class: 'plate' }));
+      }
+      svg.appendChild(g);
+      // label, on the side away from the figure centre
+      var side = ((mid.x - 180) * px + (mid.y - 125) * py) >= 0 ? 1 : -1;
+      var lx = mid.x + px * side * 36, ly = mid.y + py * side * 30 + 4;
+      var anchor = Math.abs(px) < 0.3 ? 'middle' : (px * side > 0 ? 'start' : 'end');
+      var t1 = el('text', { x: lx, y: ly, 'text-anchor': anchor }, e.name + (valueLabel(e) ? ' ' + valueLabel(e) : ''));
+      svg.appendChild(t1);
+      if (sol) {
+        var amount = e.kind === 'V' ? -i : i;
+        var t2 = el('text', { x: lx, y: ly + 15, 'text-anchor': anchor, class: 'cur' }, fmt(amount, 'A'));
+        svg.appendChild(t2);
+        // arrow along the direction of conventional current
+        var dir = i >= 0 ? 1 : -1;
+        if (Math.abs(i) > 0) {
+          var a = q(dir > 0 ? 0.78 : 0.22), a2 = q(dir > 0 ? 0.8 : 0.2), ax = a2.x - a.x, ay = a2.y - a.y, al = Math.hypot(ax, ay) || 1; ax /= al; ay /= al;
+          svg.appendChild(el('path', { d: 'M' + (a2.x + ax * 7) + ' ' + (a2.y + ay * 7) + ' L' + (a2.x - ay * 5) + ' ' + (a2.y + ax * 5) + ' L' + (a2.x + ay * 5) + ' ' + (a2.y - ax * 5) + ' Z', class: 'flow' }));
+        }
+      }
+    });
+    // nodes
+    var gl = pos['0'];
+    svg.appendChild(el('line', { x1: gl.x, y1: gl.y, x2: gl.x, y2: gl.y + 8, class: 'wire' }));
+    [14, 9, 4].forEach(function (w, k) { svg.appendChild(el('line', { x1: gl.x - w, y1: gl.y + 8 + k * 4, x2: gl.x + w, y2: gl.y + 8 + k * 4, class: 'wire' })); });
+    Object.keys(pos).forEach(function (n) {
+      var p = pos[n];
+      svg.appendChild(el('circle', { cx: p.x, cy: p.y, r: 4.5, fill: 'var(--ink)' }));
+      var label = n === '0' ? '0 V' : n + ' ' + (sol ? fmt(sol.v[n].toNumber(), 'V') : '');
+      var vx = p.x - 180, vy = p.y - 125, vl = Math.hypot(vx, vy);
+      var tx2, ty2, an2;
+      if (n === '0') { tx2 = p.x + 22; ty2 = p.y + 4; an2 = 'start'; }
+      else if (vl < 10) { tx2 = p.x + 9; ty2 = p.y - 9; an2 = 'start'; }
+      else { ty2 = p.y + (vy < 0 ? -10 : 16); tx2 = p.x; an2 = p.x > 250 ? 'end' : p.x < 110 ? 'start' : 'middle'; if (an2 === 'end') tx2 += 6; if (an2 === 'start') tx2 -= 6; }
+      var t = el('text', { x: tx2, y: ty2, 'text-anchor': an2, class: 'nv' }, label);
+      svg.appendChild(t);
+    });
+  }
+
+  // ----- tables -----
+  function fmtT(x) { return fmt(x, 's'); }
+  function nowSolution() {
+    var an = state.an, net = state.net;
+    if (!an.caps.length) return an.steady.ok ? an.steady : null;
+    if (!an.M || !state.tr || !state.tr.ok) return an.start && an.start.ok ? an.start : null;
+    var vv = state.tr.v[state.tIdx];
+    var s = C.solveDC(net, 'source', vv.map(C.frFromNumber));
+    return s.ok ? s : null;
+  }
+  function renderTables(net, an, sol) {
+    var hasCaps = an.caps.length > 0 && an.M;
+    var head = '<tr><th>Part</th><th>Now</th>' + (hasCaps ? '<th>At start (exact)</th>' + (an.steady.ok ? '<th>Steady (exact)</th>' : '') : '') + '</tr>';
+    if (!hasCaps) head = '<tr><th>Part</th><th>Current</th></tr>';
+    var rows = '';
+    net.els.forEach(function (e) {
+      var flip = e.kind === 'V';
+      var label = esc(e.name) + ' <span class="small">' + (flip ? 'supplies' : e.n1 + ' to ' + e.n2) + '</span>';
+      var r = '<tr><td>' + label + '</td>';
+      r += '<td>' + (sol ? cell(sol.cur[e.name], 'A', flip) : '-') + '</td>';
+      if (hasCaps) {
+        r += '<td>' + (an.start && an.start.ok ? cell(an.start.cur[e.name], 'A', flip) : '-') + '</td>';
+        if (an.steady.ok) r += '<td>' + cell(an.steady.cur[e.name], 'A', flip) + '</td>';
+      }
+      rows += r + '</tr>';
+    });
+    $('tblEl').innerHTML = '<caption class="small" style="text-align:left;caption-side:top;padding-bottom:4px">Current through each part (batteries: current they supply)</caption>' + head + rows;
+    var nh = hasCaps ? '<tr><th>Node</th><th>Now</th><th>At start (exact)</th>' + (an.steady.ok ? '<th>Steady (exact)</th>' : '') + '</tr>' : '<tr><th>Node</th><th>Voltage</th></tr>';
+    var nr = '';
+    net.nodes.forEach(function (n) {
+      var r = '<tr><td>' + esc(n) + '</td><td>' + (sol ? cell(sol.v[n], 'V') : '-') + '</td>';
+      if (hasCaps) {
+        r += '<td>' + (an.start && an.start.ok ? cell(an.start.v[n], 'V') : '-') + '</td>';
+        if (an.steady.ok) r += '<td>' + cell(an.steady.v[n], 'V') + '</td>';
+      }
+      nr += r + '</tr>';
+    });
+    $('tblNode').innerHTML = '<caption class="small" style="text-align:left;caption-side:top;padding-bottom:4px">Voltage of each node above ground</caption>' + nh + nr;
+  }
+
+  // ----- plot -----
+  function drawPlot(net, an, tr) {
+    var box = $('plotBox');
+    if (!an.caps.length || !an.M || !tr || !tr.ok) {
+      box.hidden = !(an.caps.length > 0);
+      if (!box.hidden) { var svg0 = $('plot'); while (svg0.firstChild) svg0.removeChild(svg0.firstChild); $('plotLegend').textContent = ''; $('plotNote').textContent = an.transientMsg || 'The curve could not be drawn for these values (too stiff to step in time).'; }
+      return;
+    }
+    box.hidden = false;
+    var svg = $('plot'); while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var L = 52, R = 346, Tp = 14, B = 182, W = R - L, H = B - Tp;
+    var ymin = 0, ymax = 0;
+    tr.v.forEach(function (row) { row.forEach(function (x) { ymax = Math.max(ymax, x); ymin = Math.min(ymin, x); }); });
+    if (ymax - ymin < 1e-12) { ymax = ymin + 1; }
+    var pad = (ymax - ymin) * 0.06; ymax += pad; if (ymin < 0) ymin -= pad;
+    var X = function (t) { return L + W * t / tr.T; }, Y = function (v) { return B - H * (v - ymin) / (ymax - ymin); };
+    var raw = (ymax - ymin) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map(function (m) { return m * mag; }).filter(function (v) { return v >= raw; })[0];
+    for (var yv = Math.ceil(ymin / step - 1e-9) * step; yv <= ymax + 1e-9; yv += step) {
+      svg.appendChild(el('line', { x1: L, y1: Y(yv), x2: R, y2: Y(yv), class: 'axis' }));
+      svg.appendChild(el('text', { x: L - 5, y: Y(yv) + 4, 'text-anchor': 'end', class: 'mut' }, fmt(Math.abs(yv) < step * 1e-6 ? 0 : yv, 'V', 3)));
+    }
+    for (var j = 0; j <= 4; j++) {
+      var tv = tr.T * j / 4;
+      svg.appendChild(el('line', { x1: X(tv), y1: B, x2: X(tv), y2: B + 4, class: 'axis' }));
+      svg.appendChild(el('text', { x: Math.min(X(tv), R - 8), y: B + 19, 'text-anchor': j === 0 ? 'start' : j === 4 ? 'end' : 'middle', class: 'mut' }, fmt(tv, 's', 2)));
+    }
+    svg.appendChild(el('text', { x: (L + R) / 2, y: 222, 'text-anchor': 'middle', class: 'mut' }, 'time'));
+    var cls = ['ln1', 'ln2', 'ln3'];
+    an.caps.forEach(function (c, m) {
+      var d = tr.times.map(function (t, i) { return (i ? 'L' : 'M') + X(t).toFixed(1) + ' ' + Y(tr.v[i][m]).toFixed(1); }).join('');
+      svg.appendChild(el('path', { d: d, class: cls[m % 3] }));
+    });
+    if (an.tau) {
+      var tau = an.tau.toNumber();
+      if (tau < tr.T) {
+        svg.appendChild(el('line', { x1: X(tau), y1: Tp, x2: X(tau), y2: B, class: 'mark' }));
+        svg.appendChild(el('text', { x: X(tau) + 4, y: B - 8, class: 'mut' }, 'one time constant, ' + fmt(tau, 's')));
+      }
+    }
+    var cur = tr.times[state.tIdx];
+    var mk = el('line', { x1: X(cur), y1: Tp, x2: X(cur), y2: B, stroke: 'var(--ink)', 'stroke-width': 1.6 });
+    svg.appendChild(mk);
+    an.caps.forEach(function (c, m) { svg.appendChild(el('circle', { cx: X(cur), cy: Y(tr.v[state.tIdx][m]), r: 4, fill: 'var(--ink)' })); });
+    var sw = ['──', '┄┄', '···'];
+    $('plotLegend').innerHTML = an.caps.map(function (c, m) { return '<span><b style="color:var(--' + ['accent', 'tag', 'ok'][m % 3] + ')">' + sw[m % 3] + '</b> ' + esc(c.name) + ' voltage</span>'; }).join('');
+    var note = 'Plot runs to ' + fmt(tr.T, 's') + ', eight times an exact upper bound (from the inverse of the matrix) on the slowest time constant. ';
+    if (an.tau) {
+      var tauN = an.tau.toNumber(), at = null;
+      // value of the curve at tau by interpolation
+      for (var i2 = 1; i2 < tr.times.length; i2++) if (tr.times[i2] >= tauN) { var f = (tauN - tr.times[i2 - 1]) / (tr.times[i2] - tr.times[i2 - 1]); at = tr.v[i2 - 1][0] + f * (tr.v[i2][0] - tr.v[i2 - 1][0]); break; }
+      var v0 = an.caps[0].v0.toNumber();
+      if (at !== null && an.steady.ok) {
+        var vf = capFinal(net, an);
+        if (vf !== null && Math.abs(vf - v0) > 1e-12) note += 'At one time constant (' + fmt(tauN, 's') + ', which is the exact Thevenin resistance times C) the curve has covered ' + (100 * (at - v0) / (vf - v0)).toFixed(1) + '% of the way from its start to its final value; the closed form says ' + (100 * (1 - Math.exp(-1))).toFixed(1) + '%.';
+      }
+    }
+    $('plotNote').textContent = note;
+  }
+  function capFinal(net, an) {
+    if (!an.steady.ok) return null;
+    var c = an.caps[0];
+    return an.steady.v[c.n1].sub(an.steady.v[c.n2]).toNumber();
+  }
+
+  // ----- checks -----
+  function renderChecks(list, ul) {
+    ul.innerHTML = list.map(function (r) {
+      var g = r.pass === null ? '?' : r.pass ? '✓' : '✗';
+      var cls = r.pass === null ? 'warn' : r.pass ? 'ok' : 'bad';
+      var word = r.pass === null ? 'skipped' : r.pass ? 'pass' : 'FAIL';
+      return '<li><span class="g ' + cls + '" aria-hidden="true">' + g + '</span><span class="sr" style="position:absolute;left:-9999px">' + word + ': </span>' + esc(r.text) + (r.note ? ' <span class="tagx">(' + esc(r.note) + ')</span>' : '') + '</li>';
+    }).join('');
+  }
+  var lastSeedChecks = [], lastNetChecks = [];
+  function summary() {
+    var all = lastSeedChecks.concat(lastNetChecks);
+    var p = all.filter(function (r) { return r.pass === true; }).length, f = all.filter(function (r) { return r.pass === false; }).length, s = all.filter(function (r) { return r.pass === null; }).length;
+    var el2 = $('checkSummary');
+    el2.innerHTML = '<b class="' + (f ? 'bad' : 'ok') + '">' + p + ' of ' + all.length + ' checks pass</b>' + (f ? ', ' + f + ' fail' : '') + (s ? ', ' + s + ' skipped' : '') + '. Closed forms: ' + lastSeedChecks.filter(function (r) { return r.group === 'closed form'; }).length + ' checks. Simulation: ' + lastSeedChecks.filter(function (r) { return r.group === 'simulation'; }).length + '. Model limits: ' + lastSeedChecks.filter(function (r) { return r.group === 'limits'; }).length + '. Weaker, not independent: ' + lastSeedChecks.filter(function (r) { return r.group === 'weaker'; }).length + '.';
+  }
+  function runSeedChecks() {
+    var seed = Math.max(1, Math.floor(Number($('seed').value) || 1000));
+    $('checkSummary').textContent = 'Running the checks...';
+    setTimeout(function () {
+      var t0 = performance.now();
+      lastSeedChecks = C.runChecks(seed, { count: 6 });
+      renderChecks(lastSeedChecks, $('chkSeed'));
+      summary();
+      $('hChecks').textContent = 'Checks (seed ' + seed + ', ' + Math.round(performance.now() - t0) + ' ms)';
+    }, 20);
+  }
+  $('rerun').addEventListener('click', runSeedChecks);
+  var netCheckTimer = 0;
+  function runNetChecks() {
+    clearTimeout(netCheckTimer);
+    netCheckTimer = setTimeout(function () {
+      if (!state.net || !state.an) return;
+      try { lastNetChecks = C.checkNetwork(state.net, state.an); } catch (e) { lastNetChecks = [{ group: 'this network', text: 'Checks on this network failed to run: ' + e.message, pass: false }]; }
+      if (!lastNetChecks.length) $('chkNet').innerHTML = '<li class="small">No solution to check for this network.</li>';
+      else renderChecks(lastNetChecks, $('chkNet'));
+      summary();
+    }, 250);
+  }
+
+  // ----- main update -----
+  function slowTimeIndexClamp() { if (!state.tr || !state.tr.ok) state.tIdx = 0; }
+  function update(resetTime) {
+    stopPlay();
+    var net = C.parse($('net').value);
+    $('parseMsg').innerHTML = net.errors.length ? '<span class="bad">' + net.errors.map(esc).join('<br>') + '</span>' : '<span class="small">' + net.els.length + ' parts, ' + (net.nodes.length + 1) + ' nodes counting ground.</span>';
+    if (net.errors.length) { $('status').innerHTML = '<div class="banner bad">Fix the netlist above to see the circuit. Showing the last good one.</div>'; return; }
+    state.net = net; buildValues(net);
+    var an = C.analyze(net); state.an = an;
+    state.tr = an.M ? C.trajectory(an, 240) : null;
+    if (resetTime) state.tIdx = 0;
+    slowTimeIndexClamp();
+    var msgs = [];
+    if (!an.steady.ok) msgs.push('<b>No steady-state answer.</b> ' + esc(an.steady.msg));
+    if (an.steady.ok && an.caps.length && !an.M) msgs.push('<b>No charging curve.</b> ' + esc(an.transientMsg || ''));
+    if (an.steady.ok && an.caps.length && an.M && state.tr && !state.tr.ok) msgs.push('<b>No charging curve.</b> The time scales are too far apart to step through in time here.');
+    $('status').innerHTML = msgs.map(function (m) { return '<div class="banner">' + m + '</div>'; }).join('');
+    var showTime = an.caps.length > 0 && an.M && state.tr && state.tr.ok;
+    $('timeBox').hidden = !showTime;
+    $('play').hidden = reduced;
+    var sol = nowSolution();
+    if (showTime) $('tOut').textContent = fmtT(state.tr.times[state.tIdx]) + ' of ' + fmtT(state.tr.T);
+    drawFigure(net, sol);
+    renderTables(net, an, sol);
+    $('legend').innerHTML = sol ? '<span>Orange arrows and labels: current (conventional direction, thicker is larger).</span><span>Blue labels: node voltage above ground.</span>' : '';
+    $('note').textContent = sol ? (showTime ? 'The "now" column is the exact solution with each capacitor held at its voltage at the time on the slider; "start" and "steady" are the exact fractions.' : 'Values are exact fractions where short, and always shown to three significant figures.') : 'No solution is shown because the model has none for this network (see the box above).';
+    drawPlot(net, an, state.tr);
+    runNetChecks();
+  }
+  function setTime(i) {
+    state.tIdx = i;
+    var sol = nowSolution();
+    $('tOut').textContent = fmtT(state.tr.times[i]) + ' of ' + fmtT(state.tr.T);
+    drawFigure(state.net, sol); renderTables(state.net, state.an, sol); drawPlot(state.net, state.an, state.tr);
+  }
+  $('t').addEventListener('input', function () { stopPlay(); if (state.tr && state.tr.ok) { var n = state.tr.times.length - 1; state.tIdx = Math.round(Number($('t').value) / 1000 * n); setTime(state.tIdx); } });
+  function stopPlay() { state.playing = false; clearInterval(state.timer); $('play').textContent = 'Play'; }
+  $('play').addEventListener('click', function () {
+    if (state.playing) { stopPlay(); return; }
+    if (!state.tr || !state.tr.ok) return;
+    var n = state.tr.times.length - 1;
+    if (state.tIdx >= n) state.tIdx = 0;
+    state.playing = true; $('play').textContent = 'Pause';
+    state.timer = setInterval(function () {
+      if (state.tIdx >= n) { stopPlay(); return; }
+      state.tIdx++; $('t').value = Math.round(state.tIdx / n * 1000); setTime(state.tIdx);
+    }, 60);
+  });
+
+  // ----- limit cases -----
+  function buildCases() {
+    var box = $('cases');
+    CASES.forEach(function (c, i) {
+      var net = C.parse(c.text), an = C.analyze(net);
+      var verdict = !an.steady.ok ? an.steady.msg : (an.transientMsg ? 'Steady state: solved. Charging curve: ' + an.transientMsg : 'Solved.');
+      var d = document.createElement('div'); d.className = 'case';
+      d.innerHTML = '<b>' + esc(c.title) + '</b><pre>' + esc(c.text) + '</pre><div>' + esc(verdict) + '</div>';
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Load this into the editor'; b.style.marginTop = '8px';
+      b.addEventListener('click', function () { $('net').value = c.text; update(true); window.scrollTo(0, $('net').getBoundingClientRect().top + window.scrollY - 20); });
+      d.appendChild(b); box.appendChild(d);
+    });
+    $('ignored').textContent = 'Also left out: a battery’s own internal resistance, resistance in wires, leakage and series resistance in capacitors, inductance (so no switching spikes), temperature, parts whose resistance changes with voltage, and anything faster than the circuit’s own time constants.';
+  }
+
+  function buildUnverified() {
+    var items = [
+      'Not compared with a circuit simulator such as SPICE (none was available here) or with a bench measurement.',
+      'The textbook row is weaker, not independent: the lecture slide could not be fetched, so it rests on a web-search summary that I read for battery orientation.',
+      'The time-step simulation agrees only to the tolerances stated beside each check, and the whole check set is one author’s work: both methods share the same netlist parser.',
+      'Looked at in headless Chromium only, light and dark, at phone width; not in other browsers or with a screen reader.',
+      'The ' + C.LIMITS.elements + '-part and ' + C.LIMITS.nodes + '-node limits are for page speed, not for any physical reason.'
+    ];
+    $('unverified').innerHTML = items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+  }
+
+  buildPresets(); buildCases(); buildUnverified();
+  $('net').value = PRESETS[4].text;
+  update(true);
+  runSeedChecks();
+})();
+</script>
+</body>
+</html>

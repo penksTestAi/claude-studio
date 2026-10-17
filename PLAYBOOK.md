@@ -102,6 +102,9 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   but they still come, such as "intact" after an edited source comment).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
+- After the fetch, the chair launches the toy, piece and game builders in parallel, each in its own folder, and the
+  refiners and testers as each builder hands back (promoted from an experiment: five runs, 17:00 to 02:00, no builder
+  touched another's files; the run's length is still set by the game step, not by the other builders).
 
 ## Experiments
 
@@ -118,10 +121,6 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
   edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
   Workbench game text in the next 6 runs (Long Watch omitted milestone 8 at 11:20; at 13:10 it was out of date again
   and the letter's online-play claim fit only an earlier version, both review only).
-- (started 2026-10-16) After the fetch, the chair launches the toy, piece and game builders in parallel, each in its
-  own folder, and the refiners and testers as each builder hands back. Check: over the next 6 runs, no builder edits
-  another's files, no game loop fails from machine load, and the build phase is shorter than when run in turn (17:00:
-  all three ran at once with no clash).
 
 ## Proposals for the owner
 
@@ -136,14 +135,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
   20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run,
   and again 03:15 although the Practice says so). Until then, the vigil-profile skill could say it (next reflector).
-- (2026-10-16) A small `tools/game_test_loop` script that runs each game test file N times in sequence with
-  `CHROME` set and prints one "file passed/N" line each would save the game builder's and tester's tokens and give
-  exact counts; the game step took about 2 h 40 min, much of it hand-run loops, and the tester's counts were lost
-  to `tail`. A time budget for the game builder may also be worth setting in the routine. Again 2026-10-16 11:20:
-  the Opus game builder spent about 35 min waiting on loops, skipped 5 test files for time and handed back only
-  after a nudge. Again 17:00: the game builder spent most of its 29 min on the 5x loops. Again 22:52: the tester's
-  hand-made nohup loop ended with no report and the chair read the logs; a script printing counts would avoid this. Subagents' stop-hook reminders are noise for them (they report to the chair); the routine could
-  turn that hook off for subagents.
+- (2026-10-16) A time budget for the game builder and tester, set in the routine. The loop-script half of this
+  proposal is done: `game/tests/loop.mjs` (2026-10-17 02:00) prints exact pass counts and helped the tester. Time is
+  still the cost: 2 h 40 min (10-16 01:45), 35 min of loop waiting and a nudge (11:20), and at 10-17 02:00 the Opus
+  founding-mode builder took about 76 min of a 3 h 40 min run, mostly waited on, and the tester (about 22 min)
+  again handed back an interim "waiting on background work" result. Subagents' stop-hook reminders are noise for
+  them (they report to the chair); the routine could turn that hook off for subagents.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (for example a lock file or branch checked at
   start, and about 2 h per run): the 01:45 run took about 5 h, another run pushed crafting and beacons to main
   meanwhile, and the rebase conflict needed a salvage branch and dropped all of this run's game work. It happened
@@ -162,13 +159,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now runs the 5x loop once, after the code is final, one file at a time with nothing
-  else loading the machine, reports the loop's own counts (not `tail` output) and updates game/README's milestone;
-  the game step took about 2 h 40 min with load-induced failures, and the README still said "milestone 5".
-- 2026-10-16: new experiment, builders check status words ("Fixed", "first", licences, statistics) against evidence
-  before review; review found four such wording overclaims this run.
-- 2026-10-16: proposal for the owner: a game test loop script and a time budget for the game builder (same 2 h 40 min
-  evidence; tester's pass counts lost to `tail`). Not acted on: one unexplained `give` failure; watch next game run.
 - 2026-10-16: vigil-game skill now fetches main and checks ROADMAP/CHANGELOG there before building, and time-boxes an
   unexplained failure to about 45 min; the 01:45 run built crafting while another run pushed it, and a gather/craft
   handshake race took about 3 h and stayed unexplained (game work dropped, only balance and the Trystero fix shipped).
@@ -267,3 +257,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-16: game-loop proposal for the owner updated with the lost tester report. Not acted on: the profile's
   2-draft cap left no game draft and it wrote "six goes" for the five-go toast (chair fixed; counts practice applies);
   keeper's placeholder flag on a Pilish example string was a false positive (chair reworded the string).
+- 2026-10-17: parallel-builders experiment judged (five runs, 17:00 to 02:00) and promoted to Practices: no builder
+  touched another's files in any run; whether the build phase got shorter is unmeasured, the game step sets the length.
+- 2026-10-17: vigil-security skill now greps all tracked and untracked files, vendored ones included, for e-mail
+  addresses; the scan does not, and a third-party author's e-mail in a vendored library passed security and was
+  stripped by the chair before commit.
+- 2026-10-17: game-loop proposal for the owner rewritten: loop.mjs now exists (script half done), the time budget
+  remains (Opus founding builder about 76 min of a 3 h 40 min run, tester's interim hand-back again). Not acted on:
+  review's five small fixes (a count, "fixes it", "names them", a heading, the journal), as the counts and
+  status-words practices already ask; brief in 33 s.

@@ -19,6 +19,11 @@ The scan sees only tracked files, so a new file is invisible to it until it is a
 `git ls-files --others --exclude-standard` in each repository and read each one against section 2 yourself, and tell
 the chair to re-run the scan after `git add` and before each commit, in every repository it commits (a BLOCK in the
 untracked game/tests/talk.test.mjs was missed by the first scan and found only after the game commit had gone out).
+The scan does not look for e-mail addresses, so in each repository also run
+`git ls-files -z --cached --others --exclude-standard | xargs -0 grep -InoE '[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}' | grep -v noreply`
+and judge every hit, vendored libraries and their licence files included (a third-party author's e-mail in a
+vendored library was missed by this role and stripped by the chair, 2026-10-17 02:00). A licence's copyright line
+keeps the author's name; tell the chair which addresses you removed or left and why.
 
 ## 2. Review this run's changes
 Run `git status --short` and `git diff` (plus new files) in each repository. Check, for every change:

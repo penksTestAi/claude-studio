@@ -41,17 +41,12 @@ What the studio is reaching for right now. The advisor reads this before writing
   Timeline's years against a second dataset (91 of 118 agree, all disagreements listed), so no piece rests on one
   source or memory: prefer subjects the page can check itself. Improvement runs work: all three checks needed only
   wording fixes in review.
-- Not everything has to be an interactive web page. The owner asked for other forms too: a command-line tool or
-  library, a dataset, a piece of music or sound, a printable PDF, a series of images, a story or poems, a font, a
-  browser extension. Each still gets a small landing page so people can find it. The first try paid off: Paper Slide
-  Rule (a PDF) checked all 886 ticks from its own drawing instructions and review found only wording; Plain Bob
-  Minimus (a WAV) checks its ringing and reads its pitches back from the audio; Lamplight Mono (a font) parses its
-  own file and its build failed its own outline check before it was fixed; Leap Seconds (a dataset, CSV and JSON)
-  rebuilds every offset from its rows and found its two sources were not independent; Seed Head Spirals (an image
-  series) counts its spirals from its own pixels; The Shadow at Alexandria (a short story) recomputes its own
-  numbers and marks what it invents; Pilish Poems compute the digits their word lengths spell. Keep going, roughly
-  one piece in four, with a form not yet made (command-line tool, browser extension). Claims
-  about the physical world (paper sizes, printing, assembly) stay unverified unless measured; say so on the page.
+- Not everything has to be an interactive web page (the owner's wish). A PDF (Paper Slide Rule), a sound (Plain Bob
+  Minimus), a font (Lamplight Mono), a dataset (Leap Seconds), an image series (Seed Head Spirals), a short story
+  (The Shadow at Alexandria) and poems (Pilish Poems) now exist, each checking itself from its own output, with only
+  wording found in review. Each gets a small landing page. Keep going, roughly one piece in four, with a form not yet
+  made (command-line tool or library, browser extension). Claims about the physical world (paper sizes, printing,
+  assembly) stay unverified unless measured; say so on the page.
 - Libraries and frameworks are welcome when they make a piece better (the owner's words): for example three.js,
   p5.js, D3, Tone.js, Matter.js, Leaflet or Preact on a page, numpy or Pillow when generating data, images or sound.
   Free and open-source only, pinned versions, loaded from cdnjs/jsdelivr/unpkg or vendored into the folder.
@@ -83,13 +78,15 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
-- The chair runs `git fetch` and checks what changed on `origin/main` before launching the builders, again before
-  launching the game builder, before writing any status wording (journal, game notes, profile drafts) and before each
-  commit; the owner or another run may have pushed meanwhile. If main already has the brief's game milestone or a
-  piece of the same kind, the advisor redoes that part of the brief before anyone builds. Push only in its own command
-  after reading the test and scan output, never chained after them (2026-10-15 12:40: stale "untested" text and a
-  push after a failed test; 2026-10-16 08:40: about 70 min of beacon builder and tester work was wasted because main
-  already had milestones 6-8 and another font, seen only at the final fetch).
+- The chair runs `git fetch` and checks `origin/main` before launching the builders, again before the game builder,
+  before writing any status wording (journal, game notes, profile drafts) and before each commit; if main already has
+  the brief's milestone or a piece of the same kind, the advisor redoes that part of the brief first. Push only in its
+  own command after reading the test and scan output (2026-10-15 12:40: a push after a failed test; 2026-10-16
+  08:40: about 70 min of game work lost to milestones already on main, seen only at the final fetch).
+- Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
+  game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
+  sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
+  paragraph every run; the two misses, 21:04 and 10-17 03:48, came from the game builder's Workbench sentence).
 - When a piece's data comes from one source, the builder checks at least 10 rows (oldest, newest, odd-looking)
   against a second free source of a different origin (not a copy or re-fit of the same record) before building and
   flags each disagreement on the page; when none is reachable, the page says the check is not independent (promoted
@@ -116,11 +113,6 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
   true; a kept caveat that the record (CHANGELOG, Direction) contradicts is reworded, not copied. Check: no review
   finds a dropped caveat in the next 6 runs (the prose rule it replaces failed three runs running: 17:00, 19:32,
   21:04, review only each time).
-- (started 2026-10-16) Every run the keeper compares each game passage on the Workbench (the Long Watch paragraph,
-  the letter) with game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates the passages it may
-  edit, and names any stale sentence in a protected passage in its report for the owner. Check: no review finds stale
-  Workbench game text in the next 6 runs (Long Watch omitted milestone 8 at 11:20; at 13:10 it was out of date again
-  and the letter's online-play claim fit only an earlier version, both review only).
 
 ## Proposals for the owner
 
@@ -159,13 +151,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now fetches main and checks ROADMAP/CHANGELOG there before building, and time-boxes an
-  unexplained failure to about 45 min; the 01:45 run built crafting while another run pushed it, and a gather/craft
-  handshake race took about 3 h and stayed unexplained (game work dropped, only balance and the Trystero fix shipped).
-- 2026-10-16: proposal for the owner: prevent overlapping runs and cap wall-clock (same evidence: about 5 h, rebase
-  conflict, salvage branch).
-- 2026-10-16: CLAUDE.md proposal now also names the profile agent, which wrote its own STUDIO entry this run.
-  Status-words experiment not judged (one run old).
 - 2026-10-16: vigil-game skill now checks `git log -S` before calling a failing test stale, and makes a rewrite diff
   its file and name every removed behaviour, with DESIGN and patch notes claiming only what the code has; beacon
   failed 0/5, the builder guessed "stale test", the tester found 2fc04d5 had silently dropped the watchdog, and
@@ -266,3 +251,13 @@ Changes only the owner can make to the routine. The owner can delete a line once
   remains (Opus founding builder about 76 min of a 3 h 40 min run, tester's interim hand-back again). Not acted on:
   review's five small fixes (a count, "fixes it", "names them", a heading, the journal), as the counts and
   status-words practices already ask; brief in 33 s.
+- 2026-10-17: vigil-game skill now keeps every feature of the current Workbench game sentence unless the code removed
+  it, and has the builder re-read added DESIGN/ROADMAP/CHANGELOG/comment claims (absolutes scoped to their tests,
+  caps copied from code); 03:48 review made six wording fixes, four in game docs ("never twice", "stay MAX_PEERS",
+  a design line as fact, a stale tracker comment), and the chair restored the dropped clock note.
+- 2026-10-17: keeper-passages experiment judged (seven runs) and promoted to Practices: the keeper flagged the stale
+  protected Long Watch paragraph every run; both misses came from the game builder's sentence (skill fixed above).
+  Caveat-grep experiment not judged (three runs).
+- 2026-10-17: Direction's forms bullet and the fetch practice shortened to bring the file back under about 150
+  lines. Not acted on: game builder about 67 min and security's own test run never reported (game-loop proposal
+  stands); keeper flagged the dewpoint "ranges" overstatement before review (refiner and keeper working).

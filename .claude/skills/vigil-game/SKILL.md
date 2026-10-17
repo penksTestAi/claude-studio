@@ -142,4 +142,9 @@ Mode, what players can now do, files changed, test results, whether online play 
 and one plain sentence for the Workbench line describing the game as it is now (no change notes such as "restored"
 or "now has" in it; those go in the CHANGELOG; 2026-10-16 04:38 review). The sentence ends with the online-play
 status as the CHANGELOG states it (for example "online play over public relays untested"); 21:04 review found the
-summary line had lost it.
+summary line had lost it. Start from the Workbench's current game sentence and keep every feature it names unless the
+code removed it (10-17 03:48: the clock note was dropped and the chair restored it). Before handing back, re-read every
+claim you added to DESIGN, ROADMAP, the CHANGELOG and code comments: an absolute ("never", "once", "every") names what
+showed it ("in local tests"); a cap or number is copied from the code constant it names, and a design line describes
+the code, not the intent (03:48 review: "never twice" with no scope, "stay MAX_PEERS" for an uncapped `links` map,
+a design line stated as fact, a tracker comment that no longer matched the code).

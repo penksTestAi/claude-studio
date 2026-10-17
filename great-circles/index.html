@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Great Circle Routes · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag two airports on a flat map or a globe and see the shortest route between them bend; the page checks its distance and bearing with a second program and formula, but no published distance table could be fetched, so its sphere distances have no independent check.">
+<link rel="canonical" href="https://vigilstudio.github.io/great-circles/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Great Circle Routes · Vigil">
+<meta property="og:description" content="Drag two airports on a flat map or a globe and see the shortest route between them bend; the page checks its distance and bearing with a second program and formula, but no published distance table could be fetched, so its sphere distances have no independent check.">
+<meta property="og:url" content="https://vigilstudio.github.io/great-circles/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Great Circle Routes · Vigil">
+<meta name="twitter:description" content="Drag two airports on a flat map or a globe and see the shortest route between them bend; the page checks its distance and bearing with a second program and formula, but no published distance table could be fetched, so its sphere distances have no independent check.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--land:#e4dfd0;--landline:#8f8878;--grat:#ddd7c8;--sea:#eaf0f6;--gc:#c2501f;--flat:#2f5f9e;--ok:#2f7d3a;--bad:#b3261e;--weak:#8a5a00;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#181a1d;--panel:#202327;--ink:#ecebe6;--muted:#a9a69d;--line:#3a3e44;--accent:#8db4ee;--accent-ink:#101215;--land:#3a3d36;--landline:#6d6f64;--grat:#2d3035;--sea:#1b2530;--gc:#ff8c5a;--flat:#8db4ee;--ok:#74c47f;--bad:#ff8a80;--weak:#e2b04a;color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+main{max-width:980px;margin:0 auto}
+a{color:var(--accent)}
+h1{font-size:1.7rem;line-height:1.2;margin:1.2rem 0 .4rem}
+h2{font-size:1.2rem;margin:2rem 0 .5rem}
+.lede{font-size:1.15rem;margin:.2rem 0 1rem}
+.small{font-size:.88rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:2px}
+select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;max-width:100%}
+select{width:100%}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.maps{display:grid;grid-template-columns:3fr 2fr;gap:12px}
+@media (max-width:760px){.maps{grid-template-columns:1fr}.controls{grid-template-columns:1fr}}
+svg{display:block;width:100%;height:auto}
+.sea{fill:var(--sea)}
+.land{fill:var(--land);stroke:var(--landline);stroke-width:.5}
+.grat{fill:none;stroke:var(--grat);stroke-width:.5}
+.gc{fill:none;stroke:var(--gc);stroke-width:2.5;stroke-linecap:round}
+.flat{fill:none;stroke:var(--flat);stroke-width:2;stroke-dasharray:6 5}
+.rim{fill:none;stroke:var(--landline);stroke-width:1}
+.pt{fill:var(--gc);stroke:var(--panel);stroke-width:2;cursor:grab;touch-action:none}
+.pt.b{fill:var(--accent)}
+.ptlab{font-size:13px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;pointer-events:none}
+.hit{fill:transparent;touch-action:none;cursor:grab}
+#globe{touch-action:pan-y;cursor:grab}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 0;font-size:.88rem}
+.key i{display:inline-block;width:26px;height:0;border-top:3px solid var(--gc);vertical-align:middle;margin-right:6px}
+.key i.d{border-top:3px dashed var(--flat)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+dl.read{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:4px 12px;margin:0}
+dl.read dt{color:var(--muted)}
+dl.read dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}
+.msg{margin:8px 0 0}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+thead th{font-weight:600;vertical-align:bottom;white-space:normal}
+tr.weakrow td{color:var(--weak)}
+.ok{color:var(--ok);font-weight:600}
+.bad{color:var(--bad);font-weight:600}
+.weak{color:var(--weak)}
+ul.checks{list-style:none;padding:0;margin:0}
+ul.checks li{padding:6px 0;border-bottom:1px solid var(--line)}
+ul.checks li:last-child{border-bottom:0}
+.sr{position:absolute;left:-9999px}
+code{font-size:.92em}
+</style>
+</head>
+<body>
+<main>
+<h1>Great Circle Routes</h1>
+<p class="lede" id="lede">Drag two airports on a flat map or a globe and see the shortest route between them bend, with its length and bearing checked.</p>
+
+<section aria-label="Route explorer">
+  <div class="controls">
+    <div><label for="selA">From (red)</label><select id="selA"></select></div>
+    <div><label for="selB">To (blue)</label><select id="selB"></select></div>
+  </div>
+  <div class="maps">
+    <div class="panel">
+      <svg id="flatmap" viewBox="0 0 720 360" role="img" aria-label="Flat equirectangular map with the great-circle route, a dashed straight line, and two draggable airports"></svg>
+      <div class="key"><span><i></i>great-circle route</span><span><i class="d"></i>straight line on this map</span></div>
+      <p class="small" style="margin:6px 0 0">Drag a dot, or focus it and use the arrow keys (Shift for <span class="stepbig"></span> degrees).</p>
+    </div>
+    <div class="panel">
+      <svg id="globe" viewBox="0 0 400 400" role="img" aria-label="Globe with the same route; drag the sea to turn it, drag a dot to move an airport"></svg>
+      <div class="btns" role="group" aria-label="Turn the globe">
+        <button type="button" id="gLeft" aria-label="Turn globe west">&larr;</button>
+        <button type="button" id="gRight" aria-label="Turn globe east">&rarr;</button>
+        <button type="button" id="gUp" aria-label="Tilt globe north">&uarr;</button>
+        <button type="button" id="gDown" aria-label="Tilt globe south">&darr;</button>
+        <button type="button" id="gCentre">Centre on route</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <p class="msg" id="summary" aria-live="polite" style="margin-top:0"></p>
+    <dl class="read" id="read"></dl>
+    <p class="msg small" id="notes"></p>
+  </div>
+</section>
+
+<h2>Why the route looks bent</h2>
+<p>A flat map has to stretch the sphere. On this one (equirectangular, longitude and latitude used as flat coordinates) a
+straight ruler line is not the shortest way. The shortest path on a sphere is an arc of a great circle: the circle
+you get by slicing the sphere through its centre. Drawn on the map, such an arc usually bulges toward the nearer pole:
+east-west distances shrink as you go poleward, so a detour toward the pole saves more than it costs. On the
+globe the same route is simply the tightest string you could pull between the two points.</p>
+<p>The page measures the gap for the pair you chose: the dashed map-straight line is cut into <span id="nSamp"></span>
+short pieces, each piece's length is taken along the sphere and they are added up, then compared with the great
+circle. Winds, airspace and safety rules also shape real flight tracks; none of that is modelled here.</p>
+
+<h2>Checks the page runs on itself</h2>
+<p class="small">Computed in your browser when the page loads. Every count and figure below is computed from the page's own data and code, except the web-search figures, which are typed in
+from a search and labelled as weaker.</p>
+<ul class="checks" id="checks"></ul>
+
+<h2>Airport pairs, checked</h2>
+<p class="small">Distances in km unless marked. "Sphere" is haversine on a sphere of radius <span class="rmean"></span> km; "ellipsoid" is
+Vincenty's inverse formula on WGS84; "Karney" is GeographicLib's geodesic code (a separate algorithm and
+implementation, vendored, run here). "OpenFlights coordinates" repeat the haversine with each airport's position
+taken from a second coordinate file.</p>
+<div class="tablewrap"><table id="pairs" aria-describedby="pairsNote"></table></div>
+<p class="small" id="pairsNote"></p>
+
+<h2>How this differs from Tissot Circles</h2>
+<p><a href="../projections/">Tissot Circles</a> asks how a projection distorts: it puts circles of equal true size on
+Mercator and Equal Earth and measures how their shape and area change. This page asks the opposite question about
+one shortest path: given two points, where does the shortest route go, and how long is it, drawn on a plate carree map
+and a globe? Tissot Circles is about area and shape; this is about distance, bearing and the sphere-versus-ellipsoid
+gap. They share only the Natural Earth outline source.</p>
+
+<h2>What is not verified</h2>
+<ul id="unverified"></ul>
+<p class="small">Made by Claude, an AI model by Anthropic. Code: this page's own code under the repository's licence, and the vendored libraries under their own
+(d3-geo and d3-array, ISC; GeographicLib, MIT; licence files are in the folder). Data: Natural Earth land (public domain), OurAirports (public
+domain), OpenFlights airport positions (Open Database Licence), used only as the second coordinate source.
+See <a href="README.md">README.md</a>.</p>
+</main>
+
+<script src="d3-array.min.js"></script>
+<script src="d3-geo.min.js"></script>
+<script src="geographiclib-geodesic.min.js"></script>
+<script src="data.js"></script>
+<script>
+"use strict";
+/* ---------- geometry ---------- */
+const R_MEAN = 6371.0088;               // km, mean Earth radius (IUGG)
+const RAD = Math.PI / 180, DEG = 180 / Math.PI;
+const WGS = { a: 6378137, f: 1 / 298.257223563 };
+
+function haversine(la1, lo1, la2, lo2) {   // km
+  const p1 = la1 * RAD, p2 = la2 * RAD, dp = p2 - p1, dl = (lo2 - lo1) * RAD;
+  const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return 2 * R_MEAN * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+/* Vincenty inverse. Returns {km, az1, az2} or null when it does not converge (near-antipodal) */
+function vincenty(la1, lo1, la2, lo2) {
+  const a = WGS.a, f = WGS.f, b = a * (1 - f);
+  const L = (lo2 - lo1) * RAD;
+  const U1 = Math.atan((1 - f) * Math.tan(la1 * RAD)), U2 = Math.atan((1 - f) * Math.tan(la2 * RAD));
+  const sU1 = Math.sin(U1), cU1 = Math.cos(U1), sU2 = Math.sin(U2), cU2 = Math.cos(U2);
+  let lam = L, it = 0, sS, cS, sig, sA, c2A, c2SM;
+  for (; it < 200; it++) {
+    const sl = Math.sin(lam), cl = Math.cos(lam);
+    sS = Math.hypot(cU2 * sl, cU1 * sU2 - sU1 * cU2 * cl);
+    if (sS === 0) return { km: 0, az1: 0, az2: 0 };
+    cS = sU1 * sU2 + cU1 * cU2 * cl;
+    sig = Math.atan2(sS, cS);
+    sA = cU1 * cU2 * sl / sS;
+    c2A = 1 - sA * sA;
+    c2SM = c2A !== 0 ? cS - 2 * sU1 * sU2 / c2A : 0;
+    const C = f / 16 * c2A * (4 + f * (4 - 3 * c2A));
+    const prev = lam;
+    lam = L + (1 - C) * f * sA * (sig + C * sS * (c2SM + C * cS * (-1 + 2 * c2SM * c2SM)));
+    if (Math.abs(lam - prev) < 1e-12) break;
+  }
+  if (it >= 200 || !isFinite(lam)) return null;
+  const u2 = c2A * (a * a - b * b) / (b * b);
+  const A = 1 + u2 / 16384 * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)));
+  const B = u2 / 1024 * (256 + u2 * (-128 + u2 * (74 - 47 * u2)));
+  const dS = B * sS * (c2SM + B / 4 * (cS * (-1 + 2 * c2SM * c2SM) - B / 6 * c2SM * (-3 + 4 * sS * sS) * (-3 + 4 * c2SM * c2SM)));
+  const s = b * A * (sig - dS);
+  const sl = Math.sin(lam), cl = Math.cos(lam);
+  const az1 = Math.atan2(cU2 * sl, cU1 * sU2 - sU1 * cU2 * cl) * DEG;
+  const az2 = Math.atan2(cU1 * sl, -sU1 * cU2 + cU1 * sU2 * cl) * DEG;
+  return { km: s / 1000, az1: (az1 + 360) % 360, az2: (az2 + 360) % 360 };
+}
+function karney(la1, lo1, la2, lo2) {
+  const r = geodesic.Geodesic.WGS84.Inverse(la1, lo1, la2, lo2);
+  return { km: r.s12 / 1000, az1: (r.azi1 + 360) % 360 };
+}
+/* initial bearing, formula A: spherical trigonometry (atan2 of the longitude difference) */
+function bearingA(la1, lo1, la2, lo2) {
+  const p1 = la1 * RAD, p2 = la2 * RAD, dl = (lo2 - lo1) * RAD;
+  const y = Math.sin(dl) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  return (Math.atan2(y, x) * DEG + 360) % 360;
+}
+/* formula B: vectors. n1 x n2 is the plane of the great circle; the direction of travel at n1 is (n1 x n2) x n1,
+   resolved onto local east and north. No longitude difference appears. */
+const vec = (la, lo) => [Math.cos(la * RAD) * Math.cos(lo * RAD), Math.cos(la * RAD) * Math.sin(lo * RAD), Math.sin(la * RAD)];
+const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+const dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+function bearingB(la1, lo1, la2, lo2) {
+  const n1 = vec(la1, lo1), n2 = vec(la2, lo2);
+  const t = cross(cross(n1, n2), n1);
+  const east = cross([0, 0, 1], n1), eh = Math.hypot(...east);
+  const E = east.map(x => x / eh), N = cross(n1, E);
+  return (Math.atan2(dot(t, E), dot(t, N)) * DEG + 360) % 360;
+}
+const angDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+function vertexLat(la1, az1) {            // highest |latitude| on the sphere's great circle (Clairaut)
+  const s = Math.cos(la1 * RAD) * Math.abs(Math.sin(az1 * RAD));
+  return Math.acos(Math.min(1, s)) * DEG;
+}
+function wrapLon(x) { return ((x + 540) % 360) - 180; }
+/* length of the straight line on the plate carree map (lat/lon linear, shorter way round in longitude) */
+const SAMPLES = 400, STEP_BIG = 5;
+function mapStraight(la1, lo1, la2, lo2, n = SAMPLES) {
+  const dl = wrapLon(lo2 - lo1), pts = [];
+  let km = 0;
+  for (let i = 0; i <= n; i++) pts.push([lo1 + dl * i / n, la1 + (la2 - la1) * i / n]);
+  for (let i = 1; i <= n; i++) km += haversine(pts[i - 1][1], pts[i - 1][0], pts[i][1], pts[i][0]);
+  return { km, pts };
+}
+const fmt = (x, d = 0) => x.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }).replace(/^-(0(\.0+)?)$/, "$1");
+const plural = (n, one, many) => n === 1 ? one : many;
+function listNames(a) { return a.length === 0 ? "none" : a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+/* ---------- data ---------- */
+const AP = window.AIRPORTS;
+const byCode = Object.fromEntries(AP.map(a => [a.code, a]));
+const PAIRS = [["JFK","LHR"],["LAX","SYD"],["SIN","JFK"],["DXB","AKL"],["SFO","NRT"],["GRU","JNB"],["DOH","AKL"],["PER","LHR"],["HEL","NRT"],["EZE","SYD"],["ANC","KEF"],["HNL","SCL"],["CPT","KEF"],["SYD","SCL"]];
+/* weaker, not independent: figures read from a web-search summary on 17 Oct 2026; pages not opened */
+const WEB = { "JFK-LHR": { km: 5539, note: "another page in the same results gave 5,570" }, "LAX-SYD": { km: 12060, note: "listed as SYD-LAX" }, "SIN-JFK": { km: 15349, note: "" } };
+
+/* ---------- self-checks ---------- */
+const CHECKS = [];
+function runChecks() {
+  CHECKS.length = 0;
+  // 1. sphere vs ellipsoid over the 14 pairs
+  const rows = PAIRS.map(([x, y]) => {
+    const A = byCode[x], B = byCode[y];
+    const h = haversine(A.lat, A.lon, B.lat, B.lon);
+    const v = vincenty(A.lat, A.lon, B.lat, B.lon);
+    const k = karney(A.lat, A.lon, B.lat, B.lon);
+    const h2 = haversine(A.lat2, A.lon2, B.lat2, B.lon2);
+    const bA = bearingA(A.lat, A.lon, B.lat, B.lon), bB = bearingB(A.lat, A.lon, B.lat, B.lon);
+    return { x, y, A, B, h, v, k, h2, bA, bB, web: WEB[x + "-" + y] || null };
+  });
+  const TOL_MM = 1, TOL_DEG = 1e-6, TOL_KM = 1;                                       // Vincenty vs Karney: agree when within 1 mm
+  const vkOK = rows.filter(r => r.v && Math.abs(r.v.km - r.k.km) * 1e6 <= TOL_MM);
+  const vkBad = rows.filter(r => !r.v || Math.abs(r.v.km - r.k.km) * 1e6 > TOL_MM);
+  const gaps = rows.filter(r => r.v).map(r => ({ r, km: r.h - r.v.km, pct: (r.h - r.v.km) / r.v.km * 100 }));
+  const maxGap = gaps.reduce((m, g) => Math.abs(g.pct) > Math.abs(m.pct) ? g : m, gaps[0]);
+  const minGap = gaps.reduce((m, g) => Math.abs(g.pct) < Math.abs(m.pct) ? g : m, gaps[0]);
+  const bOK = rows.filter(r => angDiff(r.bA, r.bB) <= TOL_DEG);
+  const cOK = rows.filter(r => Math.abs(r.h2 - r.h) <= TOL_KM);
+  const cBad = rows.filter(r => Math.abs(r.h2 - r.h) > TOL_KM);
+  const maxC = rows.reduce((m, r) => Math.abs(r.h2 - r.h) > Math.abs(m.h2 - m.h) ? r : m, rows[0]);
+  // bearing on many random pairs
+  let seed = 12345; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  let nb = 0, nbOK = 0, worst = 0;
+  while (nb < 5000) {
+    const la1 = Math.asin(2 * rnd() - 1) * DEG, la2 = Math.asin(2 * rnd() - 1) * DEG, lo1 = rnd() * 360 - 180, lo2 = rnd() * 360 - 180;
+    if (Math.abs(la1) > 89.9 || Math.abs(la2) > 89.9) continue;
+    nb++;
+    const d = angDiff(bearingA(la1, lo1, la2, lo2), bearingB(la1, lo1, la2, lo2));
+    worst = Math.max(worst, d);
+    if (d <= TOL_DEG) nbOK++;
+  }
+  // Vincenty vs Karney on random pairs, and how many Vincenty could not solve
+  let nv = 0, nvOK = 0, nvFail = 0; seed = 777;
+  while (nv < 2000) {
+    const la1 = Math.asin(2 * rnd() - 1) * DEG, la2 = Math.asin(2 * rnd() - 1) * DEG, lo1 = rnd() * 360 - 180, lo2 = rnd() * 360 - 180;
+    nv++;
+    const v = vincenty(la1, lo1, la2, lo2);
+    if (!v) { nvFail++; continue; }
+    if (Math.abs(v.km - karney(la1, lo1, la2, lo2).km) * 1e6 <= TOL_MM) nvOK++;
+  }
+  const webRows = rows.filter(r => r.web);
+  CHECKS.push({
+    id: "gap", ok: true, rows, webRows,
+    html: `<b>1. Sphere against ellipsoid.</b> Over the ${rows.length} pairs below, the haversine (sphere) distance differs from Vincenty (WGS84 ellipsoid) by ${fmt(Math.min(...gaps.map(g => Math.abs(g.km))), 1)} to ${fmt(Math.max(...gaps.map(g => Math.abs(g.km))), 1)} km, which is ${fmt(Math.abs(minGap.pct), 2)}% to ${fmt(Math.abs(maxGap.pct), 2)}%. The largest is ${maxGap.r.x}-${maxGap.r.y} (${maxGap.km > 0 ? "sphere longer" : "sphere shorter"} by ${fmt(Math.abs(maxGap.km), 1)} km). The gap is measured, not a pass/fail test; the ellipsoid is the better model of the Earth.`
+  });
+  CHECKS.push({
+    id: "vk", ok: vkBad.length === 0 && nvOK === nv - nvFail,
+    html: `<b>2. Vincenty against Karney.</b> On the ${rows.length} pairs, ${vkOK.length === rows.length ? "all " + rows.length : vkOK.length + " of " + rows.length} give the same ellipsoid distance from both codes to within ${TOL_MM} mm${vkBad.length ? "; not within that: " + listNames(vkBad.map(r => r.x + "-" + r.y)) : ""}. On ${fmt(nv)} random pairs, ${fmt(nvOK)} agree within ${TOL_MM} mm and Vincenty gave no answer for ${fmt(nvFail)} (Vincenty is known to fail near antipodal points; Karney still answers there).`
+  });
+  CHECKS.push({
+    id: "bearing", ok: bOK.length === rows.length && nbOK === nb,
+    html: `<b>3. Initial bearing against a second formula.</b> Spherical trigonometry (atan2 of the longitude difference) against a vector formula (cross products, no longitude difference). On the ${rows.length} pairs ${bOK.length === rows.length ? "all " + rows.length : bOK.length + " of " + rows.length} agree to within ${TOL_DEG.toFixed(6)} degrees; on ${fmt(nb)} random pairs ${fmt(nbOK)} agree, worst difference ${worst.toExponential(1)} degrees. Both are spherical formulas, so this tests the algebra, not the sphere. Karney's ellipsoid bearing is shown beside them in the readout.`
+  });
+  CHECKS.push({
+    id: "coords", ok: cBad.length === 0,
+    html: `<b>4. Airport positions against a second file.</b> Re-running the sphere distance with OpenFlights coordinates instead of OurAirports gives the same distance to within ${TOL_KM} km for ${cOK.length === rows.length ? "all " + rows.length : cOK.length + " of " + rows.length} pairs${cBad.length ? "; not within " + TOL_KM + " km: " + listNames(cBad.map(r => r.x + "-" + r.y)) : ""}. The largest difference is ${fmt(Math.abs(maxC.h2 - maxC.h) * 1000, 0)} m (${maxC.x}-${maxC.y}). The ${TOL_KM} km limit is my choice; the files give one reference point per airport and may place it differently (terminal, runway centre, survey point).`
+  });
+  CHECKS.push({
+    id: "web", ok: true, weak: true,
+    html: `<b>5. Web-search figures (weaker, not independent).</b> A web search returned published distances for ${webRows.length} of the ${rows.length} pairs: ${webRows.map(r => `${r.x}-${r.y} ${fmt(r.web.km)} km against this page's sphere ${fmt(r.h)} km (${r.web.km > r.h ? "+" : "-"}${fmt(Math.abs(r.web.km - r.h))})`).join("; ")}. Search summaries only, source pages not opened, radius and rounding unknown. They are left out of every tally above.`
+  });
+  return { rows, vkOK: vkOK.length, nbOK, nb };
+}
+
+/* ---------- state and drawing ---------- */
+const state = { A: { ...byCode.JFK }, B: { ...byCode.LHR }, rot: [0, 0] };
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a = {}, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+const flat = d3.geoEquirectangular().scale(720 / (2 * Math.PI)).translate([360, 180]).precision(0.1);
+const fpath = d3.geoPath(flat);
+const globeP = d3.geoOrthographic().scale(188).translate([200, 200]).clipAngle(90).precision(0.3);
+const gpath = d3.geoPath(globeP);
+const grat = d3.geoGraticule().step([30, 30])();
+const LAND = window.LAND;
+
+const fs = document.getElementById("flatmap"), gs = document.getElementById("globe");
+const f = {}, g = {};
+f.sea = el("path", { class: "sea", d: fpath({ type: "Sphere" }) }, fs);
+f.grat = el("path", { class: "grat", d: fpath(grat) }, fs);
+f.land = el("path", { class: "land", d: fpath(LAND) }, fs);
+f.straight = [el("path", { class: "flat" }, fs)];
+f.gc = el("path", { class: "gc" }, fs);
+f.rim = el("path", { class: "rim", d: fpath({ type: "Sphere" }) }, fs);
+g.sea = el("path", { class: "sea" }, gs);
+g.grat = el("path", { class: "grat" }, gs);
+g.land = el("path", { class: "land" }, gs);
+g.flat = el("path", { class: "flat" }, gs);
+g.gc = el("path", { class: "gc" }, gs);
+g.rim = el("path", { class: "rim" }, gs);
+
+function mkPoint(svg, key, cls) {
+  const grp = el("g", {}, svg);
+  const hit = el("circle", { r: svg === fs ? 44 : 30, class: "hit" }, grp);
+  const dot = el("circle", { r: 7, class: "pt " + cls }, grp);
+  const lab = el("text", { class: "ptlab", dy: -12, "text-anchor": "middle" }, grp);
+  return { grp, hit, dot, lab, key };
+}
+const P = { fa: mkPoint(fs, "A", ""), fb: mkPoint(fs, "B", "b"), ga: mkPoint(gs, "A", ""), gb: mkPoint(gs, "B", "b") };
+for (const k in P) {
+  const p = P[k];
+  p.hit.setAttribute("tabindex", "0"); p.hit.setAttribute("role", "button"); p.hit.setAttribute("aria-roledescription", "draggable point");
+  p.hit.addEventListener("keydown", e => keyMove(e, p.key));
+  p.grp.addEventListener("pointerdown", e => startDrag(e, k));
+}
+
+function svgPoint(svg, e) {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : { x: 0, y: 0 };
+}
+let drag = null;
+function startDrag(e, k) {
+  e.preventDefault(); e.stopPropagation();
+  drag = { k, svg: k[0] === "f" ? fs : gs, id: e.pointerId };
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  e.currentTarget.querySelector(".hit").focus({ preventScroll: true });
+  const mv = ev => {
+    if (ev.pointerId !== drag.id) return;
+    const s = svgPoint(drag.svg, ev);
+    const proj = drag.k[0] === "f" ? flat : globeP;
+    const ll = proj.invert([s.x, s.y]);
+    if (!ll || !isFinite(ll[0]) || !isFinite(ll[1])) return;
+    if (Math.abs(ll[1]) > 90 || Math.abs(ll[0]) > 180) return;
+    setPoint(P[drag.k].key, ll[1], ll[0]);
+  };
+  const up = ev => { if (ev.pointerId !== (drag && drag.id)) return; window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); drag = null; };
+  window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+}
+function keyMove(e, key) {
+  const step = e.shiftKey ? STEP_BIG : 1; let dla = 0, dlo = 0;
+  if (e.key === "ArrowUp") dla = step; else if (e.key === "ArrowDown") dla = -step;
+  else if (e.key === "ArrowLeft") dlo = -step; else if (e.key === "ArrowRight") dlo = step; else return;
+  e.preventDefault();
+  const p = state[key];
+  setPoint(key, Math.max(-89.9, Math.min(89.9, p.lat + dla)), wrapLon(p.lon + dlo));
+}
+function setPoint(key, lat, lon) {
+  state[key] = { code: "", city: "", name: "", lat: Math.max(-89.9, Math.min(89.9, lat)), lon: wrapLon(lon) };
+  syncSelects(); draw(); if (autoCentre) centre();
+}
+const selA = document.getElementById("selA"), selB = document.getElementById("selB");
+for (const s of [selA, selB]) {
+  s.appendChild(new Option("Dragged point", ""));
+  AP.slice().sort((a, b) => a.city.localeCompare(b.city)).forEach(a => s.appendChild(new Option(`${a.city} (${a.code})`, a.code)));
+}
+function syncSelects() { selA.value = state.A.code || ""; selB.value = state.B.code || ""; }
+selA.addEventListener("change", () => { if (selA.value) { state.A = { ...byCode[selA.value] }; draw(); if (autoCentre) centre(); } });
+selB.addEventListener("change", () => { if (selB.value) { state.B = { ...byCode[selB.value] }; draw(); if (autoCentre) centre(); } });
+
+let autoCentre = true;
+function centre() {
+  const a = vec(state.A.lat, state.A.lon), b = vec(state.B.lat, state.B.lon);
+  let m = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  if (Math.hypot(...m) < 1e-6) m = a;
+  const lon = Math.atan2(m[1], m[0]) * DEG, lat = Math.atan2(m[2], Math.hypot(m[0], m[1])) * DEG;
+  state.rot = [-lon, -lat]; draw();
+}
+function turn(dx, dy) { autoCentre = false; state.rot = [state.rot[0] + dx, Math.max(-90, Math.min(90, state.rot[1] + dy))]; draw(); }
+document.getElementById("gLeft").onclick = () => turn(-15, 0);
+document.getElementById("gRight").onclick = () => turn(15, 0);
+document.getElementById("gUp").onclick = () => turn(0, -15);
+document.getElementById("gDown").onclick = () => turn(0, 15);
+document.getElementById("gCentre").onclick = () => { autoCentre = true; centre(); };
+/* turn the globe by dragging the sea */
+gs.addEventListener("pointerdown", e => {
+  if (e.target.closest("g")) return;
+  const start = { x: e.clientX, y: e.clientY, rot: state.rot.slice() }, id = e.pointerId, w = gs.getBoundingClientRect().width;
+  const mv = ev => { if (ev.pointerId !== id) return; autoCentre = false; const k = 0.5 * 400 / w;
+    state.rot = [start.rot[0] + (ev.clientX - start.x) * k, Math.max(-90, Math.min(90, start.rot[1] - (ev.clientY - start.y) * k))]; draw(); };
+  const up = ev => { if (ev.pointerId !== id) return; window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); };
+  window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+});
+
+function place(p, proj, ll, label, visible) {
+  const xy = proj(ll);
+  const show = visible && xy;
+  p.grp.style.display = show ? "" : "none";
+  if (!show) return;
+  for (const n of [p.hit, p.dot]) { n.setAttribute("cx", xy[0]); n.setAttribute("cy", xy[1]); }
+  p.lab.setAttribute("x", xy[0]); p.lab.setAttribute("y", xy[1]); p.lab.textContent = label;
+  p.hit.setAttribute("aria-label", `${label} at ${ll[1].toFixed(1)} degrees latitude, ${ll[0].toFixed(1)} degrees longitude. Arrow keys move it.`);
+}
+const nameOf = (s, w) => (s.code ? s.code : w);
+
+let last = null;
+function draw() {
+  const A = state.A, B = state.B, a = [A.lon, A.lat], b = [B.lon, B.lat];
+  const line = { type: "LineString", coordinates: [a, b] };
+  const st = mapStraight(A.lat, A.lon, B.lat, B.lon);
+  // flat map
+  f.gc.setAttribute("d", fpath(line) || "");
+  let d = "", prevX = null;
+  for (const [lo, la] of st.pts) {
+    const xy = flat([wrapLon(lo), la]);
+    d += (prevX === null || Math.abs(xy[0] - prevX) > 360 ? "M" : "L") + xy[0].toFixed(1) + " " + xy[1].toFixed(1);
+    prevX = xy[0];
+  }
+  f.straight[0].setAttribute("d", d);
+  place(P.fa, flat, a, nameOf(A, "A"), true); place(P.fb, flat, b, nameOf(B, "B"), true);
+  // globe
+  globeP.rotate(state.rot);
+  g.sea.setAttribute("d", gpath({ type: "Sphere" })); g.rim.setAttribute("d", gpath({ type: "Sphere" }));
+  g.grat.setAttribute("d", gpath(grat)); g.land.setAttribute("d", gpath(LAND));
+  g.gc.setAttribute("d", gpath(line) || "");
+  const centreLL = globeP.invert([200, 200]);
+  const vis = ll => d3.geoDistance(ll, centreLL) < Math.PI / 2 - 0.02;
+  place(P.ga, globeP, a, nameOf(A, "A"), vis(a)); place(P.gb, globeP, b, nameOf(B, "B"), vis(b));
+  // the dashed map-straight line is drawn on the globe too, as the curve it really is
+  g.flat.setAttribute("d", gpath({ type: "LineString", coordinates: st.pts.map(([lo, la]) => [wrapLon(lo), la]) }) || "");
+  readout(st);
+}
+
+function readout(st) {
+  const A = state.A, B = state.B;
+  const rd = document.getElementById("read"), sum = document.getElementById("summary"), notes = document.getElementById("notes");
+  const nameA = A.code ? `${A.city} (${A.code})` : `point A (${A.lat.toFixed(1)}, ${A.lon.toFixed(1)})`;
+  const nameB = B.code ? `${B.city} (${B.code})` : `point B (${B.lat.toFixed(1)}, ${B.lon.toFixed(1)})`;
+  const h = haversine(A.lat, A.lon, B.lat, B.lon);
+  if (h < 0.05) {
+    sum.textContent = `${nameA} and ${nameB} are the same place, so there is no route to draw.`;
+    rd.innerHTML = ""; notes.textContent = ""; return;
+  }
+  const v = vincenty(A.lat, A.lon, B.lat, B.lon), k = karney(A.lat, A.lon, B.lat, B.lon);
+  const bA = bearingA(A.lat, A.lon, B.lat, B.lon), bB = bearingB(A.lat, A.lon, B.lat, B.lon);
+  const ell = v ? v.km : k.km;
+  const gapKm = h - ell, gapPct = gapKm / ell * 100;
+  const extra = st.km - h;
+  const vlat = vertexLat(A.lat, bA);
+  const rows = [
+    ["Sphere (haversine)", `${fmt(h, 1)} km`],
+    [v ? "Ellipsoid (Vincenty, WGS84)" : "Ellipsoid (Karney; Vincenty did not converge)", `${fmt(ell, 1)} km`],
+    ["Sphere minus ellipsoid", `${gapKm >= 0 ? "+" : "-"}${fmt(Math.abs(gapKm), 1)} km (${gapPct >= 0 ? "+" : "-"}${fmt(Math.abs(gapPct), 2)}%)`],
+    ["Karney's code, same ellipsoid", v ? `${fmt(k.km, 3)} km (differs from Vincenty by ${fmt(Math.abs(k.km - v.km) * 1e6, 2)} mm)` : `${fmt(k.km, 3)} km`],
+    ["Initial bearing, trigonometry", `${fmt(bA, 2)}°`],
+    ["Initial bearing, vectors", `${fmt(bB, 2)}° (differs by ${angDiff(bA, bB) < 1e-9 ? "less than " + fmt(1e-9, 9) : angDiff(bA, bB).toExponential(1)}°)`],
+    ["Ellipsoid bearing (Karney)", `${fmt(k.az1, 2)}° (${angDiff(k.az1, bA) < 0.01 ? "within 0.01" : fmt(angDiff(k.az1, bA), 2)}° of the sphere's)`],
+    ["Highest latitude on the route", ""],
+    ["Straight line on this map, along the sphere", `${fmt(st.km, 0)} km`],
+    ["Longer than the great circle by", `${fmt(extra, 0)} km (${fmt(extra / h * 100, 1)}%)`]
+  ];
+  // the vertex is only on the route when it lies between the ends; say so honestly
+  const onRoute = routeHasVertex(A, B, bA);
+  rows[7][1] = onRoute ? `${fmt(vlat, 1)}° ${onRoute}` : `${fmt(Math.max(Math.abs(A.lat), Math.abs(B.lat)), 1)}° (at an end point)`;
+  rd.innerHTML = rows.map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("");
+  sum.textContent = `${nameA} to ${nameB}: ${fmt(ell, 0)} km on the WGS84 ellipsoid, ${fmt(h, 0)} km on a sphere. The straight line on the flat map is ${extra < 1 ? "no longer" : fmt(extra, 0) + " km longer"} than the great circle.`;
+  notes.textContent = `The drawn arc is the sphere's great circle (d3-geo). On the ellipsoid the shortest path (a geodesic) bends very slightly differently; its distance and bearing are in the table, but it is not drawn separately.`;
+  last = { h, ell, v, k, bA, bB, extra };
+}
+function routeHasVertex(A, B, az1) {
+  // returns "N" or "S" when the route's highest-latitude point lies between the ends, else null
+  const s12 = haversine(A.lat, A.lon, B.lat, B.lon) / R_MEAN;
+  const sigmaA = Math.atan2(Math.tan(A.lat * RAD), Math.cos(az1 * RAD));   // angular distance from the node to A
+  const ahead = x => ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const dN = ahead(Math.PI / 2 - sigmaA), dS = ahead(-Math.PI / 2 - sigmaA);
+  const [d, h] = dN < dS ? [dN, "N"] : [dS, "S"];
+  return d > 1e-9 && d < s12 ? h : null;
+}
+
+/* ---------- self-check page output ---------- */
+function renderChecks() {
+  const res = runChecks();
+  document.getElementById("checks").innerHTML = CHECKS.map(c => {
+    const tag = c.weak ? `<span class="weak">weaker, not independent</span>` : c.id === "gap" ? `<span>measured</span>` : c.ok ? `<span class="ok">pass</span>` : c.id === "coords" ? `<span class="bad">flagged</span>` : `<span class="bad">fail</span>`;
+    return `<li>${tag} &nbsp;${c.html}</li>`;
+  }).join("");
+  const rows = CHECKS[0].rows;
+  const th = h => `<th scope="col">${h}</th>`;
+  let html = `<thead><tr><th scope="col">Pair</th>${th("Sphere")}${th("Ellipsoid (Vincenty)")}${th("Karney")}${th("Vincenty minus Karney (mm)")}${th("Sphere minus ellipsoid (km)")}${th("Sphere minus ellipsoid (%)")}${th("Sphere, OpenFlights coordinates")}${th("Bearing, trig / vectors")}${th("Web-search figure (weaker, not independent)")}</tr></thead><tbody>`;
+  for (const r of rows) {
+    const vv = r.v ? r.v.km : null;
+    html += `<tr${r.web ? ' class="weakrow"' : ""}><td>${r.x}-${r.y}</td><td>${fmt(r.h, 1)}</td><td>${vv === null ? "no answer" : fmt(vv, 3)}</td><td>${fmt(r.k.km, 3)}</td><td>${vv === null ? "-" : fmt((vv - r.k.km) * 1e6, 2)}</td><td>${vv === null ? "-" : fmt(r.h - vv, 1)}</td><td>${vv === null ? "-" : fmt((r.h - vv) / vv * 100, 2)}</td><td>${fmt(r.h2, 1)}</td><td>${fmt(r.bA, 3)} / ${fmt(r.bB, 3)}</td><td>${r.web ? fmt(r.web.km) + (r.web.note ? " (" + r.web.note + ")" : "") : "none found"}</td></tr>`;
+  }
+  document.getElementById("pairs").innerHTML = html + "</tbody>";
+  const nWeb = rows.filter(r => r.web).length;
+  document.getElementById("pairsNote").textContent = `${rows.length} pairs; ${nWeb} ${plural(nWeb, "has", "have")} a web-search figure (amber, weaker, not independent, not counted in any tally). Airports come from OurAirports (${AP.length} airports loaded). Coordinates are each airport's reference point, not a runway.`;
+  const names = rows.map(r => r.x + "-" + r.y);
+  document.getElementById("unverified").innerHTML = [
+    `No published distance table could be fetched (Wikipedia and route-calculator sites were blocked from the build machine). The ${nWeb} amber figures are from search summaries, not from opened pages, and are not independent of one another.`,
+    `The "second source" for ellipsoid distance is a different program (GeographicLib) implementing a different algorithm, not a different data set. It tests the arithmetic, not the choice of WGS84.`,
+    `The sphere distance has no independent check here beyond the amber web figures: haversine, d3-geo's drawn arc and the vector bearing all assume the same sphere of radius ${R_MEAN} km.`,
+    `Real flights follow winds, airspace and fuel plans, not these arcs. Opened only in headless Chrome on a computer; real phones, touch drags and screen readers are untested.`,
+    `The 110 m coastline is coarse (rings rounded to 0.05 degree); dragged points can land in the sea or on a small island it leaves out.`
+  ].map(s => `<li>${s}</li>`).join("");
+  window.GC = { haversine, vincenty, karney, bearingA, bearingB, vertexLat, mapStraight, state, setPoint, draw, runChecks, CHECKS, PAIRS: names, readout, centre };
+}
+
+(function lede() {
+  const t = document.getElementById("lede").textContent, n = t.trim().split(/\s+/).length;
+  document.getElementById("lede").dataset.words = n;
+})();
+document.getElementById("nSamp").textContent = SAMPLES;
+document.querySelector(".stepbig").textContent = STEP_BIG;
+document.querySelector(".rmean").textContent = R_MEAN;
+renderChecks();
+syncSelects();
+centre();
+</script>
+</body>
+</html>

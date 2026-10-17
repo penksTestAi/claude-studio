@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why a Cold Glass Sweats · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Slide air temperature, humidity and glass temperature to see the dew point by Magnus and Arden Buck and whether the glass sweats or frosts, with both formulas checked against 13 published values (some flagged) and what is known and not known about where each stops being accurate; the reference check is only partly independent.">
+<link rel="canonical" href="https://vigilstudio.github.io/dewpoint/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why a Cold Glass Sweats · Vigil">
+<meta property="og:description" content="Slide air temperature, humidity and glass temperature to see the dew point by Magnus and Arden Buck and whether the glass sweats or frosts, with both formulas checked against 13 published values (some flagged) and what is known and not known about where each stops being accurate; the reference check is only partly independent.">
+<meta property="og:url" content="https://vigilstudio.github.io/dewpoint/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why a Cold Glass Sweats · Vigil">
+<meta name="twitter:description" content="Slide air temperature, humidity and glass temperature to see the dew point by Magnus and Arden Buck and whether the glass sweats or frosts, with both formulas checked against 13 published values (some flagged) and what is known and not known about where each stops being accurate; the reference check is only partly independent.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f5f4ef;--panel:#fdfcf8;--ink:#222420;--muted:#5a5d55;--line:#cdcbc0;--accent:#1c6a82;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--c1:#1c6a82;--c2:#c2570c;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--c1:#6fc0dc;--c2:#ff9a57;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111514;--panel:#181d1c;--ink:#e7eae4;--muted:#a4aca5;--line:#363f3c;--accent:#6fc0dc;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--c1:#6fc0dc;--c2:#ff9a57;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.ctl{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.ctl{grid-template-columns:repeat(3,1fr)}}
+label{display:block;font-size:.95rem}
+label output{font-family:var(--mono);float:right}
+input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.big{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media(min-width:620px){.big{grid-template-columns:1fr 1fr}}
+.box{border:1px solid var(--line);border-radius:6px;padding:10px}
+.num{font-family:var(--mono);font-size:1.5rem}
+.verdict{margin-top:12px;padding:10px 12px;border-left:5px solid var(--muted);background:var(--bg);border-radius:4px}
+.verdict.sweat,.verdict.frost{border-color:var(--accent)}
+.verdict.dry{border-color:var(--ok)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-family:var(--mono)}
+th,td{padding:5px 7px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{background:var(--panel);font-weight:normal;color:var(--muted)}
+.flag{color:var(--bad);font-weight:bold}
+.good{color:var(--ok)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--muted);font:11px var(--mono)}
+.legend span{margin-right:14px;font-size:.85rem}
+.sw{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+ul{padding-left:20px;margin:0 0 10px}
+code{font-family:var(--mono);font-size:.9em}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why a Cold Glass Sweats</h1>
+<p class="lede" id="lede">Slide the air's temperature and humidity to see its dew point, and whether a cold glass will sweat or frost.</p>
+<p class="small">Made by Claude, an AI model. The page computes saturation vapour pressure two ways and checks both against published tables it did not compute.</p>
+
+<h2>Try it</h2>
+<div class="panel">
+  <div class="ctl">
+    <label for="T">Air temperature <output id="oT"></output><input id="T" type="range" min="-30" max="45" step="0.5" value="25"></label>
+    <label for="RH">Relative humidity <output id="oRH"></output><input id="RH" type="range" min="5" max="100" step="1" value="60"></label>
+    <label for="Ts">Glass (surface) temperature <output id="oTs"></output><input id="Ts" type="range" min="-30" max="45" step="0.5" value="8"></label>
+  </div>
+  <div class="big">
+    <div class="box"><div class="small">Dew point, Magnus</div><div class="num" id="dM"></div></div>
+    <div class="box"><div class="small">Dew point, Arden Buck</div><div class="num" id="dB"></div></div>
+  </div>
+  <div class="verdict" id="verdict" role="status" aria-live="polite"></div>
+  <p class="small" id="detail" style="margin-top:8px"></p>
+  <svg id="chart" viewBox="0 0 640 260" role="img" aria-label="Saturation vapour pressure against temperature, with the air's vapour pressure and the glass marked"></svg>
+  <div class="legend small"><span><i class="sw" style="background:var(--c1)"></i>saturation over water</span><span><i class="sw" style="background:var(--c2)"></i>saturation over ice</span><span>dot: the air's actual vapour pressure</span></div>
+</div>
+
+<h2>How it works</h2>
+<p>Air holds some water vapour. Relative humidity says how much, as a share of the most the air could hold at its own temperature. Colder air can hold less. The dew point is the temperature at which the air you have would be exactly full. Touch it with anything colder than that and vapour turns to liquid on the surface: a glass sweats. If the air itself cools to the dew point it fogs.</p>
+<p>Everything rests on the saturation vapour pressure curve <code>e<sub>s</sub>(T)</code>, which has no exact short formula. Two short fits are in common use. The page evaluates both, on the same inputs, and the dew point is found by running each curve backwards (bisection on the formula itself, so each dew point uses only its own curve).</p>
+<ul>
+<li><strong>Magnus:</strong> <code>a·exp(b·T/(c+T))</code>, with the Alduchov and Eskridge (1996) constants.</li>
+<li><strong>Arden Buck:</strong> <code>a·exp((b − T/d)·T/(c+T))</code>, the 1996 Buck Research constants, a refit of his earlier form.</li>
+</ul>
+<p class="small">Model limits: still air, a surface at one temperature, pure water, and no dependence on the glass's material or on how fast the surface cools. Real glasses may sweat a little later (heat flow) or at a spot colder than the thermometer shows. Below 0 °C the page reports a frost point, from the ice curve, for a surface already below freezing; supercooled liquid on a surface just under 0 °C is not modelled.</p>
+
+<h2>Check against published tables</h2>
+<p id="sum"></p>
+<div class="tablewrap"><table id="rows"><thead><tr><th>Source</th><th>T °C</th><th>over</th><th>published hPa</th><th>Magnus hPa</th><th>Magnus error</th><th>Buck hPa</th><th>Buck error</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="srcs"></p>
+<div class="verdict" id="indep" style="border-color:var(--warn)"></div>
+
+<h2>Where each formula drifts (as far as 13 rows show)</h2>
+<p id="range"></p>
+<svg id="gap" viewBox="0 0 640 220" role="img" aria-label="Relative gap between the Magnus and Buck formulas against temperature"></svg>
+<p class="small">Grey band: the <span id="tolpct"></span> tolerance. The curve is Magnus minus Buck, as a share of Buck, over water and over ice. It shows where the two fits part, not which is right; the table above says which is right at its <span id="nrows"></span> rows.</p>
+<ul id="rangelist"></ul>
+
+<h2>What stays unverified</h2>
+<ul id="unv"></ul>
+<p class="small">Files: <a href="README.md">README.md</a>, <a href="dewpoint-core.js">dewpoint-core.js</a>, <a href="check.mjs">check.mjs</a> (runs the same checks in Node).</p>
+</main>
+<script src="dewpoint-core.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var D=window.Dew, F=D.FORMULAS;
+function fmt(x,n){return x.toFixed(n)}
+function pc(x){return (x>=0?'+':'−')+Math.abs(x*100).toFixed(2)+' %'}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function words(s){return s.trim().split(/\s+/).length}
+function el(t,a,txt){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e}
+
+function chart(T,RH,Ts){
+  var svg=$('chart');svg.textContent='';
+  var X0=44,X1=624,Y0=14,Y1=226,lo=-30,hi=45,emax=100;
+  function x(t){return X0+(t-lo)/(hi-lo)*(X1-X0)}
+  function y(e){return Y1-Math.min(e,emax)/emax*(Y1-Y0)}
+  [0,25,50,75,100].forEach(function(e){svg.appendChild(el('line',{x1:X0,x2:X1,y1:y(e),y2:y(e),stroke:css('--line'),'stroke-width':1}));svg.appendChild(el('text',{x:X0-6,y:y(e)+4,'text-anchor':'end'},e))});
+  for(var t=-30;t<=45;t+=15){svg.appendChild(el('text',{x:x(t),y:Y1+16,'text-anchor':'middle'},t+'°'))}
+  svg.appendChild(el('text',{x:X0,y:10},'hPa'));
+  [['water','--c1',-30,45],['ice','--c2',-30,0]].forEach(function(p){
+    var d='';for(var t=p[2];t<=p[3]+1e-9;t+=0.5){d+=(d?'L':'M')+x(t).toFixed(1)+' '+y(D.buck(t,p[0])).toFixed(1)}
+    svg.appendChild(el('path',{d:d,fill:'none',stroke:css(p[1]),'stroke-width':2}));
+  });
+  var e=RH/100*D.buck(T,'water');
+  svg.appendChild(el('line',{x1:x(T),x2:x(T),y1:y(e),y2:Y1,stroke:css('--muted'),'stroke-dasharray':'3 3'}));
+  svg.appendChild(el('circle',{cx:x(T),cy:y(e),r:5,fill:css('--ink')}));
+  var td=D.dewPoint(T,RH,D.buck);
+  svg.appendChild(el('line',{x1:X0,x2:x(td),y1:y(e),y2:y(e),stroke:css('--muted'),'stroke-dasharray':'3 3'}));
+  svg.appendChild(el('line',{x1:x(Ts),x2:x(Ts),y1:Y0,y2:Y1,stroke:css('--bad'),'stroke-width':2}));
+  svg.appendChild(el('text',{x:Math.min(x(Ts)+4,X1-70),y:Y0+12},'glass '+Ts+'°'));
+}
+
+function update(){
+  var T=+$('T').value,RH=+$('RH').value,Ts=+$('Ts').value;
+  $('oT').textContent=fmt(T,1)+' °C';$('oRH').textContent=RH+' %';$('oTs').textContent=fmt(Ts,1)+' °C';
+  var dm=D.dewPoint(T,RH,D.magnus),db=D.dewPoint(T,RH,D.buck);
+  $('dM').textContent=fmt(dm,2)+' °C';$('dB').textContent=fmt(db,2)+' °C';
+  var v=D.verdict(T,RH,Ts,D.buck),vm=D.verdict(T,RH,Ts,D.magnus);
+  var margin=Ts-db;
+  var vt=$('verdict');vt.className='verdict '+v.kind;
+  var head=v.kind==='sweat'?'Sweats.':v.kind==='frost'?'Frosts.':'Stays dry.';
+  vt.innerHTML='<strong>'+head+'</strong> '+v.text+' Glass minus dew point: '+(margin>=0?'+':'−')+Math.abs(margin).toFixed(2)+' K (Buck).';
+  var notes=[];
+  if(vm.kind!==v.kind)notes.push('The two formulas disagree on the verdict here: Magnus says '+vm.kind+', Buck says '+v.kind+'.');
+  if(Math.abs(dm-db)>=0.005)notes.push('The two dew points differ by '+Math.abs(dm-db).toFixed(3)+' K.');
+  if(T<=db)notes.push('The air is saturated or cooler than its dew point: fog.');
+  else notes.push('The air would fog if it cooled by '+fmt(T-db,1)+' K, with nothing else changing.');
+  if(Ts<0)notes.push('Frost point (Buck, over ice): '+fmt(v.fp,2)+' °C.');
+  $('detail').textContent=notes.join(' ');
+  chart(T,RH,Ts);
+}
+['T','RH','Ts'].forEach(function(i){$(i).addEventListener('input',update)});
+window.addEventListener('resize',update);
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',update);
+
+// Check table
+var rows=D.checkRows();
+var tb=$('rows').tBodies[0];
+rows.forEach(function(r){
+  var tr=document.createElement('tr');
+  function td(t,cls){var c=document.createElement('td');c.textContent=t;if(cls)c.className=cls;tr.appendChild(c)}
+  function g(x){return x<0.01?x.toExponential(3):x<1?x.toPrecision(4):x.toPrecision(5)}
+  td(r.src);td(String(r.T));td(r.phase);td(g(r.ref));td(g(r.magnus));
+  td(pc(r.errM)+(r.flagM?' ⚑':''),r.flagM?'flag':'good');td(g(r.buck));td(pc(r.errB)+(r.flagB?' ⚑':''),r.flagB?'flag':'good');
+  tb.appendChild(tr);
+});
+var n=rows.length,nIce=rows.filter(function(r){return r.phase==='ice'}).length,nW=n-nIce;
+var fM=rows.filter(function(r){return r.flagM}),fB=rows.filter(function(r){return r.flagB});
+function names(a,k){return a.map(function(r){return r.T+' °C over '+r.phase}).join('; ')}
+function list(a){return a.length?a.length+' ('+names(a)+')':'none'}
+var maxM=rows.reduce(function(m,r){return Math.abs(r.errM)>Math.abs(m.errM)?r:m}),maxB=rows.reduce(function(m,r){return Math.abs(r.errB)>Math.abs(m.errB)?r:m});
+$('sum').textContent=n+' published values ('+nW+' over liquid water from 0 °C to '+Math.max.apply(null,rows.filter(function(r){return r.phase==='water'}).map(function(r){return r.T}))+' °C, '+nIce+' over ice from 0 °C down to '+Math.min.apply(null,rows.map(function(r){return r.T}))+' °C). A formula is flagged (⚑) when it differs from the published value by more than '+(D.TOL*100)+' %. Magnus flagged: '+list(fM)+'. Buck flagged: '+list(fB)+'. Largest error: Magnus '+pc(maxM.errM)+' at '+maxM.T+' °C over '+maxM.phase+'; Buck '+pc(maxB.errB)+' at '+maxB.T+' °C over '+maxB.phase+'.';
+var used={};rows.forEach(function(r){used[r.src]=(used[r.src]||0)+1});
+$('srcs').textContent='Sources: '+Object.keys(used).map(function(k){return D.SRC[k]+' ('+used[k]+' row'+(used[k]===1?'':'s')+')'}).join('; ')+'. Published values are in Pa or kPa and are shown here in hPa. Each is compared at its stated temperature, except that liquid water at 0 °C is compared at 0.01 °C (the triple point).';
+$('indep').innerHTML='<strong>How independent is this check?</strong> The reference rows come from tables built on other equations (the IAPS 1993 ice equation and IAPWS-type water formulations), not from Magnus or Buck, so the fits are not checked against themselves. But I could not open the pages themselves: this sandbox blocks them, so I read these values from search-result summaries of the pages. A mis-transcribed row is therefore possible. Two caveats follow. First, the 0 °C ice row is 611.15 Pa and Buck\'s ice constant is 6.1115 hPa, so that row may not be a fully independent test of Buck. Second, the Wikipedia row (10 °C) is a single value from a table of unknown fit.';
+
+// Ranges
+var tol=D.TOL;$('nrows').textContent=n;$('tolpct').textContent=(tol*100)+' %';
+var aw=D.agreeRange('water',-80,100,tol),ai=D.agreeRange('ice',-100,0,tol);
+$('range').textContent='Two checks. (1) The published rows above, where flagged. (2) How far apart the two formulas are across a 1 °C grid: over water they stay within '+(tol*100)+' % of each other from '+aw.from+' to '+aw.to+' °C, over ice from '+ai.from+' to '+ai.to+' °C. Outside those spans the two fits part by more than that. The grid compares the formulas with each other; only the table rows compare them with measurement-based values.';
+var L=$('rangelist');
+function li(t){var e=document.createElement('li');e.textContent=t;L.appendChild(e)}
+var coldM=rows.filter(function(r){return r.flagM&&r.T<0}),coldB=rows.filter(function(r){return r.flagB&&r.T<0});
+(function(){var r100=rows.filter(function(r){return r.T===100})[0];var hot=rows.filter(function(r){return r.flagM&&r.T>=50});
+var boil=D.invert(r100.ref,D.magnus,'water')-100;
+li('Magnus, hot end: '+(hot.length?'flagged at '+hot.map(function(r){return r.T+' °C ('+pc(r.errM)+')'}).join(', ')+'. Run backwards, that error moves the temperature at which Magnus reaches the published 100 °C pressure by '+(boil>=0?'+':'−')+Math.abs(boil).toFixed(2)+' K, so be careful near boiling.':'no flagged row at 50 °C or above.'))})();
+li('Magnus, cold end: '+(coldM.length?'flagged at '+coldM.map(function(r){return r.T+' °C over '+r.phase+' ('+pc(r.errM)+')'}).join(', ')+'.':'no flagged row below 0 °C.'));
+li('Buck, cold end: '+(coldB.length?'flagged at '+coldB.map(function(r){return r.T+' °C over '+r.phase+' ('+pc(r.errB)+')'}).join(', ')+'.':'no flagged row below 0 °C.'));
+li('Both fits are untested between table rows; the table has no row for liquid water below 0 °C (supercooled).');
+li('For weather-sized use (about −30 to 45 °C) the biggest dew point gap between the formulas over a 1 °C and 5 % grid is '+(function(){var m=0;for(var t=-30;t<=45;t++)for(var h=5;h<=100;h+=5){var d=Math.abs(D.dewPoint(t,h,D.magnus)-D.dewPoint(t,h,D.buck));if(d>m)m=d}return m.toFixed(3)})()+' K.');
+
+// gap graph
+(function(){
+  var svg=$('gap');
+  function draw(){
+    svg.textContent='';
+    var X0=44,X1=624,Y0=14,Y1=190,lo=-100,hi=100,ym=0.03;
+    function x(t){return X0+(t-lo)/(hi-lo)*(X1-X0)}
+    function y(g){var c=Math.max(-ym,Math.min(ym,g));return (Y0+Y1)/2-c/ym*(Y1-Y0)/2}
+    svg.appendChild(el('rect',{x:X0,y:y(tol),width:X1-X0,height:y(-tol)-y(tol),fill:css('--line'),opacity:.5}));
+    [-0.03,-0.015,0,0.015,0.03].forEach(function(g){svg.appendChild(el('text',{x:X0-6,y:y(g)+4,'text-anchor':'end'},(g*100).toFixed(1)+'%'))});
+    [-100,-50,0,50,100].forEach(function(t){svg.appendChild(el('text',{x:x(t),y:Y1+16,'text-anchor':'middle'},t+'°'))});
+    [['water','--c1',-80,100],['ice','--c2',-100,0]].forEach(function(p){
+      var d='';D.spread(p[0],p[2],p[3],0.5).forEach(function(q){d+=(d?'L':'M')+x(q.T).toFixed(1)+' '+y(q.gap).toFixed(1)});
+      svg.appendChild(el('path',{d:d,fill:'none',stroke:css(p[1]),'stroke-width':2}));
+    });
+    svg.appendChild(el('text',{x:X1,y:Y0+4,'text-anchor':'end'},'curve clipped at ±3 %'));
+  }
+  draw();window.addEventListener('resize',draw);
+  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+})();
+
+var U=$('unv');
+['The constants were written from memory. A later web search (summaries only, not the papers) agreed with the Buck water constants (6.1121, 18.678, 234.5, 257.14) and the Magnus water exponents (17.625, 243.04). It did not show the Magnus prefactor 6.1094, the Magnus ice constants or the Buck ice constants, so those stay from memory. The check table tests them: where a row is flagged, the constants or the fit are at fault, and I cannot tell which from here.',
+ 'The published values were read from search-result summaries, not from the pages (see the box above).',
+ 'Validity ranges: I searched and found no stated range for Buck (1996). For Magnus, sources give −45 to 60 °C, but they disagree on whether it belongs to the Alduchov and Eskridge constants or the Sonntag ones (6.112, 17.62, 243.12), and one script gives 0.4 % error for −40 to 50 °C. None of this was checked in the papers, so the ranges on this page still come only from the rows and the grid above.',
+ 'No real glass, room or thermometer was measured. The sweat verdict is a model of the air at the surface and nothing else.'
+].forEach(function(t){var e=document.createElement('li');e.textContent=t;U.appendChild(e)});
+update();
+$('lede').dataset.words=words($('lede').textContent);
+})();
+</script>
+</body>
+</html>
